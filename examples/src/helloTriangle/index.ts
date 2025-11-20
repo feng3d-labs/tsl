@@ -3,6 +3,11 @@ import { RenderPass, Submit } from "@feng3d/render-api";
 import { WebGL } from "@feng3d/webgl";
 import { WebGPU } from "@feng3d/webgpu";
 
+import fragmentGlsl from "./shaders/fragment.glsl";
+import fragmentWgsl from "./shaders/fragment.wgsl";
+import vertexGlsl from "./shaders/vertex.glsl";
+import vertexWgsl from "./shaders/vertex.wgsl";
+
 document.addEventListener('DOMContentLoaded', async () =>
 {
     const devicePixelRatio = window.devicePixelRatio || 1;
@@ -34,36 +39,12 @@ document.addEventListener('DOMContentLoaded', async () =>
                         renderPassObjects: [{ // 渲染对象
                             pipeline: { // 渲染管线
                                 vertex: { // 顶点着色器
-                                    glsl: `
-                                    attribute vec2 position;
-
-                                    void main() {
-                                        gl_Position = vec4(position, 0.0, 1.0);
-                                    }
-                                    `,
-                                    wgsl: `
-                                    @vertex
-                                    fn main(
-                                        @location(0) position: vec2<f32>,
-                                    ) -> @builtin(position) vec4<f32> {
-                                        return vec4<f32>(position, 0.0, 1.0);
-                                    }
-                                    `  },
+                                    glsl: vertexGlsl,
+                                    wgsl: vertexWgsl,
+                                },
                                 fragment: { // 片段着色器
-                                    glsl: `
-                                    precision highp float;
-                                    uniform vec4 color;
-                                    void main() {
-                                        gl_FragColor = color;
-                                    }
-                                    `,
-                                    wgsl: `
-                                    @binding(0) @group(0) var<uniform> color : vec4<f32>;
-                                    @fragment
-                                    fn main() -> @location(0) vec4f {
-                                        return color;
-                                    }
-                                `,
+                                    glsl: fragmentGlsl,
+                                    wgsl: fragmentWgsl,
                                 },
                             },
                             vertices: {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateGLSL, generateWGSL, generateShaders, ShaderConfig } from '../src/shaderGenerator';
+import { generateGLSL, generateWGSL, generateShaders, ShaderConfig, FunctionCallConfig } from '../src/shaderGenerator';
 
 describe('shaderGenerator', () =>
 {
@@ -447,6 +447,122 @@ fn main(
 
             const glsl = generateGLSL(config);
             expect(glsl).toContain('void main()');
+        });
+    });
+
+    describe('函数调用对象形式', () =>
+    {
+        it('应该使用函数调用对象生成 GLSL vec4 代码', () =>
+        {
+            const config: ShaderConfig = {
+                type: 'vertex',
+                attributes: [
+                    {
+                        name: 'position',
+                        type: 'vec2',
+                        location: 0,
+                    },
+                ],
+                main: {
+                    return: {
+                        function: 'vec4',
+                        args: ['position', '0.0', '1.0'],
+                    },
+                },
+            };
+
+            const glsl = generateGLSL(config);
+            expect(glsl).toContain('gl_Position = vec4(position, 0.0, 1.0);');
+        });
+
+        it('应该使用函数调用对象生成 WGSL vec4 代码', () =>
+        {
+            const config: ShaderConfig = {
+                type: 'vertex',
+                attributes: [
+                    {
+                        name: 'position',
+                        type: 'vec2',
+                        location: 0,
+                    },
+                ],
+                main: {
+                    return: {
+                        function: 'vec4',
+                        args: ['position', '0.0', '1.0'],
+                    },
+                },
+            };
+
+            const wgsl = generateWGSL(config);
+            expect(wgsl).toContain('return vec4<f32>(position, 0.0, 1.0);');
+        });
+
+        it('应该支持嵌套的函数调用', () =>
+        {
+            const config: ShaderConfig = {
+                type: 'fragment',
+                precision: 'highp',
+                main: {
+                    return: {
+                        function: 'vec4',
+                        args: [
+                            {
+                                function: 'vec3',
+                                args: ['1.0', '0.5', '0.0'],
+                            },
+                            '1.0',
+                        ],
+                    },
+                },
+            };
+
+            const glsl = generateGLSL(config);
+            expect(glsl).toContain('gl_FragColor = vec4(vec3(1.0, 0.5, 0.0), 1.0);');
+
+            const wgsl = generateWGSL(config);
+            expect(wgsl).toContain('return vec4<f32>(vec3<f32>(1.0, 0.5, 0.0), 1.0);');
+        });
+
+        it('应该支持 ivec 和 uvec 类型', () =>
+        {
+            const config: ShaderConfig = {
+                type: 'fragment',
+                precision: 'highp',
+                main: {
+                    return: {
+                        function: 'vec4',
+                        args: [
+                            {
+                                function: 'ivec3',
+                                args: ['1', '2', '3'],
+                            },
+                            '1.0',
+                        ],
+                    },
+                },
+            };
+
+            const wgsl = generateWGSL(config);
+            expect(wgsl).toContain('vec3<i32>(1, 2, 3)');
+        });
+
+        it('应该支持自定义 typeParam', () =>
+        {
+            const config: ShaderConfig = {
+                type: 'fragment',
+                precision: 'highp',
+                main: {
+                    return: {
+                        function: 'vec4',
+                        args: ['1.0', '0.5', '0.0', '1.0'],
+                        typeParam: 'f32',
+                    },
+                },
+            };
+
+            const wgsl = generateWGSL(config);
+            expect(wgsl).toContain('vec4<f32>(1.0, 0.5, 0.0, 1.0)');
         });
     });
 });

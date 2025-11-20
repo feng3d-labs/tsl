@@ -89,12 +89,25 @@ export interface VertexAttributeConfig
 }
 
 /**
+ * 函数调用配置
+ */
+export interface FunctionCallConfig
+{
+    /** 函数名，如 vec4, vec3, vec2 等 */
+    readonly function: string;
+    /** 函数参数列表 */
+    readonly args: readonly (string | number | FunctionCallConfig)[];
+    /** 类型参数（仅用于 WGSL，如 f32, i32, u32） */
+    readonly typeParam?: 'f32' | 'i32' | 'u32';
+}
+
+/**
  * Fragment Shader 主函数配置
  */
 export interface FragmentMainFunctionConfig
 {
-    /** 返回值表达式 */
-    readonly return?: string;
+    /** 返回值表达式（字符串形式或函数调用对象形式） */
+    readonly return?: string | FunctionCallConfig;
     /** 函数体代码（可选，如果提供则使用此代码，否则使用 return） */
     readonly body?: string;
 }
@@ -104,8 +117,8 @@ export interface FragmentMainFunctionConfig
  */
 export interface VertexMainFunctionConfig
 {
-    /** 返回值表达式 */
-    readonly return?: string;
+    /** 返回值表达式（字符串形式或函数调用对象形式） */
+    readonly return?: string | FunctionCallConfig;
     /** 函数体代码（可选，如果提供则使用此代码，否则使用 return） */
     readonly body?: string;
 }

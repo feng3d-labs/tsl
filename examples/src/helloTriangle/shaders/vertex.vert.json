@@ -1,0 +1,18 @@
+{
+  "$schema": "../../../../src/schemas/vertex.schema.json",
+  "type": "vertex",
+  "attributes": [
+    {
+      "name": "position",
+      "type": "vec2",
+      "location": 0
+    }
+  ],
+  "main": {
+    "return": {
+      "function": "vec4",
+      "args": ["position", "0.0", "1.0"]
+    }
+  }
+}
+

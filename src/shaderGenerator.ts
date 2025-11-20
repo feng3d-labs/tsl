@@ -44,12 +44,25 @@ export interface AttributeConfig
 }
 
 /**
+ * 函数调用配置
+ */
+export interface FunctionCallConfig
+{
+    /** 函数名，如 vec4, vec3, vec2 等 */
+    function: string;
+    /** 函数参数列表 */
+    args: (string | number | FunctionCallConfig)[];
+    /** 类型参数（仅用于 WGSL，如 f32, i32, u32） */
+    typeParam?: 'f32' | 'i32' | 'u32';
+}
+
+/**
  * 主函数配置
  */
 export interface MainFunctionConfig
 {
-    /** 返回值表达式 */
-    return?: string;
+    /** 返回值表达式（字符串形式，兼容旧格式） */
+    return?: string | FunctionCallConfig;
     /** 函数体代码（可选，如果提供则使用此代码，否则使用 return） */
     body?: string;
 }
@@ -85,6 +98,87 @@ const typeMap: Record<string, string> = {
 function convertTypeToWGSL(glslType: string): string
 {
     return typeMap[glslType] || glslType;
+}
+
+/**
+ * 生成 GLSL 函数调用代码
+ */
+function generateFunctionCallGLSL(call: FunctionCallConfig): string
+{
+    const args = call.args.map(arg =>
+    {
+        if (typeof arg === 'string' || typeof arg === 'number')
+        {
+            return String(arg);
+        } else
+        {
+            // 递归处理嵌套的函数调用
+            return generateFunctionCallGLSL(arg);
+        }
+    }).join(', ');
+
+    return `${call.function}(${args})`;
+}
+
+/**
+ * 生成 WGSL 函数调用代码
+ */
+function generateFunctionCallWGSL(call: FunctionCallConfig): string
+{
+    const args = call.args.map(arg =>
+    {
+        if (typeof arg === 'string' || typeof arg === 'number')
+        {
+            return String(arg);
+        } else
+        {
+            // 递归处理嵌套的函数调用
+            return generateFunctionCallWGSL(arg);
+        }
+    }).join(', ');
+
+    // 对于向量和矩阵构造函数，需要添加类型参数
+    const needsTypeParam = /^(vec[234]|ivec[234]|uvec[234]|mat[234]|mat[234]x[234])$/.test(call.function);
+
+    if (needsTypeParam)
+    {
+        // 确定类型参数
+        let typeParam = call.typeParam || 'f32';
+
+        if (call.function.startsWith('ivec'))
+        {
+            typeParam = 'i32';
+        } else if (call.function.startsWith('uvec'))
+        {
+            typeParam = 'u32';
+        }
+
+        // 将 vec4 转换为 vec4<f32>，ivec4 转换为 vec4<i32>，uvec4 转换为 vec4<u32>
+        const baseType = call.function.replace(/^(vec|ivec|uvec|mat)/, (match) =>
+        {
+            if (match.startsWith('ivec')) return 'vec';
+            if (match.startsWith('uvec')) return 'vec';
+
+            return match;
+        });
+
+        // 构建 WGSL 类型
+        const dimension = call.function.match(/\d+/)?.[0] || '';
+
+        if (call.function.startsWith('mat'))
+        {
+            // 矩阵类型：mat2 -> mat2x2<f32>
+            const wgslType = convertTypeToWGSL(baseType);
+
+            return `${wgslType}(${args})`;
+        } else
+        {
+            // 向量类型：vec4 -> vec4<f32>
+            return `vec${dimension}<${typeParam}>(${args})`;
+        }
+    }
+
+    return `${call.function}(${args})`;
 }
 
 /**
@@ -138,12 +232,24 @@ export function generateGLSL(config: ShaderConfig): string
     } else if (config.main.return)
     {
         // 使用 return 表达式
+        let glslReturn: string;
+
+        if (typeof config.main.return === 'string')
+        {
+            // 字符串形式：将 WGSL 语法转换为 GLSL 语法（移除类型参数，如 vec4<f32> -> vec4）
+            glslReturn = config.main.return.replace(/<f32>/g, '').replace(/<i32>/g, '').replace(/<u32>/g, '');
+        } else
+        {
+            // 对象形式：函数调用配置
+            glslReturn = generateFunctionCallGLSL(config.main.return);
+        }
+
         if (config.type === 'fragment')
         {
-            lines.push(`    gl_FragColor = ${config.main.return};`);
+            lines.push(`    gl_FragColor = ${glslReturn};`);
         } else if (config.type === 'vertex')
         {
-            lines.push(`    gl_Position = ${config.main.return};`);
+            lines.push(`    gl_Position = ${glslReturn};`);
         }
     }
 
@@ -215,7 +321,19 @@ export function generateWGSL(config: ShaderConfig): string
             }
         } else if (config.main.return)
         {
-            lines.push(`    return ${config.main.return};`);
+            let wgslReturn: string;
+
+            if (typeof config.main.return === 'string')
+            {
+                // 字符串形式：直接使用
+                wgslReturn = config.main.return;
+            } else
+            {
+                // 对象形式：函数调用配置
+                wgslReturn = generateFunctionCallWGSL(config.main.return);
+            }
+
+            lines.push(`    return ${wgslReturn};`);
         }
     } else
     {
@@ -232,7 +350,19 @@ export function generateWGSL(config: ShaderConfig): string
             }
         } else if (config.main.return)
         {
-            lines.push(`    return ${config.main.return};`);
+            let wgslReturn: string;
+
+            if (typeof config.main.return === 'string')
+            {
+                // 字符串形式：直接使用
+                wgslReturn = config.main.return;
+            } else
+            {
+                // 对象形式：函数调用配置
+                wgslReturn = generateFunctionCallWGSL(config.main.return);
+            }
+
+            lines.push(`    return ${wgslReturn};`);
         }
     }
 

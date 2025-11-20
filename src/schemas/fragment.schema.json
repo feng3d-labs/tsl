@@ -76,8 +76,40 @@
       "required": [],
       "properties": {
         "return": {
-          "type": "string",
-          "description": "返回值表达式"
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "返回值表达式（字符串形式）"
+            },
+            {
+              "type": "object",
+              "description": "返回值表达式（函数调用对象形式）",
+              "required": ["function", "args"],
+              "properties": {
+                "function": {
+                  "type": "string",
+                  "description": "函数名，如 vec4, vec3, vec2 等"
+                },
+                "args": {
+                  "type": "array",
+                  "description": "函数参数列表",
+                  "items": {
+                    "oneOf": [
+                      { "type": "string" },
+                      { "type": "number" },
+                      { "$ref": "#/definitions/functionCall" }
+                    ]
+                  }
+                },
+                "typeParam": {
+                  "type": "string",
+                  "enum": ["f32", "i32", "u32"],
+                  "description": "类型参数（仅用于 WGSL，如 f32, i32, u32）"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         },
         "body": {
           "type": "string",
@@ -90,6 +122,33 @@
         { "required": ["body"] }
       ]
     }
+  },
+  "definitions": {
+    "functionCall": {
+      "type": "object",
+      "required": ["function", "args"],
+      "properties": {
+        "function": {
+          "type": "string"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "number" },
+              { "$ref": "#/definitions/functionCall" }
+            ]
+          }
+        },
+        "typeParam": {
+          "type": "string",
+          "enum": ["f32", "i32", "u32"]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
   },
   "additionalProperties": false
 }

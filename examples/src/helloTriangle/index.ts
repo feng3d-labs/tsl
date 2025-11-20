@@ -8,11 +8,14 @@ import fragmentWgsl from "./shaders/fragment.wgsl";
 import vertexGlsl from "./shaders/vertex.glsl";
 import vertexWgsl from "./shaders/vertex.wgsl";
 import fragmentJson from "./shaders/fragment.frag.json";
+import vertexJson from "./shaders/vertex.vert.json";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
     const fragmentGlsl = generateGLSL(fragmentJson);
     const fragmentWgsl = generateWGSL(fragmentJson);
+    const vertexGlsl = generateGLSL(vertexJson);
+    const vertexWgsl = generateWGSL(vertexJson);
 
     //
     const webgpu = await new WebGPU({ canvasId: 'webgpu' }, { clearColorValue: [0.0, 0.0, 0.0, 1.0] }).init(); // 初始化WebGPU

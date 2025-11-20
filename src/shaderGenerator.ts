@@ -4,9 +4,9 @@
 export interface ShaderConfig
 {
     /** 着色器类型：vertex 或 fragment */
-    type: 'vertex' | 'fragment';
+    type: 'vertex' | 'fragment' | string;
     /** GLSL 精度声明（仅用于 fragment shader） */
-    precision?: 'lowp' | 'mediump' | 'highp';
+    precision?: 'lowp' | 'mediump' | 'highp' | string;
     /** 统一变量列表 */
     uniforms?: UniformConfig[];
     /** 属性变量列表（仅用于 vertex shader） */

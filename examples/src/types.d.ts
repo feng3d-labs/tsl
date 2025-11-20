@@ -68,3 +68,13 @@ declare module '*.fs' {
   const shader: string;
   export default shader;
 }
+
+declare module '*.vert.json' {
+  const shader: import('@feng3d/tsl').ShaderConfig;
+  export default shader;
+}
+
+declare module '*.frag.json' {
+  const shader: import('@feng3d/tsl').ShaderConfig;
+  export default shader;
+}

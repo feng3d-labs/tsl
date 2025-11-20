@@ -7,7 +7,7 @@ import fragmentGlsl from "./shaders/fragment.glsl";
 import fragmentWgsl from "./shaders/fragment.wgsl";
 import vertexGlsl from "./shaders/vertex.glsl";
 import vertexWgsl from "./shaders/vertex.wgsl";
-import fragmentJson from "./shaders/fragment.json";
+import fragmentJson from "./shaders/fragment.frag.json";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {

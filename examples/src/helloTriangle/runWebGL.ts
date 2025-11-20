@@ -1,14 +1,12 @@
 import { Submit } from '@feng3d/render-api';
 import { WebGL } from '@feng3d/webgl';
 
-export async function runWebGL(canvas: HTMLCanvasElement)
+export async function runWebGL(webgl: WebGL, canvas: HTMLCanvasElement)
 {
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     canvas.width = canvas.clientWidth * devicePixelRatio;
     canvas.height = canvas.clientHeight * devicePixelRatio;
-
-    const webgl = new WebGL({ canvasId: canvas, webGLcontextId: 'webgl2' }); // 初始化WebGL
 
     const submit: Submit = { // 一次GPU提交
         commandEncoders: [ // 命令编码列表

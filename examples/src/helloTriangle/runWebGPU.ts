@@ -1,14 +1,12 @@
 import { Submit } from '@feng3d/render-api';
 import { WebGPU } from '@feng3d/webgpu';
 
-export async function runWebGPU(canvas: HTMLCanvasElement)
+export async function runWebGPU(webgpu: WebGPU, canvas: HTMLCanvasElement)
 {
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     canvas.width = canvas.clientWidth * devicePixelRatio;
     canvas.height = canvas.clientHeight * devicePixelRatio;
-
-    const webgpu = await new WebGPU().init(); // 初始化WebGPU
 
     const submit: Submit = { // 一次GPU提交
         commandEncoders: [ // 命令编码列表

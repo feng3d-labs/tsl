@@ -22,7 +22,7 @@ export async function runWebGL(webgl: WebGL, canvas: HTMLCanvasElement)
                         renderPassObjects: [{ // 渲染对象
                             pipeline: { // 渲染管线
                                 vertex: { // 顶点着色器
-                                    code: `
+                                    glsl: `
                                     attribute vec2 position;
 
                                     void main() {
@@ -30,7 +30,7 @@ export async function runWebGL(webgl: WebGL, canvas: HTMLCanvasElement)
                                     }
                                     ` },
                                 fragment: { // 片段着色器
-                                    code: `
+                                    glsl: `
                                     precision highp float;
                                     uniform vec4 color;
                                     void main() {

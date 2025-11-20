@@ -22,7 +22,7 @@ export async function runWebGPU(webgpu: WebGPU, canvas: HTMLCanvasElement)
                         renderPassObjects: [{ // 渲染对象
                             pipeline: { // 渲染管线
                                 vertex: { // 顶点着色器
-                                    code: `
+                                    wgsl: `
                                     @vertex
                                     fn main(
                                         @location(0) position: vec2<f32>,
@@ -31,7 +31,7 @@ export async function runWebGPU(webgpu: WebGPU, canvas: HTMLCanvasElement)
                                     }
                                     ` },
                                 fragment: { // 片段着色器
-                                    code: `
+                                    wgsl: `
                                         @binding(0) @group(0) var<uniform> color : vec4<f32>;
                                         @fragment
                                         fn main() -> @location(0) vec4f {

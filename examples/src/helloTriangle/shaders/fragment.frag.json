@@ -1,4 +1,5 @@
 {
+  "$schema": "../../../../src/schemas/fragment.schema.json",
   "type": "fragment",
   "precision": "highp",
   "uniforms": [

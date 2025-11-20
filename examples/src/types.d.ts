@@ -70,11 +70,11 @@ declare module '*.fs' {
 }
 
 declare module '*.vert.json' {
-  const shader: import('@feng3d/tsl').ShaderConfig;
+  const shader: import('@feng3d/tsl').VertexShaderConfig;
   export default shader;
 }
 
 declare module '*.frag.json' {
-  const shader: import('@feng3d/tsl').ShaderConfig;
+  const shader: import('@feng3d/tsl').FragmentShaderConfig;
   export default shader;
 }

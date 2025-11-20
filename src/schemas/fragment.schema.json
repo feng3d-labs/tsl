@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fragment Shader Configuration",
+  "description": "JSON schema for fragment shader configuration files (.frag.json)",
+  "type": "object",
+  "required": ["type", "main"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["fragment"],
+      "description": "着色器类型，必须为 'fragment'"
+    },
+    "precision": {
+      "type": "string",
+      "enum": ["lowp", "mediump", "highp"],
+      "description": "GLSL 精度声明（仅用于 fragment shader）"
+    },
+    "uniforms": {
+      "type": "array",
+      "description": "统一变量列表",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "变量名"
+          },
+          "type": {
+            "type": "string",
+            "description": "类型：vec2, vec3, vec4, float, int, mat2, mat3, mat4 等",
+            "pattern": "^(float|int|uint|bool|vec[234]|ivec[234]|uvec[234]|bvec[234]|mat[234]|mat[234]x[234])$"
+          },
+          "binding": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "WGSL 绑定位置"
+          },
+          "group": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "WGSL 绑定组"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "attributes": {
+      "type": "array",
+      "description": "属性变量列表（通常不用于 fragment shader，但允许定义）",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "变量名"
+          },
+          "type": {
+            "type": "string",
+            "description": "类型：vec2, vec3, vec4, float 等",
+            "pattern": "^(float|vec[234])$"
+          },
+          "location": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "WGSL location"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "main": {
+      "type": "object",
+      "description": "主函数配置",
+      "required": [],
+      "properties": {
+        "return": {
+          "type": "string",
+          "description": "返回值表达式"
+        },
+        "body": {
+          "type": "string",
+          "description": "函数体代码（可选，如果提供则使用此代码，否则使用 return）"
+        }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": ["return"] },
+        { "required": ["body"] }
+      ]
+    }
+  },
+  "additionalProperties": false
+}
+

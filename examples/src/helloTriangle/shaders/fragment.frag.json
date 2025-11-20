@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../../src/schemas/fragment.schema.json",
+  "$schema": "../../../../schemas/shader.schema.json",
   "type": "fragment",
   "precision": "highp",
   "uniforms": [

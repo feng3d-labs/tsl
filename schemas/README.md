@@ -4,8 +4,9 @@
 
 ## 文件说明
 
-- `fragment.schema.json` - Fragment Shader 配置文件的 JSON Schema
-- `vertex.schema.json` - Vertex Shader 配置文件的 JSON Schema
+- `shader.schema.json` - 统一的着色器配置文件 JSON Schema（同时支持 fragment 和 vertex shader）
+- `fragment.schema.json` - 已废弃，请使用 `shader.schema.json`（为了向后兼容，仍会重定向到 `shader.schema.json`）
+- `vertex.schema.json` - 已废弃，请使用 `shader.schema.json`（为了向后兼容，仍会重定向到 `shader.schema.json`）
 
 ## 使用方法
 
@@ -15,7 +16,7 @@
 
 ```json
 {
-  "$schema": "../../../../src/schemas/fragment.schema.json",
+  "$schema": "../../../../src/schemas/shader.schema.json",
   "type": "fragment",
   "precision": "highp",
   "uniforms": [
@@ -32,6 +33,16 @@
 }
 ```
 
+或者使用 npm 包路径：
+
+```json
+{
+  "$schema": "@feng3d/tsl/schemas/shader.schema.json",
+  "type": "fragment",
+  ...
+}
+```
+
 ### 2. 编辑器支持
 
 支持 JSON Schema 的编辑器（如 VS Code）会自动：
@@ -40,7 +51,14 @@
 - 显示错误提示
 - 显示字段说明
 
-### 3. 类型定义
+### 3. 统一 Schema
+
+`shader.schema.json` 是统一的 Schema，同时支持 `fragment` 和 `vertex` 两种类型的着色器。通过 `type` 字段来区分：
+
+- `"type": "fragment"` - Fragment Shader
+- `"type": "vertex"` - Vertex Shader
+
+### 4. 类型定义
 
 TypeScript 类型定义位于 `src/types.ts`：
 - `FragmentShaderConfig` - Fragment Shader 配置类型
@@ -99,7 +117,7 @@ import vertexJson from "./shaders/vertex.vert.json";
 
 ```json
 {
-  "$schema": "../../../../src/schemas/fragment.schema.json",
+  "$schema": "../../../../src/schemas/shader.schema.json",
   "type": "fragment",
   "precision": "highp",
   "uniforms": [
@@ -120,7 +138,7 @@ import vertexJson from "./shaders/vertex.vert.json";
 
 ```json
 {
-  "$schema": "../../../../src/schemas/vertex.schema.json",
+  "$schema": "../../../../src/schemas/shader.schema.json",
   "type": "vertex",
   "attributes": [
     {
@@ -130,7 +148,10 @@ import vertexJson from "./shaders/vertex.vert.json";
     }
   ],
   "main": {
-    "return": "vec4<f32>(position, 0.0, 1.0)"
+    "return": {
+      "function": "vec4",
+      "args": ["position", "0.0", "1.0"]
+    }
   }
 }
 ```

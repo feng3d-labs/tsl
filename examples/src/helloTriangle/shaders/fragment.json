@@ -1,0 +1,16 @@
+{
+  "type": "fragment",
+  "precision": "highp",
+  "uniforms": [
+    {
+      "name": "color",
+      "type": "vec4",
+      "binding": 0,
+      "group": 0
+    }
+  ],
+  "main": {
+    "return": "color"
+  }
+}
+

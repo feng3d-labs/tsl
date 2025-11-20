@@ -1,14 +1,19 @@
 import { Submit } from "@feng3d/render-api";
 import { WebGL } from "@feng3d/webgl";
 import { WebGPU } from "@feng3d/webgpu";
+import { generateGLSL, generateShaders, generateWGSL, ShaderConfig } from "@feng3d/tsl";
 
 import fragmentGlsl from "./shaders/fragment.glsl";
 import fragmentWgsl from "./shaders/fragment.wgsl";
 import vertexGlsl from "./shaders/vertex.glsl";
 import vertexWgsl from "./shaders/vertex.wgsl";
+import fragmentJson from "./shaders/fragment.json";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
+    const fragmentGlsl = generateGLSL(fragmentJson);
+    const fragmentWgsl = generateWGSL(fragmentJson);
+
     //
     const webgpu = await new WebGPU({ canvasId: 'webgpu' }, { clearColorValue: [0.0, 0.0, 0.0, 1.0] }).init(); // 初始化WebGPU
 

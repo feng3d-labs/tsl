@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { generateGLSL, generateWGSL, generateShaders, ShaderConfig, FunctionCallConfig } from '../src/shaderGenerator';
+import { describe, expect, it } from 'vitest';
+import { generateGLSL, generateShaders, generateWGSL, ShaderConfig } from '../src/shaderGenerator';
 
 describe('shaderGenerator', () =>
 {

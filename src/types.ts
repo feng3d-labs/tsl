@@ -8,11 +8,11 @@ export interface FragmentShaderConfig {
     /** GLSL 精度声明（仅用于 fragment shader） */
     readonly precision?: 'lowp' | 'mediump' | 'highp' | string;
     /** 统一变量列表 */
-    readonly uniforms?: readonly FragmentUniformConfig[] | import('./shaderGenerator').UniformConfig[];
+    readonly uniforms?: readonly FragmentUniformConfig[] | import('./uniforms').UniformConfig[];
     /** 属性变量列表（通常不用于 fragment shader，但允许定义） */
     readonly attributes?: readonly FragmentAttributeConfig[] | import('./shaderGenerator').AttributeConfig[];
     /** 主函数配置 */
-    readonly main: FragmentMainFunctionConfig | import('./shaderGenerator').MainFunctionConfig;
+    readonly main: FragmentMainFunctionConfig | import('./main').MainFunctionConfig;
 }
 
 /**
@@ -25,11 +25,11 @@ export interface VertexShaderConfig {
     /** GLSL 精度声明（通常不用于 vertex shader，但允许定义） */
     readonly precision?: 'lowp' | 'mediump' | 'highp' | string;
     /** 统一变量列表 */
-    readonly uniforms?: readonly VertexUniformConfig[] | import('./shaderGenerator').UniformConfig[];
+    readonly uniforms?: readonly VertexUniformConfig[] | import('./uniforms').UniformConfig[];
     /** 属性变量列表（用于 vertex shader） */
     readonly attributes?: readonly VertexAttributeConfig[] | import('./shaderGenerator').AttributeConfig[];
     /** 主函数配置 */
-    readonly main: VertexMainFunctionConfig | import('./shaderGenerator').MainFunctionConfig;
+    readonly main: VertexMainFunctionConfig | import('./main').MainFunctionConfig;
 }
 
 /**
@@ -89,17 +89,9 @@ export interface VertexAttributeConfig
 }
 
 /**
- * 函数调用配置
+ * 函数调用配置（从 vec4.ts 导入）
  */
-export interface FunctionCallConfig
-{
-    /** 函数名，如 vec4, vec3, vec2 等 */
-    readonly function: string;
-    /** 函数参数列表 */
-    readonly args: readonly (string | number | FunctionCallConfig)[];
-    /** 类型参数（仅用于 WGSL，如 f32, i32, u32） */
-    readonly typeParam?: 'f32' | 'i32' | 'u32';
-}
+export type { FunctionCallConfig } from './vec4';
 
 /**
  * Fragment Shader 主函数配置
@@ -107,7 +99,7 @@ export interface FunctionCallConfig
 export interface FragmentMainFunctionConfig
 {
     /** 返回值表达式（字符串形式或函数调用对象形式） */
-    readonly return?: string | FunctionCallConfig;
+    readonly return?: string | import('./vec4').FunctionCallConfig;
     /** 函数体代码（可选，如果提供则使用此代码，否则使用 return） */
     readonly body?: string;
 }
@@ -118,7 +110,7 @@ export interface FragmentMainFunctionConfig
 export interface VertexMainFunctionConfig
 {
     /** 返回值表达式（字符串形式或函数调用对象形式） */
-    readonly return?: string | FunctionCallConfig;
+    readonly return?: string | import('./vec4').FunctionCallConfig;
     /** 函数体代码（可选，如果提供则使用此代码，否则使用 return） */
     readonly body?: string;
 }

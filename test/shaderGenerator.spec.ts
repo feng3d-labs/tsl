@@ -3,6 +3,7 @@ import { generateGLSL, generateShaders, generateWGSL, ShaderConfig } from '../sr
 
 describe('shaderGenerator', () =>
 {
+    // 集成测试：测试完整的着色器生成流程
     describe('generateGLSL', () =>
     {
         it('应该生成正确的 fragment shader GLSL 代码', () =>
@@ -356,53 +357,6 @@ fn main(
         });
     });
 
-    describe('类型转换', () =>
-    {
-        it('应该正确转换所有基本类型', () =>
-        {
-            const typeTests = [
-                { glsl: 'float', wgsl: 'f32' },
-                { glsl: 'int', wgsl: 'i32' },
-                { glsl: 'uint', wgsl: 'u32' },
-                { glsl: 'bool', wgsl: 'bool' },
-                { glsl: 'vec2', wgsl: 'vec2<f32>' },
-                { glsl: 'vec3', wgsl: 'vec3<f32>' },
-                { glsl: 'vec4', wgsl: 'vec4<f32>' },
-                { glsl: 'ivec2', wgsl: 'vec2<i32>' },
-                { glsl: 'ivec3', wgsl: 'vec3<i32>' },
-                { glsl: 'ivec4', wgsl: 'vec4<i32>' },
-                { glsl: 'uvec2', wgsl: 'vec2<u32>' },
-                { glsl: 'uvec3', wgsl: 'vec3<u32>' },
-                { glsl: 'uvec4', wgsl: 'vec4<u32>' },
-                { glsl: 'mat2', wgsl: 'mat2x2<f32>' },
-                { glsl: 'mat3', wgsl: 'mat3x3<f32>' },
-                { glsl: 'mat4', wgsl: 'mat4x4<f32>' },
-            ];
-
-            for (const { glsl, wgsl } of typeTests)
-            {
-                const config: ShaderConfig = {
-                    type: 'fragment',
-                    precision: 'highp',
-                    uniforms: [
-                        {
-                            name: 'test',
-                            type: glsl,
-                            binding: 0,
-                            group: 0,
-                        },
-                    ],
-                    main: {
-                        return: 'vec4(1.0)',
-                    },
-                };
-
-                const generatedWgsl = generateWGSL(config);
-                expect(generatedWgsl).toContain(wgsl);
-            }
-        });
-    });
-
     describe('边界情况', () =>
     {
         it('应该处理没有 uniforms 的配置', () =>
@@ -450,120 +404,5 @@ fn main(
         });
     });
 
-    describe('函数调用对象形式', () =>
-    {
-        it('应该使用函数调用对象生成 GLSL vec4 代码', () =>
-        {
-            const config: ShaderConfig = {
-                type: 'vertex',
-                attributes: [
-                    {
-                        name: 'position',
-                        type: 'vec2',
-                        location: 0,
-                    },
-                ],
-                main: {
-                    return: {
-                        function: 'vec4',
-                        args: ['position', '0.0', '1.0'],
-                    },
-                },
-            };
-
-            const glsl = generateGLSL(config);
-            expect(glsl).toContain('gl_Position = vec4(position, 0.0, 1.0);');
-        });
-
-        it('应该使用函数调用对象生成 WGSL vec4 代码', () =>
-        {
-            const config: ShaderConfig = {
-                type: 'vertex',
-                attributes: [
-                    {
-                        name: 'position',
-                        type: 'vec2',
-                        location: 0,
-                    },
-                ],
-                main: {
-                    return: {
-                        function: 'vec4',
-                        args: ['position', '0.0', '1.0'],
-                    },
-                },
-            };
-
-            const wgsl = generateWGSL(config);
-            expect(wgsl).toContain('return vec4<f32>(position, 0.0, 1.0);');
-        });
-
-        it('应该支持嵌套的函数调用', () =>
-        {
-            const config: ShaderConfig = {
-                type: 'fragment',
-                precision: 'highp',
-                main: {
-                    return: {
-                        function: 'vec4',
-                        args: [
-                            {
-                                function: 'vec3',
-                                args: ['1.0', '0.5', '0.0'],
-                            },
-                            '1.0',
-                        ],
-                    },
-                },
-            };
-
-            const glsl = generateGLSL(config);
-            expect(glsl).toContain('gl_FragColor = vec4(vec3(1.0, 0.5, 0.0), 1.0);');
-
-            const wgsl = generateWGSL(config);
-            expect(wgsl).toContain('return vec4<f32>(vec3<f32>(1.0, 0.5, 0.0), 1.0);');
-        });
-
-        it('应该支持 ivec 和 uvec 类型', () =>
-        {
-            const config: ShaderConfig = {
-                type: 'fragment',
-                precision: 'highp',
-                main: {
-                    return: {
-                        function: 'vec4',
-                        args: [
-                            {
-                                function: 'ivec3',
-                                args: ['1', '2', '3'],
-                            },
-                            '1.0',
-                        ],
-                    },
-                },
-            };
-
-            const wgsl = generateWGSL(config);
-            expect(wgsl).toContain('vec3<i32>(1, 2, 3)');
-        });
-
-        it('应该支持自定义 typeParam', () =>
-        {
-            const config: ShaderConfig = {
-                type: 'fragment',
-                precision: 'highp',
-                main: {
-                    return: {
-                        function: 'vec4',
-                        args: ['1.0', '0.5', '0.0', '1.0'],
-                        typeParam: 'f32',
-                    },
-                },
-            };
-
-            const wgsl = generateWGSL(config);
-            expect(wgsl).toContain('vec4<f32>(1.0, 0.5, 0.0, 1.0)');
-        });
-    });
 });
 

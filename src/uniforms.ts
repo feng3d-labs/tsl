@@ -48,7 +48,8 @@ export function generateUniformsWGSL(uniforms: UniformConfig[] | undefined): str
             const binding = uniform.binding !== undefined ? `@binding(${uniform.binding})` : '';
             const group = uniform.group !== undefined ? `@group(${uniform.group})` : '';
             const annotations = [binding, group].filter(Boolean).join(' ');
-            lines.push(`${annotations} var<uniform> ${uniform.name} : ${wgslType};`);
+            const prefix = annotations ? `${annotations} ` : '';
+            lines.push(`${prefix}var<uniform> ${uniform.name} : ${wgslType};`);
         }
     }
 

@@ -1,5 +1,6 @@
-import { webgl } from "./webgl";
-import { webgpu } from "./webgpu";
+import { runWebGL } from "./runWebGL";
+import { runWebGPU } from "./runWebGPU";
 
-webgpu(document.getElementById('webgpu') as HTMLCanvasElement);
-webgl(document.getElementById('webgl') as HTMLCanvasElement);
+runWebGPU(document.getElementById('webgpu') as HTMLCanvasElement);
+
+runWebGL(document.getElementById('webgl') as HTMLCanvasElement);

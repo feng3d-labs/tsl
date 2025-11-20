@@ -18,7 +18,7 @@ export async function webgpu(canvas: HTMLCanvasElement)
                         descriptor: { // 渲染通道描述
                             colorAttachments: [{ // 颜色附件
                                 view: { texture: { context: { canvasId: canvas.id } } }, // 绘制到canvas上
-                                clearValue: [0.0, 0.0, 0.0, 1.0], // 渲染前填充颜色
+                                clearValue: [0.0, 0.0, 0.0, 0.0], // 渲染前填充颜色
                             }],
                         },
                         renderPassObjects: [{ // 渲染对象

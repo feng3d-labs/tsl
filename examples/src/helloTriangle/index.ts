@@ -30,12 +30,6 @@ document.addEventListener('DOMContentLoaded', async () =>
             {
                 passEncoders: [ // 通道编码列表
                     { // 渲染通道
-                        descriptor: { // 渲染通道描述
-                            colorAttachments: [{ // 颜色附件
-                                // view: { texture: { context: { canvasId: canvas.id } } }, // 绘制到canvas上
-                                clearValue: [0.0, 0.0, 0.0, 1.0], // 渲染前填充颜色
-                            }],
-                        },
                         renderPassObjects: [{ // 渲染对象
                             pipeline: { // 渲染管线
                                 vertex: { // 顶点着色器
@@ -60,9 +54,19 @@ document.addEventListener('DOMContentLoaded', async () =>
         ],
     };
 
+    reactive(submit.commandEncoders[0].passEncoders[0] as RenderPass).descriptor = {
+        colorAttachments: [{
+            clearValue: [0.0, 0.0, 0.0, 1.0],
+        }],
+    };
     webgl.submit(submit);
 
-    reactive((submit.commandEncoders[0].passEncoders[0] as RenderPass).descriptor.colorAttachments[0]).view = { texture: { context: { canvasId: webgpuCanvas.id } } };
+    reactive(submit.commandEncoders[0].passEncoders[0] as RenderPass).descriptor = {
+        colorAttachments: [{
+            view: { texture: { context: { canvasId: webgpuCanvas.id } } },
+            clearValue: [0.0, 0.0, 0.0, 1.0],
+        }],
+    };;
 
     webgpu.submit(submit);
 });

@@ -1,5 +1,4 @@
-import { reactive } from "@feng3d/reactivity";
-import { CanvasRenderPassDescriptor, RenderPass, Submit } from "@feng3d/render-api";
+import { Submit } from "@feng3d/render-api";
 import { WebGL } from "@feng3d/webgl";
 import { WebGPU } from "@feng3d/webgpu";
 
@@ -10,21 +9,11 @@ import vertexWgsl from "./shaders/vertex.wgsl";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    const devicePixelRatio = window.devicePixelRatio || 1;
-
-    const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = { clearColorValue: [0.0, 0.0, 0.0, 1.0] };
+    //
+    const webgpu = await new WebGPU({ canvasId: 'webgpu' }, { clearColorValue: [0.0, 0.0, 0.0, 1.0] }).init(); // 初始化WebGPU
 
     //
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
-    const webgpu = await new WebGPU({ canvasId: webgpuCanvas.id }, canvasRenderPassDescriptor).init(); // 初始化WebGPU
-
-    //
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-    webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-    const webgl = new WebGL({ canvasId: webglCanvas, webGLcontextId: 'webgl2' }); // 初始化WebGL
+    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' }, { clearColorValue: [0.0, 0.0, 0.0, 1.0] }); // 初始化WebGL
 
     //
     const submit: Submit = { // 一次GPU提交
@@ -57,12 +46,5 @@ document.addEventListener('DOMContentLoaded', async () =>
     };
 
     webgpu.submit(submit);
-
-    reactive(submit.commandEncoders[0].passEncoders[0] as RenderPass).descriptor = {
-        colorAttachments: [{
-            clearValue: [0.0, 0.0, 0.0, 1.0],
-        }],
-    };
     webgl.submit(submit);
-
 });

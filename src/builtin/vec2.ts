@@ -19,7 +19,7 @@ export class Vec2
      */
     get x(): Float
     {
-        return new Float(this._x);
+        return new Float(this._x, this, 'x');
     }
 
     /**
@@ -27,7 +27,7 @@ export class Vec2
      */
     get y(): Float
     {
-        return new Float(this._y);
+        return new Float(this._y, this, 'y');
     }
 
     /**

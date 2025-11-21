@@ -20,6 +20,8 @@ describe('Vec2', () =>
             const v = vec2(1.5, 2.5);
             expect(v.x).toBeInstanceOf(Float);
             expect(v.y).toBeInstanceOf(Float);
+            expect(v.x.toGLSL()).toBe('vec2(1.5, 2.5).x');
+            expect(v.y.toGLSL()).toBe('vec2(1.5, 2.5).y');
         });
     });
 
@@ -29,14 +31,14 @@ describe('Vec2', () =>
         {
             const v = new Vec2(10.0, 20.0);
             expect(v.x).toBeInstanceOf(Float);
-            expect(v.x.toGLSL()).toBe('10.0');
+            expect(v.x.toGLSL()).toBe('vec2(10.0, 20.0).x');
         });
 
         it('应该能够获取 y 分量', () =>
         {
             const v = new Vec2(10.0, 20.0);
             expect(v.y).toBeInstanceOf(Float);
-            expect(v.y.toGLSL()).toBe('20.0');
+            expect(v.y.toGLSL()).toBe('vec2(10.0, 20.0).y');
         });
     });
 
@@ -98,8 +100,8 @@ describe('vec2', () =>
             const result = vec2(1.5, 2.5);
             expect(result.x).toBeInstanceOf(Float);
             expect(result.y).toBeInstanceOf(Float);
-            expect(result.x.toGLSL()).toBe('1.5');
-            expect(result.y.toGLSL()).toBe('2.5');
+            expect(result.x.toGLSL()).toBe('vec2(1.5, 2.5).x');
+            expect(result.y.toGLSL()).toBe('vec2(1.5, 2.5).y');
         });
 
         it('应该能够转换为 GLSL', () =>

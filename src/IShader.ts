@@ -1,5 +1,5 @@
-import type { FragmentFuncDef } from "./Fragment";
-import type { VertexFuncDef } from "./Vertex";
+import { Fragment } from "./Fragment";
+import { Vertex } from "./Vertex";
 import { Attribute } from "./Attribute";
 import { Uniform } from "./Uniform";
 
@@ -16,7 +16,7 @@ export interface IShader
     /** Uniforms 字典（以变量名为 key） */
     uniforms: Record<string, Uniform>;
     /** Vertex 函数字典（以函数名为 key） */
-    vertexs: Record<string, VertexFuncDef>;
+    vertexs: Record<string, Vertex>;
     /** Fragment 函数字典（以函数名为 key） */
-    fragments: Record<string, FragmentFuncDef>;
+    fragments: Record<string, Fragment>;
 }

@@ -1,15 +1,12 @@
 import { IShader } from './IShader';
 import { MainFunctionConfig } from './main';
 import { ShaderConfig } from './shaderGenerator';
-import type { FragmentFuncDef } from './Fragment';
-import type { VertexFuncDef } from './Vertex';
 import { attribute, Attribute } from './Attribute';
 import { uniform, Uniform } from './Uniform';
-import { fragment } from './Fragment';
-import { vertex } from './Vertex';
+import { fragment, Fragment } from './Fragment';
+import { vertex, Vertex } from './Vertex';
 import { setCurrentShaderInstance, clearCurrentShaderInstance } from './currentShaderInstance';
 import { generateUniformsWGSL, UniformConfig } from './uniforms';
-import { Func } from './Func';
 
 /**
  * Shader 基类
@@ -35,12 +32,12 @@ export class Shader implements IShader
     /**
      * Vertex 函数字典（以函数名为 key）
      */
-    public vertexs: Record<string, VertexFuncDef> = {};
+    public vertexs: Record<string, Vertex> = {};
 
     /**
      * Fragment 函数字典（以函数名为 key）
      */
-    public fragments: Record<string, FragmentFuncDef> = {};
+    public fragments: Record<string, Fragment> = {};
 
     /**
      * 构造函数
@@ -61,7 +58,7 @@ export class Shader implements IShader
 
         // 查找入口函数
         const funcDict = shaderType === 'vertex' ? this.vertexs : this.fragments;
-        let entryFunc: VertexFuncDef | FragmentFuncDef | undefined;
+        let entryFunc: Vertex | Fragment | undefined;
 
         if (entry)
         {
@@ -119,9 +116,8 @@ export class Shader implements IShader
             lines.push('');
         }
 
-        // 使用 Func 类生成函数代码
-        const funcInstance = new Func(entryFunc.name, entryFunc.body, shaderType);
-        const funcCode = funcInstance.toGLSL(shaderType);
+        // 使用 entryFunc 生成函数代码
+        const funcCode = entryFunc.toGLSL();
         lines.push(...funcCode.split('\n'));
 
         return lines.join('\n') + '\n';
@@ -138,7 +134,7 @@ export class Shader implements IShader
 
         // 查找入口函数
         const funcDict = shaderType === 'vertex' ? this.vertexs : this.fragments;
-        let entryFunc: VertexFuncDef | FragmentFuncDef | undefined;
+        let entryFunc: Vertex | Fragment | undefined;
 
         if (entry)
         {
@@ -184,9 +180,16 @@ export class Shader implements IShader
         // 准备 attributes 配置（仅用于 vertex shader）
         const attributes = shaderType === 'vertex' ? Object.values(this.attributes).map(attr => attr.toConfig()) : undefined;
 
-        // 使用 Func 类生成函数代码
-        const funcInstance = new Func(entryFunc.name, entryFunc.body, shaderType);
-        const funcCode = funcInstance.toWGSL(shaderType, attributes);
+        // 使用 entryFunc 生成函数代码
+        let funcCode: string;
+        if (entryFunc instanceof Vertex)
+        {
+            funcCode = entryFunc.toWGSL('vertex', attributes);
+        }
+        else
+        {
+            funcCode = entryFunc.toWGSL();
+        }
         lines.push(...funcCode.split('\n'));
 
         return lines.join('\n') + '\n';
@@ -202,7 +205,7 @@ export class Shader implements IShader
     {
         // 查找入口函数
         const funcDict = shaderType === 'vertex' ? this.vertexs : this.fragments;
-        let entryFunc: VertexFuncDef | FragmentFuncDef | undefined;
+        let entryFunc: Vertex | Fragment | undefined;
 
         if (entry)
         {
@@ -226,9 +229,8 @@ export class Shader implements IShader
 
         const functionName = entryFunc.name;
 
-        // 使用 Func 类生成配置
-        const funcInstance = new Func(entryFunc.name, entryFunc.body, shaderType);
-        const funcConfig = funcInstance.toConfig(shaderType);
+        // 使用 entryFunc 生成配置
+        const funcConfig = entryFunc.toConfig();
 
         // 构建 MainFunctionConfig
         const main: MainFunctionConfig = {};

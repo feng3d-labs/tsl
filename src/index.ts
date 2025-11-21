@@ -1,7 +1,6 @@
 export * from './Attribute';
 export * from './currentShaderInstance';
-export type { FragmentFuncDef } from './Fragment';
-export { fragment } from './Fragment';
+export { Fragment, fragment } from './Fragment';
 export * from './Func';
 export * from './main';
 export * from './Precision';
@@ -11,6 +10,5 @@ export * from './types';
 export * from './Uniform';
 export * from './uniforms';
 export * from './vec4';
-export type { VertexFuncDef, FuncDef } from './Vertex';
-export { vertex, FUNC_SYMBOL } from './Vertex';
+export { Vertex, vertex, FUNC_SYMBOL } from './Vertex';
 

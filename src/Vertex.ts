@@ -1,43 +1,68 @@
 import { getCurrentShaderInstance } from './currentShaderInstance';
+import { Func, FUNC_SYMBOL } from './Func';
+
+// 重新导出 FUNC_SYMBOL 以便向后兼容
+export { FUNC_SYMBOL };
 
 /**
- * 函数定义标记
+ * Vertex 类，继承自 Func
  */
-export const FUNC_SYMBOL = Symbol('func');
-
-/**
- * 函数定义对象接口（通用函数，不指定着色器类型）
- */
-export interface FuncDef
+export class Vertex extends Func
 {
-    __type__: typeof FUNC_SYMBOL;
-    name: string;
-    body: () => any;
-    shaderType?: 'vertex' | 'fragment';
-}
+    readonly shaderType: 'vertex' = 'vertex';
 
-/**
- * Vertex Shader 函数定义对象接口
- */
-export interface VertexFuncDef extends FuncDef
-{
-    shaderType: 'vertex';
+    constructor(name: string, body: () => any)
+    {
+        super(name, body, 'vertex');
+    }
+
+    /**
+     * 转换为 GLSL 代码（vertex shader）
+     */
+    toGLSL(): string
+    {
+        return super.toGLSL('vertex');
+    }
+
+    /**
+     * 转换为 WGSL 代码（vertex shader）
+     * @param shaderType 着色器类型（忽略，固定为 'vertex'）
+     * @param attributes 属性列表
+     */
+    toWGSL(shaderType?: 'vertex' | 'fragment', attributes?: Array<{ name: string; type: string; location?: number }>): string
+    {
+        return super.toWGSL('vertex', attributes);
+    }
+
+    /**
+     * 转换为配置对象（vertex shader）
+     */
+    toConfig(): { name: string; return?: string | import('./vec4').FunctionCallConfig }
+    {
+        return super.toConfig('vertex');
+    }
+
+    /**
+     * 从配置对象创建 Vertex 实例
+     * @param config 配置对象
+     * @returns Vertex 实例
+     */
+    static fromConfig(config: { name: string; return?: string | import('./vec4').FunctionCallConfig }): Vertex
+    {
+        const body = () => config.return;
+        return new Vertex(config.name, body);
+    }
 }
 
 /**
  * 定义 Vertex Shader 入口函数
  * @param name 函数名
  * @param body 函数体
- * @returns Vertex 函数定义对象
+ * @returns Vertex 实例
  */
-export function vertex(name: string, body: () => any): VertexFuncDef
+export function vertex(name: string, body: () => any): Vertex
 {
-    const def: VertexFuncDef = {
-        __type__: FUNC_SYMBOL,
-        name,
-        body,
-        shaderType: 'vertex',
-    };
+    const def = new Vertex(name, body);
 
     // 如果当前正在构造 Shader 实例，自动添加到 vertexs 字典
     const currentShaderInstance = getCurrentShaderInstance();

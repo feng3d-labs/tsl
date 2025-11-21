@@ -12,7 +12,7 @@ export const FUNC_SYMBOL = Symbol('func');
  */
 export class Func
 {
-    readonly __type__ = FUNC_SYMBOL;
+    readonly __type__: typeof FUNC_SYMBOL = FUNC_SYMBOL;
     readonly name: string;
     readonly body: () => any;
     readonly shaderType?: 'vertex' | 'fragment';

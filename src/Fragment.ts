@@ -1,28 +1,63 @@
 import { getCurrentShaderInstance } from './currentShaderInstance';
-import { FUNC_SYMBOL, FuncDef } from './Vertex';
+import { Func } from './Func';
 
 /**
- * Fragment Shader 函数定义对象接口
+ * Fragment 类，继承自 Func
  */
-export interface FragmentFuncDef extends FuncDef
+export class Fragment extends Func
 {
-    shaderType: 'fragment';
+    readonly shaderType: 'fragment' = 'fragment';
+
+    constructor(name: string, body: () => any)
+    {
+        super(name, body, 'fragment');
+    }
+
+    /**
+     * 转换为 GLSL 代码（fragment shader）
+     */
+    toGLSL(): string
+    {
+        return super.toGLSL('fragment');
+    }
+
+    /**
+     * 转换为 WGSL 代码（fragment shader）
+     */
+    toWGSL(): string
+    {
+        return super.toWGSL('fragment');
+    }
+
+    /**
+     * 转换为配置对象（fragment shader）
+     */
+    toConfig(): { name: string; return?: string | import('./vec4').FunctionCallConfig }
+    {
+        return super.toConfig('fragment');
+    }
+
+    /**
+     * 从配置对象创建 Fragment 实例
+     * @param config 配置对象
+     * @returns Fragment 实例
+     */
+    static fromConfig(config: { name: string; return?: string | import('./vec4').FunctionCallConfig }): Fragment
+    {
+        const body = () => config.return;
+        return new Fragment(config.name, body);
+    }
 }
 
 /**
  * 定义 Fragment Shader 入口函数
  * @param name 函数名
  * @param body 函数体
- * @returns Fragment 函数定义对象
+ * @returns Fragment 实例
  */
-export function fragment(name: string, body: () => any): FragmentFuncDef
+export function fragment(name: string, body: () => any): Fragment
 {
-    const def: FragmentFuncDef = {
-        __type__: FUNC_SYMBOL,
-        name,
-        body,
-        shaderType: 'fragment',
-    };
+    const def = new Fragment(name, body);
 
     // 如果当前正在构造 Shader 实例，自动添加到 fragments 字典
     const currentShaderInstance = getCurrentShaderInstance();

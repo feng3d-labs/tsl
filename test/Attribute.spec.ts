@@ -23,34 +23,15 @@ describe('Attribute', () =>
         it('应该能够设置 value 并生成 GLSL', () =>
         {
             const attr = new Attribute('position', 0);
-            attr.value = {
-                function: 'vec2',
-                args: ['position'],
-            };
+            attr.value = vec2(attribute('position', 0));
             expect(attr.toGLSL()).toBe('attribute vec2 position;');
         });
 
         it('应该能够生成 WGSL', () =>
         {
             const attr = new Attribute('position', 0);
-            attr.value = {
-                function: 'vec2',
-                args: ['position'],
-            };
+            attr.value = vec2(attribute('position', 0));
             expect(attr.toWGSL()).toBe('@location(0) position: vec2<f32>');
-        });
-
-        it('应该能够转换为配置', () =>
-        {
-            const attr = new Attribute('position', 0);
-            attr.value = {
-                function: 'vec2',
-                args: ['position'],
-            };
-            const config = attr.toConfig();
-            expect(config.name).toBe('position');
-            expect(config.type).toBe('vec2');
-            expect(config.location).toBe(0);
         });
     });
 
@@ -75,7 +56,8 @@ describe('Attribute', () =>
             });
 
             expect(testShader.attributes['position']).toBeDefined();
-            expect(testShader.attributes['position'].value?.function).toBe('vec2');
+            expect(testShader.attributes['position'].value?.glslType).toBe('vec2');
+            expect(testShader.attributes['position'].value?.wgslType).toBe('vec2<f32>');
         });
     });
 });

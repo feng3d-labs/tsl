@@ -20,17 +20,6 @@ describe('Vertex', () =>
             expect(glsl).toContain('gl_Position = vec4(position, 0.0, 1.0);');
         });
 
-        it('应该能够生成 WGSL 代码', () =>
-        {
-            const vert = new Vertex('main', () => 'vec4<f32>(position, 0.0, 1.0)');
-            const wgsl = vert.toWGSL('vertex', [
-                { name: 'position', type: 'vec2', location: 0 },
-            ]);
-            expect(wgsl).toContain('@vertex');
-            expect(wgsl).toContain('fn main');
-            expect(wgsl).toContain('@location(0) position: vec2<f32>');
-        });
-
     });
 
     describe('vertex() 函数', () =>

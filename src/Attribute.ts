@@ -30,6 +30,10 @@ export class Attribute implements IElement
      */
     toGLSL(): string
     {
+        if (!this.value)
+        {
+            throw new Error(`Attribute '${this.name}' 没有设置 value，无法生成 GLSL。`);
+        }
         const type = this.value?.glslType;
 
         return `attribute ${type} ${this.name};`;

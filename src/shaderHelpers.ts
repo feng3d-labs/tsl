@@ -1,5 +1,6 @@
-import { UniformConfig } from './uniforms';
+import { IShader } from './IShader';
 import { AttributeConfig } from './shaderGenerator';
+import { UniformConfig } from './uniforms';
 
 /**
  * Uniform 定义标记
@@ -11,13 +12,13 @@ const FUNC_SYMBOL = Symbol('func');
 /**
  * 当前正在构造的 Shader 实例（用于自动收集）
  */
-let currentShaderInstance: any = null;
+let currentShaderInstance: IShader = null;
 
 /**
  * 设置当前正在构造的 Shader 实例
  * @internal
  */
-export function setCurrentShaderInstance(instance: any): void
+export function setCurrentShaderInstance(instance: IShader): void
 {
     currentShaderInstance = instance;
 }

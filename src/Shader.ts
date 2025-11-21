@@ -1,76 +1,45 @@
 import { classToShaderConfig } from './classToShader';
+import { IShader } from './IShader';
 import { generateMainGLSL, generateMainWGSL } from './main';
-import { AttributeDef, FragmentFuncDef, UniformDef, VertexFuncDef, isUniformDef, isAttributeDef, isFuncDef, setCurrentShaderInstance, clearCurrentShaderInstance } from './shaderHelpers';
+import { AttributeDef, FragmentFuncDef, UniformDef, VertexFuncDef, setCurrentShaderInstance, clearCurrentShaderInstance } from './shaderHelpers';
 import { generateUniformsWGSL } from './uniforms';
 
 /**
  * Shader 基类
  * 提供通用的代码生成方法
  */
-export class Shader
+export class Shader implements IShader
 {
     /**
      * GLSL 精度声明（仅用于 fragment shader）
      */
     precision: 'lowp' | 'mediump' | 'highp' = 'highp';
 
-    private _attributes: AttributeDef[] | null = null;
-    private _uniforms: UniformDef[] | null = null;
-    private _vertexs: VertexFuncDef[] | null = null;
-    private _fragments: FragmentFuncDef[] | null = null;
+    /**
+     * Attributes 字典（以变量名为 key）
+     */
+    public attributes: Record<string, AttributeDef> = {};
 
     /**
-     * 构造函数：设置当前 Shader 实例，以便 attribute、uniform 等函数自动收集
+     * Uniforms 字典（以变量名为 key）
+     */
+    public uniforms: Record<string, UniformDef> = {};
+
+    /**
+     * Vertex 函数字典（以函数名为 key）
+     */
+    public vertexs: Record<string, VertexFuncDef> = {};
+
+    /**
+     * Fragment 函数字典（以函数名为 key）
+     */
+    public fragments: Record<string, FragmentFuncDef> = {};
+
+    /**
+     * 构造函数
      */
     constructor()
     {
-        // 初始化列表
-        this._attributes = [];
-        this._uniforms = [];
-        this._vertexs = [];
-        this._fragments = [];
-
-        // 设置当前 Shader 实例，以便 attribute、uniform 等函数可以自动收集
-        // 注意：类字段初始化在构造函数之前完成，所以我们需要在构造函数中遍历已初始化的属性
-        setCurrentShaderInstance(this);
-
-        // 遍历已初始化的属性，收集 definitions
-        for (const key in this)
-        {
-            // 跳过特殊属性
-            if (key === 'precision' || key === '_attributes' || key === '_uniforms' || key === '_vertexs' || key === '_fragments' || key === 'attributes' || key === 'uniforms' || key === 'vertexs' || key === 'fragments' || key === 'generateGLSL' || key === 'generateWGSL')
-            {
-                continue;
-            }
-
-            const value = (this as any)[key];
-
-            // 检查是否为 uniform 定义
-            if (isUniformDef(value))
-            {
-                this._addUniform(value);
-            }
-            // 检查是否为 attribute 定义
-            else if (isAttributeDef(value))
-            {
-                this._addAttribute(value);
-            }
-            // 检查是否为函数定义
-            else if (isFuncDef(value))
-            {
-                if (value.shaderType === 'vertex')
-                {
-                    this._addVertex(value as VertexFuncDef);
-                }
-                else if (value.shaderType === 'fragment')
-                {
-                    this._addFragment(value as FragmentFuncDef);
-                }
-            }
-        }
-
-        // 清除当前实例引用
-        clearCurrentShaderInstance();
     }
 
     /**
@@ -79,11 +48,7 @@ export class Shader
      */
     _addUniform(def: UniformDef): void
     {
-        if (!this._uniforms)
-        {
-            this._uniforms = [];
-        }
-        this._uniforms.push(def);
+        this.uniforms[def.name] = def;
     }
 
     /**
@@ -92,11 +57,7 @@ export class Shader
      */
     _addAttribute(def: AttributeDef): void
     {
-        if (!this._attributes)
-        {
-            this._attributes = [];
-        }
-        this._attributes.push(def);
+        this.attributes[def.name] = def;
     }
 
     /**
@@ -105,11 +66,7 @@ export class Shader
      */
     _addVertex(def: VertexFuncDef): void
     {
-        if (!this._vertexs)
-        {
-            this._vertexs = [];
-        }
-        this._vertexs.push(def);
+        this.vertexs[def.name] = def;
     }
 
     /**
@@ -118,43 +75,7 @@ export class Shader
      */
     _addFragment(def: FragmentFuncDef): void
     {
-        if (!this._fragments)
-        {
-            this._fragments = [];
-        }
-        this._fragments.push(def);
-    }
-
-    /**
-     * Attributes 列表
-     */
-    get attributes(): AttributeDef[]
-    {
-        return this._attributes || [];
-    }
-
-    /**
-     * Uniforms 列表
-     */
-    get uniforms(): UniformDef[]
-    {
-        return this._uniforms || [];
-    }
-
-    /**
-     * Vertex 函数列表
-     */
-    get vertexs(): VertexFuncDef[]
-    {
-        return this._vertexs || [];
-    }
-
-    /**
-     * Fragment 函数列表
-     */
-    get fragments(): FragmentFuncDef[]
-    {
-        return this._fragments || [];
+        this.fragments[def.name] = def;
     }
 
     /**
@@ -257,16 +178,6 @@ export function shader(name: string, builder: () => void): Shader
     {
         // 清除当前实例引用
         clearCurrentShaderInstance();
-    }
-
-    // 将收集到的 vertex 和 fragment 函数也赋值给实例属性，以便 classToShaderConfig 可以找到它们
-    if (shaderInstance.vertexs.length > 0)
-    {
-        (shaderInstance as any).vertex = shaderInstance.vertexs[0];
-    }
-    if (shaderInstance.fragments.length > 0)
-    {
-        (shaderInstance as any).fragment = shaderInstance.fragments[0];
     }
 
     return shaderInstance;

@@ -28,10 +28,10 @@ describe('shader() 函数式着色器定义', () =>
 
         expect(testShader).toBeInstanceOf(Shader);
         expect(testShader.precision).toBe('highp');
-        expect(testShader.attributes).toHaveLength(1);
-        expect(testShader.uniforms).toHaveLength(1);
-        expect(testShader.vertexs).toHaveLength(1);
-        expect(testShader.fragments).toHaveLength(1);
+        expect(Object.keys(testShader.attributes)).toHaveLength(1);
+        expect(Object.keys(testShader.uniforms)).toHaveLength(1);
+        expect(Object.keys(testShader.vertexs)).toHaveLength(1);
+        expect(Object.keys(testShader.fragments)).toHaveLength(1);
     });
 
     it('应该能够生成正确的 vertex shader GLSL 代码', () =>
@@ -211,8 +211,8 @@ describe('shader() 函数式着色器定义', () =>
             });
         });
 
-        expect(testShader.attributes).toHaveLength(2);
-        expect(testShader.uniforms).toHaveLength(2);
+        expect(Object.keys(testShader.attributes)).toHaveLength(2);
+        expect(Object.keys(testShader.uniforms)).toHaveLength(2);
         
         const vertexGlsl = testShader.generateGLSL('vertex', 'main');
         expect(vertexGlsl).toContain('attribute vec3 pos;');

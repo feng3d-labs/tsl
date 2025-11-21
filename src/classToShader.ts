@@ -62,31 +62,39 @@ export function classToShaderConfig(
     // 查找入口函数
     let entryFunc: (() => any) | FuncDef | undefined = undefined;
     
-    // 根据 shaderType 在对应的数组中查找
-    if (shaderType === 'vertex' && instance.vertexs && Array.isArray(instance.vertexs))
+    // 根据 shaderType 在对应的字典中查找
+    if (shaderType === 'vertex' && instance.vertexs && typeof instance.vertexs === 'object' && !Array.isArray(instance.vertexs))
     {
         if (entry)
         {
-            // 如果提供了 entry，查找同名函数
-            entryFunc = instance.vertexs.find((f: any) => isFuncDef(f) && f.name === entry);
+            // 如果提供了 entry，直接通过 key 查找
+            entryFunc = instance.vertexs[entry];
         }
         else
         {
             // 如果没有提供 entry，取第一个函数
-            entryFunc = instance.vertexs.find((f: any) => isFuncDef(f));
+            const keys = Object.keys(instance.vertexs);
+            if (keys.length > 0)
+            {
+                entryFunc = instance.vertexs[keys[0]];
+            }
         }
     }
-    else if (shaderType === 'fragment' && instance.fragments && Array.isArray(instance.fragments))
+    else if (shaderType === 'fragment' && instance.fragments && typeof instance.fragments === 'object' && !Array.isArray(instance.fragments))
     {
         if (entry)
         {
-            // 如果提供了 entry，查找同名函数
-            entryFunc = instance.fragments.find((f: any) => isFuncDef(f) && f.name === entry);
+            // 如果提供了 entry，直接通过 key 查找
+            entryFunc = instance.fragments[entry];
         }
         else
         {
             // 如果没有提供 entry，取第一个函数
-            entryFunc = instance.fragments.find((f: any) => isFuncDef(f));
+            const keys = Object.keys(instance.fragments);
+            if (keys.length > 0)
+            {
+                entryFunc = instance.fragments[keys[0]];
+            }
         }
     }
     
@@ -145,31 +153,70 @@ export function classToShaderConfig(
     const uniforms: UniformConfig[] = [];
     const attributes: AttributeConfig[] = [];
 
-    // 遍历实例的所有属性
-    for (const key in instance)
+    // 优先使用字典形式的 uniforms 和 attributes
+    if (instance.uniforms && typeof instance.uniforms === 'object' && !Array.isArray(instance.uniforms))
     {
-        // 跳过特殊属性
-        if (key === 'precision' || key === 'uniforms' || key === 'attributes' || key === 'main' || key === 'generateGLSL' || key === 'generateWGSL')
+        // 从字典中收集所有 uniform 定义
+        for (const key in instance.uniforms)
         {
-            continue;
+            const def = instance.uniforms[key];
+            if (isUniformDef(def))
+            {
+                uniforms.push(uniformDefToConfig(def));
+            }
         }
+    }
+    else
+    {
+        // 遍历实例的所有属性（兼容旧方式）
+        for (const key in instance)
+        {
+            // 跳过特殊属性
+            if (key === 'precision' || key === 'uniforms' || key === 'attributes' || key === 'vertexs' || key === 'fragments' || key === 'main' || key === 'generateGLSL' || key === 'generateWGSL')
+            {
+                continue;
+            }
 
-        const value = instance[key];
+            const value = instance[key];
 
-        // 检查是否为 uniform 定义
-        if (isUniformDef(value))
-        {
-            uniforms.push(uniformDefToConfig(value));
+            // 检查是否为 uniform 定义
+            if (isUniformDef(value))
+            {
+                uniforms.push(uniformDefToConfig(value));
+            }
         }
-        // 检查是否为 attribute 定义
-        else if (isAttributeDef(value))
+    }
+
+    if (instance.attributes && typeof instance.attributes === 'object' && !Array.isArray(instance.attributes))
+    {
+        // 从字典中收集所有 attribute 定义
+        for (const key in instance.attributes)
         {
-            attributes.push(attributeDefToConfig(value));
+            const def = instance.attributes[key];
+            if (isAttributeDef(def))
+            {
+                attributes.push(attributeDefToConfig(def));
+            }
         }
-        // 跳过函数定义（func() 定义的对象）
-        else if (isFuncDef(value))
+    }
+    else
+    {
+        // 遍历实例的所有属性（兼容旧方式）
+        for (const key in instance)
         {
-            continue;
+            // 跳过特殊属性
+            if (key === 'precision' || key === 'uniforms' || key === 'attributes' || key === 'vertexs' || key === 'fragments' || key === 'main' || key === 'generateGLSL' || key === 'generateWGSL')
+            {
+                continue;
+            }
+
+            const value = instance[key];
+
+            // 检查是否为 attribute 定义
+            if (isAttributeDef(value))
+            {
+                attributes.push(attributeDefToConfig(value));
+            }
         }
     }
 
@@ -179,7 +226,7 @@ export function classToShaderConfig(
         config.uniforms = uniforms;
     }
     // 否则，尝试使用旧的 uniforms 对象格式
-    else if (instance.uniforms)
+    else if (instance.uniforms && typeof instance.uniforms === 'object')
     {
         config.uniforms = convertUniformsToConfig(instance.uniforms);
     }
@@ -190,7 +237,7 @@ export function classToShaderConfig(
         config.attributes = attributes;
     }
     // 否则，尝试使用旧的 attributes 对象格式
-    else if (instance.attributes)
+    else if (instance.attributes && typeof instance.attributes === 'object')
     {
         config.attributes = convertAttributesToConfig(instance.attributes);
     }

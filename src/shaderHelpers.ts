@@ -145,7 +145,7 @@ export function attributeDefToConfig(def: AttributeDef): AttributeConfig
 }
 
 /**
- * 函数定义对象接口
+ * 函数定义对象接口（通用函数，不指定着色器类型）
  */
 export interface FuncDef
 {
@@ -153,6 +153,22 @@ export interface FuncDef
     name: string;
     body: () => any;
     shaderType?: 'vertex' | 'fragment';
+}
+
+/**
+ * Fragment Shader 函数定义对象接口
+ */
+export interface FragmentFuncDef extends FuncDef
+{
+    shaderType: 'fragment';
+}
+
+/**
+ * Vertex Shader 函数定义对象接口
+ */
+export interface VertexFuncDef extends FuncDef
+{
+    shaderType: 'vertex';
 }
 
 /**
@@ -182,9 +198,9 @@ export function isFuncDef(obj: any): obj is FuncDef
  * 定义 Fragment Shader 入口函数
  * @param name 函数名
  * @param body 函数体
- * @returns 函数定义对象
+ * @returns Fragment 函数定义对象
  */
-export function fragment(name: string, body: () => any): FuncDef
+export function fragment(name: string, body: () => any): FragmentFuncDef
 {
     return {
         __type__: FUNC_SYMBOL,
@@ -198,9 +214,9 @@ export function fragment(name: string, body: () => any): FuncDef
  * 定义 Vertex Shader 入口函数
  * @param name 函数名
  * @param body 函数体
- * @returns 函数定义对象
+ * @returns Vertex 函数定义对象
  */
-export function vertex(name: string, body: () => any): FuncDef
+export function vertex(name: string, body: () => any): VertexFuncDef
 {
     return {
         __type__: FUNC_SYMBOL,

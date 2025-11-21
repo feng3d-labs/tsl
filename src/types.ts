@@ -89,9 +89,10 @@ export interface VertexAttributeConfig
 }
 
 /**
- * 函数调用配置（从 vec4.ts 导入）
+ * 函数调用配置（从 builtin/vec4.ts 导入）
  */
-export type { FunctionCallConfig } from './vec4';
+import type { FunctionCallConfig } from './builtin/vec4';
+export type { FunctionCallConfig };
 
 /**
  * Fragment Shader 主函数配置
@@ -99,7 +100,7 @@ export type { FunctionCallConfig } from './vec4';
 export interface FragmentMainFunctionConfig
 {
     /** 返回值表达式（字符串形式或函数调用对象形式） */
-    readonly return?: string | import('./vec4').FunctionCallConfig;
+    readonly return?: string | FunctionCallConfig;
     /** 函数体代码（可选，如果提供则使用此代码，否则使用 return） */
     readonly body?: string;
 }
@@ -110,7 +111,7 @@ export interface FragmentMainFunctionConfig
 export interface VertexMainFunctionConfig
 {
     /** 返回值表达式（字符串形式或函数调用对象形式） */
-    readonly return?: string | import('./vec4').FunctionCallConfig;
+    readonly return?: string | FunctionCallConfig;
     /** 函数体代码（可选，如果提供则使用此代码，否则使用 return） */
     readonly body?: string;
 }

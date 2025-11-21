@@ -1,4 +1,4 @@
-import { FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL, convertTypeToWGSL } from './vec4';
+import { FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL, convertTypeToWGSL } from './builtin/vec4';
 import { Attribute } from './Attribute';
 import { Uniform } from './Uniform';
 

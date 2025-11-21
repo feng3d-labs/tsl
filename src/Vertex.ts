@@ -1,5 +1,6 @@
 import { getCurrentShaderInstance } from './currentShaderInstance';
 import { Func, FUNC_SYMBOL } from './Func';
+import type { FunctionCallConfig } from './builtin/vec4';
 
 // 重新导出 FUNC_SYMBOL 以便向后兼容
 export { FUNC_SYMBOL };
@@ -37,7 +38,7 @@ export class Vertex extends Func
     /**
      * 转换为配置对象（vertex shader）
      */
-    toConfig(): { name: string; return?: string | import('./vec4').FunctionCallConfig }
+    toConfig(): { name: string; return?: string | FunctionCallConfig }
     {
         return super.toConfig('vertex');
     }
@@ -47,7 +48,7 @@ export class Vertex extends Func
      * @param config 配置对象
      * @returns Vertex 实例
      */
-    static fromConfig(config: { name: string; return?: string | import('./vec4').FunctionCallConfig }): Vertex
+    static fromConfig(config: { name: string; return?: string | FunctionCallConfig }): Vertex
     {
         const body = () => config.return;
         return new Vertex(config.name, body);

@@ -9,6 +9,6 @@ export * from './shaderGenerator';
 export * from './types';
 export * from './Uniform';
 export * from './uniforms';
-export * from './vec4';
+export * from './builtin/vec4';
 export { Vertex, vertex, FUNC_SYMBOL } from './Vertex';
 

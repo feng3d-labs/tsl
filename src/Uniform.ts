@@ -1,4 +1,4 @@
-import { convertTypeToWGSL } from './vec4';
+import { convertTypeToWGSL } from './builtin/vec4';
 import { getCurrentShaderInstance } from './currentShaderInstance';
 
 /**

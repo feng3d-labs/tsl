@@ -1,5 +1,6 @@
 import { getCurrentShaderInstance } from './currentShaderInstance';
 import { Func } from './Func';
+import type { FunctionCallConfig } from './builtin/vec4';
 
 /**
  * Fragment 类，继承自 Func
@@ -32,7 +33,7 @@ export class Fragment extends Func
     /**
      * 转换为配置对象（fragment shader）
      */
-    toConfig(): { name: string; return?: string | import('./vec4').FunctionCallConfig }
+    toConfig(): { name: string; return?: string | FunctionCallConfig }
     {
         return super.toConfig('fragment');
     }
@@ -42,7 +43,7 @@ export class Fragment extends Func
      * @param config 配置对象
      * @returns Fragment 实例
      */
-    static fromConfig(config: { name: string; return?: string | import('./vec4').FunctionCallConfig }): Fragment
+    static fromConfig(config: { name: string; return?: string | FunctionCallConfig }): Fragment
     {
         const body = () => config.return;
         return new Fragment(config.name, body);

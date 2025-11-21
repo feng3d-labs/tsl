@@ -126,8 +126,8 @@ export function generateFunctionCallWGSL(call: FunctionCallConfig): string
 }
 
 // 导入 Attribute 和 Uniform 类型（避免循环依赖，使用类型导入）
-import type { Attribute } from './Attribute';
-import type { Uniform } from './Uniform';
+import type { Attribute } from '../Attribute';
+import type { Uniform } from '../Uniform';
 
 /**
  * vec2 构造函数

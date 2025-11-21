@@ -3,6 +3,7 @@ import { Uniform } from '../Uniform';
 import { Expression, FunctionCallConfig } from './vec4';
 import { Expression as ExpressionClass } from './Expression';
 import { formatNumber } from './formatNumber';
+import { Float } from './float';
 
 /**
  * Vec2 类，用于表示 vec2 字面量值
@@ -16,17 +17,17 @@ export class Vec2
     /**
      * 获取 x 分量
      */
-    get x(): number
+    get x(): Float
     {
-        return this._x;
+        return new Float(this._x);
     }
 
     /**
      * 获取 y 分量
      */
-    get y(): number
+    get y(): Float
     {
-        return this._y;
+        return new Float(this._y);
     }
 
     /**

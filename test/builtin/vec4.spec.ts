@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL, FunctionCallConfig, vec4, Vec4 } from '../../src/builtin/vec4';
-import { vec2, Vec2 } from '../../src/builtin/vec2';
-import { Uniform } from '../../src/Uniform';
 import { Attribute } from '../../src/Attribute';
-import { Expression } from '../../src/builtin/Expression';
+import { convertTypeToWGSL, FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from '../../src/builtin/utils';
+import { vec2 } from '../../src/builtin/vec2';
+import { vec4, Vec4 } from '../../src/builtin/vec4';
+import { Uniform } from '../../src/Uniform';
 
 describe('vec4', () =>
 {

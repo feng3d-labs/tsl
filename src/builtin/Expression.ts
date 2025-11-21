@@ -1,4 +1,4 @@
-import { FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from './vec4';
+import { FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from './utils';
 
 /**
  * 表达式类，用于链式调用

@@ -1,4 +1,4 @@
-import { FunctionCallConfig, convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL } from './builtin/vec4';
+import { FunctionCallConfig, convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL } from './builtin/utils';
 
 /**
  * 主函数配置

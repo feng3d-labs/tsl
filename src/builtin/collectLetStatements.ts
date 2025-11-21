@@ -1,5 +1,5 @@
 import { Expression } from './Expression';
-import { FunctionCallConfig, generateFunctionCallWGSL } from './vec4';
+import { FunctionCallConfig } from './utils';
 import { formatNumber } from './formatNumber';
 
 /**

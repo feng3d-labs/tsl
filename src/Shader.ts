@@ -4,7 +4,7 @@ import { IShader } from './IShader';
 import { Uniform } from './Uniform';
 import { Vertex } from './Vertex';
 import { Expression } from './builtin/Expression';
-import { FunctionCallConfig } from './builtin/vec4';
+import { FunctionCallConfig } from './builtin/utils';
 import { clearCurrentShaderInstance, setCurrentShaderInstance } from './currentShaderInstance';
 
 /**

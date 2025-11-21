@@ -1,4 +1,4 @@
-import { convertTypeToWGSL } from './builtin/vec4';
+import { convertTypeToWGSL } from './builtin/utils';
 
 /**
  * 统一变量配置

@@ -2,7 +2,7 @@ import { Attribute } from './Attribute';
 import { Uniform } from './Uniform';
 import { Expression } from './builtin/Expression';
 import { collectLetStatements } from './builtin/collectLetStatements';
-import { FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from './builtin/vec4';
+import { FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from './builtin/utils';
 
 /**
  * Func 标记

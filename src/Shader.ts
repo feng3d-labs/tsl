@@ -9,7 +9,7 @@ import { fragment } from './Fragment';
 import { vertex } from './Vertex';
 import { setCurrentShaderInstance, clearCurrentShaderInstance } from './currentShaderInstance';
 import { generateUniformsWGSL, UniformConfig } from './uniforms';
-import { convertTypeToWGSL, FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from './vec4';
+import { Func } from './Func';
 
 /**
  * Shader 基类
@@ -119,52 +119,10 @@ export class Shader implements IShader
             lines.push('');
         }
 
-        // 执行函数体获取返回值
-        let returnValue: any;
-        try
-        {
-            returnValue = entryFunc.body();
-        }
-        catch (error)
-        {
-            throw new Error(`执行入口函数 '${functionName}' 时出错: ${error}`);
-        }
-
-        // 生成入口函数
-        lines.push(`void ${functionName}() {`);
-
-        if (returnValue !== undefined && returnValue !== null)
-        {
-            let glslReturn: string;
-
-            if (typeof returnValue === 'string')
-            {
-                glslReturn = returnValue.replace(/<f32>/g, '').replace(/<i32>/g, '').replace(/<u32>/g, '');
-            }
-            else if (typeof returnValue === 'object' && 'function' in returnValue)
-            {
-                glslReturn = generateFunctionCallGLSL(returnValue as FunctionCallConfig);
-            }
-            else if (returnValue instanceof Uniform || returnValue instanceof Attribute)
-            {
-                glslReturn = returnValue.name;
-            }
-            else
-            {
-                glslReturn = String(returnValue);
-            }
-
-            if (shaderType === 'fragment')
-            {
-                lines.push(`    gl_FragColor = ${glslReturn};`);
-            }
-            else if (shaderType === 'vertex')
-            {
-                lines.push(`    gl_Position = ${glslReturn};`);
-            }
-        }
-
-        lines.push('}');
+        // 使用 Func 类生成函数代码
+        const funcInstance = new Func(entryFunc.name, entryFunc.body, shaderType);
+        const funcCode = funcInstance.toGLSL(shaderType);
+        lines.push(...funcCode.split('\n'));
 
         return lines.join('\n') + '\n';
     }
@@ -223,90 +181,13 @@ export class Shader implements IShader
             lines.push('');
         }
 
-        // 执行函数体获取返回值
-        let returnValue: any;
-        try
-        {
-            returnValue = entryFunc.body();
-        }
-        catch (error)
-        {
-            throw new Error(`执行入口函数 '${functionName}' 时出错: ${error}`);
-        }
+        // 准备 attributes 配置（仅用于 vertex shader）
+        const attributes = shaderType === 'vertex' ? Object.values(this.attributes).map(attr => attr.toConfig()) : undefined;
 
-        // 生成入口函数
-        const stage = shaderType === 'vertex' ? '@vertex' : '@fragment';
-        lines.push(stage);
-
-        if (shaderType === 'vertex')
-        {
-            // Vertex shader
-            const params: string[] = [];
-            const attrKeys = Object.keys(this.attributes);
-            for (const key of attrKeys)
-            {
-                const attr = this.attributes[key];
-                params.push(attr.toWGSL());
-            }
-
-            const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
-            lines.push(`fn ${functionName}${paramStr} -> @builtin(position) vec4<f32> {`);
-
-            if (returnValue !== undefined && returnValue !== null)
-            {
-                let wgslReturn: string;
-
-                if (typeof returnValue === 'string')
-                {
-                    wgslReturn = returnValue;
-                }
-                else if (typeof returnValue === 'object' && 'function' in returnValue)
-                {
-                    wgslReturn = generateFunctionCallWGSL(returnValue as FunctionCallConfig);
-                }
-                else if (returnValue instanceof Uniform || returnValue instanceof Attribute)
-                {
-                    wgslReturn = returnValue.name;
-                }
-                else
-                {
-                    wgslReturn = String(returnValue);
-                }
-
-                lines.push(`    return ${wgslReturn};`);
-            }
-        }
-        else
-        {
-            // Fragment shader
-            lines.push(`fn ${functionName}() -> @location(0) vec4f {`);
-
-            if (returnValue !== undefined && returnValue !== null)
-            {
-                let wgslReturn: string;
-
-                if (typeof returnValue === 'string')
-                {
-                    wgslReturn = returnValue;
-                }
-                else if (typeof returnValue === 'object' && 'function' in returnValue)
-                {
-                    wgslReturn = generateFunctionCallWGSL(returnValue as FunctionCallConfig);
-                }
-                else if (returnValue instanceof Uniform || returnValue instanceof Attribute)
-                {
-                    wgslReturn = returnValue.name;
-                }
-                else
-                {
-                    wgslReturn = String(returnValue);
-                }
-
-                lines.push(`    return ${wgslReturn};`);
-            }
-        }
-
-        lines.push('}');
+        // 使用 Func 类生成函数代码
+        const funcInstance = new Func(entryFunc.name, entryFunc.body, shaderType);
+        const funcCode = funcInstance.toWGSL(shaderType, attributes);
+        lines.push(...funcCode.split('\n'));
 
         return lines.join('\n') + '\n';
     }
@@ -345,37 +226,15 @@ export class Shader implements IShader
 
         const functionName = entryFunc.name;
 
-        // 执行函数体获取返回值
-        let returnValue: any;
-        try
-        {
-            returnValue = entryFunc.body();
-        }
-        catch (error)
-        {
-            throw new Error(`执行入口函数 '${functionName}' 时出错: ${error}`);
-        }
+        // 使用 Func 类生成配置
+        const funcInstance = new Func(entryFunc.name, entryFunc.body, shaderType);
+        const funcConfig = funcInstance.toConfig(shaderType);
 
         // 构建 MainFunctionConfig
         const main: MainFunctionConfig = {};
-        if (returnValue !== undefined && returnValue !== null)
+        if (funcConfig.return !== undefined)
         {
-            if (typeof returnValue === 'string')
-            {
-                main.return = returnValue;
-            }
-            else if (typeof returnValue === 'object' && 'function' in returnValue)
-            {
-                main.return = returnValue as FunctionCallConfig;
-            }
-            else if (returnValue instanceof Uniform || returnValue instanceof Attribute)
-            {
-                main.return = returnValue.name;
-            }
-            else
-            {
-                main.return = String(returnValue);
-            }
+            main.return = funcConfig.return;
         }
 
         // 构建 ShaderConfig

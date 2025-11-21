@@ -7,6 +7,7 @@ import { fragment, Fragment } from './Fragment';
 import { vertex, Vertex } from './Vertex';
 import { setCurrentShaderInstance, clearCurrentShaderInstance } from './currentShaderInstance';
 import { generateUniformsWGSL, UniformConfig } from './uniforms';
+import { FunctionCallConfig } from './builtin/vec4';
 
 /**
  * Shader 基类
@@ -46,6 +47,67 @@ export class Shader implements IShader
     {
     }
 
+    /**
+     * 分析函数返回值中使用的变量名（attributes 和 uniforms）
+     * @param returnValue 函数返回值
+     * @returns 使用的变量名集合
+     */
+    private analyzeDependencies(returnValue: any): { attributes: Set<string>; uniforms: Set<string> }
+    {
+        const attributes = new Set<string>();
+        const uniforms = new Set<string>();
+
+        const analyzeValue = (value: any): void =>
+        {
+            if (value === null || value === undefined)
+            {
+                return;
+            }
+
+            // 如果是 Uniform 或 Attribute 实例
+            if (value instanceof Uniform)
+            {
+                uniforms.add(value.name);
+                return;
+            }
+            if (value instanceof Attribute)
+            {
+                attributes.add(value.name);
+                return;
+            }
+
+            // 如果是 FunctionCallConfig
+            if (typeof value === 'object' && 'function' in value && 'args' in value)
+            {
+                const config = value as FunctionCallConfig;
+                // 递归分析参数
+                for (const arg of config.args)
+                {
+                    // 如果是字符串，检查是否是变量名
+                    if (typeof arg === 'string')
+                    {
+                        // 检查是否是 attribute 或 uniform 的名称
+                        if (this.attributes[arg])
+                        {
+                            attributes.add(arg);
+                        }
+                        else if (this.uniforms[arg])
+                        {
+                            uniforms.add(arg);
+                        }
+                    }
+                    // 如果是 FunctionCallConfig，递归分析
+                    else if (typeof arg === 'object' && 'function' in arg)
+                    {
+                        analyzeValue(arg);
+                    }
+                }
+            }
+        };
+
+        analyzeValue(returnValue);
+        return { attributes, uniforms };
+    }
 
     /**
      * 生成 GLSL 着色器代码
@@ -88,24 +150,37 @@ export class Shader implements IShader
             lines.push(`precision ${this.precision} float;`);
         }
 
-        // 生成 attributes（仅 vertex shader）
+        // 分析函数体中使用的依赖
+        let returnValue: any;
+        try
+        {
+            returnValue = entryFunc.body();
+        }
+        catch (error)
+        {
+            throw new Error(`执行函数 '${entryFunc.name}' 时出错: ${error}`);
+        }
+        const dependencies = this.analyzeDependencies(returnValue);
+
+        // 生成 attributes（仅 vertex shader，且只包含实际使用的）
         if (shaderType === 'vertex')
         {
-            const attrKeys = Object.keys(this.attributes);
-            for (const key of attrKeys)
+            for (const attrName of dependencies.attributes)
             {
-                const attr = this.attributes[key];
-                lines.push(attr.toGLSL());
+                const attr = this.attributes[attrName];
+                if (attr)
+                {
+                    lines.push(attr.toGLSL());
+                }
             }
         }
 
-        // 生成 uniforms
-        const uniformKeys = Object.keys(this.uniforms);
-        if (uniformKeys.length > 0)
+        // 生成 uniforms（只包含实际使用的）
+        for (const uniformName of dependencies.uniforms)
         {
-            for (const key of uniformKeys)
+            const uniform = this.uniforms[uniformName];
+            if (uniform)
             {
-                const uniform = this.uniforms[key];
                 lines.push(uniform.toGLSL());
             }
         }
@@ -158,16 +233,30 @@ export class Shader implements IShader
 
         const functionName = entryFunc.name;
 
-        // 生成 uniforms
-        const uniformKeys = Object.keys(this.uniforms);
-        if (uniformKeys.length > 0)
+        // 分析函数体中使用的依赖
+        let returnValue: any;
+        try
         {
-            const uniformConfigs: UniformConfig[] = [];
-            for (const key of uniformKeys)
+            returnValue = entryFunc.body();
+        }
+        catch (error)
+        {
+            throw new Error(`执行函数 '${entryFunc.name}' 时出错: ${error}`);
+        }
+        const dependencies = this.analyzeDependencies(returnValue);
+
+        // 生成 uniforms（只包含实际使用的）
+        const uniformConfigs: UniformConfig[] = [];
+        for (const uniformName of dependencies.uniforms)
+        {
+            const uniform = this.uniforms[uniformName];
+            if (uniform)
             {
-                const uniform = this.uniforms[key];
                 uniformConfigs.push(uniform.toConfig());
             }
+        }
+        if (uniformConfigs.length > 0)
+        {
             lines.push(...generateUniformsWGSL(uniformConfigs));
         }
 
@@ -177,8 +266,13 @@ export class Shader implements IShader
             lines.push('');
         }
 
-        // 准备 attributes 配置（仅用于 vertex shader）
-        const attributes = shaderType === 'vertex' ? Object.values(this.attributes).map(attr => attr.toConfig()) : undefined;
+        // 准备 attributes 配置（仅用于 vertex shader，且只包含实际使用的）
+        const attributes = shaderType === 'vertex'
+            ? Array.from(dependencies.attributes)
+                .map(attrName => this.attributes[attrName])
+                .filter(attr => attr !== undefined)
+                .map(attr => attr.toConfig())
+            : undefined;
 
         // 使用 entryFunc 生成函数代码
         let funcCode: string;

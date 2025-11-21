@@ -198,7 +198,8 @@ describe('shader() 函数式着色器定义', () =>
         
         const vertexGlsl = testShader.generateGLSL('vertex', 'main');
         expect(vertexGlsl).toContain('attribute vec3 pos;');
-        expect(vertexGlsl).toContain('attribute vec2 uv;');
+        // uv 在 vertex shader 中没有使用，所以不应该包含
+        expect(vertexGlsl).not.toContain('attribute vec2 uv;');
     });
 
     it('应该在找不到入口函数时抛出错误', () =>

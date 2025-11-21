@@ -1,5 +1,6 @@
 import { convertTypeToWGSL, FunctionCallConfig } from './builtin/vec4';
 import { getCurrentShaderInstance } from './currentShaderInstance';
+import { IElement } from './IElement';
 
 /**
  * Uniform 标记
@@ -9,9 +10,12 @@ export const UNIFORM_SYMBOL = Symbol('uniform');
 /**
  * Uniform 类
  */
-export class Uniform
+export class Uniform implements IElement
 {
     readonly __type__ = UNIFORM_SYMBOL;
+
+    dependencies: IElement[];
+
     readonly name: string;
     value?: FunctionCallConfig; // 保存 vec4() 等函数返回的 FunctionCallConfig
     readonly binding?: number;

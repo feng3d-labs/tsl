@@ -1,16 +1,18 @@
 import { Attribute } from '../Attribute';
+import { IElement } from '../IElement';
 import { Uniform } from '../Uniform';
-import { Expression, FunctionCallConfig } from './vec4';
-import { Expression as ExpressionClass } from './Expression';
-import { formatNumber } from './formatNumber';
 import { Float } from './float';
+import { formatNumber } from './formatNumber';
+import { FunctionCallConfig } from './vec4';
 
 /**
  * Vec2 类，用于表示 vec2 字面量值或 uniform/attribute 变量
  */
-export class Vec2
+export class Vec2 implements IElement
 {
-    private _variableName?: string; // 如果是 uniform/attribute，存储变量名
+    dependencies: IElement[];
+    toGLSL: () => string;
+    toWGSL: () => string;
 
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
@@ -28,9 +30,10 @@ export class Vec2
                     args: [uniform.name],
                 };
                 uniform.value = valueConfig;
-                this._variableName = uniform.name;
-                this._x = 0; // 占位值，不会被使用
-                this._y = 0; // 占位值，不会被使用
+
+                this.toGLSL = () => uniform.name;
+                this.toWGSL = () => uniform.name;
+                this.dependencies = [uniform];
             }
             else if (args[0] instanceof Attribute)
             {
@@ -40,9 +43,9 @@ export class Vec2
                     args: [attribute.name],
                 };
                 attribute.value = valueConfig;
-                this._variableName = attribute.name;
-                this._x = 0; // 占位值，不会被使用
-                this._y = 0; // 占位值，不会被使用
+                this.toGLSL = () => attribute.name;
+                this.toWGSL = () => attribute.name;
+                this.dependencies = [attribute];
             }
             else
             {
@@ -51,9 +54,11 @@ export class Vec2
         }
         else if (args.length === 2 && typeof args[0] === 'number' && typeof args[1] === 'number')
         {
-            // 从字面量值创建
-            this._x = args[0];
-            this._y = args[1];
+            const x = args[0] as number;
+            const y = args[1] as number;
+            this.toGLSL = () => `vec2(${formatNumber(x)}, ${formatNumber(y)})`;
+            this.toWGSL = () => `vec2<f32>(${formatNumber(x)}, ${formatNumber(y)})`;
+            this.dependencies = [];
         }
         else
         {
@@ -61,21 +66,17 @@ export class Vec2
         }
     }
 
-    private _x: number;
-    private _y: number;
-
     /**
      * 获取 x 分量
      */
     get x(): Float
     {
-        // 如果是 uniform/attribute，使用变量名
-        if (this._variableName)
-        {
-            return new Float(0, { toGLSL: () => this._variableName!, toWGSL: () => this._variableName! }, 'x');
-        }
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.x`;
+        float.toWGSL = () => `${this.toWGSL()}.x`;
+        float.dependencies = [this];
 
-        return new Float(this._x, this, 'x');
+        return float;
     }
 
     /**
@@ -83,41 +84,12 @@ export class Vec2
      */
     get y(): Float
     {
-        // 如果是 uniform/attribute，使用变量名
-        if (this._variableName)
-        {
-            return new Float(0, { toGLSL: () => this._variableName!, toWGSL: () => this._variableName! }, 'y');
-        }
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.y`;
+        float.toWGSL = () => `${this.toWGSL()}.y`;
+        float.dependencies = [this];
 
-        return new Float(this._y, this, 'y');
-    }
-
-    /**
-     * 转换为 GLSL 代码
-     */
-    toGLSL(): string
-    {
-        // 如果是 uniform/attribute，直接返回变量名
-        if (this._variableName)
-        {
-            return this._variableName;
-        }
-
-        return `vec2(${formatNumber(this._x)}, ${formatNumber(this._y)})`;
-    }
-
-    /**
-     * 转换为 WGSL 代码
-     */
-    toWGSL(): string
-    {
-        // 如果是 uniform/attribute，直接返回变量名
-        if (this._variableName)
-        {
-            return this._variableName;
-        }
-
-        return `vec2<f32>(${formatNumber(this._x)}, ${formatNumber(this._y)})`;
+        return float;
     }
 }
 

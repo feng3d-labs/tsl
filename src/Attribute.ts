@@ -1,5 +1,6 @@
 import { convertTypeToWGSL, FunctionCallConfig } from './builtin/vec4';
 import { getCurrentShaderInstance } from './currentShaderInstance';
+import { IElement } from './IElement';
 
 /**
  * Attribute 标记
@@ -9,9 +10,10 @@ export const ATTRIBUTE_SYMBOL = Symbol('attribute');
 /**
  * Attribute 类
  */
-export class Attribute
+export class Attribute implements IElement
 {
     readonly __type__ = ATTRIBUTE_SYMBOL;
+    dependencies: IElement[];
     readonly name: string;
     value?: FunctionCallConfig; // 保存 vec2() 等函数返回的 FunctionCallConfig
     readonly location?: number;
@@ -31,6 +33,7 @@ export class Attribute
         {
             throw new Error(`Attribute '${this.name}' 没有设置 value，无法确定类型。请使用 vec2(attribute(...)) 等形式定义。`);
         }
+
         return this.value.function;
     }
 
@@ -40,6 +43,7 @@ export class Attribute
     toGLSL(): string
     {
         const type = this.getType();
+
         return `attribute ${type} ${this.name};`;
     }
 
@@ -51,6 +55,7 @@ export class Attribute
         const type = this.getType();
         const wgslType = convertTypeToWGSL(type);
         const location = this.location !== undefined ? `@location(${this.location})` : '@location(0)';
+
         return `${location} ${this.name}: ${wgslType}`;
     }
 
@@ -60,6 +65,7 @@ export class Attribute
     toConfig(): { name: string; type: string; location?: number }
     {
         const type = this.getType();
+
         return {
             name: this.name,
             type,

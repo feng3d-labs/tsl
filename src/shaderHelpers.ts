@@ -1,11 +1,10 @@
-import { AttributeConfig } from './shaderGenerator';
-import { UniformConfig } from './uniforms';
 import { Attribute, ATTRIBUTE_SYMBOL } from './Attribute';
 import { Uniform, UNIFORM_SYMBOL } from './Uniform';
-import type { FragmentFuncDef } from './Fragment';
-import type { VertexFuncDef, FuncDef } from './Vertex';
+import type { FuncDef } from './Vertex';
 import { FUNC_SYMBOL } from './Vertex';
 import { getCurrentShaderInstance } from './currentShaderInstance';
+import { AttributeConfig } from './shaderGenerator';
+import { UniformConfig } from './uniforms';
 
 /**
  * 检查对象是否为 Uniform 定义

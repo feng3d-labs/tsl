@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL, FunctionCallConfig } from '../src/builtin/vec4';
+import { convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL, FunctionCallConfig } from '../../src/builtin/vec4';
 
 describe('vec4', () =>
 {

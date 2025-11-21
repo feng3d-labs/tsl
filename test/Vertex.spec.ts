@@ -1,0 +1,55 @@
+import { describe, expect, it } from 'vitest';
+import { Vertex, vertex } from '../src/Vertex';
+
+describe('Vertex', () =>
+{
+    describe('Vertex 类', () =>
+    {
+        it('应该能够创建 Vertex 实例', () =>
+        {
+            const vert = new Vertex('main', () => 'vec4(position, 0.0, 1.0)');
+            expect(vert.name).toBe('main');
+            expect(vert.shaderType).toBe('vertex');
+        });
+
+        it('应该能够生成 GLSL 代码', () =>
+        {
+            const vert = new Vertex('main', () => 'vec4(position, 0.0, 1.0)');
+            const glsl = vert.toGLSL();
+            expect(glsl).toContain('void main()');
+            expect(glsl).toContain('gl_Position = vec4(position, 0.0, 1.0);');
+        });
+
+        it('应该能够生成 WGSL 代码', () =>
+        {
+            const vert = new Vertex('main', () => 'vec4<f32>(position, 0.0, 1.0)');
+            const wgsl = vert.toWGSL('vertex', [
+                { name: 'position', type: 'vec2', location: 0 },
+            ]);
+            expect(wgsl).toContain('@vertex');
+            expect(wgsl).toContain('fn main');
+            expect(wgsl).toContain('@location(0) position: vec2<f32>');
+        });
+
+        it('应该能够从配置创建实例', () =>
+        {
+            const vert = Vertex.fromConfig({
+                name: 'main',
+                return: 'vec4(position, 0.0, 1.0)',
+            });
+            expect(vert).toBeInstanceOf(Vertex);
+            expect(vert.name).toBe('main');
+        });
+    });
+
+    describe('vertex() 函数', () =>
+    {
+        it('应该能够创建 Vertex 实例', () =>
+        {
+            const vert = vertex('main', () => 'vec4(position, 0.0, 1.0)');
+            expect(vert).toBeInstanceOf(Vertex);
+            expect(vert.name).toBe('main');
+        });
+    });
+});
+

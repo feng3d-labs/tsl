@@ -26,6 +26,7 @@ export function generateUniformsGLSL(uniforms: UniformConfig[] | undefined): str
     {
         for (const uniform of uniforms)
         {
+            // UniformConfig 仍然使用 type 字段（用于序列化）
             lines.push(`uniform ${uniform.type} ${uniform.name};`);
         }
     }

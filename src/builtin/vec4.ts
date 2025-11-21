@@ -154,34 +154,32 @@ export function vec3(...args: (string | number | FunctionCallConfig | Attribute 
 
 /**
  * vec4 构造函数
- * 如果传入单个 Uniform 实例且其类型未设置，则自动设置类型为 'vec4'
+ * 如果传入单个 Uniform 实例，则将 FunctionCallConfig 保存到 uniform.value
  */
 export function vec4(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
 {
-    // 如果只有一个参数且是 Uniform 实例，且类型未设置，则更新 uniform 类型
+    // 如果只有一个参数且是 Uniform 实例，则将 FunctionCallConfig 保存到 uniform.value
     if (args.length === 1 && args[0] instanceof Uniform)
     {
         const uniformArg = args[0] as Uniform;
-        // 如果 uniform 的类型未设置或为空，则设置为 'vec4'
-        if (!uniformArg.type || uniformArg.type === '')
+        const valueConfig: FunctionCallConfig = {
+            function: 'vec4',
+            args: [uniformArg.name],
+        };
+
+        // 更新已存在的 uniform 的 value
+        const currentShaderInstance = getCurrentShaderInstance();
+        if (currentShaderInstance && currentShaderInstance.uniforms)
         {
-            // 更新已存在的 uniform 的类型
-            const currentShaderInstance = getCurrentShaderInstance();
-            if (currentShaderInstance && currentShaderInstance.uniforms)
+            const existingUniform = currentShaderInstance.uniforms[uniformArg.name];
+            if (existingUniform)
             {
-                const existingUniform = currentShaderInstance.uniforms[uniformArg.name];
-                if (existingUniform)
-                {
-                    // 直接更新现有 uniform 的类型
-                    existingUniform.type = 'vec4';
-                }
+                // 直接更新现有 uniform 的 value
+                existingUniform.value = valueConfig;
             }
-            // 返回 FunctionCallConfig，表示 vec4(color)
-            return {
-                function: 'vec4',
-                args: [uniformArg.name],
-            };
         }
+
+        return valueConfig;
     }
 
     return {

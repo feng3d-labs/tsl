@@ -1,4 +1,4 @@
-import { convertTypeToWGSL } from './builtin/vec4';
+import { convertTypeToWGSL, FunctionCallConfig } from './builtin/vec4';
 import { getCurrentShaderInstance } from './currentShaderInstance';
 
 /**
@@ -13,16 +13,27 @@ export class Uniform
 {
     readonly __type__ = UNIFORM_SYMBOL;
     readonly name: string;
-    type: string; // 改为非 readonly，允许后续更新
+    value?: FunctionCallConfig; // 保存 vec4() 等函数返回的 FunctionCallConfig
     readonly binding?: number;
     readonly group?: number;
 
-    constructor(name: string, type: string, binding?: number, group?: number)
+    constructor(name: string, binding?: number, group?: number)
     {
         this.name = name;
-        this.type = type;
         this.binding = binding;
         this.group = group;
+    }
+
+    /**
+     * 从 value 中提取类型
+     */
+    private getType(): string
+    {
+        if (!this.value)
+        {
+            throw new Error(`Uniform '${this.name}' 没有设置 value，无法确定类型。请使用 vec4(uniform(...)) 等形式定义。`);
+        }
+        return this.value.function;
     }
 
     /**
@@ -30,7 +41,8 @@ export class Uniform
      */
     toGLSL(): string
     {
-        return `uniform ${this.type} ${this.name};`;
+        const type = this.getType();
+        return `uniform ${type} ${this.name};`;
     }
 
     /**
@@ -38,7 +50,8 @@ export class Uniform
      */
     toWGSL(): string
     {
-        const wgslType = convertTypeToWGSL(this.type);
+        const type = this.getType();
+        const wgslType = convertTypeToWGSL(type);
         const binding = this.binding !== undefined ? `@binding(${this.binding})` : '';
         const group = this.group !== undefined ? `@group(${this.group})` : '';
         const annotations = [binding, group].filter(Boolean).join(' ');
@@ -51,9 +64,10 @@ export class Uniform
      */
     toConfig(): { name: string; type: string; binding?: number; group?: number }
     {
+        const type = this.getType();
         return {
             name: this.name,
-            type: this.type,
+            type,
             binding: this.binding,
             group: this.group,
         };
@@ -86,7 +100,7 @@ export class Uniform
  */
 export function uniform(name: string, binding?: number, group?: number): Uniform
 {
-    const def = new Uniform(name, '', binding, group);
+    const def = new Uniform(name, binding, group);
 
     // 如果当前正在构造 Shader 实例，自动添加到 uniforms 字典
     const currentShaderInstance = getCurrentShaderInstance();

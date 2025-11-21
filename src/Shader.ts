@@ -293,6 +293,11 @@ export class Shader implements IShader
             for (const uniformConfig of config.uniforms)
             {
                 const uniformDef = uniform(uniformConfig.name, uniformConfig.binding, uniformConfig.group);
+                // 从 type 创建 FunctionCallConfig 并设置到 value
+                uniformDef.value = {
+                    function: uniformConfig.type,
+                    args: [uniformConfig.name],
+                };
                 shaderInstance.uniforms[uniformConfig.name] = uniformDef;
             }
         }

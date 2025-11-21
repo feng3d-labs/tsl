@@ -262,7 +262,8 @@ describe('shader() 函数式着色器定义', () =>
 
         // 检查 uniform 是否正确注册
         expect(testShader.uniforms['color']).toBeDefined();
-        expect(testShader.uniforms['color'].type).toBe('vec4');
+        expect(testShader.uniforms['color'].value).toBeDefined();
+        expect(testShader.uniforms['color'].value?.function).toBe('vec4');
         expect(testShader.uniforms['color'].binding).toBe(0);
         expect(testShader.uniforms['color'].group).toBe(0);
 

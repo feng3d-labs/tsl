@@ -9,6 +9,29 @@ const ATTRIBUTE_SYMBOL = Symbol('attribute');
 const FUNC_SYMBOL = Symbol('func');
 
 /**
+ * 当前正在构造的 Shader 实例（用于自动收集）
+ */
+let currentShaderInstance: any = null;
+
+/**
+ * 设置当前正在构造的 Shader 实例
+ * @internal
+ */
+export function setCurrentShaderInstance(instance: any): void
+{
+    currentShaderInstance = instance;
+}
+
+/**
+ * 清除当前正在构造的 Shader 实例
+ * @internal
+ */
+export function clearCurrentShaderInstance(): void
+{
+    currentShaderInstance = null;
+}
+
+/**
  * Uniform 定义对象接口
  */
 export interface UniformDef
@@ -65,6 +88,12 @@ export function uniform(name: string, type: string, binding?: number, group?: nu
         configurable: false,
     });
 
+    // 如果当前正在构造 Shader 实例，自动添加到 uniforms 列表
+    if (currentShaderInstance && typeof currentShaderInstance._addUniform === 'function')
+    {
+        currentShaderInstance._addUniform(def);
+    }
+
     return def;
 }
 
@@ -99,6 +128,12 @@ export function attribute(name: string, type: string, location?: number): Attrib
         enumerable: false,
         configurable: false,
     });
+
+    // 如果当前正在构造 Shader 实例，自动添加到 attributes 列表
+    if (currentShaderInstance && typeof currentShaderInstance._addAttribute === 'function')
+    {
+        currentShaderInstance._addAttribute(def);
+    }
 
     return def;
 }
@@ -202,12 +237,20 @@ export function isFuncDef(obj: any): obj is FuncDef
  */
 export function fragment(name: string, body: () => any): FragmentFuncDef
 {
-    return {
+    const def: FragmentFuncDef = {
         __type__: FUNC_SYMBOL,
         name,
         body,
         shaderType: 'fragment',
     };
+
+    // 如果当前正在构造 Shader 实例，自动添加到 fragments 列表
+    if (currentShaderInstance && typeof currentShaderInstance._addFragment === 'function')
+    {
+        currentShaderInstance._addFragment(def);
+    }
+
+    return def;
 }
 
 /**
@@ -218,11 +261,19 @@ export function fragment(name: string, body: () => any): FragmentFuncDef
  */
 export function vertex(name: string, body: () => any): VertexFuncDef
 {
-    return {
+    const def: VertexFuncDef = {
         __type__: FUNC_SYMBOL,
         name,
         body,
         shaderType: 'vertex',
     };
+
+    // 如果当前正在构造 Shader 实例，自动添加到 vertexs 列表
+    if (currentShaderInstance && typeof currentShaderInstance._addVertex === 'function')
+    {
+        currentShaderInstance._addVertex(def);
+    }
+
+    return def;
 }
 

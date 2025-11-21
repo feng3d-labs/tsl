@@ -159,11 +159,12 @@ export class Shader
 
     /**
      * 生成 GLSL 着色器代码
-     * @param entry 入口函数名，默认为 'main'
+     * @param shaderType 着色器类型，必须提供：'vertex' 或 'fragment'
+     * @param entry 入口函数名（可选）。如果提供则查找同名同类型的入口函数，否则取第一个入口函数
      */
-    generateGLSL(entry: string = 'main'): string
+    generateGLSL(shaderType: 'vertex' | 'fragment', entry?: string): string
     {
-        const config = classToShaderConfig(this as any, entry);
+        const config = classToShaderConfig(this as any, shaderType, entry);
         const lines: string[] = [];
 
         // Fragment shader 需要 precision 声明
@@ -205,11 +206,12 @@ export class Shader
 
     /**
      * 生成 WGSL 着色器代码
-     * @param entry 入口函数名，默认为 'main'
+     * @param shaderType 着色器类型，必须提供：'vertex' 或 'fragment'
+     * @param entry 入口函数名（可选）。如果提供则查找同名同类型的入口函数，否则取第一个入口函数
      */
-    generateWGSL(entry: string = 'main'): string
+    generateWGSL(shaderType: 'vertex' | 'fragment', entry?: string): string
     {
-        const config = classToShaderConfig(this as any, entry);
+        const config = classToShaderConfig(this as any, shaderType, entry);
         const lines: string[] = [];
 
         // 生成 uniforms

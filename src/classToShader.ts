@@ -50,39 +50,80 @@ export function classToShaderConfig(
         precision?: 'lowp' | 'mediump' | 'highp';
         uniforms?: Record<string, { type: string; binding?: number; group?: number }>;
         attributes?: Record<string, { type: string; location?: number }>;
-        main: (() => any) | FuncDef;
+        main?: (() => any) | FuncDef;
+        vertexs?: any[];
+        fragments?: any[];
         [key: string]: any;
     },
-    entry: string = 'main'
+    shaderType: 'vertex' | 'fragment',
+    entry?: string
 ): ShaderConfig
 {
-    // 从入口函数中获取着色器类型
-    let shaderType: 'vertex' | 'fragment' = 'fragment'; // 默认值
-    
     // 查找入口函数
     let entryFunc: (() => any) | FuncDef | undefined = undefined;
     
-    if (entry === 'main' && instance.main)
+    // 根据 shaderType 在对应的数组中查找
+    if (shaderType === 'vertex' && instance.vertexs && Array.isArray(instance.vertexs))
     {
-        entryFunc = instance.main;
-    }
-    else if (entry !== 'main' && instance[entry])
-    {
-        const funcValue = instance[entry];
-        if (isFuncDef(funcValue) || typeof funcValue === 'function')
+        if (entry)
         {
-            entryFunc = funcValue;
+            // 如果提供了 entry，查找同名函数
+            entryFunc = instance.vertexs.find((f: any) => isFuncDef(f) && f.name === entry);
+        }
+        else
+        {
+            // 如果没有提供 entry，取第一个函数
+            entryFunc = instance.vertexs.find((f: any) => isFuncDef(f));
+        }
+    }
+    else if (shaderType === 'fragment' && instance.fragments && Array.isArray(instance.fragments))
+    {
+        if (entry)
+        {
+            // 如果提供了 entry，查找同名函数
+            entryFunc = instance.fragments.find((f: any) => isFuncDef(f) && f.name === entry);
+        }
+        else
+        {
+            // 如果没有提供 entry，取第一个函数
+            entryFunc = instance.fragments.find((f: any) => isFuncDef(f));
         }
     }
     
-    // 如果入口函数是 FuncDef 且有 shaderType，使用它
+    // 如果没找到，尝试从实例属性中查找（兼容旧方式）
+    if (!entryFunc)
+    {
+        const searchEntry = entry || 'main';
+        if (searchEntry === 'main' && instance.main)
+        {
+            entryFunc = instance.main;
+        }
+        else if (searchEntry !== 'main' && instance[searchEntry])
+        {
+            const funcValue = instance[searchEntry];
+            if (isFuncDef(funcValue) || typeof funcValue === 'function')
+            {
+                entryFunc = funcValue;
+            }
+        }
+    }
+    
+    // 如果入口函数是 FuncDef 且有 shaderType，使用它（优先级最高）
     if (entryFunc && isFuncDef(entryFunc) && entryFunc.shaderType)
     {
         shaderType = entryFunc.shaderType;
     }
     
+    // 如果没有找到入口函数，抛出错误
+    if (!entryFunc)
+    {
+        const entryDesc = entry ? `名为 '${entry}' 的` : '';
+        const shaderTypeDesc = shaderType === 'vertex' ? '顶点' : '片段';
+        throw new Error(`未找到${shaderTypeDesc}着色器的${entryDesc}入口函数。请确保已定义 ${shaderType === 'vertex' ? 'vertex' : 'fragment'}() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
+    }
+    
     // 获取实际的函数名（从 FuncDef 中获取，默认为 'main'）
-    let entryName = 'main';
+    let entryName = entry || 'main';
     if (entryFunc && isFuncDef(entryFunc))
     {
         entryName = entryFunc.name;

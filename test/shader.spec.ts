@@ -49,7 +49,7 @@ describe('shader() 函数式着色器定义', () =>
             });
         });
 
-        const glsl = testShader.generateGLSL('vertex');
+        const glsl = testShader.generateGLSL('vertex', 'main');
         
         expect(glsl).toContain('attribute vec2 position;');
         expect(glsl).toContain('void main()');
@@ -69,7 +69,7 @@ describe('shader() 函数式着色器定义', () =>
             });
         });
 
-        const glsl = testShader.generateGLSL('fragment');
+        const glsl = testShader.generateGLSL('fragment', 'main');
         
         expect(glsl).toContain('precision highp float;');
         expect(glsl).toContain('uniform vec4 color;');
@@ -92,7 +92,7 @@ describe('shader() 函数式着色器定义', () =>
             });
         });
 
-        const wgsl = testShader.generateWGSL('vertex');
+        const wgsl = testShader.generateWGSL('vertex', 'main');
         
         expect(wgsl).toContain('@vertex');
         expect(wgsl).toContain('fn main');
@@ -112,7 +112,7 @@ describe('shader() 函数式着色器定义', () =>
             });
         });
 
-        const wgsl = testShader.generateWGSL('fragment');
+        const wgsl = testShader.generateWGSL('fragment', 'main');
         
         expect(wgsl).toContain('@fragment');
         expect(wgsl).toContain('fn main');
@@ -142,8 +142,8 @@ describe('shader() 函数式着色器定义', () =>
             });
         });
 
-        const vertexGlsl = testShader.generateGLSL('vertex');
-        const fragmentGlsl = testShader.generateGLSL('fragment');
+        const vertexGlsl = testShader.generateGLSL('vertex', 'main');
+        const fragmentGlsl = testShader.generateGLSL('fragment', 'main');
 
         expect(vertexGlsl).toContain('attribute vec2 position;');
         expect(vertexGlsl).toContain('gl_Position = vec4(position, 0.0, 1.0);');
@@ -181,8 +181,8 @@ describe('shader() 函数式着色器定义', () =>
         });
 
         // 生成代码应该成功
-        const vertexGlsl = testShader.generateGLSL('vertex');
-        const fragmentGlsl = testShader.generateGLSL('fragment');
+        const vertexGlsl = testShader.generateGLSL('vertex', 'main');
+        const fragmentGlsl = testShader.generateGLSL('fragment', 'main');
 
         expect(vertexGlsl).toBeTruthy();
         expect(fragmentGlsl).toBeTruthy();
@@ -214,9 +214,31 @@ describe('shader() 函数式着色器定义', () =>
         expect(testShader.attributes).toHaveLength(2);
         expect(testShader.uniforms).toHaveLength(2);
         
-        const vertexGlsl = testShader.generateGLSL('vertex');
+        const vertexGlsl = testShader.generateGLSL('vertex', 'main');
         expect(vertexGlsl).toContain('attribute vec3 pos;');
         expect(vertexGlsl).toContain('attribute vec2 uv;');
+    });
+
+    it('应该在找不到入口函数时抛出错误', () =>
+    {
+        const testShader = shader('testShader', () =>
+        {
+            const color = uniform('color', 'vec4', 0, 0);
+            // 只定义了 fragment，没有定义 vertex
+            fragment('main', () =>
+            {
+                return color;
+            });
+        });
+
+        // 应该能找到 fragment
+        expect(() => testShader.generateGLSL('fragment', 'main')).not.toThrow();
+
+        // 应该找不到 vertex，抛出错误
+        expect(() => testShader.generateGLSL('vertex', 'main')).toThrow(/未找到顶点着色器/);
+
+        // 应该找不到指定名称的函数，抛出错误
+        expect(() => testShader.generateGLSL('fragment', 'nonexistent')).toThrow(/未找到片段着色器/);
     });
 });
 

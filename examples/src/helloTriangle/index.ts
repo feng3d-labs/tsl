@@ -20,10 +20,11 @@ document.addEventListener('DOMContentLoaded', async () =>
     let vertexWgsl = generateWGSL(vertexJson);
 
     // 方式2: 使用函数式方式定义着色器（推荐）
-    vertexGlsl = helloTriangle.generateGLSL('vertex');
-    vertexWgsl = helloTriangle.generateWGSL('vertex');
-    fragmentGlsl = helloTriangle.generateGLSL('fragment');
-    fragmentWgsl = helloTriangle.generateWGSL('fragment');
+    // shaderType 作为第一个参数，必须提供；entry 作为第二个参数，可选（对应 vertex("main", ...) 和 fragment("main", ...) 中的函数名）
+    vertexGlsl = helloTriangle.generateGLSL('vertex', 'main');
+    vertexWgsl = helloTriangle.generateWGSL('vertex', 'main');
+    fragmentGlsl = helloTriangle.generateGLSL('fragment', 'main');
+    fragmentWgsl = helloTriangle.generateWGSL('fragment', 'main');
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 

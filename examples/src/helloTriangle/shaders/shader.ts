@@ -25,4 +25,4 @@ export const helloTriangle = shader("helloTriangle", () =>
     {
         return color;
     });
-}) as Shader;
+});

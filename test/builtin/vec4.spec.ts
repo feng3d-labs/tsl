@@ -158,8 +158,8 @@ describe('vec4', () =>
             const xy = vec2(1.0, 2.0);
             const result = vec4(xy, 3.0, 4.0);
             expect(result).toBeInstanceOf(Vec4);
-            expect(result.toGLSL()).toBe('vec4(1.0, 2.0, 3.0, 4.0)');
-            expect(result.toWGSL()).toBe('vec4<f32>(1.0, 2.0, 3.0, 4.0)');
+            expect(result.toGLSL()).toBe('vec4(vec2(1.0, 2.0), 3.0, 4.0)');
+            expect(result.toWGSL()).toBe('vec4<f32>(vec2<f32>(1.0, 2.0), 3.0, 4.0)');
         });
 
         it('应该从 Vec2 uniform 和两个数字创建 Vec4', () =>

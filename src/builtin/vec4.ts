@@ -303,45 +303,6 @@ export class Vec4 implements IElement
                 throw new Error('Vec4 constructor: invalid argument');
             }
         }
-        else if (args.length === 2 && args[0] instanceof Vec2 && typeof args[1] === 'number')
-        {
-            // 处理 vec4(xy: Vec2, w: number) 的情况，z 默认为 0.0
-            const xy = args[0] as Vec2;
-            const w = args[1] as number;
-            const z = 0.0;
-
-            // 检查 Vec2 是否是 uniform/attribute 变量（通过检查 toGLSL 是否返回变量名）
-            const xyGlsl = xy.toGLSL();
-            const isVariable = !xyGlsl.startsWith('vec2(');
-
-            if (isVariable)
-            {
-                // 如果是变量，生成 vec4(variableName, 0.0, w)
-                this.toGLSL = () => `vec4(${xyGlsl}, ${formatNumber(z)}, ${formatNumber(w)})`;
-                this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
-            }
-            else
-            {
-                // 如果是字面量，展开为 vec4(x, y, 0.0, w)
-                // 从 vec2(x, y) 中提取 x 和 y
-                const match = xyGlsl.match(/vec2\(([^,]+),\s*([^)]+)\)/);
-                if (match)
-                {
-                    const x = match[1].trim();
-                    const y = match[2].trim();
-                    this.toGLSL = () => `vec4(${x}, ${y}, ${formatNumber(z)}, ${formatNumber(w)})`;
-                    this.toWGSL = () => `vec4<f32>(${x}, ${y}, ${formatNumber(z)}, ${formatNumber(w)})`;
-                }
-                else
-                {
-                    // 如果解析失败，使用原始方式
-                    this.toGLSL = () => `vec4(${xyGlsl}, ${formatNumber(z)}, ${formatNumber(w)})`;
-                    this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
-                }
-            }
-
-            this.dependencies = [xy];
-        }
         else if (args.length === 3 && args[0] instanceof Vec2 && typeof args[1] === 'number' && typeof args[2] === 'number')
         {
             // 处理 vec4(xy: Vec2, z: number, w: number) 的情况
@@ -349,36 +310,8 @@ export class Vec4 implements IElement
             const z = args[1] as number;
             const w = args[2] as number;
 
-            // 检查 Vec2 是否是 uniform/attribute 变量（通过检查 toGLSL 是否返回变量名）
-            const xyGlsl = xy.toGLSL();
-            const isVariable = !xyGlsl.startsWith('vec2(');
-
-            if (isVariable)
-            {
-                // 如果是变量，生成 vec4(variableName, z, w)
-                this.toGLSL = () => `vec4(${xyGlsl}, ${formatNumber(z)}, ${formatNumber(w)})`;
-                this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
-            }
-            else
-            {
-                // 如果是字面量，展开为 vec4(x, y, z, w)
-                // 从 vec2(x, y) 中提取 x 和 y
-                const match = xyGlsl.match(/vec2\(([^,]+),\s*([^)]+)\)/);
-                if (match)
-                {
-                    const x = match[1].trim();
-                    const y = match[2].trim();
-                    this.toGLSL = () => `vec4(${x}, ${y}, ${formatNumber(z)}, ${formatNumber(w)})`;
-                    this.toWGSL = () => `vec4<f32>(${x}, ${y}, ${formatNumber(z)}, ${formatNumber(w)})`;
-                }
-                else
-                {
-                    // 如果解析失败，使用原始方式
-                    this.toGLSL = () => `vec4(${xyGlsl}, ${formatNumber(z)}, ${formatNumber(w)})`;
-                    this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
-                }
-            }
-
+            this.toGLSL = () => `vec4(${xy.toGLSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
+            this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
             this.dependencies = [xy];
         }
         else if (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number' && typeof args[3] === 'number')
@@ -459,12 +392,10 @@ export class Vec4 implements IElement
 export function vec4(uniform: Uniform): Vec4;
 export function vec4(attribute: Attribute): Vec4;
 export function vec4(xy: Vec2, z: number, w: number): Vec4;
-export function vec4(xy: Vec2, w: number): Vec4;
 export function vec4(x: number, y: number, z: number, w: number): Vec4;
 export function vec4(...args: any[]): Vec4
 {
     if (args.length === 1) return new Vec4(args[0] as any);
-    if (args.length === 2) return new Vec4(args[0] as any, args[1] as any);
     if (args.length === 3) return new Vec4(args[0] as any, args[1] as any, args[2] as any);
     if (args.length === 4) return new Vec4(args[0] as any, args[1] as any, args[2] as any, args[3] as any);
 

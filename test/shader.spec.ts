@@ -82,7 +82,7 @@ describe('Shader', () =>
 
                 vertex('main', () =>
                 {
-                    return vec4(pos, 1.0);
+                    return vec4(pos, 0.0, 1.0);
                 });
 
                 fragment('main', () =>

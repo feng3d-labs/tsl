@@ -1,31 +1,11 @@
-import { generateGLSL as generateGLSLFromConfig, generateWGSL as generateWGSLFromConfig, classToShaderConfig, uniform, func } from '@feng3d/tsl';
+import { FragmentShader, func, uniform } from '@feng3d/tsl';
 
-export class FragmentShader
+export class fragment extends FragmentShader
 {
-    precision: 'lowp' | 'mediump' | 'highp' = 'highp';
-
     color = uniform("color", "vec4", 0, 0);
 
     main = func("main", () =>
     {
         return this.color;
     });
-
-    /**
-     * 生成 GLSL 着色器代码
-     */
-    generateGLSL(): string
-    {
-        const config = classToShaderConfig(this, 'fragment');
-        return generateGLSLFromConfig(config);
-    }
-
-    /**
-     * 生成 WGSL 着色器代码
-     */
-    generateWGSL(): string
-    {
-        const config = classToShaderConfig(this, 'fragment');
-        return generateWGSLFromConfig(config);
-    }
 }

@@ -9,8 +9,8 @@ import vertexGlsl from "./shaders/vertex.glsl";
 import vertexWgsl from "./shaders/vertex.wgsl";
 import fragmentJson from "./shaders/fragment.frag.json";
 import vertexJson from "./shaders/vertex.vert.json";
-import { FragmentShader } from "./shaders/fragment";
-import { VertexShader } from "./shaders/vertex";
+import { fragment } from "./shaders/fragment";
+import { vertex } from "./shaders/vertex";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
@@ -21,11 +21,11 @@ document.addEventListener('DOMContentLoaded', async () =>
     let vertexWgsl = generateWGSL(vertexJson);
 
     // 方式2: 从 TypeScript 类实例生成着色器代码（推荐）
-    const fragmentShader = new FragmentShader();
+    const fragmentShader = new fragment();
     fragmentGlsl = fragmentShader.generateGLSL();
     fragmentWgsl = fragmentShader.generateWGSL();
     // 
-    const vertexShader = new VertexShader();
+    const vertexShader = new vertex();
     vertexGlsl = vertexShader.generateGLSL();
     vertexWgsl = vertexShader.generateWGSL();
 

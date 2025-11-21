@@ -1,6 +1,7 @@
 import { Attribute } from '../Attribute';
 import { Uniform } from '../Uniform';
 import { Expression, FunctionCallConfig } from './vec4';
+import { Expression as ExpressionClass } from './Expression';
 
 /**
  * Vec2 类，用于表示 vec2 字面量值
@@ -28,11 +29,27 @@ export class Vec2
     }
 
     /**
+     * 格式化数字为 GLSL 格式
+     * 正数整数保留 .0，负数整数不保留 .0
+     */
+    private formatNumberForGLSL(num: number): string
+    {
+        // 如果是正数整数，添加 .0 后缀
+        if (Number.isInteger(num) && num >= 0)
+        {
+            return `${num}.0`;
+        }
+
+        // 负数整数或浮点数直接转换为字符串
+        return String(num);
+    }
+
+    /**
      * 转换为 GLSL 代码
      */
     toGLSL(): string
     {
-        return `vec2(${this._x}, ${this._y})`;
+        return `vec2(${this.formatNumberForGLSL(this._x)}, ${this.formatNumberForGLSL(this._y)})`;
     }
 
     /**
@@ -71,11 +88,7 @@ export function vec2(...args: (string | number | FunctionCallConfig | Expression
         // 直接更新 uniform 的 value
         uniformArg.value = valueConfig;
 
-        // 延迟导入 Expression 以避免循环依赖
-        // @ts-ignore - 动态导入以避免循环依赖
-        const { Expression } = eval('require')('./Expression');
-
-        return new Expression(valueConfig);
+        return new ExpressionClass(valueConfig);
     }
 
     // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
@@ -90,11 +103,7 @@ export function vec2(...args: (string | number | FunctionCallConfig | Expression
         // 直接更新 attribute 的 value
         attributeArg.value = valueConfig;
 
-        // 延迟导入 Expression 以避免循环依赖
-        // @ts-ignore - 动态导入以避免循环依赖
-        const { Expression } = eval('require')('./Expression');
-
-        return new Expression(valueConfig);
+        return new ExpressionClass(valueConfig);
     }
 
     // 处理其他情况（多个参数，可能是 Expression 或其他类型）
@@ -119,10 +128,6 @@ export function vec2(...args: (string | number | FunctionCallConfig | Expression
         }),
     };
 
-    // 延迟导入 Expression 以避免循环依赖
-    // @ts-ignore - 动态导入以避免循环依赖
-    const { Expression } = eval('require')('./Expression');
-
-    return new Expression(config);
+    return new ExpressionClass(config);
 }
 

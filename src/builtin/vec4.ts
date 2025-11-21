@@ -1,4 +1,3 @@
-// 导入 Attribute 和 Uniform 类型（避免循环依赖，使用类型导入）
 import { Attribute } from '../Attribute';
 import { Uniform } from '../Uniform';
 
@@ -58,11 +57,9 @@ export function generateFunctionCallGLSL(call: FunctionCallConfig): string
         if (typeof arg === 'string' || typeof arg === 'number')
         {
             return String(arg);
-        } else
-        {
-            // 递归处理嵌套的函数调用
-            return generateFunctionCallGLSL(arg);
         }
+        // 递归处理嵌套的函数调用
+        return generateFunctionCallGLSL(arg);
     }).join(', ');
 
     return `${call.function}(${args})`;
@@ -78,46 +75,64 @@ export function generateFunctionCallWGSL(call: FunctionCallConfig): string
         if (typeof arg === 'string' || typeof arg === 'number')
         {
             return String(arg);
-        } else
-        {
-            // 递归处理嵌套的函数调用
-            return generateFunctionCallWGSL(arg);
         }
+        // 递归处理嵌套的函数调用
+        return generateFunctionCallWGSL(arg);
     }).join(', ');
 
-    // 对于向量和矩阵构造函数，需要添加类型参数
-    const needsTypeParam = /^(vec[234]|ivec[234]|uvec[234]|mat[234]|mat[234]x[234])$/.test(call.function);
-
-    if (needsTypeParam)
+    // 如果有类型参数，使用类型参数；否则根据函数名推断
+    if (call.typeParam)
     {
-        // 确定类型参数
-        let typeParam = call.typeParam || 'f32';
+        const typeParam = call.typeParam;
+        const functionName = call.function;
 
-        if (call.function.startsWith('ivec'))
+        // 检查是否是向量类型（vec2, vec3, vec4, ivec2, ivec3, ivec4, uvec2, uvec3, uvec4）
+        const vecMatch = functionName.match(/^(i|u)?vec(\d)$/);
+        if (vecMatch)
+        {
+            const dimension = vecMatch[2];
+            return `vec${dimension}<${typeParam}>(${args})`;
+        }
+
+        // 检查是否是矩阵类型
+        const matMatch = functionName.match(/^mat(\d)$/);
+        if (matMatch)
+        {
+            const dimension = matMatch[1];
+            return `mat${dimension}x${dimension}<${typeParam}>(${args})`;
+        }
+
+        // 其他类型：直接使用类型参数
+        return `${functionName}<${typeParam}>(${args})`;
+    }
+
+    // 如果没有类型参数，根据函数名推断类型
+    const functionName = call.function;
+    const vecMatch = functionName.match(/^(i|u)?vec(\d)$/);
+    if (vecMatch)
+    {
+        const prefix = vecMatch[1] || '';
+        const dimension = vecMatch[2];
+        let typeParam: string;
+
+        if (prefix === 'i')
         {
             typeParam = 'i32';
-        } else if (call.function.startsWith('uvec'))
+        }
+        else if (prefix === 'u')
         {
             typeParam = 'u32';
         }
-
-        // 将 vec4 转换为 vec4<f32>，ivec4 转换为 vec4<i32>，uvec4 转换为 vec4<u32>
-        const baseType = call.function.replace(/^(vec|ivec|uvec|mat)/, (match) =>
+        else
         {
-            if (match.startsWith('ivec')) return 'vec';
-            if (match.startsWith('uvec')) return 'vec';
+            typeParam = 'f32';
+        }
 
-            return match;
-        });
-
-        // 构建 WGSL 类型
-        const dimension = call.function.match(/\d+/)?.[0] || '';
-
-        if (call.function.startsWith('mat'))
+        // 检查是否是基本类型（如 float, int, uint, bool）
+        const wgslType = convertTypeToWGSL(functionName);
+        if (wgslType !== functionName)
         {
-            // 矩阵类型：mat2 -> mat2x2<f32>
-            const wgslType = convertTypeToWGSL(baseType);
-
+            // 是基本类型，直接使用转换后的类型
             return `${wgslType}(${args})`;
         } else
         {
@@ -126,67 +141,25 @@ export function generateFunctionCallWGSL(call: FunctionCallConfig): string
         }
     }
 
+    // 检查是否是矩阵类型
+    const matMatch = functionName.match(/^mat(\d)$/);
+    if (matMatch)
+    {
+        const dimension = matMatch[1];
+        const typeParam = 'f32'; // 矩阵默认使用 f32
+        return `mat${dimension}x${dimension}<${typeParam}>(${args})`;
+    }
+
     return `${call.function}(${args})`;
-}
-
-/**
- * vec2 构造函数
- * 如果传入单个 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
- */
-export function vec2(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
-{
-    // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
-    if (args.length === 1 && args[0] instanceof Attribute)
-    {
-        const attributeArg = args[0] as Attribute;
-        const valueConfig: FunctionCallConfig = {
-            function: 'vec2',
-            args: [attributeArg.name],
-        };
-
-        // 直接更新 attribute 的 value
-        attributeArg.value = valueConfig;
-
-        return valueConfig;
-    }
-
-    return {
-        function: 'vec2',
-        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
-    };
-}
-
-/**
- * vec3 构造函数
- * 如果传入单个 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
- */
-export function vec3(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
-{
-    // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
-    if (args.length === 1 && args[0] instanceof Attribute)
-    {
-        const attributeArg = args[0] as Attribute;
-        const valueConfig: FunctionCallConfig = {
-            function: 'vec3',
-            args: [attributeArg.name],
-        };
-
-        // 直接更新 attribute 的 value
-        attributeArg.value = valueConfig;
-
-        return valueConfig;
-    }
-
-    return {
-        function: 'vec3',
-        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
-    };
 }
 
 /**
  * vec4 构造函数
  * 如果传入单个 Uniform 或 Attribute 实例，则将 FunctionCallConfig 保存到 uniform.value 或 attribute.value
  */
+export function vec4(uniform: Uniform): FunctionCallConfig;
+export function vec4(attribute: Attribute): FunctionCallConfig;
+export function vec4(...args: (string | number | FunctionCallConfig)[]): FunctionCallConfig;
 export function vec4(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
 {
     // 如果只有一个参数且是 Uniform 实例，则将 FunctionCallConfig 保存到 uniform.value
@@ -224,76 +197,3 @@ export function vec4(...args: (string | number | FunctionCallConfig | Attribute 
         args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
     };
 }
-
-/**
- * ivec2 构造函数
- */
-export function ivec2(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
-{
-    return {
-        function: 'ivec2',
-        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
-        typeParam: 'i32',
-    };
-}
-
-/**
- * ivec3 构造函数
- */
-export function ivec3(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
-{
-    return {
-        function: 'ivec3',
-        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
-        typeParam: 'i32',
-    };
-}
-
-/**
- * ivec4 构造函数
- */
-export function ivec4(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
-{
-    return {
-        function: 'ivec4',
-        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
-        typeParam: 'i32',
-    };
-}
-
-/**
- * uvec2 构造函数
- */
-export function uvec2(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
-{
-    return {
-        function: 'uvec2',
-        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
-        typeParam: 'u32',
-    };
-}
-
-/**
- * uvec3 构造函数
- */
-export function uvec3(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
-{
-    return {
-        function: 'uvec3',
-        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
-        typeParam: 'u32',
-    };
-}
-
-/**
- * uvec4 构造函数
- */
-export function uvec4(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
-{
-    return {
-        function: 'uvec4',
-        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
-        typeParam: 'u32',
-    };
-}
-

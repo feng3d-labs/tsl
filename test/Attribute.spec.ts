@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Attribute, attribute } from '../src/Attribute';
-import { vec2 } from '../src/builtin/vec4';
+import { vec2 } from '../src/builtin/vec2';
 import { shader } from '../src/Shader';
 
 describe('Attribute', () =>

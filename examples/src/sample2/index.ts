@@ -7,10 +7,15 @@ import fragmentGlsl from "./shaders/fragment.glsl";
 import fragmentWgsl from "./shaders/fragment.wgsl";
 import vertexGlsl from "./shaders/vertex.glsl";
 import vertexWgsl from "./shaders/vertex.wgsl";
+import { sample2Shader } from "./shaders/shader";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    const devicePixelRatio = window.devicePixelRatio || 1;
+    // 使用 TSL 生成着色器代码
+    // const vertexGlsl = sample2Shader.generateGLSL('vertex', 'main');
+    // const vertexWgsl = sample2Shader.generateWGSL('vertex', 'main');
+    // const fragmentGlsl = sample2Shader.generateGLSL('fragment', 'main');
+    // const fragmentWgsl = sample2Shader.generateWGSL('fragment', 'main');
 
     const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = {
         clearColorValue: [0, 0, 0, 1],
@@ -19,6 +24,8 @@ document.addEventListener('DOMContentLoaded', async () =>
         depthLoadOp: 'clear',
         depthStoreOp: 'store',
     };
+
+    const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;

@@ -189,10 +189,16 @@ export function classToShaderConfig(
                         config.main.return = strValue;
                     }
                 }
+                else
+                {
+                    // 如果没有返回值，输出警告
+                    console.warn(`Entry function '${entry}' returned undefined or null`);
+                }
             } catch (error)
             {
-                // 如果函数体执行失败，可能需要使用 body 方式
-                console.warn('Failed to execute main function body, consider using body property instead', error);
+                // 如果函数体执行失败，输出错误信息
+                console.error('Failed to execute main function body:', error);
+                throw error;
             }
         }
         // 否则，是普通方法

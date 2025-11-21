@@ -92,6 +92,8 @@ export function uniform(name: string, type: string, binding?: number, group?: nu
     if (currentShaderInstance && typeof currentShaderInstance._addUniform === 'function')
     {
         currentShaderInstance._addUniform(def);
+        // 同时保存到实例属性中，以便在函数体中可以通过 this.name 访问
+        (currentShaderInstance as any)[name] = def;
     }
 
     return def;
@@ -133,6 +135,8 @@ export function attribute(name: string, type: string, location?: number): Attrib
     if (currentShaderInstance && typeof currentShaderInstance._addAttribute === 'function')
     {
         currentShaderInstance._addAttribute(def);
+        // 同时保存到实例属性中，以便在函数体中可以通过 this.name 访问
+        (currentShaderInstance as any)[name] = def;
     }
 
     return def;
@@ -276,4 +280,18 @@ export function vertex(name: string, body: () => any): VertexFuncDef
 
     return def;
 }
+
+/**
+ * 设置 GLSL 精度（仅用于 fragment shader）
+ * @param value 精度：'lowp' | 'mediump' | 'highp'
+ */
+export function precision(value: 'lowp' | 'mediump' | 'highp'): void
+{
+    // 如果当前正在构造 Shader 实例，设置 precision
+    if (currentShaderInstance && typeof currentShaderInstance.precision !== 'undefined')
+    {
+        currentShaderInstance.precision = value;
+    }
+}
+
 

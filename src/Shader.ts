@@ -232,4 +232,42 @@ export class Shader
     }
 }
 
+/**
+ * 定义着色器（函数式方式）
+ * @param name 着色器名称
+ * @param builder 构建函数，在其中定义 attributes、uniforms、vertex 和 fragment 函数
+ * @returns Shader 实例
+ */
+export function shader(name: string, builder: () => void): Shader
+{
+    // 创建 Shader 实例
+    const shaderInstance = new Shader();
+
+    // 设置当前 Shader 实例，以便 attribute、uniform 等函数可以自动收集
+    setCurrentShaderInstance(shaderInstance);
+
+    // 执行构建函数
+    try
+    {
+        builder();
+    }
+    finally
+    {
+        // 清除当前实例引用
+        clearCurrentShaderInstance();
+    }
+
+    // 将收集到的 vertex 和 fragment 函数也赋值给实例属性，以便 classToShaderConfig 可以找到它们
+    if (shaderInstance.vertexs.length > 0)
+    {
+        (shaderInstance as any).vertex = shaderInstance.vertexs[0];
+    }
+    if (shaderInstance.fragments.length > 0)
+    {
+        (shaderInstance as any).fragment = shaderInstance.fragments[0];
+    }
+
+    return shaderInstance;
+}
+
 

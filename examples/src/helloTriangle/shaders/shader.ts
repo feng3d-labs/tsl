@@ -1,28 +1,28 @@
-import { FunctionCallConfig, Shader, attribute, fragment, uniform, vertex } from '@feng3d/tsl';
+import { FunctionCallConfig, Shader, attribute, fragment, precision, shader, uniform, vertex } from '@feng3d/tsl';
 
-export class helloTriangle extends Shader
+export const helloTriangle = shader("helloTriangle", () =>
 {
-    precision: 'lowp' | 'mediump' | 'highp' = 'highp';
+    // precision: 'lowp' | 'mediump' | 'highp' = 'highp';
+    precision('highp');
 
     // Vertex shader 的 attribute
-    position = attribute("position", "vec2", 0);
+    const position = attribute("position", "vec2", 0);
 
     // Fragment shader 的 uniform
-    color = uniform("color", "vec4", 0, 0);
+    const color = uniform("color", "vec4", 0, 0);
 
     // Vertex shader 入口函数
-    vertex = vertex("main", () =>
+    vertex("main", () =>
     {
         return {
             function: 'vec4',
-            args: [String(this.position), '0.0', '1.0'],
+            args: [String(position), '0.0', '1.0'],
         } as FunctionCallConfig;
     });
 
     // Fragment shader 入口函数
-    fragment = fragment("main", () =>
+    fragment("main", () =>
     {
-        return this.color;
+        return color;
     });
-}
-
+}) as Shader;

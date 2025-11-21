@@ -11,7 +11,7 @@ export class Shader
     /**
      * GLSL 精度声明（仅用于 fragment shader）
      */
-    precision?: 'lowp' | 'mediump' | 'highp';
+    precision: 'lowp' | 'mediump' | 'highp' = 'highp';
 
     /**
      * 生成 GLSL 着色器代码

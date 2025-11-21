@@ -125,3 +125,112 @@ export function generateFunctionCallWGSL(call: FunctionCallConfig): string
     return `${call.function}(${args})`;
 }
 
+// 导入 Attribute 和 Uniform 类型（避免循环依赖，使用类型导入）
+import type { Attribute } from './Attribute';
+import type { Uniform } from './Uniform';
+
+/**
+ * vec2 构造函数
+ */
+export function vec2(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
+{
+    return {
+        function: 'vec2',
+        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
+    };
+}
+
+/**
+ * vec3 构造函数
+ */
+export function vec3(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
+{
+    return {
+        function: 'vec3',
+        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
+    };
+}
+
+/**
+ * vec4 构造函数
+ */
+export function vec4(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
+{
+    return {
+        function: 'vec4',
+        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
+    };
+}
+
+/**
+ * ivec2 构造函数
+ */
+export function ivec2(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
+{
+    return {
+        function: 'ivec2',
+        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
+        typeParam: 'i32',
+    };
+}
+
+/**
+ * ivec3 构造函数
+ */
+export function ivec3(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
+{
+    return {
+        function: 'ivec3',
+        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
+        typeParam: 'i32',
+    };
+}
+
+/**
+ * ivec4 构造函数
+ */
+export function ivec4(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
+{
+    return {
+        function: 'ivec4',
+        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
+        typeParam: 'i32',
+    };
+}
+
+/**
+ * uvec2 构造函数
+ */
+export function uvec2(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
+{
+    return {
+        function: 'uvec2',
+        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
+        typeParam: 'u32',
+    };
+}
+
+/**
+ * uvec3 构造函数
+ */
+export function uvec3(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
+{
+    return {
+        function: 'uvec3',
+        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
+        typeParam: 'u32',
+    };
+}
+
+/**
+ * uvec4 构造函数
+ */
+export function uvec4(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
+{
+    return {
+        function: 'uvec4',
+        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
+        typeParam: 'u32',
+    };
+}
+

@@ -1,4 +1,4 @@
-import { FunctionCallConfig, Shader, attribute, fragment, precision, shader, uniform, vertex } from '@feng3d/tsl';
+import { attribute, fragment, precision, shader, uniform, vec4, vertex } from '@feng3d/tsl';
 
 export const helloTriangle = shader("helloTriangle", () =>
 {
@@ -14,10 +14,7 @@ export const helloTriangle = shader("helloTriangle", () =>
     // Vertex shader 入口函数
     vertex("main", () =>
     {
-        return {
-            function: 'vec4',
-            args: [String(position), '0.0', '1.0'],
-        } as FunctionCallConfig;
+        return vec4(position, 0.0, 1.0);
     });
 
     // Fragment shader 入口函数

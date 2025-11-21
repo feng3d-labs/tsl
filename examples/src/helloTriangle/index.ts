@@ -9,13 +9,25 @@ import vertexGlsl from "./shaders/vertex.glsl";
 import vertexWgsl from "./shaders/vertex.wgsl";
 import fragmentJson from "./shaders/fragment.frag.json";
 import vertexJson from "./shaders/vertex.vert.json";
+import { FragmentShader } from "./shaders/fragment";
+import { VertexShader } from "./shaders/vertex";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    const fragmentGlsl = generateGLSL(fragmentJson);
-    const fragmentWgsl = generateWGSL(fragmentJson);
-    const vertexGlsl = generateGLSL(vertexJson);
-    const vertexWgsl = generateWGSL(vertexJson);
+    // 方式1: 从 JSON 配置生成着色器代码
+    let fragmentGlsl = generateGLSL(fragmentJson);
+    let fragmentWgsl = generateWGSL(fragmentJson);
+    let vertexGlsl = generateGLSL(vertexJson);
+    let vertexWgsl = generateWGSL(vertexJson);
+
+    // 方式2: 从 TypeScript 类实例生成着色器代码（推荐）
+    const fragmentShader = new FragmentShader();
+    fragmentGlsl = fragmentShader.generateGLSL();
+    fragmentWgsl = fragmentShader.generateWGSL();
+    // 
+    // const vertexShader = new VertexShader();
+    // vertexGlsl = vertexShader.generateGLSL();
+    // vertexWgsl = vertexShader.generateWGSL();
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 

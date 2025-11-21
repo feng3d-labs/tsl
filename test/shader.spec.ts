@@ -68,7 +68,7 @@ describe('Shader', () =>
 
             expect(glsl).toContain('uniform vec4 color;');
             expect(glsl).toContain('void main()');
-            expect(glsl).toContain('gl_FragColor = vec4(color);');
+            expect(glsl).toContain('gl_FragColor = color;');
         });
 
         it('应该只包含实际使用的 uniforms 和 attributes', () =>

@@ -65,6 +65,16 @@ export class Shader implements IShader
                 return;
             }
 
+            // 如果是 IElement 实例（Vec2, Vec4 等），分析其 dependencies
+            if (typeof value === 'object' && 'dependencies' in value && Array.isArray(value.dependencies))
+            {
+                for (const dep of value.dependencies)
+                {
+                    analyzeValue(dep);
+                }
+                return;
+            }
+
             // 如果是 Expression 实例，分析其 config
             if (value instanceof Expression)
             {

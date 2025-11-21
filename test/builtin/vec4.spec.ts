@@ -162,22 +162,22 @@ describe('vec4', () =>
             expect(result.toWGSL()).toBe('vec4<f32>(1.0, 2.0, 3.0, 4.0)');
         });
 
-        it('应该从 Vec2 uniform 和两个数字创建 Expression', () =>
+        it('应该从 Vec2 uniform 和两个数字创建 Vec4', () =>
         {
             const uniform = new Uniform('uPosition', 0, 0);
             const xy = vec2(uniform);
             const result = vec4(xy, 0.0, 1.0);
-            expect(result).toBeInstanceOf(Expression);
+            expect(result).toBeInstanceOf(Vec4);
             expect(result.toGLSL()).toBe('vec4(uPosition, 0.0, 1.0)');
             expect(result.toWGSL()).toBe('vec4<f32>(uPosition, 0.0, 1.0)');
         });
 
-        it('应该从 Vec2 attribute 和两个数字创建 Expression', () =>
+        it('应该从 Vec2 attribute 和两个数字创建 Vec4', () =>
         {
             const attribute = new Attribute('aPosition', 0);
             const xy = vec2(attribute);
             const result = vec4(xy, 0.0, 1.0);
-            expect(result).toBeInstanceOf(Expression);
+            expect(result).toBeInstanceOf(Vec4);
             expect(result.toGLSL()).toBe('vec4(aPosition, 0.0, 1.0)');
             expect(result.toWGSL()).toBe('vec4<f32>(aPosition, 0.0, 1.0)');
         });

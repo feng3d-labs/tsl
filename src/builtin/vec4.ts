@@ -1,6 +1,8 @@
 import { Attribute } from '../Attribute';
+import { IElement } from '../IElement';
 import { Uniform } from '../Uniform';
 import { Expression } from './Expression';
+import { Float } from './float';
 import { formatNumber } from './formatNumber';
 import { Vec2 } from './vec2';
 
@@ -61,6 +63,12 @@ export function generateFunctionCallGLSL(call: FunctionCallConfig | Expression):
     // 如果是 Expression，提取 config
     const config = call instanceof Expression ? call.config : call;
 
+    // 检查 config 是否有效
+    if (!config || typeof config !== 'object' || !('function' in config))
+    {
+        return String(call);
+    }
+
     // 处理操作符
     if (config.function === '*')
     {
@@ -83,8 +91,15 @@ export function generateFunctionCallGLSL(call: FunctionCallConfig | Expression):
             return generateExpressionGLSL(arg);
         }
 
-        // 递归处理嵌套的函数调用
-        return generateFunctionCallGLSL(arg);
+        // 检查是否是有效的 FunctionCallConfig
+        if (typeof arg === 'object' && arg !== null && 'function' in arg)
+        {
+            // 递归处理嵌套的函数调用
+            return generateFunctionCallGLSL(arg as FunctionCallConfig);
+        }
+
+        // 其他情况，转换为字符串
+        return String(arg);
     }).join(', ');
 
     return `${config.function}(${args})`;
@@ -240,15 +255,13 @@ function generateExpressionWGSL(expr: Expression): string
 }
 
 /**
- * Vec4 类型，表示 vec4 字面量值
+ * Vec4 类型，表示 vec4 字面量值或 uniform/attribute 变量
  */
-export class Vec4 extends Expression
+export class Vec4 implements IElement
 {
-    private _variableName?: string; // 如果是 uniform/attribute，存储变量名
-    private _x: number;
-    private _y: number;
-    private _z: number;
-    private _w: number;
+    dependencies: IElement[];
+    toGLSL: () => string;
+    toWGSL: () => string;
 
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
@@ -267,16 +280,10 @@ export class Vec4 extends Expression
                     args: [uniform.name],
                 };
                 uniform.value = valueConfig;
-                const config: FunctionCallConfig = {
-                    function: 'vec4',
-                    args: [uniform.name],
-                };
-                super(config);
-                this._variableName = uniform.name;
-                this._x = 0; // 占位值，不会被使用
-                this._y = 0; // 占位值，不会被使用
-                this._z = 0; // 占位值，不会被使用
-                this._w = 0; // 占位值，不会被使用
+
+                this.toGLSL = () => uniform.name;
+                this.toWGSL = () => uniform.name;
+                this.dependencies = [uniform];
             }
             else if (args[0] instanceof Attribute)
             {
@@ -286,21 +293,54 @@ export class Vec4 extends Expression
                     args: [attribute.name],
                 };
                 attribute.value = valueConfig;
-                const config: FunctionCallConfig = {
-                    function: 'vec4',
-                    args: [attribute.name],
-                };
-                super(config);
-                this._variableName = attribute.name;
-                this._x = 0; // 占位值，不会被使用
-                this._y = 0; // 占位值，不会被使用
-                this._z = 0; // 占位值，不会被使用
-                this._w = 0; // 占位值，不会被使用
+
+                this.toGLSL = () => attribute.name;
+                this.toWGSL = () => attribute.name;
+                this.dependencies = [attribute];
             }
             else
             {
                 throw new Error('Vec4 constructor: invalid argument');
             }
+        }
+        else if (args.length === 2 && args[0] instanceof Vec2 && typeof args[1] === 'number')
+        {
+            // 处理 vec4(xy: Vec2, w: number) 的情况，z 默认为 0.0
+            const xy = args[0] as Vec2;
+            const w = args[1] as number;
+            const z = 0.0;
+
+            // 检查 Vec2 是否是 uniform/attribute 变量（通过检查 toGLSL 是否返回变量名）
+            const xyGlsl = xy.toGLSL();
+            const isVariable = !xyGlsl.startsWith('vec2(');
+
+            if (isVariable)
+            {
+                // 如果是变量，生成 vec4(variableName, 0.0, w)
+                this.toGLSL = () => `vec4(${xyGlsl}, ${formatNumber(z)}, ${formatNumber(w)})`;
+                this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
+            }
+            else
+            {
+                // 如果是字面量，展开为 vec4(x, y, 0.0, w)
+                // 从 vec2(x, y) 中提取 x 和 y
+                const match = xyGlsl.match(/vec2\(([^,]+),\s*([^)]+)\)/);
+                if (match)
+                {
+                    const x = match[1].trim();
+                    const y = match[2].trim();
+                    this.toGLSL = () => `vec4(${x}, ${y}, ${formatNumber(z)}, ${formatNumber(w)})`;
+                    this.toWGSL = () => `vec4<f32>(${x}, ${y}, ${formatNumber(z)}, ${formatNumber(w)})`;
+                }
+                else
+                {
+                    // 如果解析失败，使用原始方式
+                    this.toGLSL = () => `vec4(${xyGlsl}, ${formatNumber(z)}, ${formatNumber(w)})`;
+                    this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
+                }
+            }
+
+            this.dependencies = [xy];
         }
         else if (args.length === 3 && args[0] instanceof Vec2 && typeof args[1] === 'number' && typeof args[2] === 'number')
         {
@@ -309,51 +349,49 @@ export class Vec4 extends Expression
             const z = args[1] as number;
             const w = args[2] as number;
 
-            // 检查 Vec2 是否是 uniform/attribute 变量
-            const variableName = (xy as any)._variableName;
+            // 检查 Vec2 是否是 uniform/attribute 变量（通过检查 toGLSL 是否返回变量名）
+            const xyGlsl = xy.toGLSL();
+            const isVariable = !xyGlsl.startsWith('vec2(');
 
-            if (variableName)
+            if (isVariable)
             {
-                // 如果是变量，生成表达式 vec4(variableName, z, w)
-                const config: FunctionCallConfig = {
-                    function: 'vec4',
-                    args: [variableName, formatNumber(z), formatNumber(w)],
-                };
-                super(config);
-                this._variableName = undefined;
-                this._x = 0; // 占位值，不会被使用
-                this._y = 0; // 占位值，不会被使用
-                this._z = z;
-                this._w = w;
+                // 如果是变量，生成 vec4(variableName, z, w)
+                this.toGLSL = () => `vec4(${xyGlsl}, ${formatNumber(z)}, ${formatNumber(w)})`;
+                this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
             }
             else
             {
-                // 如果是字面量，提取 x 和 y 值
-                const x = (xy as any)._x;
-                const y = (xy as any)._y;
-                const config: FunctionCallConfig = {
-                    function: 'vec4',
-                    args: [x, y, z, w],
-                };
-                super(config);
-                this._x = x;
-                this._y = y;
-                this._z = z;
-                this._w = w;
+                // 如果是字面量，展开为 vec4(x, y, z, w)
+                // 从 vec2(x, y) 中提取 x 和 y
+                const match = xyGlsl.match(/vec2\(([^,]+),\s*([^)]+)\)/);
+                if (match)
+                {
+                    const x = match[1].trim();
+                    const y = match[2].trim();
+                    this.toGLSL = () => `vec4(${x}, ${y}, ${formatNumber(z)}, ${formatNumber(w)})`;
+                    this.toWGSL = () => `vec4<f32>(${x}, ${y}, ${formatNumber(z)}, ${formatNumber(w)})`;
+                }
+                else
+                {
+                    // 如果解析失败，使用原始方式
+                    this.toGLSL = () => `vec4(${xyGlsl}, ${formatNumber(z)}, ${formatNumber(w)})`;
+                    this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
+                }
             }
+
+            this.dependencies = [xy];
         }
         else if (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number' && typeof args[3] === 'number')
         {
             // 从字面量值创建
-            const config: FunctionCallConfig = {
-                function: 'vec4',
-                args: [args[0], args[1], args[2], args[3]],
-            };
-            super(config);
-            this._x = args[0];
-            this._y = args[1];
-            this._z = args[2];
-            this._w = args[3];
+            const x = args[0] as number;
+            const y = args[1] as number;
+            const z = args[2] as number;
+            const w = args[3] as number;
+
+            this.toGLSL = () => `vec4(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)}, ${formatNumber(w)})`;
+            this.toWGSL = () => `vec4<f32>(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)}, ${formatNumber(w)})`;
+            this.dependencies = [];
         }
         else
         {
@@ -364,83 +402,53 @@ export class Vec4 extends Expression
     /**
      * 获取 x 分量
      */
-    get x(): number
+    get x(): Float
     {
-        return this._x;
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.x`;
+        float.toWGSL = () => `${this.toWGSL()}.x`;
+        float.dependencies = [this];
+
+        return float;
     }
 
     /**
      * 获取 y 分量
      */
-    get y(): number
+    get y(): Float
     {
-        return this._y;
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.y`;
+        float.toWGSL = () => `${this.toWGSL()}.y`;
+        float.dependencies = [this];
+
+        return float;
     }
 
     /**
      * 获取 z 分量
      */
-    get z(): number
+    get z(): Float
     {
-        return this._z;
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.z`;
+        float.toWGSL = () => `${this.toWGSL()}.z`;
+        float.dependencies = [this];
+
+        return float;
     }
 
     /**
      * 获取 w 分量
      */
-    get w(): number
+    get w(): Float
     {
-        return this._w;
-    }
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.w`;
+        float.toWGSL = () => `${this.toWGSL()}.w`;
+        float.dependencies = [this];
 
-    /**
-     * 转换为 GLSL 代码
-     */
-    toGLSL(): string
-    {
-        // 如果是 uniform/attribute，直接返回变量名
-        if (this._variableName)
-        {
-            return this._variableName;
-        }
-
-        // 如果 config 中包含字符串参数（如变量名），使用 generateFunctionCallGLSL
-        if (this.config.args.some(arg => typeof arg === 'string' && !/^\d/.test(arg)))
-        {
-            return generateFunctionCallGLSL(this.config);
-        }
-
-        return `vec4(${formatNumber(this._x)}, ${formatNumber(this._y)}, ${formatNumber(this._z)}, ${formatNumber(this._w)})`;
-    }
-
-    /**
-     * 转换为 WGSL 代码
-     */
-    toWGSL(): string
-    {
-        // 如果是 uniform/attribute，直接返回变量名
-        if (this._variableName)
-        {
-            return this._variableName;
-        }
-
-        // 如果 config 中包含字符串参数（如变量名），使用 generateFunctionCallWGSL
-        if (this.config.args.some(arg => typeof arg === 'string' && !/^\d/.test(arg)))
-        {
-            return generateFunctionCallWGSL(this.config);
-        }
-
-        return `vec4<f32>(${formatNumber(this._x)}, ${formatNumber(this._y)}, ${formatNumber(this._z)}, ${formatNumber(this._w)})`;
-    }
-
-    /**
-     * 矩阵/向量乘法
-     * @param other 另一个表达式
-     * @returns Expression 实例
-     */
-    multiply(other: Expression | FunctionCallConfig | string | number): Expression
-    {
-        return super.multiply(other);
+        return float;
     }
 }
 
@@ -451,10 +459,12 @@ export class Vec4 extends Expression
 export function vec4(uniform: Uniform): Vec4;
 export function vec4(attribute: Attribute): Vec4;
 export function vec4(xy: Vec2, z: number, w: number): Vec4;
+export function vec4(xy: Vec2, w: number): Vec4;
 export function vec4(x: number, y: number, z: number, w: number): Vec4;
 export function vec4(...args: any[]): Vec4
 {
     if (args.length === 1) return new Vec4(args[0] as any);
+    if (args.length === 2) return new Vec4(args[0] as any, args[1] as any);
     if (args.length === 3) return new Vec4(args[0] as any, args[1] as any, args[2] as any);
     if (args.length === 4) return new Vec4(args[0] as any, args[1] as any, args[2] as any, args[3] as any);
 

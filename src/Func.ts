@@ -3,6 +3,7 @@ import { Expression } from './builtin/Expression';
 import { collectLetStatements } from './builtin/collectLetStatements';
 import { Attribute } from './Attribute';
 import { Uniform } from './Uniform';
+import { IElement } from './IElement';
 
 /**
  * Func 标记
@@ -52,7 +53,12 @@ export class Func
         {
             let glslReturn: string;
 
-            if (returnValue instanceof Expression)
+            if (typeof returnValue === 'object' && returnValue !== null && 'toGLSL' in returnValue && typeof returnValue.toGLSL === 'function')
+            {
+                // IElement 形式（Vec2, Vec4 等）
+                glslReturn = returnValue.toGLSL();
+            }
+            else if (returnValue instanceof Expression)
             {
                 // Expression 形式
                 glslReturn = generateFunctionCallGLSL(returnValue);
@@ -137,7 +143,12 @@ export class Func
                 let wgslReturn: string;
                 const letStatements: string[] = [];
 
-                if (returnValue instanceof Expression)
+                if (typeof returnValue === 'object' && returnValue !== null && 'toWGSL' in returnValue && typeof returnValue.toWGSL === 'function')
+                {
+                    // IElement 形式（Vec2, Vec4 等）
+                    wgslReturn = returnValue.toWGSL();
+                }
+                else if (returnValue instanceof Expression)
                 {
                     // Expression 形式
                     // 收集所有嵌套的 let 语句
@@ -178,7 +189,12 @@ export class Func
                 let wgslReturn: string;
                 const letStatements: string[] = [];
 
-                if (returnValue instanceof Expression)
+                if (typeof returnValue === 'object' && returnValue !== null && 'toWGSL' in returnValue && typeof returnValue.toWGSL === 'function')
+                {
+                    // IElement 形式（Vec2, Vec4 等）
+                    wgslReturn = returnValue.toWGSL();
+                }
+                else if (returnValue instanceof Expression)
                 {
                     // Expression 形式
                     // 收集所有嵌套的 let 语句

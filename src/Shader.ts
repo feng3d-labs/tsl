@@ -42,41 +42,6 @@ export class Shader implements IShader
     {
     }
 
-    /**
-     * 添加 uniform 定义（由 uniform() 函数调用）
-     * @internal
-     */
-    _addUniform(def: UniformDef): void
-    {
-        this.uniforms[def.name] = def;
-    }
-
-    /**
-     * 添加 attribute 定义（由 attribute() 函数调用）
-     * @internal
-     */
-    _addAttribute(def: AttributeDef): void
-    {
-        this.attributes[def.name] = def;
-    }
-
-    /**
-     * 添加 vertex 函数定义（由 vertex() 函数调用）
-     * @internal
-     */
-    _addVertex(def: VertexFuncDef): void
-    {
-        this.vertexs[def.name] = def;
-    }
-
-    /**
-     * 添加 fragment 函数定义（由 fragment() 函数调用）
-     * @internal
-     */
-    _addFragment(def: FragmentFuncDef): void
-    {
-        this.fragments[def.name] = def;
-    }
 
     /**
      * 生成 GLSL 着色器代码

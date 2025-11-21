@@ -89,12 +89,14 @@ export function uniform(name: string, type: string, binding?: number, group?: nu
         configurable: false,
     });
 
-    // 如果当前正在构造 Shader 实例，自动添加到 uniforms 列表
-    if (currentShaderInstance && typeof currentShaderInstance._addUniform === 'function')
+    // 如果当前正在构造 Shader 实例，自动添加到 uniforms 字典
+    if (currentShaderInstance && currentShaderInstance.uniforms)
     {
-        currentShaderInstance._addUniform(def);
-        // 同时保存到实例属性中，以便在函数体中可以通过 this.name 访问
-        (currentShaderInstance as any)[name] = def;
+        if (currentShaderInstance.uniforms[name])
+        {
+            throw new Error(`Uniform '${name}' 已经定义过了，不能重复定义。`);
+        }
+        currentShaderInstance.uniforms[name] = def;
     }
 
     return def;
@@ -132,12 +134,14 @@ export function attribute(name: string, type: string, location?: number): Attrib
         configurable: false,
     });
 
-    // 如果当前正在构造 Shader 实例，自动添加到 attributes 列表
-    if (currentShaderInstance && typeof currentShaderInstance._addAttribute === 'function')
+    // 如果当前正在构造 Shader 实例，自动添加到 attributes 字典
+    if (currentShaderInstance && currentShaderInstance.attributes)
     {
-        currentShaderInstance._addAttribute(def);
-        // 同时保存到实例属性中，以便在函数体中可以通过 this.name 访问
-        (currentShaderInstance as any)[name] = def;
+        if (currentShaderInstance.attributes[name])
+        {
+            throw new Error(`Attribute '${name}' 已经定义过了，不能重复定义。`);
+        }
+        currentShaderInstance.attributes[name] = def;
     }
 
     return def;
@@ -249,10 +253,14 @@ export function fragment(name: string, body: () => any): FragmentFuncDef
         shaderType: 'fragment',
     };
 
-    // 如果当前正在构造 Shader 实例，自动添加到 fragments 列表
-    if (currentShaderInstance && typeof currentShaderInstance._addFragment === 'function')
+    // 如果当前正在构造 Shader 实例，自动添加到 fragments 字典
+    if (currentShaderInstance && currentShaderInstance.fragments)
     {
-        currentShaderInstance._addFragment(def);
+        if (currentShaderInstance.fragments[name])
+        {
+            throw new Error(`Fragment 函数 '${name}' 已经定义过了，不能重复定义。`);
+        }
+        currentShaderInstance.fragments[name] = def;
     }
 
     return def;
@@ -273,10 +281,14 @@ export function vertex(name: string, body: () => any): VertexFuncDef
         shaderType: 'vertex',
     };
 
-    // 如果当前正在构造 Shader 实例，自动添加到 vertexs 列表
-    if (currentShaderInstance && typeof currentShaderInstance._addVertex === 'function')
+    // 如果当前正在构造 Shader 实例，自动添加到 vertexs 字典
+    if (currentShaderInstance && currentShaderInstance.vertexs)
     {
-        currentShaderInstance._addVertex(def);
+        if (currentShaderInstance.vertexs[name])
+        {
+            throw new Error(`Vertex 函数 '${name}' 已经定义过了，不能重复定义。`);
+        }
+        currentShaderInstance.vertexs[name] = def;
     }
 
     return def;

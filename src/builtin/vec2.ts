@@ -6,19 +6,43 @@ import { formatNumber } from './formatNumber';
 import { Float } from './float';
 
 /**
- * Vec2 类，用于表示 vec2 字面量值
+ * Vec2 类，用于表示 vec2 字面量值或 uniform/attribute 变量
  */
 export class Vec2
 {
-    constructor(private _x: number, private _y: number)
+    private _variableName?: string; // 如果是 uniform/attribute，存储变量名
+
+    constructor(x: number | string, y?: number)
     {
+        if (typeof x === 'string' && y === undefined)
+        {
+            // 从 uniform/attribute 创建
+            this._variableName = x;
+            this._x = 0; // 占位值，不会被使用
+            this._y = 0; // 占位值，不会被使用
+        }
+        else
+        {
+            // 从字面量值创建
+            this._x = x as number;
+            this._y = y as number;
+        }
     }
+
+    private _x: number;
+    private _y: number;
 
     /**
      * 获取 x 分量
      */
     get x(): Float
     {
+        // 如果是 uniform/attribute，使用变量名
+        if (this._variableName)
+        {
+            return new Float(0, { toGLSL: () => this._variableName!, toWGSL: () => this._variableName! }, 'x');
+        }
+
         return new Float(this._x, this, 'x');
     }
 
@@ -27,6 +51,12 @@ export class Vec2
      */
     get y(): Float
     {
+        // 如果是 uniform/attribute，使用变量名
+        if (this._variableName)
+        {
+            return new Float(0, { toGLSL: () => this._variableName!, toWGSL: () => this._variableName! }, 'y');
+        }
+
         return new Float(this._y, this, 'y');
     }
 
@@ -35,6 +65,12 @@ export class Vec2
      */
     toGLSL(): string
     {
+        // 如果是 uniform/attribute，直接返回变量名
+        if (this._variableName)
+        {
+            return this._variableName;
+        }
+
         return `vec2(${formatNumber(this._x)}, ${formatNumber(this._y)})`;
     }
 
@@ -43,6 +79,12 @@ export class Vec2
      */
     toWGSL(): string
     {
+        // 如果是 uniform/attribute，直接返回变量名
+        if (this._variableName)
+        {
+            return this._variableName;
+        }
+
         return `vec2<f32>(${formatNumber(this._x)}, ${formatNumber(this._y)})`;
     }
 }
@@ -51,8 +93,8 @@ export class Vec2
  * vec2 构造函数
  * 如果传入单个 Uniform 或 Attribute 实例，则将 FunctionCallConfig 保存到 uniform.value 或 attribute.value
  */
-export function vec2(uniform: Uniform): Expression;
-export function vec2(attribute: Attribute): Expression;
+export function vec2(uniform: Uniform): Vec2;
+export function vec2(attribute: Attribute): Vec2;
 export function vec2(x: number, y: number): Vec2;
 export function vec2(...args: (string | number | FunctionCallConfig | Expression | Attribute | Uniform)[]): Vec2 | Expression
 {
@@ -74,7 +116,8 @@ export function vec2(...args: (string | number | FunctionCallConfig | Expression
         // 直接更新 uniform 的 value
         uniformArg.value = valueConfig;
 
-        return new ExpressionClass(valueConfig);
+        // 返回 Vec2 实例，使用变量名
+        return new Vec2(uniformArg.name);
     }
 
     // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
@@ -89,7 +132,8 @@ export function vec2(...args: (string | number | FunctionCallConfig | Expression
         // 直接更新 attribute 的 value
         attributeArg.value = valueConfig;
 
-        return new ExpressionClass(valueConfig);
+        // 返回 Vec2 实例，使用变量名
+        return new Vec2(attributeArg.name);
     }
 
     // 处理其他情况（多个参数，可能是 Expression 或其他类型）

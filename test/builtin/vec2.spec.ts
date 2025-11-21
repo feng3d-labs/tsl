@@ -123,7 +123,13 @@ describe('vec2', () =>
         {
             const uniform = new Uniform('uPosition', 0, 0);
             const result = vec2(uniform);
-            expect(result).toBeInstanceOf(Expression);
+            expect(result).toBeInstanceOf(Vec2);
+            expect(result.toGLSL()).toBe('uPosition');
+            expect(result.toWGSL()).toBe('uPosition');
+            expect(result.x.toGLSL()).toBe('uPosition.x');
+            expect(result.y.toGLSL()).toBe('uPosition.y');
+            expect(result.x.toWGSL()).toBe('uPosition.x');
+            expect(result.y.toWGSL()).toBe('uPosition.y');
         });
 
         it('应该将 FunctionCallConfig 保存到 uniform.value', () =>
@@ -138,19 +144,26 @@ describe('vec2', () =>
         it('应该正确设置 Expression 的 config', () =>
         {
             const uniform = new Uniform('uPosition', 0, 0);
-            const result = vec2(uniform);
-            expect(result.config.function).toBe('vec2');
-            expect(result.config.args).toEqual(['uPosition']);
+            vec2(uniform);
+            expect(uniform.value).toBeDefined();
+            expect(uniform.value?.function).toBe('vec2');
+            expect(uniform.value?.args).toEqual(['uPosition']);
         });
     });
 
     describe('vec2(attribute: Attribute)', () =>
     {
-        it('应该返回 Expression 实例', () =>
+        it('应该返回 Vec2 实例', () =>
         {
             const attribute = new Attribute('aPosition', 0);
             const result = vec2(attribute);
-            expect(result).toBeInstanceOf(Expression);
+            expect(result).toBeInstanceOf(Vec2);
+            expect(result.toGLSL()).toBe('aPosition');
+            expect(result.toWGSL()).toBe('aPosition');
+            expect(result.x.toGLSL()).toBe('aPosition.x');
+            expect(result.y.toGLSL()).toBe('aPosition.y');
+            expect(result.x.toWGSL()).toBe('aPosition.x');
+            expect(result.y.toWGSL()).toBe('aPosition.y');
         });
 
         it('应该将 FunctionCallConfig 保存到 attribute.value', () =>
@@ -165,9 +178,10 @@ describe('vec2', () =>
         it('应该正确设置 Expression 的 config', () =>
         {
             const attribute = new Attribute('aPosition', 0);
-            const result = vec2(attribute);
-            expect(result.config.function).toBe('vec2');
-            expect(result.config.args).toEqual(['aPosition']);
+            vec2(attribute);
+            expect(attribute.value).toBeDefined();
+            expect(attribute.value?.function).toBe('vec2');
+            expect(attribute.value?.args).toEqual(['aPosition']);
         });
     });
 

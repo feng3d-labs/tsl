@@ -8,6 +8,7 @@ import { vertex, Vertex } from './Vertex';
 import { setCurrentShaderInstance, clearCurrentShaderInstance } from './currentShaderInstance';
 import { generateUniformsWGSL, UniformConfig } from './uniforms';
 import { FunctionCallConfig } from './builtin/vec4';
+import { Expression } from './builtin/Expression';
 
 /**
  * Shader 基类
@@ -64,6 +65,13 @@ export class Shader implements IShader
                 return;
             }
 
+            // 如果是 Expression 实例，分析其 config
+            if (value instanceof Expression)
+            {
+                analyzeValue(value.config);
+                return;
+            }
+
             // 如果是 Uniform 或 Attribute 实例
             if (value instanceof Uniform)
             {
@@ -95,6 +103,11 @@ export class Shader implements IShader
                         {
                             uniforms.add(arg);
                         }
+                    }
+                    // 如果是 Expression，递归分析
+                    else if (arg instanceof Expression)
+                    {
+                        analyzeValue(arg);
                     }
                     // 如果是 FunctionCallConfig，递归分析
                     else if (typeof arg === 'object' && 'function' in arg)

@@ -1,4 +1,6 @@
 import { FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL, convertTypeToWGSL } from './builtin/vec4';
+import { Expression } from './builtin/Expression';
+import { collectLetStatements } from './builtin/collectLetStatements';
 import { Attribute } from './Attribute';
 import { Uniform } from './Uniform';
 
@@ -50,7 +52,12 @@ export class Func
         {
             let glslReturn: string;
 
-            if (typeof returnValue === 'string')
+            if (returnValue instanceof Expression)
+            {
+                // Expression 形式
+                glslReturn = generateFunctionCallGLSL(returnValue);
+            }
+            else if (typeof returnValue === 'string')
             {
                 // 字符串形式：将 WGSL 语法转换为 GLSL 语法（移除类型参数）
                 glslReturn = returnValue.replace(/<f32>/g, '').replace(/<i32>/g, '').replace(/<u32>/g, '');
@@ -128,8 +135,15 @@ export class Func
             if (returnValue !== undefined && returnValue !== null)
             {
                 let wgslReturn: string;
+                const letStatements: string[] = [];
 
-                if (typeof returnValue === 'string')
+                if (returnValue instanceof Expression)
+                {
+                    // Expression 形式
+                    // 收集所有嵌套的 let 语句
+                    wgslReturn = collectLetStatements(returnValue, letStatements);
+                }
+                else if (typeof returnValue === 'string')
                 {
                     wgslReturn = returnValue;
                 }
@@ -146,6 +160,11 @@ export class Func
                     wgslReturn = String(returnValue);
                 }
 
+                // 插入 let 语句（如果有）
+                if (letStatements.length > 0)
+                {
+                    lines.push(...letStatements);
+                }
                 lines.push(`    return ${wgslReturn};`);
             }
         }
@@ -157,8 +176,15 @@ export class Func
             if (returnValue !== undefined && returnValue !== null)
             {
                 let wgslReturn: string;
+                const letStatements: string[] = [];
 
-                if (typeof returnValue === 'string')
+                if (returnValue instanceof Expression)
+                {
+                    // Expression 形式
+                    // 收集所有嵌套的 let 语句
+                    wgslReturn = collectLetStatements(returnValue, letStatements);
+                }
+                else if (typeof returnValue === 'string')
                 {
                     wgslReturn = returnValue;
                 }
@@ -175,6 +201,11 @@ export class Func
                     wgslReturn = String(returnValue);
                 }
 
+                // 插入 let 语句（如果有）
+                if (letStatements.length > 0)
+                {
+                    lines.push(...letStatements);
+                }
                 lines.push(`    return ${wgslReturn};`);
             }
         }

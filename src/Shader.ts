@@ -1,7 +1,8 @@
 import { IShader } from './IShader';
 import { MainFunctionConfig } from './main';
 import { ShaderConfig } from './shaderGenerator';
-import { attribute, AttributeDef, attributeDefToConfig, clearCurrentShaderInstance, fragment, FragmentFuncDef, isAttributeDef, isUniformDef, setCurrentShaderInstance, uniform, UniformDef, uniformDefToConfig, vertex, VertexFuncDef } from './shaderHelpers';
+import type { FragmentFuncDef, VertexFuncDef } from './shaderHelpers';
+import { attribute, Attribute, attributeDefToConfig, clearCurrentShaderInstance, fragment, isAttributeDef, isUniformDef, setCurrentShaderInstance, uniform, Uniform, uniformDefToConfig, vertex } from './shaderHelpers';
 import { generateUniformsWGSL, UniformConfig } from './uniforms';
 import { convertTypeToWGSL, FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from './vec4';
 
@@ -19,12 +20,12 @@ export class Shader implements IShader
     /**
      * Attributes 字典（以变量名为 key）
      */
-    public attributes: Record<string, AttributeDef> = {};
+    public attributes: Record<string, Attribute> = {};
 
     /**
      * Uniforms 字典（以变量名为 key）
      */
-    public uniforms: Record<string, UniformDef> = {};
+    public uniforms: Record<string, Uniform> = {};
 
     /**
      * Vertex 函数字典（以函数名为 key）
@@ -92,7 +93,7 @@ export class Shader implements IShader
             for (const key of attrKeys)
             {
                 const attr = this.attributes[key];
-                lines.push(`attribute ${attr.type} ${attr.name};`);
+                lines.push(attr.toGLSL());
             }
         }
 
@@ -103,7 +104,7 @@ export class Shader implements IShader
             for (const key of uniformKeys)
             {
                 const uniform = this.uniforms[key];
-                lines.push(`uniform ${uniform.type} ${uniform.name};`);
+                lines.push(uniform.toGLSL());
             }
         }
 
@@ -206,12 +207,7 @@ export class Shader implements IShader
             for (const key of uniformKeys)
             {
                 const uniform = this.uniforms[key];
-                uniformConfigs.push({
-                    name: uniform.name,
-                    type: uniform.type,
-                    binding: uniform.binding,
-                    group: uniform.group,
-                });
+                uniformConfigs.push(uniform.toConfig());
             }
             lines.push(...generateUniformsWGSL(uniformConfigs));
         }
@@ -245,9 +241,7 @@ export class Shader implements IShader
             for (const key of attrKeys)
             {
                 const attr = this.attributes[key];
-                const wgslType = convertTypeToWGSL(attr.type);
-                const location = attr.location !== undefined ? `@location(${attr.location})` : '@location(0)';
-                params.push(`${location} ${attr.name}: ${wgslType}`);
+                params.push(attr.toWGSL());
             }
 
             const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';

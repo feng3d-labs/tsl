@@ -9,8 +9,7 @@ import vertexGlsl from "./shaders/vertex.glsl";
 import vertexWgsl from "./shaders/vertex.wgsl";
 import fragmentJson from "./shaders/fragment.frag.json";
 import vertexJson from "./shaders/vertex.vert.json";
-import { fragment } from "./shaders/fragment";
-import { vertex } from "./shaders/vertex";
+import { helloTriangle } from "./shaders/shader";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
@@ -20,14 +19,12 @@ document.addEventListener('DOMContentLoaded', async () =>
     let vertexGlsl = generateGLSL(vertexJson);
     let vertexWgsl = generateWGSL(vertexJson);
 
-    // 方式2: 从 TypeScript 类实例生成着色器代码（推荐）
-    const fragmentShader = new fragment();
-    fragmentGlsl = fragmentShader.generateGLSL('main');
-    fragmentWgsl = fragmentShader.generateWGSL('main');
-    // 
-    const vertexShader = new vertex();
-    vertexGlsl = vertexShader.generateGLSL();
-    vertexWgsl = vertexShader.generateWGSL();
+    // 方式2: 在同一个类中定义 vertex 和 fragment（推荐）
+    const shader = new helloTriangle();
+    vertexGlsl = shader.generateGLSL('vertex');
+    vertexWgsl = shader.generateWGSL('vertex');
+    fragmentGlsl = shader.generateGLSL('fragment');
+    fragmentWgsl = shader.generateWGSL('fragment');
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 

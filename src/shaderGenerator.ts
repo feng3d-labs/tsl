@@ -29,6 +29,8 @@ export interface ShaderConfig
     attributes?: AttributeConfig[];
     /** 主函数配置 */
     main: MainFunctionConfig;
+    /** 入口函数名（从 FuncDef 中获取，默认为 'main'） */
+    entryName?: string;
 }
 
 // 重新导出类型以便向后兼容（通过 index.ts 统一导出）

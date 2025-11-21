@@ -81,9 +81,17 @@ export function classToShaderConfig(
         shaderType = entryFunc.shaderType;
     }
     
+    // 获取实际的函数名（从 FuncDef 中获取，默认为 'main'）
+    let entryName = 'main';
+    if (entryFunc && isFuncDef(entryFunc))
+    {
+        entryName = entryFunc.name;
+    }
+    
     const config: ShaderConfig = {
         type: shaderType,
         main: {} as MainFunctionConfig,
+        entryName,
     };
 
     // 设置 precision（仅用于 fragment shader）

@@ -52,8 +52,9 @@ export class Shader
             lines.push('');
         }
 
-        // 生成入口函数
-        lines.push(...generateMainGLSL(config, entry));
+        // 生成入口函数（使用实际的函数名，而不是 entry 参数）
+        const functionName = config.entryName || 'main';
+        lines.push(...generateMainGLSL(config, functionName));
 
         return lines.join('\n') + '\n';
     }
@@ -79,8 +80,9 @@ export class Shader
             lines.push('');
         }
 
-        // 生成入口函数
-        lines.push(...generateMainWGSL(config, entry));
+        // 生成入口函数（使用实际的函数名，而不是 entry 参数）
+        const functionName = config.entryName || 'main';
+        lines.push(...generateMainWGSL(config, functionName));
 
         return lines.join('\n') + '\n';
     }

@@ -1,23 +1,4 @@
-import { attribute, fragment, precision, shader, uniform, vec2, vec4, vertex, Expression, _let } from '@feng3d/tsl';
-import { FunctionCallConfig } from '@feng3d/tsl';
-
-/**
- * 创建一个 mat4 uniform 的辅助函数
- * 类似于 vec4(uniform(...)) 的用法
- */
-function mat4(uniform: any): Expression
-{
-    const valueConfig: FunctionCallConfig = {
-        function: 'mat4',
-        args: [uniform.name],
-    };
-
-    // 直接更新 uniform 的 value
-    uniform.value = valueConfig;
-
-    // 返回 Expression 以支持链式调用
-    return new Expression(valueConfig);
-}
+import { attribute, fragment, precision, shader, uniform, vec2, vec4, vertex, _let, mat4 } from '@feng3d/tsl';
 
 export const sample2Shader = shader("sample2", () =>
 {

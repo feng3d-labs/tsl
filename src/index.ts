@@ -14,6 +14,8 @@ export type { FunctionCallConfig } from './builtin/vec4';
 export { convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL } from './builtin/vec4';
 export { Expression, expr } from './builtin/Expression';
 export { _let } from './builtin/let';
+// 导出向量类型
+export { Vec2 } from './builtin/vec2';
 // 导出向量构造函数
 export { vec2 } from './builtin/vec2';
 export { vec3 } from './builtin/vec3';
@@ -24,5 +26,6 @@ export { ivec4 } from './builtin/ivec4';
 export { uvec2 } from './builtin/uvec2';
 export { uvec3 } from './builtin/uvec3';
 export { uvec4 } from './builtin/uvec4';
+export { mat4 } from './builtin/mat4';
 export * from './Vertex';
 

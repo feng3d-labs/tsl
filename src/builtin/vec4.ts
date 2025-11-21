@@ -2,6 +2,9 @@ import { Attribute } from '../Attribute';
 import { Uniform } from '../Uniform';
 import { Expression } from './Expression';
 
+// 导出 Expression 以供其他文件使用
+export { Expression } from './Expression';
+
 /**
  * 函数调用配置接口
  */
@@ -130,8 +133,8 @@ export function generateFunctionCallWGSL(call: FunctionCallConfig | Expression):
     // 如果有类型参数，使用类型参数；否则根据函数名推断
     if (config.typeParam)
     {
-        const typeParam = call.typeParam;
-        const functionName = call.function;
+        const typeParam = config.typeParam;
+        const functionName = config.function;
 
         // 检查是否是向量类型（vec2, vec3, vec4, ivec2, ivec3, ivec4, uvec2, uvec3, uvec4）
         const vecMatch = functionName.match(/^(i|u)?vec(\d)$/);
@@ -221,6 +224,10 @@ export function vec4(attribute: Attribute): Expression;
 export function vec4(...args: (string | number | FunctionCallConfig | Expression)[]): Expression;
 export function vec4(...args: (string | number | FunctionCallConfig | Expression | Attribute | Uniform)[]): Expression
 {
+    // 延迟导入 Vec4 以避免循环依赖
+    // @ts-ignore - 动态导入以避免循环依赖
+    const { Vec4 } = eval('require')('./Vec4');
+
     // 如果只有一个参数且是 Uniform 实例，则将 FunctionCallConfig 保存到 uniform.value
     if (args.length === 1 && args[0] instanceof Uniform)
     {
@@ -233,7 +240,7 @@ export function vec4(...args: (string | number | FunctionCallConfig | Expression
         // 直接更新 uniform 的 value
         uniformArg.value = valueConfig;
 
-        return new Expression(valueConfig);
+        return new Vec4(valueConfig);
     }
 
     // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
@@ -248,7 +255,7 @@ export function vec4(...args: (string | number | FunctionCallConfig | Expression
         // 直接更新 attribute 的 value
         attributeArg.value = valueConfig;
 
-        return new Expression(valueConfig);
+        return new Vec4(valueConfig);
     }
 
     const config: FunctionCallConfig = {
@@ -262,6 +269,5 @@ export function vec4(...args: (string | number | FunctionCallConfig | Expression
         }),
     };
 
-    // 返回包装后的 Expression，以支持链式调用
-    return new Expression(config);
+    return new Vec4(config);
 }

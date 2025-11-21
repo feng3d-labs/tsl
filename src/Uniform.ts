@@ -13,7 +13,7 @@ export class Uniform
 {
     readonly __type__ = UNIFORM_SYMBOL;
     readonly name: string;
-    readonly type: string;
+    type: string; // 改为非 readonly，允许后续更新
     readonly binding?: number;
     readonly group?: number;
 
@@ -78,15 +78,15 @@ export class Uniform
 
 /**
  * 定义 uniform 变量
+ * 类型通过 vec4()、vec3()、vec2() 等函数自动推断
  * @param name 变量名
- * @param type 类型：vec2, vec3, vec4, float, int, mat2, mat3, mat4 等
  * @param binding WGSL 绑定位置（可选）
  * @param group WGSL 绑定组（可选）
  * @returns Uniform 实例
  */
-export function uniform(name: string, type: string, binding?: number, group?: number): Uniform
+export function uniform(name: string, binding?: number, group?: number): Uniform
 {
-    const def = new Uniform(name, type, binding, group);
+    const def = new Uniform(name, '', binding, group);
 
     // 如果当前正在构造 Shader 实例，自动添加到 uniforms 字典
     const currentShaderInstance = getCurrentShaderInstance();

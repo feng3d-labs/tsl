@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Shader, attribute, fragment, precision, shader, uniform, vertex, FunctionCallConfig } from '../src/index';
+import { Shader, attribute, fragment, precision, shader, uniform, vec4, vertex, FunctionCallConfig } from '../src/index';
 
 describe('shader() 函数式着色器定义', () =>
 {
@@ -10,7 +10,7 @@ describe('shader() 函数式着色器定义', () =>
             precision('highp');
 
             const position = attribute('position', 'vec2', 0);
-            const color = uniform('color', 'vec4', 0, 0);
+            const color = vec4(uniform('color', 0, 0));
 
             vertex('main', () =>
             {
@@ -61,7 +61,7 @@ describe('shader() 函数式着色器定义', () =>
         const testShader = shader('testShader', () =>
         {
             precision('highp');
-            const color = uniform('color', 'vec4', 0, 0);
+            const color = vec4(uniform('color', 0, 0));
 
             fragment('main', () =>
             {
@@ -74,7 +74,7 @@ describe('shader() 函数式着色器定义', () =>
         expect(glsl).toContain('precision highp float;');
         expect(glsl).toContain('uniform vec4 color;');
         expect(glsl).toContain('void main()');
-        expect(glsl).toContain('gl_FragColor = color;');
+        expect(glsl).toContain('gl_FragColor = vec4(color);');
     });
 
     it('应该能够生成正确的 vertex shader WGSL 代码', () =>
@@ -104,7 +104,7 @@ describe('shader() 函数式着色器定义', () =>
     {
         const testShader = shader('testShader', () =>
         {
-            const color = uniform('color', 'vec4', 0, 0);
+            const color = vec4(uniform('color', 0, 0));
 
             fragment('main', () =>
             {
@@ -126,7 +126,7 @@ describe('shader() 函数式着色器定义', () =>
             precision('highp');
 
             const position = attribute('position', 'vec2', 0);
-            const color = uniform('color', 'vec4', 0, 0);
+            const color = vec4(uniform('color', 0, 0));
 
             vertex('main', () =>
             {
@@ -150,7 +150,7 @@ describe('shader() 函数式着色器定义', () =>
         
         expect(fragmentGlsl).toContain('precision highp float;');
         expect(fragmentGlsl).toContain('uniform vec4 color;');
-        expect(fragmentGlsl).toContain('gl_FragColor = color;');
+        expect(fragmentGlsl).toContain('gl_FragColor = vec4(color);');
     });
 
     it('应该能够直接访问 attribute 和 uniform', () =>
@@ -158,7 +158,7 @@ describe('shader() 函数式着色器定义', () =>
         const testShader = shader('testShader', () =>
         {
             const position = attribute('position', 'vec2', 0);
-            const color = uniform('color', 'vec4', 0, 0);
+            const color = vec4(uniform('color', 0, 0));
 
             vertex('main', () =>
             {
@@ -173,9 +173,9 @@ describe('shader() 函数式着色器定义', () =>
 
             fragment('main', () =>
             {
-                // 验证 color 可以访问
+                // 验证 color 可以访问（color 现在是 FunctionCallConfig）
                 expect(color).toBeDefined();
-                expect(color.name).toBe('color');
+                expect(color).toHaveProperty('function', 'vec4');
                 return color;
             });
         });
@@ -194,8 +194,8 @@ describe('shader() 函数式着色器定义', () =>
         {
             const pos = attribute('pos', 'vec3', 0);
             const uv = attribute('uv', 'vec2', 1);
-            const color = uniform('color', 'vec4', 0, 0);
-            const time = uniform('time', 'float', 1, 0);
+            const color = vec4(uniform('color', 0, 0));
+            const time = vec4(uniform('time', 1, 0)); // 使用 vec4 作为示例
 
             vertex('main', () =>
             {
@@ -223,7 +223,7 @@ describe('shader() 函数式着色器定义', () =>
     {
         const testShader = shader('testShader', () =>
         {
-            const color = uniform('color', 'vec4', 0, 0);
+            const color = vec4(uniform('color', 0, 0));
             // 只定义了 fragment，没有定义 vertex
             fragment('main', () =>
             {
@@ -239,6 +239,37 @@ describe('shader() 函数式着色器定义', () =>
 
         // 应该找不到指定名称的函数，抛出错误
         expect(() => testShader.generateGLSL('fragment', 'nonexistent')).toThrow(/未找到片段着色器/);
+    });
+
+    it('应该支持 vec4(uniform(...)) 形式定义 uniform', () =>
+    {
+        const testShader = shader('test', () =>
+        {
+            precision('highp');
+            const position = attribute('position', 'vec2', 0);
+            const color = vec4(uniform('color', 0, 0));
+
+            vertex('main', () =>
+            {
+                return vec4(position, 0.0, 1.0);
+            });
+
+            fragment('main', () =>
+            {
+                return color;
+            });
+        });
+
+        // 检查 uniform 是否正确注册
+        expect(testShader.uniforms['color']).toBeDefined();
+        expect(testShader.uniforms['color'].type).toBe('vec4');
+        expect(testShader.uniforms['color'].binding).toBe(0);
+        expect(testShader.uniforms['color'].group).toBe(0);
+
+        const fragmentGLSL = testShader.generateGLSL('fragment');
+        expect(fragmentGLSL).toContain('precision highp float;');
+        expect(fragmentGLSL).toContain('uniform vec4 color;');
+        expect(fragmentGLSL).toContain('gl_FragColor = vec4(color);');
     });
 });
 

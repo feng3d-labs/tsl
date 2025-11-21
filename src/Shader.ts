@@ -292,7 +292,7 @@ export class Shader implements IShader
         {
             for (const uniformConfig of config.uniforms)
             {
-                const uniformDef = uniform(uniformConfig.name, uniformConfig.type, uniformConfig.binding, uniformConfig.group);
+                const uniformDef = uniform(uniformConfig.name, uniformConfig.binding, uniformConfig.group);
                 shaderInstance.uniforms[uniformConfig.name] = uniformDef;
             }
         }

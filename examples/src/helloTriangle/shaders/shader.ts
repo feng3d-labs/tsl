@@ -9,7 +9,7 @@ export const helloTriangle = shader("helloTriangle", () =>
     const position = attribute("position", "vec2", 0);
 
     // Fragment shader 的 uniform
-    const color = uniform("color", "vec4", 0, 0);
+    const color = vec4(uniform("color", 0, 0));
 
     // Vertex shader 入口函数
     vertex("main", () =>

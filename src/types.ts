@@ -1,35 +1,42 @@
+import type { FunctionCallConfig } from './builtin/vec4';
+import type { MainFunctionConfig } from './main';
+import type { AttributeConfig } from './shaderGenerator';
+import type { UniformConfig } from './uniforms';
+
 /**
  * Fragment Shader 配置类型（严格类型）
  * 与 ShaderConfig 兼容，但 type 字段被限制为 'fragment'
  */
-export interface FragmentShaderConfig {
+export interface FragmentShaderConfig
+{
     /** 着色器类型，必须为 'fragment' */
     readonly type: 'fragment';
     /** GLSL 精度声明（仅用于 fragment shader） */
     readonly precision?: 'lowp' | 'mediump' | 'highp' | string;
     /** 统一变量列表 */
-    readonly uniforms?: readonly FragmentUniformConfig[] | import('./uniforms').UniformConfig[];
+    readonly uniforms?: readonly FragmentUniformConfig[] | UniformConfig[];
     /** 属性变量列表（通常不用于 fragment shader，但允许定义） */
-    readonly attributes?: readonly FragmentAttributeConfig[] | import('./shaderGenerator').AttributeConfig[];
+    readonly attributes?: readonly FragmentAttributeConfig[] | AttributeConfig[];
     /** 主函数配置 */
-    readonly main: FragmentMainFunctionConfig | import('./main').MainFunctionConfig;
+    readonly main: FragmentMainFunctionConfig | MainFunctionConfig;
 }
 
 /**
  * Vertex Shader 配置类型（严格类型）
  * 与 ShaderConfig 兼容，但 type 字段被限制为 'vertex'
  */
-export interface VertexShaderConfig {
+export interface VertexShaderConfig
+{
     /** 着色器类型，必须为 'vertex' */
     readonly type: 'vertex';
     /** GLSL 精度声明（通常不用于 vertex shader，但允许定义） */
     readonly precision?: 'lowp' | 'mediump' | 'highp' | string;
     /** 统一变量列表 */
-    readonly uniforms?: readonly VertexUniformConfig[] | import('./uniforms').UniformConfig[];
+    readonly uniforms?: readonly VertexUniformConfig[] | UniformConfig[];
     /** 属性变量列表（用于 vertex shader） */
-    readonly attributes?: readonly VertexAttributeConfig[] | import('./shaderGenerator').AttributeConfig[];
+    readonly attributes?: readonly VertexAttributeConfig[] | AttributeConfig[];
     /** 主函数配置 */
-    readonly main: VertexMainFunctionConfig | import('./main').MainFunctionConfig;
+    readonly main: VertexMainFunctionConfig | MainFunctionConfig;
 }
 
 /**
@@ -87,12 +94,6 @@ export interface VertexAttributeConfig
     /** WGSL location */
     readonly location?: number;
 }
-
-/**
- * 函数调用配置（从 builtin/vec4.ts 导入）
- */
-import type { FunctionCallConfig } from './builtin/vec4';
-export type { FunctionCallConfig };
 
 /**
  * Fragment Shader 主函数配置

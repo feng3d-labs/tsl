@@ -224,10 +224,6 @@ export function vec4(attribute: Attribute): Expression;
 export function vec4(...args: (string | number | FunctionCallConfig | Expression)[]): Expression;
 export function vec4(...args: (string | number | FunctionCallConfig | Expression | Attribute | Uniform)[]): Expression
 {
-    // 延迟导入 Vec4 以避免循环依赖
-    // @ts-ignore - 动态导入以避免循环依赖
-    const { Vec4 } = eval('require')('./Vec4');
-
     // 如果只有一个参数且是 Uniform 实例，则将 FunctionCallConfig 保存到 uniform.value
     if (args.length === 1 && args[0] instanceof Uniform)
     {
@@ -240,7 +236,7 @@ export function vec4(...args: (string | number | FunctionCallConfig | Expression
         // 直接更新 uniform 的 value
         uniformArg.value = valueConfig;
 
-        return new Vec4(valueConfig);
+        return new Expression(valueConfig);
     }
 
     // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
@@ -255,7 +251,7 @@ export function vec4(...args: (string | number | FunctionCallConfig | Expression
         // 直接更新 attribute 的 value
         attributeArg.value = valueConfig;
 
-        return new Vec4(valueConfig);
+        return new Expression(valueConfig);
     }
 
     const config: FunctionCallConfig = {
@@ -265,9 +261,10 @@ export function vec4(...args: (string | number | FunctionCallConfig | Expression
             {
                 return arg.config;
             }
+
             return typeof arg === 'object' && ('name' in arg) ? arg.name : arg;
         }),
     };
 
-    return new Vec4(config);
+    return new Expression(config);
 }

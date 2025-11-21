@@ -24,36 +24,17 @@ describe('Uniform', () =>
         it('应该能够设置 value 并生成 GLSL', () =>
         {
             const uni = new Uniform('color', 0, 0);
-            uni.value = {
-                function: 'vec4',
-                args: ['color'],
-            };
+            vec4(uni);
             expect(uni.toGLSL()).toBe('uniform vec4 color;');
         });
 
         it('应该能够生成 WGSL', () =>
         {
             const uni = new Uniform('color', 0, 0);
-            uni.value = {
-                function: 'vec4',
-                args: ['color'],
-            };
+            vec4(uni);
             expect(uni.toWGSL()).toBe('@binding(0) @group(0) var<uniform> color : vec4<f32>;');
         });
 
-        it('应该能够转换为配置', () =>
-        {
-            const uni = new Uniform('color', 0, 0);
-            uni.value = {
-                function: 'vec4',
-                args: ['color'],
-            };
-            const config = uni.toConfig();
-            expect(config.name).toBe('color');
-            expect(config.type).toBe('vec4');
-            expect(config.binding).toBe(0);
-            expect(config.group).toBe(0);
-        });
     });
 
     describe('uniform() 函数', () =>
@@ -78,7 +59,8 @@ describe('Uniform', () =>
             });
 
             expect(testShader.uniforms['color']).toBeDefined();
-            expect(testShader.uniforms['color'].value?.function).toBe('vec4');
+            expect(testShader.uniforms['color'].value?.glslType).toBe('vec4');
+            expect(testShader.uniforms['color'].value?.wgslType).toBe('vec4<f32>');
         });
     });
 });

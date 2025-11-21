@@ -1,4 +1,5 @@
-import { convertTypeToWGSL, FunctionCallConfig } from './builtin/vec4';
+import { Vec2 } from './builtin/vec2';
+import { convertTypeToWGSL, Vec4 } from './builtin/vec4';
 import { getCurrentShaderInstance } from './currentShaderInstance';
 import { IElement } from './IElement';
 
@@ -17,7 +18,7 @@ export class Uniform implements IElement
     dependencies: IElement[];
 
     readonly name: string;
-    value?: FunctionCallConfig; // 保存 vec4() 等函数返回的 FunctionCallConfig
+    value?: Vec2 | Vec4;
     readonly binding?: number;
     readonly group?: number;
 
@@ -29,23 +30,16 @@ export class Uniform implements IElement
     }
 
     /**
-     * 从 value 中提取类型
-     */
-    private getType(): string
-    {
-        if (!this.value)
-        {
-            throw new Error(`Uniform '${this.name}' 没有设置 value，无法确定类型。请使用 vec4(uniform(...)) 等形式定义。`);
-        }
-        return this.value.function;
-    }
-
-    /**
      * 转换为 GLSL 代码
      */
     toGLSL(): string
     {
-        const type = this.getType();
+        if (!this.value)
+        {
+            throw new Error(`Uniform '${this.name}' 没有设置 value，无法生成 GLSL。`);
+        }
+        const type = this.value.glslType;
+
         return `uniform ${type} ${this.name};`;
     }
 
@@ -54,44 +48,16 @@ export class Uniform implements IElement
      */
     toWGSL(): string
     {
-        const type = this.getType();
+        const type = this.value?.wgslType;
         const wgslType = convertTypeToWGSL(type);
         const binding = this.binding !== undefined ? `@binding(${this.binding})` : '';
         const group = this.group !== undefined ? `@group(${this.group})` : '';
         const annotations = [binding, group].filter(Boolean).join(' ');
         const prefix = annotations ? `${annotations} ` : '';
+
         return `${prefix}var<uniform> ${this.name} : ${wgslType};`;
     }
 
-    /**
-     * 转换为 UniformConfig
-     */
-    toConfig(): { name: string; type: string; binding?: number; group?: number }
-    {
-        const type = this.getType();
-        return {
-            name: this.name,
-            type,
-            binding: this.binding,
-            group: this.group,
-        };
-    }
-
-    /**
-     * 转换为字符串时返回变量名
-     */
-    toString(): string
-    {
-        return this.name;
-    }
-
-    /**
-     * 转换为原始值时返回变量名
-     */
-    valueOf(): string
-    {
-        return this.name;
-    }
 }
 
 /**

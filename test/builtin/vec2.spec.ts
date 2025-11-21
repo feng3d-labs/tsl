@@ -137,17 +137,8 @@ describe('vec2', () =>
             const uniform = new Uniform('uPosition', 0, 0);
             vec2(uniform);
             expect(uniform.value).toBeDefined();
-            expect(uniform.value?.function).toBe('vec2');
-            expect(uniform.value?.args).toEqual(['uPosition']);
-        });
-
-        it('应该正确设置 Expression 的 config', () =>
-        {
-            const uniform = new Uniform('uPosition', 0, 0);
-            vec2(uniform);
-            expect(uniform.value).toBeDefined();
-            expect(uniform.value?.function).toBe('vec2');
-            expect(uniform.value?.args).toEqual(['uPosition']);
+            expect(uniform.value?.glslType).toBe('vec2');
+            expect(uniform.value?.wgslType).toBe('vec2<f32>');
         });
     });
 
@@ -171,17 +162,8 @@ describe('vec2', () =>
             const attribute = new Attribute('aPosition', 0);
             vec2(attribute);
             expect(attribute.value).toBeDefined();
-            expect(attribute.value?.function).toBe('vec2');
-            expect(attribute.value?.args).toEqual(['aPosition']);
-        });
-
-        it('应该正确设置 Expression 的 config', () =>
-        {
-            const attribute = new Attribute('aPosition', 0);
-            vec2(attribute);
-            expect(attribute.value).toBeDefined();
-            expect(attribute.value?.function).toBe('vec2');
-            expect(attribute.value?.args).toEqual(['aPosition']);
+            expect(attribute.value?.glslType).toBe('vec2');
+            expect(attribute.value?.wgslType).toBe('vec2<f32>');
         });
     });
 

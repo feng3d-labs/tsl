@@ -1,4 +1,4 @@
-import { attribute, fragment, precision, shader, uniform, vec2, vec4, vertex, _let, mat4 } from '@feng3d/tsl';
+import { _let, attribute, fragment, mat4, precision, shader, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
 
 export const sample2Shader = shader("sample2", () =>
 {

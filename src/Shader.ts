@@ -1,14 +1,11 @@
+import { Attribute } from './Attribute';
+import { Fragment } from './Fragment';
 import { IShader } from './IShader';
-import { MainFunctionConfig } from './main';
-import { ShaderConfig } from './shaderGenerator';
-import { attribute, Attribute } from './Attribute';
-import { uniform, Uniform } from './Uniform';
-import { fragment, Fragment } from './Fragment';
-import { vertex, Vertex } from './Vertex';
-import { setCurrentShaderInstance, clearCurrentShaderInstance } from './currentShaderInstance';
-import { generateUniformsWGSL, UniformConfig } from './uniforms';
-import { FunctionCallConfig } from './builtin/vec4';
+import { Uniform } from './Uniform';
+import { Vertex } from './Vertex';
 import { Expression } from './builtin/Expression';
+import { FunctionCallConfig } from './builtin/vec4';
+import { clearCurrentShaderInstance, setCurrentShaderInstance } from './currentShaderInstance';
 
 /**
  * Shader 基类
@@ -72,6 +69,7 @@ export class Shader implements IShader
                 {
                     analyzeValue(dep);
                 }
+
                 return;
             }
 
@@ -79,6 +77,7 @@ export class Shader implements IShader
             if (value instanceof Expression)
             {
                 analyzeValue(value.config);
+
                 return;
             }
 
@@ -86,11 +85,13 @@ export class Shader implements IShader
             if (value instanceof Uniform)
             {
                 uniforms.add(value.name);
+
                 return;
             }
             if (value instanceof Attribute)
             {
                 attributes.add(value.name);
+
                 return;
             }
 
@@ -129,6 +130,7 @@ export class Shader implements IShader
         };
 
         analyzeValue(returnValue);
+
         return { attributes, uniforms };
     }
 
@@ -269,18 +271,13 @@ export class Shader implements IShader
         const dependencies = this.analyzeDependencies(returnValue);
 
         // 生成 uniforms（只包含实际使用的）
-        const uniformConfigs: UniformConfig[] = [];
         for (const uniformName of dependencies.uniforms)
         {
             const uniform = this.uniforms[uniformName];
             if (uniform)
             {
-                uniformConfigs.push(uniform.toConfig());
+                lines.push(uniform.toWGSL());
             }
-        }
-        if (uniformConfigs.length > 0)
-        {
-            lines.push(...generateUniformsWGSL(uniformConfigs));
         }
 
         // 空行
@@ -294,7 +291,6 @@ export class Shader implements IShader
             ? Array.from(dependencies.attributes)
                 .map(attrName => this.attributes[attrName])
                 .filter(attr => attr !== undefined)
-                .map(attr => attr.toConfig())
             : undefined;
 
         // 使用 entryFunc 生成函数代码
@@ -341,5 +337,4 @@ export function shader(name: string, builder: () => void): Shader
 
     return shaderInstance;
 }
-
 

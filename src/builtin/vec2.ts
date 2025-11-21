@@ -3,13 +3,15 @@ import { IElement } from '../IElement';
 import { Uniform } from '../Uniform';
 import { Float } from './float';
 import { formatNumber } from './formatNumber';
-import { FunctionCallConfig } from './vec4';
 
 /**
  * Vec2 类，用于表示 vec2 字面量值或 uniform/attribute 变量
  */
 export class Vec2 implements IElement
 {
+    readonly glslType = 'vec2';
+    readonly wgslType = 'vec2<f32>';
+
     dependencies: IElement[];
     toGLSL: () => string;
     toWGSL: () => string;
@@ -25,27 +27,22 @@ export class Vec2 implements IElement
             if (args[0] instanceof Uniform)
             {
                 const uniform = args[0] as Uniform;
-                const valueConfig: FunctionCallConfig = {
-                    function: 'vec2',
-                    args: [uniform.name],
-                };
-                uniform.value = valueConfig;
 
                 this.toGLSL = () => uniform.name;
                 this.toWGSL = () => uniform.name;
                 this.dependencies = [uniform];
+
+                uniform.value = this;
             }
             else if (args[0] instanceof Attribute)
             {
                 const attribute = args[0] as Attribute;
-                const valueConfig: FunctionCallConfig = {
-                    function: 'vec2',
-                    args: [attribute.name],
-                };
-                attribute.value = valueConfig;
+
                 this.toGLSL = () => attribute.name;
                 this.toWGSL = () => attribute.name;
                 this.dependencies = [attribute];
+
+                attribute.value = this;
             }
             else
             {

@@ -259,9 +259,12 @@ function generateExpressionWGSL(expr: Expression): string
  */
 export class Vec4 implements IElement
 {
-    dependencies: IElement[];
+    readonly glslType = 'vec4';
+    readonly wgslType = 'vec4<f32>';
+
     toGLSL: () => string;
     toWGSL: () => string;
+    dependencies: IElement[];
 
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
@@ -275,11 +278,7 @@ export class Vec4 implements IElement
             if (args[0] instanceof Uniform)
             {
                 const uniform = args[0] as Uniform;
-                const valueConfig: FunctionCallConfig = {
-                    function: 'vec4',
-                    args: [uniform.name],
-                };
-                uniform.value = valueConfig;
+                uniform.value = this;
 
                 this.toGLSL = () => uniform.name;
                 this.toWGSL = () => uniform.name;
@@ -288,15 +287,11 @@ export class Vec4 implements IElement
             else if (args[0] instanceof Attribute)
             {
                 const attribute = args[0] as Attribute;
-                const valueConfig: FunctionCallConfig = {
-                    function: 'vec4',
-                    args: [attribute.name],
-                };
-                attribute.value = valueConfig;
-
+                
                 this.toGLSL = () => attribute.name;
                 this.toWGSL = () => attribute.name;
                 this.dependencies = [attribute];
+                attribute.value = this;
             }
             else
             {

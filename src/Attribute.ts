@@ -1,4 +1,5 @@
-import { convertTypeToWGSL, FunctionCallConfig } from './builtin/vec4';
+import { Vec2 } from './builtin/vec2';
+import { Vec4 } from './builtin/vec4';
 import { getCurrentShaderInstance } from './currentShaderInstance';
 import { IElement } from './IElement';
 
@@ -15,7 +16,7 @@ export class Attribute implements IElement
     readonly __type__ = ATTRIBUTE_SYMBOL;
     dependencies: IElement[];
     readonly name: string;
-    value?: FunctionCallConfig; // 保存 vec2() 等函数返回的 FunctionCallConfig
+    value?: Vec2 | Vec4;
     readonly location?: number;
 
     constructor(name: string, location?: number)
@@ -25,24 +26,11 @@ export class Attribute implements IElement
     }
 
     /**
-     * 从 value 中提取类型
-     */
-    private getType(): string
-    {
-        if (!this.value)
-        {
-            throw new Error(`Attribute '${this.name}' 没有设置 value，无法确定类型。请使用 vec2(attribute(...)) 等形式定义。`);
-        }
-
-        return this.value.function;
-    }
-
-    /**
      * 转换为 GLSL 代码
      */
     toGLSL(): string
     {
-        const type = this.getType();
+        const type = this.value?.glslType;
 
         return `attribute ${type} ${this.name};`;
     }
@@ -52,42 +40,12 @@ export class Attribute implements IElement
      */
     toWGSL(): string
     {
-        const type = this.getType();
-        const wgslType = convertTypeToWGSL(type);
+        const type = this.value?.wgslType;
         const location = this.location !== undefined ? `@location(${this.location})` : '@location(0)';
 
-        return `${location} ${this.name}: ${wgslType}`;
+        return `${location} ${this.name}: ${type}`;
     }
 
-    /**
-     * 转换为 AttributeConfig
-     */
-    toConfig(): { name: string; type: string; location?: number }
-    {
-        const type = this.getType();
-
-        return {
-            name: this.name,
-            type,
-            location: this.location,
-        };
-    }
-
-    /**
-     * 转换为字符串时返回变量名
-     */
-    toString(): string
-    {
-        return this.name;
-    }
-
-    /**
-     * 转换为原始值时返回变量名
-     */
-    valueOf(): string
-    {
-        return this.name;
-    }
 }
 
 /**

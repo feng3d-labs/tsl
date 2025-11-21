@@ -102,7 +102,7 @@ export class Func
      * @param shaderType 着色器类型（vertex 或 fragment）
      * @param attributes 属性列表（仅用于 vertex shader）
      */
-    toWGSL(shaderType: 'vertex' | 'fragment', attributes?: Array<{ name: string; type: string; location?: number }>): string
+    toWGSL(shaderType: 'vertex' | 'fragment', attributes?: Attribute[]): string
     {
         const lines: string[] = [];
 
@@ -129,9 +129,7 @@ export class Func
             {
                 for (const attr of attributes)
                 {
-                    const wgslType = convertTypeToWGSL(attr.type);
-                    const location = attr.location !== undefined ? `@location(${attr.location})` : '@location(0)';
-                    params.push(`${location} ${attr.name}: ${wgslType}`);
+                    params.push(attr.toWGSL());
                 }
             }
 

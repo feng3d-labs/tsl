@@ -1,6 +1,6 @@
+import { Attribute } from './Attribute';
 import { getCurrentShaderInstance } from './currentShaderInstance';
 import { Func, FUNC_SYMBOL } from './Func';
-import type { FunctionCallConfig } from './builtin/vec4';
 
 // 重新导出 FUNC_SYMBOL 以便向后兼容
 export { FUNC_SYMBOL };
@@ -30,7 +30,7 @@ export class Vertex extends Func
      * @param shaderType 着色器类型（忽略，固定为 'vertex'）
      * @param attributes 属性列表
      */
-    toWGSL(shaderType?: 'vertex' | 'fragment', attributes?: Array<{ name: string; type: string; location?: number }>): string
+    toWGSL(shaderType?: 'vertex' | 'fragment', attributes?: Attribute[]): string
     {
         return super.toWGSL('vertex', attributes);
     }

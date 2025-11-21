@@ -244,22 +244,121 @@ function generateExpressionWGSL(expr: Expression): string
  */
 export class Vec4 extends Expression
 {
+    private _variableName?: string; // 如果是 uniform/attribute，存储变量名
     private _x: number;
     private _y: number;
     private _z: number;
     private _w: number;
 
-    constructor(x: number, y: number, z: number, w: number)
+    constructor(uniform: Uniform);
+    constructor(attribute: Attribute);
+    constructor(xy: Vec2, z: number, w: number);
+    constructor(x: number, y: number, z: number, w: number);
+    constructor(...args: (number | Uniform | Attribute | Vec2)[])
     {
-        const config: FunctionCallConfig = {
-            function: 'vec4',
-            args: [x, y, z, w],
-        };
-        super(config);
-        this._x = x;
-        this._y = y;
-        this._z = z;
-        this._w = w;
+        if (args.length === 1)
+        {
+            // 处理 uniform 或 attribute
+            if (args[0] instanceof Uniform)
+            {
+                const uniform = args[0] as Uniform;
+                const valueConfig: FunctionCallConfig = {
+                    function: 'vec4',
+                    args: [uniform.name],
+                };
+                uniform.value = valueConfig;
+                const config: FunctionCallConfig = {
+                    function: 'vec4',
+                    args: [uniform.name],
+                };
+                super(config);
+                this._variableName = uniform.name;
+                this._x = 0; // 占位值，不会被使用
+                this._y = 0; // 占位值，不会被使用
+                this._z = 0; // 占位值，不会被使用
+                this._w = 0; // 占位值，不会被使用
+            }
+            else if (args[0] instanceof Attribute)
+            {
+                const attribute = args[0] as Attribute;
+                const valueConfig: FunctionCallConfig = {
+                    function: 'vec4',
+                    args: [attribute.name],
+                };
+                attribute.value = valueConfig;
+                const config: FunctionCallConfig = {
+                    function: 'vec4',
+                    args: [attribute.name],
+                };
+                super(config);
+                this._variableName = attribute.name;
+                this._x = 0; // 占位值，不会被使用
+                this._y = 0; // 占位值，不会被使用
+                this._z = 0; // 占位值，不会被使用
+                this._w = 0; // 占位值，不会被使用
+            }
+            else
+            {
+                throw new Error('Vec4 constructor: invalid argument');
+            }
+        }
+        else if (args.length === 3 && args[0] instanceof Vec2 && typeof args[1] === 'number' && typeof args[2] === 'number')
+        {
+            // 处理 vec4(xy: Vec2, z: number, w: number) 的情况
+            const xy = args[0] as Vec2;
+            const z = args[1] as number;
+            const w = args[2] as number;
+
+            // 检查 Vec2 是否是 uniform/attribute 变量
+            const variableName = (xy as any)._variableName;
+
+            if (variableName)
+            {
+                // 如果是变量，生成表达式 vec4(variableName, z, w)
+                const config: FunctionCallConfig = {
+                    function: 'vec4',
+                    args: [variableName, formatNumber(z), formatNumber(w)],
+                };
+                super(config);
+                this._variableName = undefined;
+                this._x = 0; // 占位值，不会被使用
+                this._y = 0; // 占位值，不会被使用
+                this._z = z;
+                this._w = w;
+            }
+            else
+            {
+                // 如果是字面量，提取 x 和 y 值
+                const x = (xy as any)._x;
+                const y = (xy as any)._y;
+                const config: FunctionCallConfig = {
+                    function: 'vec4',
+                    args: [x, y, z, w],
+                };
+                super(config);
+                this._x = x;
+                this._y = y;
+                this._z = z;
+                this._w = w;
+            }
+        }
+        else if (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number' && typeof args[3] === 'number')
+        {
+            // 从字面量值创建
+            const config: FunctionCallConfig = {
+                function: 'vec4',
+                args: [args[0], args[1], args[2], args[3]],
+            };
+            super(config);
+            this._x = args[0];
+            this._y = args[1];
+            this._z = args[2];
+            this._w = args[3];
+        }
+        else
+        {
+            throw new Error('Vec4 constructor: invalid arguments');
+        }
     }
 
     /**
@@ -299,6 +398,18 @@ export class Vec4 extends Expression
      */
     toGLSL(): string
     {
+        // 如果是 uniform/attribute，直接返回变量名
+        if (this._variableName)
+        {
+            return this._variableName;
+        }
+
+        // 如果 config 中包含字符串参数（如变量名），使用 generateFunctionCallGLSL
+        if (this.config.args.some(arg => typeof arg === 'string' && !/^\d/.test(arg)))
+        {
+            return generateFunctionCallGLSL(this.config);
+        }
+
         return `vec4(${formatNumber(this._x)}, ${formatNumber(this._y)}, ${formatNumber(this._z)}, ${formatNumber(this._w)})`;
     }
 
@@ -307,6 +418,18 @@ export class Vec4 extends Expression
      */
     toWGSL(): string
     {
+        // 如果是 uniform/attribute，直接返回变量名
+        if (this._variableName)
+        {
+            return this._variableName;
+        }
+
+        // 如果 config 中包含字符串参数（如变量名），使用 generateFunctionCallWGSL
+        if (this.config.args.some(arg => typeof arg === 'string' && !/^\d/.test(arg)))
+        {
+            return generateFunctionCallWGSL(this.config);
+        }
+
         return `vec4<f32>(${formatNumber(this._x)}, ${formatNumber(this._y)}, ${formatNumber(this._z)}, ${formatNumber(this._w)})`;
     }
 
@@ -323,112 +446,17 @@ export class Vec4 extends Expression
 
 /**
  * vec4 构造函数
- * 如果传入单个 Uniform 或 Attribute 实例，则将 FunctionCallConfig 保存到 uniform.value 或 attribute.value
+ * 直接调用 Vec4 构造函数，所有参数处理逻辑都在 Vec4 构造函数中
  */
-export function vec4(uniform: Uniform): Expression;
-export function vec4(attribute: Attribute): Expression;
+export function vec4(uniform: Uniform): Vec4;
+export function vec4(attribute: Attribute): Vec4;
 export function vec4(xy: Vec2, z: number, w: number): Vec4;
 export function vec4(x: number, y: number, z: number, w: number): Vec4;
-export function vec4(...args: (string | number | FunctionCallConfig | Expression)[]): Vec4 | Expression;
-export function vec4(...args: (string | number | FunctionCallConfig | Expression | Attribute | Uniform | Vec2)[]): Vec4 | Expression
+export function vec4(...args: any[]): Vec4
 {
-    // 处理 vec4(x: number, y: number, z: number, w: number) 的情况
-    if (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number' && typeof args[3] === 'number')
-    {
-        return new Vec4(args[0], args[1], args[2], args[3]);
-    }
+    if (args.length === 1) return new Vec4(args[0] as any);
+    if (args.length === 3) return new Vec4(args[0] as any, args[1] as any, args[2] as any);
+    if (args.length === 4) return new Vec4(args[0] as any, args[1] as any, args[2] as any, args[3] as any);
 
-    // 处理 vec4(xy: Vec2, z: number, w: number) 的情况
-    if (args.length === 3 && args[0] instanceof Vec2 && typeof args[1] === 'number' && typeof args[2] === 'number')
-    {
-        const xy = args[0] as Vec2;
-        const z = args[1] as number;
-        const w = args[2] as number;
-
-        // 检查 Vec2 是否是 uniform/attribute 变量
-        const variableName = (xy as any)._variableName;
-
-        if (variableName)
-        {
-            // 如果是变量，生成表达式 vec4(variableName, z, w)
-            const config: FunctionCallConfig = {
-                function: 'vec4',
-                args: [variableName, formatNumber(z), formatNumber(w)],
-            };
-
-            return new Expression(config);
-        }
-
-        // 如果是字面量，提取 x 和 y 值
-        const x = (xy as any)._x;
-        const y = (xy as any)._y;
-
-        return new Vec4(x, y, z, w);
-    }
-
-    // 如果只有一个参数且是 Uniform 实例，则将 FunctionCallConfig 保存到 uniform.value
-    if (args.length === 1 && args[0] instanceof Uniform)
-    {
-        const uniformArg = args[0] as Uniform;
-        const valueConfig: FunctionCallConfig = {
-            function: 'vec4',
-            args: [uniformArg.name],
-        };
-
-        // 直接更新 uniform 的 value
-        uniformArg.value = valueConfig;
-
-        return new Expression(valueConfig);
-    }
-
-    // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
-    if (args.length === 1 && args[0] instanceof Attribute)
-    {
-        const attributeArg = args[0] as Attribute;
-        const valueConfig: FunctionCallConfig = {
-            function: 'vec4',
-            args: [attributeArg.name],
-        };
-
-        // 直接更新 attribute 的 value
-        attributeArg.value = valueConfig;
-
-        return new Expression(valueConfig);
-    }
-
-    const config: FunctionCallConfig = {
-        function: 'vec4',
-        args: args.map(arg =>
-        {
-            if (arg instanceof Expression)
-            {
-                return arg.config;
-            }
-
-            // 处理 Vec2 参数
-            if (arg instanceof Vec2)
-            {
-                const variableName = (arg as any)._variableName;
-
-                if (variableName)
-                {
-                    // 如果是变量，返回变量名
-                    return variableName;
-                }
-
-                // 如果是字面量，需要生成 vec2(x, y) 表达式
-                const x = (arg as any)._x;
-                const y = (arg as any)._y;
-
-                return {
-                    function: 'vec2',
-                    args: [x, y],
-                };
-            }
-
-            return typeof arg === 'object' && ('name' in arg) ? arg.name : arg;
-        }),
-    };
-
-    return new Expression(config);
+    throw new Error('vec4: invalid arguments');
 }

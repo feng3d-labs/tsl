@@ -7,7 +7,6 @@ import { attribute, Attribute } from './Attribute';
 import { uniform, Uniform } from './Uniform';
 import { fragment } from './Fragment';
 import { vertex } from './Vertex';
-import { attributeDefToConfig, isAttributeDef, isUniformDef, uniformDefToConfig } from './shaderHelpers';
 import { setCurrentShaderInstance, clearCurrentShaderInstance } from './currentShaderInstance';
 import { generateUniformsWGSL, UniformConfig } from './uniforms';
 import { convertTypeToWGSL, FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from './vec4';
@@ -146,7 +145,7 @@ export class Shader implements IShader
             {
                 glslReturn = generateFunctionCallGLSL(returnValue as FunctionCallConfig);
             }
-            else if (isUniformDef(returnValue) || isAttributeDef(returnValue))
+            else if (returnValue instanceof Uniform || returnValue instanceof Attribute)
             {
                 glslReturn = returnValue.name;
             }
@@ -265,7 +264,7 @@ export class Shader implements IShader
                 {
                     wgslReturn = generateFunctionCallWGSL(returnValue as FunctionCallConfig);
                 }
-                else if (isUniformDef(returnValue) || isAttributeDef(returnValue))
+                else if (returnValue instanceof Uniform || returnValue instanceof Attribute)
                 {
                     wgslReturn = returnValue.name;
                 }
@@ -294,7 +293,7 @@ export class Shader implements IShader
                 {
                     wgslReturn = generateFunctionCallWGSL(returnValue as FunctionCallConfig);
                 }
-                else if (isUniformDef(returnValue) || isAttributeDef(returnValue))
+                else if (returnValue instanceof Uniform || returnValue instanceof Attribute)
                 {
                     wgslReturn = returnValue.name;
                 }
@@ -369,7 +368,7 @@ export class Shader implements IShader
             {
                 main.return = returnValue as FunctionCallConfig;
             }
-            else if (isUniformDef(returnValue) || isAttributeDef(returnValue))
+            else if (returnValue instanceof Uniform || returnValue instanceof Attribute)
             {
                 main.return = returnValue.name;
             }
@@ -396,7 +395,7 @@ export class Shader implements IShader
         const uniformKeys = Object.keys(this.uniforms);
         if (uniformKeys.length > 0)
         {
-            config.uniforms = uniformKeys.map(key => uniformDefToConfig(this.uniforms[key]));
+            config.uniforms = uniformKeys.map(key => this.uniforms[key].toConfig());
         }
 
         // 收集 attributes（仅用于 vertex shader）
@@ -405,7 +404,7 @@ export class Shader implements IShader
             const attrKeys = Object.keys(this.attributes);
             if (attrKeys.length > 0)
             {
-                config.attributes = attrKeys.map(key => attributeDefToConfig(this.attributes[key]));
+                config.attributes = attrKeys.map(key => this.attributes[key].toConfig());
             }
         }
 

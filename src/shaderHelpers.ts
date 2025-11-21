@@ -184,7 +184,7 @@ export function isFuncDef(obj: any): obj is FuncDef
  * @param body 函数体
  * @returns 函数定义对象
  */
-export function fragmentfunc(name: string, body: () => any): FuncDef
+export function fragment(name: string, body: () => any): FuncDef
 {
     return {
         __type__: FUNC_SYMBOL,
@@ -200,7 +200,7 @@ export function fragmentfunc(name: string, body: () => any): FuncDef
  * @param body 函数体
  * @returns 函数定义对象
  */
-export function vertexfunc(name: string, body: () => any): FuncDef
+export function vertex(name: string, body: () => any): FuncDef
 {
     return {
         __type__: FUNC_SYMBOL,

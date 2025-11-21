@@ -1,4 +1,4 @@
-import { Shader, FunctionCallConfig, attribute, vertexfunc, fragmentfunc, uniform } from '@feng3d/tsl';
+import { FunctionCallConfig, Shader, attribute, fragment, uniform, vertex } from '@feng3d/tsl';
 
 export class helloTriangle extends Shader
 {
@@ -11,7 +11,7 @@ export class helloTriangle extends Shader
     color = uniform("color", "vec4", 0, 0);
 
     // Vertex shader 入口函数
-    vertex = vertexfunc("main", () =>
+    vertex = vertex("main", () =>
     {
         return {
             function: 'vec4',
@@ -20,7 +20,7 @@ export class helloTriangle extends Shader
     });
 
     // Fragment shader 入口函数
-    fragment = fragmentfunc("main", () =>
+    fragment = fragment("main", () =>
     {
         return this.color;
     });

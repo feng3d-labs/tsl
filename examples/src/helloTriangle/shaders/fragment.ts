@@ -1,11 +1,13 @@
-import { FragmentShader, func, uniform } from '@feng3d/tsl';
+import { FragmentShader, fragmentfunc, uniform } from '@feng3d/tsl';
 
 export class fragment extends FragmentShader
 {
     color = uniform("color", "vec4", 0, 0);
 
-    main = func("main", () =>
+    main = fragmentfunc("main", () =>
     {
         return this.color;
     });
+
+    
 }

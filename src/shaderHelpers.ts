@@ -177,3 +177,25 @@ export function isFuncDef(obj: any): obj is FuncDef
     return obj && typeof obj === 'object' && obj.__type__ === FUNC_SYMBOL;
 }
 
+/**
+ * 定义 Fragment Shader 入口函数
+ * @param name 函数名
+ * @param body 函数体
+ * @returns 函数定义对象
+ */
+export function fragmentfunc(name: string, body: () => any): FuncDef
+{
+    return func(name, body);
+}
+
+/**
+ * 定义 Vertex Shader 入口函数
+ * @param name 函数名
+ * @param body 函数体
+ * @returns 函数定义对象
+ */
+export function vertexfunc(name: string, body: () => any): FuncDef
+{
+    return func(name, body);
+}
+

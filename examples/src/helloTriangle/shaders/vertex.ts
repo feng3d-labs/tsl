@@ -1,10 +1,10 @@
-import { VertexShader, FunctionCallConfig, attribute, func } from '@feng3d/tsl';
+import { VertexShader, FunctionCallConfig, attribute, vertexfunc } from '@feng3d/tsl';
 
 export class vertex extends VertexShader
 {
     position = attribute("position", "vec2", 0);
 
-    main = func("main", () =>
+    main = vertexfunc("main", () =>
     {
         return {
             function: 'vec4',

@@ -1,4 +1,3 @@
-export * from './classToShader';
 export * from './main';
 export * from './Shader';
 export * from './shaderGenerator';

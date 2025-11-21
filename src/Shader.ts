@@ -1,8 +1,9 @@
-import { classToShaderConfig } from './classToShader';
 import { IShader } from './IShader';
-import { generateMainGLSL, generateMainWGSL } from './main';
-import { AttributeDef, FragmentFuncDef, UniformDef, VertexFuncDef, setCurrentShaderInstance, clearCurrentShaderInstance } from './shaderHelpers';
-import { generateUniformsWGSL } from './uniforms';
+import { MainFunctionConfig } from './main';
+import { ShaderConfig } from './shaderGenerator';
+import { attribute, AttributeDef, attributeDefToConfig, clearCurrentShaderInstance, fragment, FragmentFuncDef, isAttributeDef, isUniformDef, setCurrentShaderInstance, uniform, UniformDef, uniformDefToConfig, vertex, VertexFuncDef } from './shaderHelpers';
+import { generateUniformsWGSL, UniformConfig } from './uniforms';
+import { convertTypeToWGSL, FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from './vec4';
 
 /**
  * Shader 基类
@@ -50,29 +51,58 @@ export class Shader implements IShader
      */
     generateGLSL(shaderType: 'vertex' | 'fragment', entry?: string): string
     {
-        const config = classToShaderConfig(this as any, shaderType, entry);
         const lines: string[] = [];
 
-        // Fragment shader 需要 precision 声明
-        if (config.type === 'fragment' && (this as any).precision)
+        // 查找入口函数
+        const funcDict = shaderType === 'vertex' ? this.vertexs : this.fragments;
+        let entryFunc: VertexFuncDef | FragmentFuncDef | undefined;
+
+        if (entry)
         {
-            lines.push(`precision ${(this as any).precision} float;`);
+            entryFunc = funcDict[entry];
+        }
+        else
+        {
+            const keys = Object.keys(funcDict);
+            if (keys.length > 0)
+            {
+                entryFunc = funcDict[keys[0]];
+            }
+        }
+
+        if (!entryFunc)
+        {
+            const entryDesc = entry ? `名为 '${entry}' 的` : '';
+            const shaderTypeDesc = shaderType === 'vertex' ? '顶点' : '片段';
+            throw new Error(`未找到${shaderTypeDesc}着色器的${entryDesc}入口函数。请确保已定义 ${shaderType === 'vertex' ? 'vertex' : 'fragment'}() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
+        }
+
+        const functionName = entryFunc.name;
+
+        // Fragment shader 需要 precision 声明
+        if (shaderType === 'fragment' && this.precision)
+        {
+            lines.push(`precision ${this.precision} float;`);
         }
 
         // 生成 attributes（仅 vertex shader）
-        if (config.type === 'vertex' && config.attributes)
+        if (shaderType === 'vertex')
         {
-            for (const attr of config.attributes)
+            const attrKeys = Object.keys(this.attributes);
+            for (const key of attrKeys)
             {
+                const attr = this.attributes[key];
                 lines.push(`attribute ${attr.type} ${attr.name};`);
             }
         }
 
         // 生成 uniforms
-        if (config.uniforms)
+        const uniformKeys = Object.keys(this.uniforms);
+        if (uniformKeys.length > 0)
         {
-            for (const uniform of config.uniforms)
+            for (const key of uniformKeys)
             {
+                const uniform = this.uniforms[key];
                 lines.push(`uniform ${uniform.type} ${uniform.name};`);
             }
         }
@@ -83,9 +113,52 @@ export class Shader implements IShader
             lines.push('');
         }
 
-        // 生成入口函数（使用实际的函数名，而不是 entry 参数）
-        const functionName = config.entryName || 'main';
-        lines.push(...generateMainGLSL(config, functionName));
+        // 执行函数体获取返回值
+        let returnValue: any;
+        try
+        {
+            returnValue = entryFunc.body();
+        }
+        catch (error)
+        {
+            throw new Error(`执行入口函数 '${functionName}' 时出错: ${error}`);
+        }
+
+        // 生成入口函数
+        lines.push(`void ${functionName}() {`);
+
+        if (returnValue !== undefined && returnValue !== null)
+        {
+            let glslReturn: string;
+
+            if (typeof returnValue === 'string')
+            {
+                glslReturn = returnValue.replace(/<f32>/g, '').replace(/<i32>/g, '').replace(/<u32>/g, '');
+            }
+            else if (typeof returnValue === 'object' && 'function' in returnValue)
+            {
+                glslReturn = generateFunctionCallGLSL(returnValue as FunctionCallConfig);
+            }
+            else if (isUniformDef(returnValue) || isAttributeDef(returnValue))
+            {
+                glslReturn = returnValue.name;
+            }
+            else
+            {
+                glslReturn = String(returnValue);
+            }
+
+            if (shaderType === 'fragment')
+            {
+                lines.push(`    gl_FragColor = ${glslReturn};`);
+            }
+            else if (shaderType === 'vertex')
+            {
+                lines.push(`    gl_Position = ${glslReturn};`);
+            }
+        }
+
+        lines.push('}');
 
         return lines.join('\n') + '\n';
     }
@@ -97,13 +170,50 @@ export class Shader implements IShader
      */
     generateWGSL(shaderType: 'vertex' | 'fragment', entry?: string): string
     {
-        const config = classToShaderConfig(this as any, shaderType, entry);
         const lines: string[] = [];
 
-        // 生成 uniforms
-        if (config.uniforms)
+        // 查找入口函数
+        const funcDict = shaderType === 'vertex' ? this.vertexs : this.fragments;
+        let entryFunc: VertexFuncDef | FragmentFuncDef | undefined;
+
+        if (entry)
         {
-            lines.push(...generateUniformsWGSL(config.uniforms));
+            entryFunc = funcDict[entry];
+        }
+        else
+        {
+            const keys = Object.keys(funcDict);
+            if (keys.length > 0)
+            {
+                entryFunc = funcDict[keys[0]];
+            }
+        }
+
+        if (!entryFunc)
+        {
+            const entryDesc = entry ? `名为 '${entry}' 的` : '';
+            const shaderTypeDesc = shaderType === 'vertex' ? '顶点' : '片段';
+            throw new Error(`未找到${shaderTypeDesc}着色器的${entryDesc}入口函数。请确保已定义 ${shaderType === 'vertex' ? 'vertex' : 'fragment'}() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
+        }
+
+        const functionName = entryFunc.name;
+
+        // 生成 uniforms
+        const uniformKeys = Object.keys(this.uniforms);
+        if (uniformKeys.length > 0)
+        {
+            const uniformConfigs: UniformConfig[] = [];
+            for (const key of uniformKeys)
+            {
+                const uniform = this.uniforms[key];
+                uniformConfigs.push({
+                    name: uniform.name,
+                    type: uniform.type,
+                    binding: uniform.binding,
+                    group: uniform.group,
+                });
+            }
+            lines.push(...generateUniformsWGSL(uniformConfigs));
         }
 
         // 空行
@@ -112,11 +222,247 @@ export class Shader implements IShader
             lines.push('');
         }
 
-        // 生成入口函数（使用实际的函数名，而不是 entry 参数）
-        const functionName = config.entryName || 'main';
-        lines.push(...generateMainWGSL(config, functionName));
+        // 执行函数体获取返回值
+        let returnValue: any;
+        try
+        {
+            returnValue = entryFunc.body();
+        }
+        catch (error)
+        {
+            throw new Error(`执行入口函数 '${functionName}' 时出错: ${error}`);
+        }
+
+        // 生成入口函数
+        const stage = shaderType === 'vertex' ? '@vertex' : '@fragment';
+        lines.push(stage);
+
+        if (shaderType === 'vertex')
+        {
+            // Vertex shader
+            const params: string[] = [];
+            const attrKeys = Object.keys(this.attributes);
+            for (const key of attrKeys)
+            {
+                const attr = this.attributes[key];
+                const wgslType = convertTypeToWGSL(attr.type);
+                const location = attr.location !== undefined ? `@location(${attr.location})` : '@location(0)';
+                params.push(`${location} ${attr.name}: ${wgslType}`);
+            }
+
+            const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
+            lines.push(`fn ${functionName}${paramStr} -> @builtin(position) vec4<f32> {`);
+
+            if (returnValue !== undefined && returnValue !== null)
+            {
+                let wgslReturn: string;
+
+                if (typeof returnValue === 'string')
+                {
+                    wgslReturn = returnValue;
+                }
+                else if (typeof returnValue === 'object' && 'function' in returnValue)
+                {
+                    wgslReturn = generateFunctionCallWGSL(returnValue as FunctionCallConfig);
+                }
+                else if (isUniformDef(returnValue) || isAttributeDef(returnValue))
+                {
+                    wgslReturn = returnValue.name;
+                }
+                else
+                {
+                    wgslReturn = String(returnValue);
+                }
+
+                lines.push(`    return ${wgslReturn};`);
+            }
+        }
+        else
+        {
+            // Fragment shader
+            lines.push(`fn ${functionName}() -> @location(0) vec4f {`);
+
+            if (returnValue !== undefined && returnValue !== null)
+            {
+                let wgslReturn: string;
+
+                if (typeof returnValue === 'string')
+                {
+                    wgslReturn = returnValue;
+                }
+                else if (typeof returnValue === 'object' && 'function' in returnValue)
+                {
+                    wgslReturn = generateFunctionCallWGSL(returnValue as FunctionCallConfig);
+                }
+                else if (isUniformDef(returnValue) || isAttributeDef(returnValue))
+                {
+                    wgslReturn = returnValue.name;
+                }
+                else
+                {
+                    wgslReturn = String(returnValue);
+                }
+
+                lines.push(`    return ${wgslReturn};`);
+            }
+        }
+
+        lines.push('}');
 
         return lines.join('\n') + '\n';
+    }
+
+    /**
+     * 将 Shader 序列化为 ShaderConfig（用于指定类型的着色器）
+     * @param shaderType 着色器类型，必须提供：'vertex' 或 'fragment'
+     * @param entry 入口函数名（可选）。如果提供则查找同名同类型的入口函数，否则取第一个入口函数
+     * @returns ShaderConfig 对象
+     */
+    toConfig(shaderType: 'vertex' | 'fragment', entry?: string): ShaderConfig
+    {
+        // 查找入口函数
+        const funcDict = shaderType === 'vertex' ? this.vertexs : this.fragments;
+        let entryFunc: VertexFuncDef | FragmentFuncDef | undefined;
+
+        if (entry)
+        {
+            entryFunc = funcDict[entry];
+        }
+        else
+        {
+            const keys = Object.keys(funcDict);
+            if (keys.length > 0)
+            {
+                entryFunc = funcDict[keys[0]];
+            }
+        }
+
+        if (!entryFunc)
+        {
+            const entryDesc = entry ? `名为 '${entry}' 的` : '';
+            const shaderTypeDesc = shaderType === 'vertex' ? '顶点' : '片段';
+            throw new Error(`未找到${shaderTypeDesc}着色器的${entryDesc}入口函数。请确保已定义 ${shaderType === 'vertex' ? 'vertex' : 'fragment'}() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
+        }
+
+        const functionName = entryFunc.name;
+
+        // 执行函数体获取返回值
+        let returnValue: any;
+        try
+        {
+            returnValue = entryFunc.body();
+        }
+        catch (error)
+        {
+            throw new Error(`执行入口函数 '${functionName}' 时出错: ${error}`);
+        }
+
+        // 构建 MainFunctionConfig
+        const main: MainFunctionConfig = {};
+        if (returnValue !== undefined && returnValue !== null)
+        {
+            if (typeof returnValue === 'string')
+            {
+                main.return = returnValue;
+            }
+            else if (typeof returnValue === 'object' && 'function' in returnValue)
+            {
+                main.return = returnValue as FunctionCallConfig;
+            }
+            else if (isUniformDef(returnValue) || isAttributeDef(returnValue))
+            {
+                main.return = returnValue.name;
+            }
+            else
+            {
+                main.return = String(returnValue);
+            }
+        }
+
+        // 构建 ShaderConfig
+        const config: ShaderConfig = {
+            type: shaderType,
+            main,
+            entryName: functionName,
+        };
+
+        // 设置 precision（仅用于 fragment shader）
+        if (shaderType === 'fragment' && this.precision)
+        {
+            config.precision = this.precision;
+        }
+
+        // 收集 uniforms
+        const uniformKeys = Object.keys(this.uniforms);
+        if (uniformKeys.length > 0)
+        {
+            config.uniforms = uniformKeys.map(key => uniformDefToConfig(this.uniforms[key]));
+        }
+
+        // 收集 attributes（仅用于 vertex shader）
+        if (shaderType === 'vertex')
+        {
+            const attrKeys = Object.keys(this.attributes);
+            if (attrKeys.length > 0)
+            {
+                config.attributes = attrKeys.map(key => attributeDefToConfig(this.attributes[key]));
+            }
+        }
+
+        return config;
+    }
+
+    /**
+     * 从 ShaderConfig 创建 Shader 实例（反序列化）
+     * @param config ShaderConfig 对象
+     * @returns Shader 实例
+     */
+    static fromConfig(config: ShaderConfig): Shader
+    {
+        const shaderInstance = new Shader();
+
+        // 设置 precision
+        if (config.precision)
+        {
+            shaderInstance.precision = config.precision as 'lowp' | 'mediump' | 'highp';
+        }
+
+        // 设置 uniforms（通过 uniform() 函数创建，以确保正确的 Symbol）
+        if (config.uniforms)
+        {
+            for (const uniformConfig of config.uniforms)
+            {
+                const uniformDef = uniform(uniformConfig.name, uniformConfig.type, uniformConfig.binding, uniformConfig.group);
+                shaderInstance.uniforms[uniformConfig.name] = uniformDef;
+            }
+        }
+
+        // 设置 attributes（通过 attribute() 函数创建，以确保正确的 Symbol）
+        if (config.attributes)
+        {
+            for (const attrConfig of config.attributes)
+            {
+                const attrDef = attribute(attrConfig.name, attrConfig.type, attrConfig.location);
+                shaderInstance.attributes[attrConfig.name] = attrDef;
+            }
+        }
+
+        // 设置入口函数（通过 vertex() 或 fragment() 函数创建，以确保正确的 Symbol）
+        const entryName = config.entryName || 'main';
+        const funcBody = () => config.main.return;
+
+        if (config.type === 'vertex')
+        {
+            const vertexFunc = vertex(entryName, funcBody);
+            shaderInstance.vertexs[entryName] = vertexFunc;
+        }
+        else if (config.type === 'fragment')
+        {
+            const fragmentFunc = fragment(entryName, funcBody);
+            shaderInstance.fragments[entryName] = fragmentFunc;
+        }
+
+        return shaderInstance;
     }
 }
 

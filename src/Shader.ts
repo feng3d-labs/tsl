@@ -307,7 +307,12 @@ export class Shader implements IShader
         {
             for (const attrConfig of config.attributes)
             {
-                const attrDef = attribute(attrConfig.name, attrConfig.type, attrConfig.location);
+                const attrDef = attribute(attrConfig.name, attrConfig.location);
+                // 从 type 创建 FunctionCallConfig 并设置到 value
+                attrDef.value = {
+                    function: attrConfig.type,
+                    args: [attrConfig.name],
+                };
                 shaderInstance.attributes[attrConfig.name] = attrDef;
             }
         }

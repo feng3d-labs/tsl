@@ -1,4 +1,4 @@
-import { attribute, fragment, precision, shader, uniform, vec4, vertex } from '@feng3d/tsl';
+import { attribute, fragment, precision, shader, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
 
 export const helloTriangle = shader("helloTriangle", () =>
 {
@@ -6,7 +6,7 @@ export const helloTriangle = shader("helloTriangle", () =>
     precision('highp');
 
     // Vertex shader 的 attribute
-    const position = attribute("position", "vec2", 0);
+    const position = vec2(attribute("position", 0));
 
     // Fragment shader 的 uniform
     const color = vec4(uniform("color", 0, 0));

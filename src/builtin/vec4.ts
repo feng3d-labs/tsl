@@ -1,3 +1,7 @@
+// 导入 Attribute 和 Uniform 类型（避免循环依赖，使用类型导入）
+import { Attribute } from '../Attribute';
+import { Uniform } from '../Uniform';
+
 /**
  * 函数调用配置接口
  */
@@ -125,16 +129,27 @@ export function generateFunctionCallWGSL(call: FunctionCallConfig): string
     return `${call.function}(${args})`;
 }
 
-// 导入 Attribute 和 Uniform 类型（避免循环依赖，使用类型导入）
-import type { Attribute } from '../Attribute';
-import { Uniform } from '../Uniform';
-import { getCurrentShaderInstance } from '../currentShaderInstance';
-
 /**
  * vec2 构造函数
+ * 如果传入单个 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
  */
 export function vec2(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
 {
+    // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
+    if (args.length === 1 && args[0] instanceof Attribute)
+    {
+        const attributeArg = args[0] as Attribute;
+        const valueConfig: FunctionCallConfig = {
+            function: 'vec2',
+            args: [attributeArg.name],
+        };
+
+        // 直接更新 attribute 的 value
+        attributeArg.value = valueConfig;
+
+        return valueConfig;
+    }
+
     return {
         function: 'vec2',
         args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
@@ -143,9 +158,25 @@ export function vec2(...args: (string | number | FunctionCallConfig | Attribute 
 
 /**
  * vec3 构造函数
+ * 如果传入单个 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
  */
 export function vec3(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
 {
+    // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
+    if (args.length === 1 && args[0] instanceof Attribute)
+    {
+        const attributeArg = args[0] as Attribute;
+        const valueConfig: FunctionCallConfig = {
+            function: 'vec3',
+            args: [attributeArg.name],
+        };
+
+        // 直接更新 attribute 的 value
+        attributeArg.value = valueConfig;
+
+        return valueConfig;
+    }
+
     return {
         function: 'vec3',
         args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
@@ -154,7 +185,7 @@ export function vec3(...args: (string | number | FunctionCallConfig | Attribute 
 
 /**
  * vec4 构造函数
- * 如果传入单个 Uniform 实例，则将 FunctionCallConfig 保存到 uniform.value
+ * 如果传入单个 Uniform 或 Attribute 实例，则将 FunctionCallConfig 保存到 uniform.value 或 attribute.value
  */
 export function vec4(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
 {
@@ -167,17 +198,23 @@ export function vec4(...args: (string | number | FunctionCallConfig | Attribute 
             args: [uniformArg.name],
         };
 
-        // 更新已存在的 uniform 的 value
-        const currentShaderInstance = getCurrentShaderInstance();
-        if (currentShaderInstance && currentShaderInstance.uniforms)
-        {
-            const existingUniform = currentShaderInstance.uniforms[uniformArg.name];
-            if (existingUniform)
-            {
-                // 直接更新现有 uniform 的 value
-                existingUniform.value = valueConfig;
-            }
-        }
+        // 直接更新 uniform 的 value
+        uniformArg.value = valueConfig;
+
+        return valueConfig;
+    }
+
+    // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
+    if (args.length === 1 && args[0] instanceof Attribute)
+    {
+        const attributeArg = args[0] as Attribute;
+        const valueConfig: FunctionCallConfig = {
+            function: 'vec4',
+            args: [attributeArg.name],
+        };
+
+        // 直接更新 attribute 的 value
+        attributeArg.value = valueConfig;
 
         return valueConfig;
     }

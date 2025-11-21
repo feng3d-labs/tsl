@@ -1,4 +1,4 @@
-import { convertTypeToWGSL } from './builtin/vec4';
+import { convertTypeToWGSL, FunctionCallConfig } from './builtin/vec4';
 import { getCurrentShaderInstance } from './currentShaderInstance';
 
 /**
@@ -13,14 +13,25 @@ export class Attribute
 {
     readonly __type__ = ATTRIBUTE_SYMBOL;
     readonly name: string;
-    readonly type: string;
+    value?: FunctionCallConfig; // 保存 vec2() 等函数返回的 FunctionCallConfig
     readonly location?: number;
 
-    constructor(name: string, type: string, location?: number)
+    constructor(name: string, location?: number)
     {
         this.name = name;
-        this.type = type;
         this.location = location;
+    }
+
+    /**
+     * 从 value 中提取类型
+     */
+    private getType(): string
+    {
+        if (!this.value)
+        {
+            throw new Error(`Attribute '${this.name}' 没有设置 value，无法确定类型。请使用 vec2(attribute(...)) 等形式定义。`);
+        }
+        return this.value.function;
     }
 
     /**
@@ -28,7 +39,8 @@ export class Attribute
      */
     toGLSL(): string
     {
-        return `attribute ${this.type} ${this.name};`;
+        const type = this.getType();
+        return `attribute ${type} ${this.name};`;
     }
 
     /**
@@ -36,7 +48,8 @@ export class Attribute
      */
     toWGSL(): string
     {
-        const wgslType = convertTypeToWGSL(this.type);
+        const type = this.getType();
+        const wgslType = convertTypeToWGSL(type);
         const location = this.location !== undefined ? `@location(${this.location})` : '@location(0)';
         return `${location} ${this.name}: ${wgslType}`;
     }
@@ -46,9 +59,10 @@ export class Attribute
      */
     toConfig(): { name: string; type: string; location?: number }
     {
+        const type = this.getType();
         return {
             name: this.name,
-            type: this.type,
+            type,
             location: this.location,
         };
     }
@@ -72,14 +86,14 @@ export class Attribute
 
 /**
  * 定义 attribute 变量
+ * 类型通过 vec2()、vec3()、vec4() 等函数自动推断
  * @param name 变量名
- * @param type 类型：vec2, vec3, vec4, float 等
  * @param location WGSL location（可选）
  * @returns Attribute 实例
  */
-export function attribute(name: string, type: string, location?: number): Attribute
+export function attribute(name: string, location?: number): Attribute
 {
-    const def = new Attribute(name, type, location);
+    const def = new Attribute(name, location);
 
     // 如果当前正在构造 Shader 实例，自动添加到 attributes 字典
     const currentShaderInstance = getCurrentShaderInstance();

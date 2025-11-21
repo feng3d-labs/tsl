@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Shader, attribute, fragment, precision, shader, uniform, vec4, vertex, FunctionCallConfig } from '../src/index';
+import { Shader, attribute, fragment, precision, shader, uniform, vec2, vec3, vec4, vertex, FunctionCallConfig } from '../src/index';
 
 describe('shader() 函数式着色器定义', () =>
 {
@@ -9,15 +9,12 @@ describe('shader() 函数式着色器定义', () =>
         {
             precision('highp');
 
-            const position = attribute('position', 'vec2', 0);
+            const position = vec2(attribute('position', 0));
             const color = vec4(uniform('color', 0, 0));
 
             vertex('main', () =>
             {
-                return {
-                    function: 'vec4',
-                    args: [String(position), '0.0', '1.0'],
-                } as FunctionCallConfig;
+                return vec4(position, 0.0, 1.0);
             });
 
             fragment('main', () =>
@@ -38,14 +35,11 @@ describe('shader() 函数式着色器定义', () =>
     {
         const testShader = shader('testShader', () =>
         {
-            const position = attribute('position', 'vec2', 0);
+            const position = vec2(attribute('position', 0));
 
             vertex('main', () =>
             {
-                return {
-                    function: 'vec4',
-                    args: [String(position), '0.0', '1.0'],
-                } as FunctionCallConfig;
+                return vec4(position, 0.0, 1.0);
             });
         });
 
@@ -53,7 +47,7 @@ describe('shader() 函数式着色器定义', () =>
         
         expect(glsl).toContain('attribute vec2 position;');
         expect(glsl).toContain('void main()');
-        expect(glsl).toContain('gl_Position = vec4(position, 0.0, 1.0);');
+        expect(glsl).toContain('gl_Position = vec4(vec2(position), 0, 1);');
     });
 
     it('应该能够生成正确的 fragment shader GLSL 代码', () =>
@@ -81,14 +75,11 @@ describe('shader() 函数式着色器定义', () =>
     {
         const testShader = shader('testShader', () =>
         {
-            const position = attribute('position', 'vec2', 0);
+            const position = vec2(attribute('position', 0));
 
             vertex('main', () =>
             {
-                return {
-                    function: 'vec4',
-                    args: [String(position), '0.0', '1.0'],
-                } as FunctionCallConfig;
+                return vec4(position, 0.0, 1.0);
             });
         });
 
@@ -97,7 +88,7 @@ describe('shader() 函数式着色器定义', () =>
         expect(wgsl).toContain('@vertex');
         expect(wgsl).toContain('fn main');
         expect(wgsl).toContain('@location(0) position: vec2<f32>');
-        expect(wgsl).toContain('return vec4<f32>(position, 0.0, 1.0);');
+        expect(wgsl).toContain('return vec4<f32>(vec2<f32>(position), 0, 1);');
     });
 
     it('应该能够生成正确的 fragment shader WGSL 代码', () =>
@@ -125,15 +116,12 @@ describe('shader() 函数式着色器定义', () =>
         {
             precision('highp');
 
-            const position = attribute('position', 'vec2', 0);
+            const position = vec2(attribute('position', 0));
             const color = vec4(uniform('color', 0, 0));
 
             vertex('main', () =>
             {
-                return {
-                    function: 'vec4',
-                    args: [String(position), '0.0', '1.0'],
-                } as FunctionCallConfig;
+                return vec4(position, 0.0, 1.0);
             });
 
             fragment('main', () =>
@@ -146,7 +134,7 @@ describe('shader() 函数式着色器定义', () =>
         const fragmentGlsl = testShader.generateGLSL('fragment', 'main');
 
         expect(vertexGlsl).toContain('attribute vec2 position;');
-        expect(vertexGlsl).toContain('gl_Position = vec4(position, 0.0, 1.0);');
+        expect(vertexGlsl).toContain('gl_Position = vec4(vec2(position), 0, 1);');
         
         expect(fragmentGlsl).toContain('precision highp float;');
         expect(fragmentGlsl).toContain('uniform vec4 color;');
@@ -157,18 +145,15 @@ describe('shader() 函数式着色器定义', () =>
     {
         const testShader = shader('testShader', () =>
         {
-            const position = attribute('position', 'vec2', 0);
+            const position = vec2(attribute('position', 0));
             const color = vec4(uniform('color', 0, 0));
 
             vertex('main', () =>
             {
-                // 验证 position 可以访问
+                // 验证 position 可以访问（position 现在是 FunctionCallConfig）
                 expect(position).toBeDefined();
-                expect(position.name).toBe('position');
-                return {
-                    function: 'vec4',
-                    args: [String(position), '0.0', '1.0'],
-                } as FunctionCallConfig;
+                expect(position).toHaveProperty('function', 'vec2');
+                return vec4(position, 0.0, 1.0);
             });
 
             fragment('main', () =>
@@ -192,17 +177,14 @@ describe('shader() 函数式着色器定义', () =>
     {
         const testShader = shader('testShader', () =>
         {
-            const pos = attribute('pos', 'vec3', 0);
-            const uv = attribute('uv', 'vec2', 1);
+            const pos = vec3(attribute('pos', 0));
+            const uv = vec2(attribute('uv', 1));
             const color = vec4(uniform('color', 0, 0));
             const time = vec4(uniform('time', 1, 0)); // 使用 vec4 作为示例
 
             vertex('main', () =>
             {
-                return {
-                    function: 'vec4',
-                    args: [String(pos), '1.0'],
-                } as FunctionCallConfig;
+                return vec4(pos, 1.0);
             });
 
             fragment('main', () =>
@@ -246,7 +228,7 @@ describe('shader() 函数式着色器定义', () =>
         const testShader = shader('test', () =>
         {
             precision('highp');
-            const position = attribute('position', 'vec2', 0);
+            const position = vec2(attribute('position', 0));
             const color = vec4(uniform('color', 0, 0));
 
             vertex('main', () =>

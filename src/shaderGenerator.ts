@@ -33,8 +33,6 @@ export interface ShaderConfig
     entryName?: string;
 }
 
-// 重新导出类型以便向后兼容（通过 index.ts 统一导出）
-
 /**
  * 生成 GLSL 着色器代码
  */

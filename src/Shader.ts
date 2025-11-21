@@ -1,8 +1,14 @@
 import { IShader } from './IShader';
 import { MainFunctionConfig } from './main';
 import { ShaderConfig } from './shaderGenerator';
-import type { FragmentFuncDef, VertexFuncDef } from './shaderHelpers';
-import { attribute, Attribute, attributeDefToConfig, clearCurrentShaderInstance, fragment, isAttributeDef, isUniformDef, setCurrentShaderInstance, uniform, Uniform, uniformDefToConfig, vertex } from './shaderHelpers';
+import type { FragmentFuncDef } from './Fragment';
+import type { VertexFuncDef } from './Vertex';
+import { attribute, Attribute } from './Attribute';
+import { uniform, Uniform } from './Uniform';
+import { fragment } from './Fragment';
+import { vertex } from './Vertex';
+import { attributeDefToConfig, isAttributeDef, isUniformDef, uniformDefToConfig } from './shaderHelpers';
+import { setCurrentShaderInstance, clearCurrentShaderInstance } from './currentShaderInstance';
 import { generateUniformsWGSL, UniformConfig } from './uniforms';
 import { convertTypeToWGSL, FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from './vec4';
 

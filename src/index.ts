@@ -1,4 +1,5 @@
 export * from './Attribute';
+export * from './currentShaderInstance';
 export type { FragmentFuncDef } from './Fragment';
 export { fragment } from './Fragment';
 export * from './main';

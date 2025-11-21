@@ -1,39 +1,11 @@
 import { AttributeConfig } from './shaderGenerator';
 import { UniformConfig } from './uniforms';
-import { Attribute, ATTRIBUTE_SYMBOL, attribute } from './Attribute';
-import { Uniform, UNIFORM_SYMBOL, uniform } from './Uniform';
+import { Attribute, ATTRIBUTE_SYMBOL } from './Attribute';
+import { Uniform, UNIFORM_SYMBOL } from './Uniform';
 import type { FragmentFuncDef } from './Fragment';
-import { fragment } from './Fragment';
 import type { VertexFuncDef, FuncDef } from './Vertex';
-import { vertex, FUNC_SYMBOL } from './Vertex';
+import { FUNC_SYMBOL } from './Vertex';
 import { getCurrentShaderInstance } from './currentShaderInstance';
-
-// 重新导出 currentShaderInstance 相关函数
-export { setCurrentShaderInstance, clearCurrentShaderInstance, getCurrentShaderInstance } from './currentShaderInstance';
-
-// 重新导出类和函数，以便向后兼容
-export { Attribute, ATTRIBUTE_SYMBOL, attribute } from './Attribute';
-export { Uniform, UNIFORM_SYMBOL, uniform } from './Uniform';
-export type { FragmentFuncDef } from './Fragment';
-export { fragment } from './Fragment';
-export type { VertexFuncDef, FuncDef } from './Vertex';
-export { vertex } from './Vertex';
-
-/**
- * Uniform 定义对象接口（向后兼容）
- * @deprecated 使用 Uniform 类代替
- */
-export interface UniformDef extends Uniform
-{
-}
-
-/**
- * Attribute 定义对象接口（向后兼容）
- * @deprecated 使用 Attribute 类代替
- */
-export interface AttributeDef extends Attribute
-{
-}
 
 /**
  * 检查对象是否为 Uniform 定义

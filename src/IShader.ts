@@ -1,5 +1,7 @@
-import type { FragmentFuncDef, VertexFuncDef } from "./shaderHelpers";
-import { Attribute, Uniform } from "./shaderHelpers";
+import type { FragmentFuncDef } from "./Fragment";
+import type { VertexFuncDef } from "./Vertex";
+import { Attribute } from "./Attribute";
+import { Uniform } from "./Uniform";
 
 /**
  * Shader 实例接口（用于自动收集定义）

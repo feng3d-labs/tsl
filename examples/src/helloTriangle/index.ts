@@ -17,10 +17,18 @@ document.addEventListener('DOMContentLoaded', async () =>
     const vertexGlsl = generateGLSL(vertexJson);
     const vertexWgsl = generateWGSL(vertexJson);
 
+    const devicePixelRatio = window.devicePixelRatio || 1;
+
     //
+    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
+    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
+    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
     const webgpu = await new WebGPU({ canvasId: 'webgpu' }, { clearColorValue: [0.0, 0.0, 0.0, 1.0] }).init(); // 初始化WebGPU
 
     //
+    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
+    webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
+    webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
     const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' }, { clearColorValue: [0.0, 0.0, 0.0, 1.0] }); // 初始化WebGL
 
     //

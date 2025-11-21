@@ -23,21 +23,52 @@
         html,
         body {
             margin: 0;
-            /* remove default margin */
+            width: 100%;
             height: 100%;
-            /* make body fill the browser window */
+            overflow-x: hidden;
             display: flex;
             place-content: center center;
+        }
+
+        body > div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        #description {
+            margin-bottom: 20px;
+        }
+
+        body > div > div {
+            display: flex;
+            width: 100%;
+            max-width: 100%;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+
+        canvas {
+            width: 50%;
+            max-width: calc(50% - 5px);
+            aspect-ratio: 1;
+            height: auto;
+            box-sizing: border-box;
         }
     </style>
 </head>
 
 <body>
     <div>
-        <p id="description" style="width: 600px;">
+        <p id="description">
             Shows rendering a basic triangle. </p>
-        <canvas id="webgpu" width="600" height="600"></canvas>
-        <canvas id="webgl" width="600" height="600"></canvas>
+        <div>
+            <canvas id="webgpu"></canvas>
+            <canvas id="webgl"></canvas>
+        </div>
     </div>
 
     <script type="module" src="./index.ts"></script>

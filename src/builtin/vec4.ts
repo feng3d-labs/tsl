@@ -66,6 +66,7 @@ export function generateFunctionCallGLSL(call: FunctionCallConfig | Expression):
         const right = config.args[1];
         const leftStr = left instanceof Expression ? generateExpressionGLSL(left) : (typeof left === 'object' && 'function' in left ? generateFunctionCallGLSL(left) : String(left));
         const rightStr = right instanceof Expression ? generateExpressionGLSL(right) : (typeof right === 'object' && 'function' in right ? generateFunctionCallGLSL(right) : String(right));
+
         return `${leftStr} * ${rightStr}`;
     }
 
@@ -79,6 +80,7 @@ export function generateFunctionCallGLSL(call: FunctionCallConfig | Expression):
         {
             return generateExpressionGLSL(arg);
         }
+
         // 递归处理嵌套的函数调用
         return generateFunctionCallGLSL(arg);
     }).join(', ');
@@ -95,6 +97,7 @@ function generateExpressionGLSL(expr: Expression): string
     {
         return expr.varName;
     }
+
     return generateFunctionCallGLSL(expr.config);
 }
 
@@ -113,6 +116,7 @@ export function generateFunctionCallWGSL(call: FunctionCallConfig | Expression):
         const right = config.args[1];
         const leftStr = left instanceof Expression ? generateExpressionWGSL(left) : (typeof left === 'object' && 'function' in left ? generateFunctionCallWGSL(left) : String(left));
         const rightStr = right instanceof Expression ? generateExpressionWGSL(right) : (typeof right === 'object' && 'function' in right ? generateFunctionCallWGSL(right) : String(right));
+
         return `${leftStr} * ${rightStr}`;
     }
 
@@ -126,6 +130,7 @@ export function generateFunctionCallWGSL(call: FunctionCallConfig | Expression):
         {
             return generateExpressionWGSL(arg);
         }
+
         // 递归处理嵌套的函数调用
         return generateFunctionCallWGSL(arg);
     }).join(', ');
@@ -141,6 +146,7 @@ export function generateFunctionCallWGSL(call: FunctionCallConfig | Expression):
         if (vecMatch)
         {
             const dimension = vecMatch[2];
+
             return `vec${dimension}<${typeParam}>(${args})`;
         }
 
@@ -149,6 +155,7 @@ export function generateFunctionCallWGSL(call: FunctionCallConfig | Expression):
         if (matMatch)
         {
             const dimension = matMatch[1];
+
             return `mat${dimension}x${dimension}<${typeParam}>(${args})`;
         }
 
@@ -197,6 +204,7 @@ export function generateFunctionCallWGSL(call: FunctionCallConfig | Expression):
     {
         const dimension = matMatch[1];
         const typeParam = 'f32'; // 矩阵默认使用 f32
+
         return `mat${dimension}x${dimension}<${typeParam}>(${args})`;
     }
 
@@ -212,7 +220,106 @@ function generateExpressionWGSL(expr: Expression): string
     {
         return expr.varName;
     }
+
     return generateFunctionCallWGSL(expr.config);
+}
+
+/**
+ * Vec4 类型，表示 vec4 字面量值
+ */
+export class Vec4 extends Expression
+{
+    private _x: number;
+    private _y: number;
+    private _z: number;
+    private _w: number;
+
+    constructor(x: number, y: number, z: number, w: number)
+    {
+        const config: FunctionCallConfig = {
+            function: 'vec4',
+            args: [x, y, z, w],
+        };
+        super(config);
+        this._x = x;
+        this._y = y;
+        this._z = z;
+        this._w = w;
+    }
+
+    /**
+     * 获取 x 分量
+     */
+    get x(): number
+    {
+        return this._x;
+    }
+
+    /**
+     * 获取 y 分量
+     */
+    get y(): number
+    {
+        return this._y;
+    }
+
+    /**
+     * 获取 z 分量
+     */
+    get z(): number
+    {
+        return this._z;
+    }
+
+    /**
+     * 获取 w 分量
+     */
+    get w(): number
+    {
+        return this._w;
+    }
+
+    /**
+     * 格式化数字为 GLSL 格式
+     * 正数整数保留 .0，负数整数不保留 .0
+     */
+    private formatNumberForGLSL(num: number): string
+    {
+        // 如果是正数整数，添加 .0 后缀
+        if (Number.isInteger(num) && num >= 0)
+        {
+            return `${num}.0`;
+        }
+
+        // 负数整数或浮点数直接转换为字符串
+        return String(num);
+    }
+
+    /**
+     * 转换为 GLSL 代码
+     */
+    toGLSL(): string
+    {
+        return `vec4(${this.formatNumberForGLSL(this._x)}, ${this.formatNumberForGLSL(this._y)}, ${this.formatNumberForGLSL(this._z)}, ${this.formatNumberForGLSL(this._w)})`;
+    }
+
+    /**
+     * 转换为 WGSL 代码
+     */
+    toWGSL(): string
+    {
+        return `vec4<f32>(${this._x}, ${this._y}, ${this._z}, ${this._w})`;
+    }
+
+    /**
+     * 矩阵/向量乘法
+     * @param other 另一个表达式
+     * @returns Expression 实例
+     */
+    multiply(other: Expression | FunctionCallConfig | string | number): Expression
+    {
+        return super.multiply(other);
+    }
 }
 
 /**
@@ -221,9 +328,16 @@ function generateExpressionWGSL(expr: Expression): string
  */
 export function vec4(uniform: Uniform): Expression;
 export function vec4(attribute: Attribute): Expression;
-export function vec4(...args: (string | number | FunctionCallConfig | Expression)[]): Expression;
-export function vec4(...args: (string | number | FunctionCallConfig | Expression | Attribute | Uniform)[]): Expression
+export function vec4(x: number, y: number, z: number, w: number): Vec4;
+export function vec4(...args: (string | number | FunctionCallConfig | Expression)[]): Vec4 | Expression;
+export function vec4(...args: (string | number | FunctionCallConfig | Expression | Attribute | Uniform)[]): Vec4 | Expression
 {
+    // 处理 vec4(x: number, y: number, z: number, w: number) 的情况
+    if (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number' && typeof args[3] === 'number')
+    {
+        return new Vec4(args[0], args[1], args[2], args[3]);
+    }
+
     // 如果只有一个参数且是 Uniform 实例，则将 FunctionCallConfig 保存到 uniform.value
     if (args.length === 1 && args[0] instanceof Uniform)
     {

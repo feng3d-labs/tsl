@@ -16,6 +16,7 @@ export { Expression, expr } from './builtin/Expression';
 export { _let } from './builtin/let';
 // 导出向量类型
 export { Vec2 } from './builtin/vec2';
+export { Vec4 } from './builtin/vec4';
 // 导出向量构造函数
 export { vec2 } from './builtin/vec2';
 export { vec3 } from './builtin/vec3';

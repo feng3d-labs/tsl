@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL, FunctionCallConfig } from '../../src/builtin/vec4';
+import { convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL, FunctionCallConfig, vec4 } from '../../src/builtin/vec4';
 
 describe('vec4', () =>
 {
@@ -37,13 +37,9 @@ describe('vec4', () =>
     {
         it('应该生成简单的函数调用', () =>
         {
-            const call: FunctionCallConfig = {
-                function: 'vec4',
-                args: ['position', '0.0', '1.0'],
-            };
+            const color = vec4(1, 0, 0, 1);
 
-            const result = generateFunctionCallGLSL(call);
-            expect(result).toBe('vec4(position, 0.0, 1.0)');
+            expect(color.toGLSL()).toBe('vec4(1.0, 0.0, 0.0, 1.0)');
         });
 
         it('应该支持嵌套的函数调用', () =>

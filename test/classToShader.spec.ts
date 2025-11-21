@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { classToShaderConfig } from '../src/classToShader';
 import { generateGLSL as generateGLSLFromConfig, generateWGSL as generateWGSLFromConfig } from '../src/shaderGenerator';
+import { uniform, attribute } from '../src/shaderHelpers';
 
 describe('classToShader', () =>
 {
@@ -121,6 +122,51 @@ describe('classToShader', () =>
             {
                 expect('function' in config.main.return).toBe(true);
             }
+        });
+
+        it('应该支持使用 uniform() 函数定义 uniform', () =>
+        {
+            class FragmentShader
+            {
+                precision: 'highp' = 'highp';
+                color = uniform('color', 'vec4', 0, 0);
+
+                main()
+                {
+                    return this.color;
+                }
+            }
+
+            const shader = new FragmentShader();
+            const config = classToShaderConfig(shader, 'fragment');
+
+            expect(config.uniforms).toHaveLength(1);
+            expect(config.uniforms?.[0].name).toBe('color');
+            expect(config.uniforms?.[0].type).toBe('vec4');
+            expect(config.uniforms?.[0].binding).toBe(0);
+            expect(config.uniforms?.[0].group).toBe(0);
+            expect(config.main.return).toBe('color');
+        });
+
+        it('应该支持使用 attribute() 函数定义 attribute', () =>
+        {
+            class VertexShader
+            {
+                position = attribute('position', 'vec2', 0);
+
+                main()
+                {
+                    return String(this.position);
+                }
+            }
+
+            const shader = new VertexShader();
+            const config = classToShaderConfig(shader, 'vertex');
+
+            expect(config.attributes).toHaveLength(1);
+            expect(config.attributes?.[0].name).toBe('position');
+            expect(config.attributes?.[0].type).toBe('vec2');
+            expect(config.attributes?.[0].location).toBe(0);
         });
     });
 });

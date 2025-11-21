@@ -1,14 +1,14 @@
-import { generateGLSL as generateGLSLFromConfig, generateWGSL as generateWGSLFromConfig, classToShaderConfig } from '@feng3d/tsl';
+import { generateGLSL as generateGLSLFromConfig, generateWGSL as generateWGSLFromConfig, classToShaderConfig, uniform } from '@feng3d/tsl';
 
 export class FragmentShader
 {
     precision: 'lowp' | 'mediump' | 'highp' = 'highp';
 
-    uniforms = { color: { type: 'vec4', binding: 0, group: 0 } };
+    color = uniform("color", "vec4", 0, 0);
 
     main()
     {
-        return 'color';
+        return this.color;
     }
 
     /**

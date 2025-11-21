@@ -1,6 +1,7 @@
 import { ShaderConfig, AttributeConfig } from './shaderGenerator';
 import { UniformConfig } from './uniforms';
 import { MainFunctionConfig } from './main';
+import { isUniformDef, isAttributeDef, uniformDefToConfig, attributeDefToConfig } from './shaderHelpers';
 
 /**
  * 从类实例的 uniforms 对象转换为 UniformConfig 数组
@@ -50,6 +51,7 @@ export function classToShaderConfig(
         uniforms?: Record<string, { type: string; binding?: number; group?: number }>;
         attributes?: Record<string, { type: string; location?: number }>;
         main: () => any;
+        [key: string]: any;
     },
     type: 'vertex' | 'fragment'
 ): ShaderConfig
@@ -65,14 +67,50 @@ export function classToShaderConfig(
         config.precision = instance.precision;
     }
 
-    // 转换 uniforms
-    if (instance.uniforms)
+    // 收集通过 uniform() 和 attribute() 定义的变量
+    const uniforms: UniformConfig[] = [];
+    const attributes: AttributeConfig[] = [];
+
+    // 遍历实例的所有属性
+    for (const key in instance)
+    {
+        if (key === 'precision' || key === 'uniforms' || key === 'attributes' || key === 'main' || key === 'generateGLSL' || key === 'generateWGSL')
+        {
+            continue;
+        }
+
+        const value = instance[key];
+
+        // 检查是否为 uniform 定义
+        if (isUniformDef(value))
+        {
+            uniforms.push(uniformDefToConfig(value));
+        }
+        // 检查是否为 attribute 定义
+        else if (isAttributeDef(value))
+        {
+            attributes.push(attributeDefToConfig(value));
+        }
+    }
+
+    // 如果存在通过 uniform() 定义的变量，使用它们
+    if (uniforms.length > 0)
+    {
+        config.uniforms = uniforms;
+    }
+    // 否则，尝试使用旧的 uniforms 对象格式
+    else if (instance.uniforms)
     {
         config.uniforms = convertUniformsToConfig(instance.uniforms);
     }
 
-    // 转换 attributes（主要用于 vertex shader）
-    if (instance.attributes)
+    // 如果存在通过 attribute() 定义的变量，使用它们
+    if (attributes.length > 0)
+    {
+        config.attributes = attributes;
+    }
+    // 否则，尝试使用旧的 attributes 对象格式
+    else if (instance.attributes)
     {
         config.attributes = convertAttributesToConfig(instance.attributes);
     }
@@ -94,10 +132,24 @@ export function classToShaderConfig(
             {
                 config.main.return = returnValue as any;
             }
-            // 其他情况，尝试转换为字符串
+            // 如果返回值是 uniform 或 attribute 定义对象，提取变量名
+            else if (isUniformDef(returnValue) || isAttributeDef(returnValue))
+            {
+                config.main.return = returnValue.name;
+            }
+            // 其他情况，尝试转换为字符串（uniform/attribute 对象会通过 toString 返回变量名）
             else
             {
-                config.main.return = String(returnValue);
+                const strValue = String(returnValue);
+                // 如果转换后的字符串看起来像变量名（不包含特殊字符），使用它
+                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(strValue))
+                {
+                    config.main.return = strValue;
+                }
+                else
+                {
+                    config.main.return = strValue;
+                }
             }
         }
     } catch (error)

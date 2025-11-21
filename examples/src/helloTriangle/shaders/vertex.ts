@@ -1,14 +1,14 @@
-import { generateGLSL as generateGLSLFromConfig, generateWGSL as generateWGSLFromConfig, classToShaderConfig, FunctionCallConfig } from '@feng3d/tsl';
+import { generateGLSL as generateGLSLFromConfig, generateWGSL as generateWGSLFromConfig, classToShaderConfig, FunctionCallConfig, attribute } from '@feng3d/tsl';
 
 export class VertexShader
 {
-    attributes = { position: { type: 'vec2', location: 0 } };
+    position = attribute("position", "vec2", 0);
 
     main()
     {
         return {
             function: 'vec4',
-            args: ['position', '0.0', '1.0'],
+            args: [String(this.position), '0.0', '1.0'],
         } as FunctionCallConfig;
     }
 

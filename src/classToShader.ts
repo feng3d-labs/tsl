@@ -1,7 +1,7 @@
 import { ShaderConfig, AttributeConfig } from './shaderGenerator';
 import { UniformConfig } from './uniforms';
 import { MainFunctionConfig } from './main';
-import { isUniformDef, isAttributeDef, uniformDefToConfig, attributeDefToConfig } from './shaderHelpers';
+import { isUniformDef, isAttributeDef, uniformDefToConfig, attributeDefToConfig, isFuncDef, FuncDef } from './shaderHelpers';
 
 /**
  * 从类实例的 uniforms 对象转换为 UniformConfig 数组
@@ -50,7 +50,7 @@ export function classToShaderConfig(
         precision?: 'lowp' | 'mediump' | 'highp';
         uniforms?: Record<string, { type: string; binding?: number; group?: number }>;
         attributes?: Record<string, { type: string; location?: number }>;
-        main: () => any;
+        main: (() => any) | FuncDef;
         [key: string]: any;
     },
     type: 'vertex' | 'fragment'
@@ -74,6 +74,7 @@ export function classToShaderConfig(
     // 遍历实例的所有属性
     for (const key in instance)
     {
+        // 跳过特殊属性
         if (key === 'precision' || key === 'uniforms' || key === 'attributes' || key === 'main' || key === 'generateGLSL' || key === 'generateWGSL')
         {
             continue;
@@ -90,6 +91,11 @@ export function classToShaderConfig(
         else if (isAttributeDef(value))
         {
             attributes.push(attributeDefToConfig(value));
+        }
+        // 跳过函数定义（func() 定义的对象）
+        else if (isFuncDef(value))
+        {
+            continue;
         }
     }
 
@@ -115,47 +121,81 @@ export function classToShaderConfig(
         config.attributes = convertAttributesToConfig(instance.attributes);
     }
 
-    // 处理 main 函数的返回值
-    try
+    // 处理 main 函数
+    // 检查 main 是否为通过 func() 定义的函数
+    if (isFuncDef(instance.main))
     {
-        const returnValue = instance.main();
-        
-        if (returnValue !== undefined && returnValue !== null)
+        // 执行函数体并获取返回值
+        try
         {
-            // 如果返回值是字符串，直接使用
-            if (typeof returnValue === 'string')
+            const returnValue = instance.main.body.call(instance);
+            
+            if (returnValue !== undefined && returnValue !== null)
             {
-                config.main.return = returnValue;
-            }
-            // 如果返回值是对象，可能是函数调用配置
-            else if (typeof returnValue === 'object' && 'function' in returnValue)
-            {
-                config.main.return = returnValue as any;
-            }
-            // 如果返回值是 uniform 或 attribute 定义对象，提取变量名
-            else if (isUniformDef(returnValue) || isAttributeDef(returnValue))
-            {
-                config.main.return = returnValue.name;
-            }
-            // 其他情况，尝试转换为字符串（uniform/attribute 对象会通过 toString 返回变量名）
-            else
-            {
-                const strValue = String(returnValue);
-                // 如果转换后的字符串看起来像变量名（不包含特殊字符），使用它
-                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(strValue))
+                // 如果返回值是字符串，直接使用
+                if (typeof returnValue === 'string')
                 {
-                    config.main.return = strValue;
+                    config.main.return = returnValue;
                 }
+                // 如果返回值是对象，可能是函数调用配置
+                else if (typeof returnValue === 'object' && 'function' in returnValue)
+                {
+                    config.main.return = returnValue as any;
+                }
+                // 如果返回值是 uniform 或 attribute 定义对象，提取变量名
+                else if (isUniformDef(returnValue) || isAttributeDef(returnValue))
+                {
+                    config.main.return = returnValue.name;
+                }
+                // 其他情况，尝试转换为字符串（uniform/attribute 对象会通过 toString 返回变量名）
                 else
                 {
+                    const strValue = String(returnValue);
                     config.main.return = strValue;
                 }
             }
+        } catch (error)
+        {
+            // 如果函数体执行失败，可能需要使用 body 方式
+            console.warn('Failed to execute main function body, consider using body property instead', error);
         }
-    } catch (error)
+    }
+    // 否则，main 是普通方法
+    else if (typeof instance.main === 'function')
     {
-        // 如果 main 方法执行失败，可能需要使用 body 方式
-        console.warn('Failed to execute main() method, consider using body property instead', error);
+        try
+        {
+            const returnValue = instance.main.call(instance);
+            
+            if (returnValue !== undefined && returnValue !== null)
+            {
+                // 如果返回值是字符串，直接使用
+                if (typeof returnValue === 'string')
+                {
+                    config.main.return = returnValue;
+                }
+                // 如果返回值是对象，可能是函数调用配置
+                else if (typeof returnValue === 'object' && 'function' in returnValue)
+                {
+                    config.main.return = returnValue as any;
+                }
+                // 如果返回值是 uniform 或 attribute 定义对象，提取变量名
+                else if (isUniformDef(returnValue) || isAttributeDef(returnValue))
+                {
+                    config.main.return = returnValue.name;
+                }
+                // 其他情况，尝试转换为字符串（uniform/attribute 对象会通过 toString 返回变量名）
+                else
+                {
+                    const strValue = String(returnValue);
+                    config.main.return = strValue;
+                }
+            }
+        } catch (error)
+        {
+            // 如果 main 方法执行失败，可能需要使用 body 方式
+            console.warn('Failed to execute main() method, consider using body property instead', error);
+        }
     }
 
     return config;

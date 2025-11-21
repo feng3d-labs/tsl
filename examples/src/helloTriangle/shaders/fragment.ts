@@ -1,4 +1,4 @@
-import { generateGLSL as generateGLSLFromConfig, generateWGSL as generateWGSLFromConfig, classToShaderConfig, uniform } from '@feng3d/tsl';
+import { generateGLSL as generateGLSLFromConfig, generateWGSL as generateWGSLFromConfig, classToShaderConfig, uniform, func } from '@feng3d/tsl';
 
 export class FragmentShader
 {
@@ -6,10 +6,10 @@ export class FragmentShader
 
     color = uniform("color", "vec4", 0, 0);
 
-    main()
+    main = func("main", () =>
     {
         return this.color;
-    }
+    });
 
     /**
      * 生成 GLSL 着色器代码

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { classToShaderConfig } from '../src/classToShader';
 import { generateGLSL as generateGLSLFromConfig, generateWGSL as generateWGSLFromConfig } from '../src/shaderGenerator';
-import { uniform, attribute } from '../src/shaderHelpers';
+import { uniform, attribute, func } from '../src/shaderHelpers';
 
 describe('classToShader', () =>
 {
@@ -167,6 +167,73 @@ describe('classToShader', () =>
             expect(config.attributes?.[0].name).toBe('position');
             expect(config.attributes?.[0].type).toBe('vec2');
             expect(config.attributes?.[0].location).toBe(0);
+        });
+
+        it('应该支持使用 func() 函数定义 main 函数', () =>
+        {
+            class FragmentShader
+            {
+                precision: 'highp' = 'highp';
+                color = uniform('color', 'vec4', 0, 0);
+
+                main = func('main', () =>
+                {
+                    return this.color;
+                });
+            }
+
+            const shader = new FragmentShader();
+            const config = classToShaderConfig(shader, 'fragment');
+
+            expect(config.type).toBe('fragment');
+            expect(config.precision).toBe('highp');
+            expect(config.uniforms).toHaveLength(1);
+            expect(config.uniforms?.[0].name).toBe('color');
+            expect(config.main.return).toBe('color');
+        });
+
+        it('应该从使用 func() 定义的 main 函数生成正确的 GLSL 代码', () =>
+        {
+            class FragmentShader
+            {
+                precision: 'highp' = 'highp';
+                color = uniform('color', 'vec4', 0, 0);
+
+                main = func('main', () =>
+                {
+                    return this.color;
+                });
+            }
+
+            const shader = new FragmentShader();
+            const config = classToShaderConfig(shader, 'fragment');
+            const glsl = generateGLSLFromConfig(config);
+
+            expect(glsl).toContain('precision highp float;');
+            expect(glsl).toContain('uniform vec4 color;');
+            expect(glsl).toContain('gl_FragColor = color;');
+        });
+
+        it('应该从使用 func() 定义的 main 函数生成正确的 WGSL 代码', () =>
+        {
+            class FragmentShader
+            {
+                precision: 'highp' = 'highp';
+                color = uniform('color', 'vec4', 0, 0);
+
+                main = func('main', () =>
+                {
+                    return this.color;
+                });
+            }
+
+            const shader = new FragmentShader();
+            const config = classToShaderConfig(shader, 'fragment');
+            const wgsl = generateWGSLFromConfig(config);
+
+            expect(wgsl).toContain('@fragment');
+            expect(wgsl).toContain('@binding(0) @group(0) var<uniform> color : vec4<f32>;');
+            expect(wgsl).toContain('return color;');
         });
     });
 });

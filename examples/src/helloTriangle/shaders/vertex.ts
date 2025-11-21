@@ -1,6 +1,6 @@
-import { VertexShader, FunctionCallConfig, attribute, vertexfunc } from '@feng3d/tsl';
+import { Shader, FunctionCallConfig, attribute, vertexfunc } from '@feng3d/tsl';
 
-export class vertex extends VertexShader
+export class vertex extends Shader
 {
     position = attribute("position", "vec2", 0);
 

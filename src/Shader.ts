@@ -6,12 +6,12 @@ import { generateUniformsWGSL } from './uniforms';
  * Shader 基类
  * 提供通用的代码生成方法
  */
-export abstract class Shader
+export class Shader
 {
     /**
-     * 着色器类型
+     * GLSL 精度声明（仅用于 fragment shader）
      */
-    readonly type: 'vertex' | 'fragment';
+    precision?: 'lowp' | 'mediump' | 'highp';
 
     /**
      * 生成 GLSL 着色器代码
@@ -19,17 +19,17 @@ export abstract class Shader
      */
     generateGLSL(entry: string = 'main'): string
     {
-        const config = classToShaderConfig(this as any, this.type, entry);
+        const config = classToShaderConfig(this as any, entry);
         const lines: string[] = [];
 
         // Fragment shader 需要 precision 声明
-        if (this.type === 'fragment' && (this as any).precision)
+        if (config.type === 'fragment' && (this as any).precision)
         {
             lines.push(`precision ${(this as any).precision} float;`);
         }
 
         // 生成 attributes（仅 vertex shader）
-        if (this.type === 'vertex' && config.attributes)
+        if (config.type === 'vertex' && config.attributes)
         {
             for (const attr of config.attributes)
             {
@@ -64,7 +64,7 @@ export abstract class Shader
      */
     generateWGSL(entry: string = 'main'): string
     {
-        const config = classToShaderConfig(this as any, this.type, entry);
+        const config = classToShaderConfig(this as any, entry);
         const lines: string[] = [];
 
         // 生成 uniforms

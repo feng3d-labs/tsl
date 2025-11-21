@@ -53,17 +53,41 @@ export function classToShaderConfig(
         main: (() => any) | FuncDef;
         [key: string]: any;
     },
-    type: 'vertex' | 'fragment',
     entry: string = 'main'
 ): ShaderConfig
 {
+    // 从入口函数中获取着色器类型
+    let shaderType: 'vertex' | 'fragment' = 'fragment'; // 默认值
+    
+    // 查找入口函数
+    let entryFunc: (() => any) | FuncDef | undefined = undefined;
+    
+    if (entry === 'main' && instance.main)
+    {
+        entryFunc = instance.main;
+    }
+    else if (entry !== 'main' && instance[entry])
+    {
+        const funcValue = instance[entry];
+        if (isFuncDef(funcValue) || typeof funcValue === 'function')
+        {
+            entryFunc = funcValue;
+        }
+    }
+    
+    // 如果入口函数是 FuncDef 且有 shaderType，使用它
+    if (entryFunc && isFuncDef(entryFunc) && entryFunc.shaderType)
+    {
+        shaderType = entryFunc.shaderType;
+    }
+    
     const config: ShaderConfig = {
-        type,
+        type: shaderType,
         main: {} as MainFunctionConfig,
     };
 
     // 设置 precision（仅用于 fragment shader）
-    if (type === 'fragment' && instance.precision)
+    if (shaderType === 'fragment' && instance.precision)
     {
         config.precision = instance.precision;
     }
@@ -122,26 +146,7 @@ export function classToShaderConfig(
         config.attributes = convertAttributesToConfig(instance.attributes);
     }
 
-    // 处理入口函数
-    // 首先尝试查找指定名称的函数
-    let entryFunc: (() => any) | FuncDef | undefined = undefined;
-    
-    // 如果入口函数名是 'main'，使用 instance.main
-    if (entry === 'main' && instance.main)
-    {
-        entryFunc = instance.main;
-    }
-    // 否则，尝试从实例中查找指定名称的函数
-    else if (entry !== 'main' && instance[entry])
-    {
-        const funcValue = instance[entry];
-        if (isFuncDef(funcValue) || typeof funcValue === 'function')
-        {
-            entryFunc = funcValue;
-        }
-    }
-    
-    // 如果找到了入口函数，处理它
+    // 处理入口函数（entryFunc 已经在上面查找过了）
     if (entryFunc)
     {
         // 检查是否为通过 func() 定义的函数

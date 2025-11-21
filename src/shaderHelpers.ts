@@ -152,6 +152,7 @@ export interface FuncDef
     __type__: typeof FUNC_SYMBOL;
     name: string;
     body: () => any;
+    shaderType?: 'vertex' | 'fragment';
 }
 
 /**
@@ -185,7 +186,12 @@ export function isFuncDef(obj: any): obj is FuncDef
  */
 export function fragmentfunc(name: string, body: () => any): FuncDef
 {
-    return func(name, body);
+    return {
+        __type__: FUNC_SYMBOL,
+        name,
+        body,
+        shaderType: 'fragment',
+    };
 }
 
 /**
@@ -196,6 +202,11 @@ export function fragmentfunc(name: string, body: () => any): FuncDef
  */
 export function vertexfunc(name: string, body: () => any): FuncDef
 {
-    return func(name, body);
+    return {
+        __type__: FUNC_SYMBOL,
+        name,
+        body,
+        shaderType: 'vertex',
+    };
 }
 

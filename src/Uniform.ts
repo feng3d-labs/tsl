@@ -1,5 +1,5 @@
 import { Vec2 } from './builtin/vec2';
-import { convertTypeToWGSL, Vec4 } from './builtin/vec4';
+import { Vec4 } from './builtin/vec4';
 import { getCurrentShaderInstance } from './currentShaderInstance';
 import { IElement } from './IElement';
 
@@ -48,8 +48,11 @@ export class Uniform implements IElement
      */
     toWGSL(): string
     {
-        const type = this.value?.wgslType;
-        const wgslType = convertTypeToWGSL(type);
+        if (!this.value)
+        {
+            throw new Error(`Uniform '${this.name}' 没有设置 value，无法生成 WGSL。`);
+        }
+        const wgslType = this.value.wgslType;
         const binding = this.binding !== undefined ? `@binding(${this.binding})` : '';
         const group = this.group !== undefined ? `@group(${this.group})` : '';
         const annotations = [binding, group].filter(Boolean).join(' ');

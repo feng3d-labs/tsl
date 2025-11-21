@@ -1,9 +1,8 @@
-import { FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL, convertTypeToWGSL } from './builtin/vec4';
-import { Expression } from './builtin/Expression';
-import { collectLetStatements } from './builtin/collectLetStatements';
 import { Attribute } from './Attribute';
 import { Uniform } from './Uniform';
-import { IElement } from './IElement';
+import { Expression } from './builtin/Expression';
+import { collectLetStatements } from './builtin/collectLetStatements';
+import { FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from './builtin/vec4';
 
 /**
  * Func 标记
@@ -229,21 +228,6 @@ export class Func
         return lines.join('\n');
     }
 
-    /**
-     * 转换为字符串时返回函数名
-     */
-    toString(): string
-    {
-        return this.name;
-    }
-
-    /**
-     * 转换为原始值时返回函数名
-     */
-    valueOf(): string
-    {
-        return this.name;
-    }
 }
 
 /**

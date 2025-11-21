@@ -287,7 +287,7 @@ export class Vec4 implements IElement
             else if (args[0] instanceof Attribute)
             {
                 const attribute = args[0] as Attribute;
-                
+
                 this.toGLSL = () => attribute.name;
                 this.toWGSL = () => attribute.name;
                 this.dependencies = [attribute];

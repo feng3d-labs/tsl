@@ -1,5 +1,6 @@
 import { classToShaderConfig } from './classToShader';
-import { generateGLSL as generateGLSLFromConfig, generateWGSL as generateWGSLFromConfig } from './shaderGenerator';
+import { generateMainGLSL, generateMainWGSL } from './main';
+import { generateUniformsWGSL } from './uniforms';
 
 /**
  * Shader 基类
@@ -14,20 +15,74 @@ export abstract class Shader
 
     /**
      * 生成 GLSL 着色器代码
+     * @param entry 入口函数名，默认为 'main'
      */
     generateGLSL(entry: string = 'main'): string
     {
-        const config = classToShaderConfig(this as any, this.type);
-        return generateGLSLFromConfig(config);
+        const config = classToShaderConfig(this as any, this.type, entry);
+        const lines: string[] = [];
+
+        // Fragment shader 需要 precision 声明
+        if (this.type === 'fragment' && (this as any).precision)
+        {
+            lines.push(`precision ${(this as any).precision} float;`);
+        }
+
+        // 生成 attributes（仅 vertex shader）
+        if (this.type === 'vertex' && config.attributes)
+        {
+            for (const attr of config.attributes)
+            {
+                lines.push(`attribute ${attr.type} ${attr.name};`);
+            }
+        }
+
+        // 生成 uniforms
+        if (config.uniforms)
+        {
+            for (const uniform of config.uniforms)
+            {
+                lines.push(`uniform ${uniform.type} ${uniform.name};`);
+            }
+        }
+
+        // 空行
+        if (lines.length > 0)
+        {
+            lines.push('');
+        }
+
+        // 生成入口函数
+        lines.push(...generateMainGLSL(config, entry));
+
+        return lines.join('\n') + '\n';
     }
 
     /**
      * 生成 WGSL 着色器代码
+     * @param entry 入口函数名，默认为 'main'
      */
     generateWGSL(entry: string = 'main'): string
     {
-        const config = classToShaderConfig(this as any, this.type);
-        return generateWGSLFromConfig(config);
+        const config = classToShaderConfig(this as any, this.type, entry);
+        const lines: string[] = [];
+
+        // 生成 uniforms
+        if (config.uniforms)
+        {
+            lines.push(...generateUniformsWGSL(config.uniforms));
+        }
+
+        // 空行
+        if (lines.length > 0)
+        {
+            lines.push('');
+        }
+
+        // 生成入口函数
+        lines.push(...generateMainWGSL(config, entry));
+
+        return lines.join('\n') + '\n';
     }
 }
 

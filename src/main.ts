@@ -14,12 +14,12 @@ export interface MainFunctionConfig
 /**
  * 生成 GLSL main 函数代码
  */
-export function generateMainGLSL(config: { type: string; main: MainFunctionConfig }): string[]
+export function generateMainGLSL(config: { type: string; main: MainFunctionConfig }, entry: string = 'main'): string[]
 {
     const lines: string[] = [];
 
-    // 生成 main 函数
-    lines.push('void main() {');
+    // 生成入口函数
+    lines.push(`void ${entry}() {`);
 
     if (config.main.body)
     {
@@ -61,11 +61,11 @@ export function generateMainGLSL(config: { type: string; main: MainFunctionConfi
 /**
  * 生成 WGSL main 函数代码
  */
-export function generateMainWGSL(config: { type: string; attributes?: Array<{ name: string; type: string; location?: number }>; main: MainFunctionConfig }): string[]
+export function generateMainWGSL(config: { type: string; attributes?: Array<{ name: string; type: string; location?: number }>; main: MainFunctionConfig }, entry: string = 'main'): string[]
 {
     const lines: string[] = [];
 
-    // 生成 main 函数
+    // 生成入口函数
     const stage = config.type === 'vertex' ? '@vertex' : '@fragment';
     lines.push(stage);
 
@@ -84,7 +84,7 @@ export function generateMainWGSL(config: { type: string; attributes?: Array<{ na
         }
 
         const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
-        lines.push(`fn main${paramStr} -> @builtin(position) vec4<f32> {`);
+        lines.push(`fn ${entry}${paramStr} -> @builtin(position) vec4<f32> {`);
 
         if (config.main.body)
         {
@@ -113,7 +113,7 @@ export function generateMainWGSL(config: { type: string; attributes?: Array<{ na
     {
         // Fragment shader
         // 使用 vec4f 作为返回类型（vec4f 是 vec4<f32> 的别名）
-        lines.push('fn main() -> @location(0) vec4f {');
+        lines.push(`fn ${entry}() -> @location(0) vec4f {`);
 
         if (config.main.body)
         {

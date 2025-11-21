@@ -65,7 +65,7 @@ export function generateGLSL(config: ShaderConfig): string
     }
 
     // 生成 main 函数
-    lines.push(...generateMainGLSL(config));
+    lines.push(...generateMainGLSL(config, 'main'));
 
     return lines.join('\n') + '\n';
 }
@@ -87,7 +87,7 @@ export function generateWGSL(config: ShaderConfig): string
     }
 
     // 生成 main 函数（包含 attributes 处理）
-    lines.push(...generateMainWGSL(config));
+    lines.push(...generateMainWGSL(config, 'main'));
 
     return lines.join('\n') + '\n';
 }

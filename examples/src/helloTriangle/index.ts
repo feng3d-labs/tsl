@@ -22,8 +22,8 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     // 方式2: 从 TypeScript 类实例生成着色器代码（推荐）
     const fragmentShader = new fragment();
-    fragmentGlsl = fragmentShader.generateGLSL();
-    fragmentWgsl = fragmentShader.generateWGSL();
+    fragmentGlsl = fragmentShader.generateGLSL('main');
+    fragmentWgsl = fragmentShader.generateWGSL('main');
     // 
     const vertexShader = new vertex();
     vertexGlsl = vertexShader.generateGLSL();

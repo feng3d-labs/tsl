@@ -5,8 +5,6 @@ export * from './Func';
 export * from './main';
 export * from './Precision';
 export * from './Shader';
-export * from './shaderGenerator';
-export * from './types';
 export * from './Uniform';
 export * from './uniforms';
 // 导出 builtin 类型和工具函数

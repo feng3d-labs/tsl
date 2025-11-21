@@ -2,6 +2,7 @@ import { Attribute } from '../Attribute';
 import { Uniform } from '../Uniform';
 import { Expression, FunctionCallConfig } from './vec4';
 import { Expression as ExpressionClass } from './Expression';
+import { formatNumber } from './formatNumber';
 
 /**
  * Vec2 类，用于表示 vec2 字面量值
@@ -29,27 +30,11 @@ export class Vec2
     }
 
     /**
-     * 格式化数字为 GLSL 格式
-     * 正数整数保留 .0，负数整数不保留 .0
-     */
-    private formatNumberForGLSL(num: number): string
-    {
-        // 如果是正数整数，添加 .0 后缀
-        if (Number.isInteger(num) && num >= 0)
-        {
-            return `${num}.0`;
-        }
-
-        // 负数整数或浮点数直接转换为字符串
-        return String(num);
-    }
-
-    /**
      * 转换为 GLSL 代码
      */
     toGLSL(): string
     {
-        return `vec2(${this.formatNumberForGLSL(this._x)}, ${this.formatNumberForGLSL(this._y)})`;
+        return `vec2(${formatNumber(this._x)}, ${formatNumber(this._y)})`;
     }
 
     /**
@@ -57,7 +42,7 @@ export class Vec2
      */
     toWGSL(): string
     {
-        return `vec2<f32>(${this._x}, ${this._y})`;
+        return `vec2<f32>(${formatNumber(this._x)}, ${formatNumber(this._y)})`;
     }
 }
 

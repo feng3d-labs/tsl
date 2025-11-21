@@ -1,6 +1,7 @@
 import { Attribute } from '../Attribute';
 import { Uniform } from '../Uniform';
 import { Expression } from './Expression';
+import { formatNumber } from './formatNumber';
 
 // 导出 Expression 以供其他文件使用
 export { Expression } from './Expression';
@@ -280,27 +281,11 @@ export class Vec4 extends Expression
     }
 
     /**
-     * 格式化数字为 GLSL 格式
-     * 正数整数保留 .0，负数整数不保留 .0
-     */
-    private formatNumberForGLSL(num: number): string
-    {
-        // 如果是正数整数，添加 .0 后缀
-        if (Number.isInteger(num) && num >= 0)
-        {
-            return `${num}.0`;
-        }
-
-        // 负数整数或浮点数直接转换为字符串
-        return String(num);
-    }
-
-    /**
      * 转换为 GLSL 代码
      */
     toGLSL(): string
     {
-        return `vec4(${this.formatNumberForGLSL(this._x)}, ${this.formatNumberForGLSL(this._y)}, ${this.formatNumberForGLSL(this._z)}, ${this.formatNumberForGLSL(this._w)})`;
+        return `vec4(${formatNumber(this._x)}, ${formatNumber(this._y)}, ${formatNumber(this._z)}, ${formatNumber(this._w)})`;
     }
 
     /**
@@ -308,7 +293,7 @@ export class Vec4 extends Expression
      */
     toWGSL(): string
     {
-        return `vec4<f32>(${this._x}, ${this._y}, ${this._z}, ${this._w})`;
+        return `vec4<f32>(${formatNumber(this._x)}, ${formatNumber(this._y)}, ${formatNumber(this._z)}, ${formatNumber(this._w)})`;
     }
 
     /**

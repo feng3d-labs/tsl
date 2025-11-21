@@ -54,7 +54,7 @@ describe('Vec2', () =>
         it('应该处理负数', () =>
         {
             const v = new Vec2(-1.0, -2.0);
-            expect(v.toGLSL()).toBe('vec2(-1, -2)');
+            expect(v.toGLSL()).toBe('vec2(-1.0, -2.0)');
         });
     });
 
@@ -63,7 +63,7 @@ describe('Vec2', () =>
         it('应该生成正确的 WGSL 代码', () =>
         {
             const v = new Vec2(1.0, 2.0);
-            expect(v.toWGSL()).toBe('vec2<f32>(1, 2)');
+            expect(v.toWGSL()).toBe('vec2<f32>(1.0, 2.0)');
         });
 
         it('应该处理浮点数', () =>
@@ -75,7 +75,7 @@ describe('Vec2', () =>
         it('应该处理负数', () =>
         {
             const v = new Vec2(-1.0, -2.0);
-            expect(v.toWGSL()).toBe('vec2<f32>(-1, -2)');
+            expect(v.toWGSL()).toBe('vec2<f32>(-1.0, -2.0)');
         });
     });
 });
@@ -106,7 +106,7 @@ describe('vec2', () =>
         it('应该能够转换为 WGSL', () =>
         {
             const result = vec2(1.0, 2.0);
-            expect(result.toWGSL()).toBe('vec2<f32>(1, 2)');
+            expect(result.toWGSL()).toBe('vec2<f32>(1.0, 2.0)');
         });
     });
 

@@ -10,7 +10,7 @@ describe('Vec2', () =>
     {
         it('应该能够创建 Vec2 实例', () =>
         {
-            const v = new Vec2(1.0, 2.0);
+            const v = vec2(1.0, 2.0);
             expect(v).toBeInstanceOf(Vec2);
         });
 

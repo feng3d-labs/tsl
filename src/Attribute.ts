@@ -1,7 +1,5 @@
-import { Vec2 } from './builtin/vec2';
-import { Vec4 } from './builtin/vec4';
 import { getCurrentShaderInstance } from './currentShaderInstance';
-import { IElement } from './IElement';
+import { IElement, IType } from './IElement';
 
 /**
  * Attribute 标记
@@ -16,7 +14,7 @@ export class Attribute implements IElement
     readonly __type__ = ATTRIBUTE_SYMBOL;
     dependencies: IElement[];
     readonly name: string;
-    value?: Vec2 | Vec4;
+    value?: IType;
     readonly location?: number;
 
     constructor(name: string, location?: number)

@@ -1,22 +1,31 @@
+import { IElement } from '../IElement';
 import { Uniform } from '../Uniform';
-import { FunctionCallConfig } from './vec4';
-import { Expression } from './Expression';
+
+export class Mat4 implements IElement
+{
+    readonly glslType = 'mat4';
+    readonly wgslType = 'mat4x4<f32>';
+    dependencies: IElement[];
+    toGLSL: () => string;
+    toWGSL: () => string;
+
+    constructor(uniform: Uniform)
+    {
+        this.dependencies = [uniform];
+
+        this.toGLSL = () => uniform.name;
+        this.toWGSL = () => uniform.name;
+
+        uniform.value = this;
+    }
+}
 
 /**
  * mat4 构造函数
  * 如果传入单个 Uniform 实例，则将 FunctionCallConfig 保存到 uniform.value
  */
-export function mat4(uniform: Uniform): Expression
+export function mat4(uniform: Uniform): Mat4
 {
-    const valueConfig: FunctionCallConfig = {
-        function: 'mat4',
-        args: [uniform.name],
-    };
-
-    // 直接更新 uniform 的 value
-    uniform.value = valueConfig;
-
-    // 返回 Expression 以支持链式调用
-    return new Expression(valueConfig);
+    return new Mat4(uniform);
 }
 

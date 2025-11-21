@@ -1,4 +1,23 @@
+import { IElement, IType } from '../IElement';
+import { Uniform } from '../Uniform';
 import { FunctionCallConfig } from './vec4';
+
+export class Uvec2 implements IType
+{
+    readonly glslType = 'uvec2';
+    readonly wgslType = 'uvec2<u32>';
+    dependencies: IElement[];
+    toGLSL: () => string;
+    toWGSL: () => string;
+
+    constructor(uniform: Uniform)
+    {
+        this.dependencies = [uniform];
+        this.toGLSL = () => uniform.name;
+        this.toWGSL = () => uniform.name;
+        uniform.value = this;
+    }
+}
 
 /**
  * uvec2 构造函数

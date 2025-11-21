@@ -1,7 +1,5 @@
-import { Vec2 } from './builtin/vec2';
-import { Vec4 } from './builtin/vec4';
 import { getCurrentShaderInstance } from './currentShaderInstance';
-import { IElement } from './IElement';
+import { IElement, IType } from './IElement';
 
 /**
  * Uniform 标记
@@ -18,7 +16,7 @@ export class Uniform implements IElement
     dependencies: IElement[];
 
     readonly name: string;
-    value?: Vec2 | Vec4;
+    value?: IType;
     readonly binding?: number;
     readonly group?: number;
 

@@ -185,50 +185,6 @@ export class Func
     }
 
     /**
-     * 转换为配置对象
-     * @param shaderType 着色器类型（vertex 或 fragment）
-     */
-    toConfig(shaderType: 'vertex' | 'fragment'): { name: string; return?: string | FunctionCallConfig }
-    {
-        // 执行函数体获取返回值
-        let returnValue: any;
-        try
-        {
-            returnValue = this.body();
-        }
-        catch (error)
-        {
-            throw new Error(`执行函数 '${this.name}' 时出错: ${error}`);
-        }
-
-        const config: { name: string; return?: string | FunctionCallConfig } = {
-            name: this.name,
-        };
-
-        if (returnValue !== undefined && returnValue !== null)
-        {
-            if (typeof returnValue === 'string')
-            {
-                config.return = returnValue;
-            }
-            else if (typeof returnValue === 'object' && 'function' in returnValue)
-            {
-                config.return = returnValue as FunctionCallConfig;
-            }
-            else if (returnValue instanceof Uniform || returnValue instanceof Attribute)
-            {
-                config.return = returnValue.name;
-            }
-            else
-            {
-                config.return = String(returnValue);
-            }
-        }
-
-        return config;
-    }
-
-    /**
      * 转换为字符串时返回函数名
      */
     toString(): string

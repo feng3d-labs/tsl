@@ -28,15 +28,6 @@ describe('Fragment', () =>
             expect(wgsl).toContain('fn main()');
         });
 
-        it('应该能够从配置创建实例', () =>
-        {
-            const frag = Fragment.fromConfig({
-                name: 'main',
-                return: 'color',
-            });
-            expect(frag).toBeInstanceOf(Fragment);
-            expect(frag.name).toBe('main');
-        });
     });
 
     describe('fragment() 函数', () =>

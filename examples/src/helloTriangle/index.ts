@@ -1,30 +1,21 @@
 import { Submit } from "@feng3d/render-api";
 import { WebGL } from "@feng3d/webgl";
 import { WebGPU } from "@feng3d/webgpu";
-import { generateGLSL, generateShaders, generateWGSL, ShaderConfig } from "@feng3d/tsl";
 
 import fragmentGlsl from "./shaders/fragment.glsl";
 import fragmentWgsl from "./shaders/fragment.wgsl";
 import vertexGlsl from "./shaders/vertex.glsl";
 import vertexWgsl from "./shaders/vertex.wgsl";
-import fragmentJson from "./shaders/fragment.frag.json";
-import vertexJson from "./shaders/vertex.vert.json";
 import { helloTriangle } from "./shaders/shader";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    // 方式1: 从 JSON 配置生成着色器代码
-    let fragmentGlsl = generateGLSL(fragmentJson);
-    let fragmentWgsl = generateWGSL(fragmentJson);
-    let vertexGlsl = generateGLSL(vertexJson);
-    let vertexWgsl = generateWGSL(vertexJson);
-
-    // 方式2: 使用函数式方式定义着色器（推荐）
+    // 使用函数式方式定义着色器生成着色器代码
     // shaderType 作为第一个参数，必须提供；entry 作为第二个参数，可选（对应 vertex("main", ...) 和 fragment("main", ...) 中的函数名）
-    vertexGlsl = helloTriangle.generateGLSL('vertex', 'main');
-    vertexWgsl = helloTriangle.generateWGSL('vertex', 'main');
-    fragmentGlsl = helloTriangle.generateGLSL('fragment', 'main');
-    fragmentWgsl = helloTriangle.generateWGSL('fragment', 'main');
+    const vertexGlsl = helloTriangle.generateGLSL('vertex', 'main');
+    const vertexWgsl = helloTriangle.generateWGSL('vertex', 'main');
+    const fragmentGlsl = helloTriangle.generateGLSL('fragment', 'main');
+    const fragmentWgsl = helloTriangle.generateWGSL('fragment', 'main');
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 

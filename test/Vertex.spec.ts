@@ -31,15 +31,6 @@ describe('Vertex', () =>
             expect(wgsl).toContain('@location(0) position: vec2<f32>');
         });
 
-        it('应该能够从配置创建实例', () =>
-        {
-            const vert = Vertex.fromConfig({
-                name: 'main',
-                return: 'vec4(position, 0.0, 1.0)',
-            });
-            expect(vert).toBeInstanceOf(Vertex);
-            expect(vert.name).toBe('main');
-        });
     });
 
     describe('vertex() 函数', () =>

@@ -10,7 +10,7 @@ export { FUNC_SYMBOL };
  */
 export class Vertex extends Func
 {
-    readonly shaderType: 'vertex' = 'vertex';
+    readonly shaderType = 'vertex' as const;
 
     constructor(name: string, body: () => any)
     {
@@ -33,25 +33,6 @@ export class Vertex extends Func
     toWGSL(shaderType?: 'vertex' | 'fragment', attributes?: Array<{ name: string; type: string; location?: number }>): string
     {
         return super.toWGSL('vertex', attributes);
-    }
-
-    /**
-     * 转换为配置对象（vertex shader）
-     */
-    toConfig(): { name: string; return?: string | FunctionCallConfig }
-    {
-        return super.toConfig('vertex');
-    }
-
-    /**
-     * 从配置对象创建 Vertex 实例
-     * @param config 配置对象
-     * @returns Vertex 实例
-     */
-    static fromConfig(config: { name: string; return?: string | FunctionCallConfig }): Vertex
-    {
-        const body = () => config.return;
-        return new Vertex(config.name, body);
     }
 }
 

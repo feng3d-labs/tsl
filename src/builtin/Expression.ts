@@ -1,4 +1,4 @@
-import { FunctionCallConfig } from './vec4';
+import { FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from './vec4';
 
 /**
  * 表达式类，用于链式调用
@@ -74,6 +74,46 @@ export class Expression
     }
 
     /**
+     * 转换为 GLSL 代码
+     */
+    toGLSL(): string
+    {
+        if (this._varName)
+        {
+            return this._varName;
+        }
+
+        // 如果 config 是简单的 uniform/attribute 引用（function 是类型名，args 只有一个字符串参数）
+        // 例如 { function: 'vec4', args: ['color'] } 应该返回 'color' 而不是 'vec4(color)'
+        if (this._config.args.length === 1 && typeof this._config.args[0] === 'string')
+        {
+            return this._config.args[0];
+        }
+
+        return generateFunctionCallGLSL(this._config);
+    }
+
+    /**
+     * 转换为 WGSL 代码
+     */
+    toWGSL(): string
+    {
+        if (this._varName)
+        {
+            return this._varName;
+        }
+
+        // 如果 config 是简单的 uniform/attribute 引用（function 是类型名，args 只有一个字符串参数）
+        // 例如 { function: 'vec4', args: ['color'] } 应该返回 'color' 而不是 'vec4<f32>(color)'
+        if (this._config.args.length === 1 && typeof this._config.args[0] === 'string')
+        {
+            return this._config.args[0];
+        }
+
+        return generateFunctionCallWGSL(this._config);
+    }
+
+    /**
      * 转换为字符串（用于在字符串表达式中使用）
      */
     toString(): string
@@ -89,8 +129,10 @@ export class Expression
             const right = this._config.args[1];
             const leftStr = left instanceof Expression ? left.toString() : (typeof left === 'object' && 'name' in left ? left.name : String(left));
             const rightStr = right instanceof Expression ? right.toString() : (typeof right === 'object' && 'name' in right ? right.name : String(right));
+
             return `${leftStr} * ${rightStr}`;
         }
+
         // 否则返回配置的字符串表示
         return typeof this._config === 'string' ? this._config : (this._config.function || '');
     }

@@ -73,7 +73,8 @@ describe('Uniform', () =>
             {
                 const color = vec4(uniform('color', 0, 0));
                 expect(color).toBeDefined();
-                expect(color).toHaveProperty('function', 'vec4');
+                expect(color.toGLSL()).toBe('color');
+                expect(color.toWGSL()).toBe('color');
             });
 
             expect(testShader.uniforms['color']).toBeDefined();

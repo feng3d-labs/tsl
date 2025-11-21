@@ -46,7 +46,7 @@ describe('Shader', () =>
             });
 
             const glsl = testShader.generateGLSL('vertex', 'main');
-            
+
             expect(glsl).toContain('attribute vec2 position;');
             expect(glsl).toContain('void main()');
             expect(glsl).toContain('gl_Position = vec4(vec2(position), 0, 1);');
@@ -65,7 +65,7 @@ describe('Shader', () =>
             });
 
             const glsl = testShader.generateGLSL('fragment', 'main');
-            
+
             expect(glsl).toContain('uniform vec4 color;');
             expect(glsl).toContain('void main()');
             expect(glsl).toContain('gl_FragColor = vec4(color);');
@@ -136,11 +136,11 @@ describe('Shader', () =>
             });
 
             const wgsl = testShader.generateWGSL('vertex', 'main');
-            
+
             expect(wgsl).toContain('@vertex');
             expect(wgsl).toContain('fn main');
             expect(wgsl).toContain('@location(0) position: vec2<f32>');
-            expect(wgsl).toContain('return vec4<f32>(vec2<f32>(position), 0, 1);');
+            expect(wgsl).toContain('return vec4<f32>(position, 0.0, 1.0);');
         });
 
         it('应该能够生成正确的 fragment shader WGSL 代码', () =>
@@ -156,7 +156,7 @@ describe('Shader', () =>
             });
 
             const wgsl = testShader.generateWGSL('fragment', 'main');
-            
+
             expect(wgsl).toContain('@fragment');
             expect(wgsl).toContain('fn main');
             expect(wgsl).toContain('color');

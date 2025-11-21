@@ -123,12 +123,25 @@ export function generateFunctionCallWGSL(call: FunctionCallConfig | Expression):
 
     const args = config.args.map(arg =>
     {
-        if (typeof arg === 'string' || typeof arg === 'number')
+        if (typeof arg === 'string')
         {
-            return String(arg);
+            return arg;
         }
+
+        if (typeof arg === 'number')
+        {
+            // 使用 formatNumber 格式化数字
+            return formatNumber(arg);
+        }
+
         if (arg instanceof Expression)
         {
+            // 如果 Expression 是简单的 uniform/attribute 引用，直接返回其名称
+            if (arg.config.args.length === 1 && typeof arg.config.args[0] === 'string')
+            {
+                return arg.config.args[0];
+            }
+
             return generateExpressionWGSL(arg);
         }
 

@@ -70,7 +70,8 @@ describe('Attribute', () =>
             {
                 const position = vec2(attribute('position', 0));
                 expect(position).toBeDefined();
-                expect(position).toHaveProperty('function', 'vec2');
+                expect(position.toGLSL()).toBe('position');
+                expect(position.toWGSL()).toBe('position');
             });
 
             expect(testShader.attributes['position']).toBeDefined();

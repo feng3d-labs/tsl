@@ -12,20 +12,52 @@ export class Vec2
 {
     private _variableName?: string; // 如果是 uniform/attribute，存储变量名
 
-    constructor(x: number | string, y?: number)
+    constructor(uniform: Uniform);
+    constructor(attribute: Attribute);
+    constructor(x: number, y: number);
+    constructor(...args: (number | Uniform | Attribute)[])
     {
-        if (typeof x === 'string' && y === undefined)
+        if (args.length === 1)
         {
-            // 从 uniform/attribute 创建
-            this._variableName = x;
-            this._x = 0; // 占位值，不会被使用
-            this._y = 0; // 占位值，不会被使用
+            // 处理 uniform 或 attribute
+            if (args[0] instanceof Uniform)
+            {
+                const uniform = args[0] as Uniform;
+                const valueConfig: FunctionCallConfig = {
+                    function: 'vec2',
+                    args: [uniform.name],
+                };
+                uniform.value = valueConfig;
+                this._variableName = uniform.name;
+                this._x = 0; // 占位值，不会被使用
+                this._y = 0; // 占位值，不会被使用
+            }
+            else if (args[0] instanceof Attribute)
+            {
+                const attribute = args[0] as Attribute;
+                const valueConfig: FunctionCallConfig = {
+                    function: 'vec2',
+                    args: [attribute.name],
+                };
+                attribute.value = valueConfig;
+                this._variableName = attribute.name;
+                this._x = 0; // 占位值，不会被使用
+                this._y = 0; // 占位值，不会被使用
+            }
+            else
+            {
+                throw new Error('Vec2 constructor: invalid argument');
+            }
+        }
+        else if (args.length === 2 && typeof args[0] === 'number' && typeof args[1] === 'number')
+        {
+            // 从字面量值创建
+            this._x = args[0];
+            this._y = args[1];
         }
         else
         {
-            // 从字面量值创建
-            this._x = x as number;
-            this._y = y as number;
+            throw new Error('Vec2 constructor: invalid arguments');
         }
     }
 
@@ -91,73 +123,14 @@ export class Vec2
 
 /**
  * vec2 构造函数
- * 如果传入单个 Uniform 或 Attribute 实例，则将 FunctionCallConfig 保存到 uniform.value 或 attribute.value
  */
 export function vec2(uniform: Uniform): Vec2;
 export function vec2(attribute: Attribute): Vec2;
 export function vec2(x: number, y: number): Vec2;
-export function vec2(...args: (string | number | FunctionCallConfig | Expression | Attribute | Uniform)[]): Vec2 | Expression
+export function vec2(...args: any[]): Vec2
 {
-    // 处理 vec2(x: number, y: number) 的情况
-    if (args.length === 2 && typeof args[0] === 'number' && typeof args[1] === 'number')
-    {
-        return new Vec2(args[0], args[1]);
-    }
+    if (args.length === 1) return new Vec2(args[0] as any);
+    if (args.length === 2) return new Vec2(args[0] as any, args[1] as any);
 
-    // 如果只有一个参数且是 Uniform 实例，则将 FunctionCallConfig 保存到 uniform.value
-    if (args.length === 1 && args[0] instanceof Uniform)
-    {
-        const uniformArg = args[0] as Uniform;
-        const valueConfig: FunctionCallConfig = {
-            function: 'vec2',
-            args: [uniformArg.name],
-        };
-
-        // 直接更新 uniform 的 value
-        uniformArg.value = valueConfig;
-
-        // 返回 Vec2 实例，使用变量名
-        return new Vec2(uniformArg.name);
-    }
-
-    // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
-    if (args.length === 1 && args[0] instanceof Attribute)
-    {
-        const attributeArg = args[0] as Attribute;
-        const valueConfig: FunctionCallConfig = {
-            function: 'vec2',
-            args: [attributeArg.name],
-        };
-
-        // 直接更新 attribute 的 value
-        attributeArg.value = valueConfig;
-
-        // 返回 Vec2 实例，使用变量名
-        return new Vec2(attributeArg.name);
-    }
-
-    // 处理其他情况（多个参数，可能是 Expression 或其他类型）
-    const config: FunctionCallConfig = {
-        function: 'vec2',
-        args: args.map((arg: string | number | FunctionCallConfig | Expression | Attribute | Uniform): string | number | FunctionCallConfig | Expression =>
-        {
-            // 检查是否是 Expression 实例
-            if (arg && typeof arg === 'object' && 'config' in arg && 'varName' in arg)
-            {
-                return (arg as Expression).config;
-            }
-
-            // 检查是否有 name 属性（Uniform 或 Attribute）
-            if (typeof arg === 'object' && arg !== null && 'name' in arg)
-            {
-                return (arg as { name: string }).name;
-            }
-
-            // 其他情况（string, number, FunctionCallConfig）
-            return arg as string | number | FunctionCallConfig | Expression;
-        }),
-    };
-
-    return new ExpressionClass(config);
+    throw new Error('vec2: invalid arguments');
 }
-

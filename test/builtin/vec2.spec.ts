@@ -190,25 +190,20 @@ describe('vec2', () =>
         it('应该处理多个数字参数', () =>
         {
             // 注意：当前实现中，只有两个数字参数会返回 Vec2
-            // 多个参数会返回 Expression
-            const result = (vec2 as any)(1.0, 2.0, 3.0);
-            expect(result).toBeInstanceOf(Expression);
+            // 多个参数会抛出错误
+            expect(() => (vec2 as any)(1.0, 2.0, 3.0)).toThrow();
         });
 
         it('应该处理字符串参数', () =>
         {
-            const result = (vec2 as any)('x', 'y');
-            expect(result).toBeInstanceOf(Expression);
-            expect(result.config.function).toBe('vec2');
-            expect(result.config.args).toEqual(['x', 'y']);
+            // 字符串参数会抛出错误
+            expect(() => (vec2 as any)('x', 'y')).toThrow();
         });
 
         it('应该处理混合参数', () =>
         {
-            const result = (vec2 as any)(1.0, 'y');
-            expect(result).toBeInstanceOf(Expression);
-            expect(result.config.function).toBe('vec2');
-            expect(result.config.args).toEqual([1.0, 'y']);
+            // 混合参数会抛出错误
+            expect(() => (vec2 as any)(1.0, 'y')).toThrow();
         });
     });
 });

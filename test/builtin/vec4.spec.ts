@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL, FunctionCallConfig, vec4 } from '../../src/builtin/vec4';
+import { convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL, FunctionCallConfig, vec4, Vec4 } from '../../src/builtin/vec4';
+import { vec2, Vec2 } from '../../src/builtin/vec2';
+import { Uniform } from '../../src/Uniform';
+import { Attribute } from '../../src/Attribute';
+import { Expression } from '../../src/builtin/Expression';
 
 describe('vec4', () =>
 {
@@ -144,6 +148,38 @@ describe('vec4', () =>
 
             const result = generateFunctionCallWGSL(call);
             expect(result).toBe('mat2x2<f32>(1.0, 0.0, 0.0, 1.0)');
+        });
+    });
+
+    describe('vec4(xy: Vec2, z: number, w: number)', () =>
+    {
+        it('应该从 Vec2 字面量和两个数字创建 Vec4', () =>
+        {
+            const xy = vec2(1.0, 2.0);
+            const result = vec4(xy, 3.0, 4.0);
+            expect(result).toBeInstanceOf(Vec4);
+            expect(result.toGLSL()).toBe('vec4(1.0, 2.0, 3.0, 4.0)');
+            expect(result.toWGSL()).toBe('vec4<f32>(1.0, 2.0, 3.0, 4.0)');
+        });
+
+        it('应该从 Vec2 uniform 和两个数字创建 Expression', () =>
+        {
+            const uniform = new Uniform('uPosition', 0, 0);
+            const xy = vec2(uniform);
+            const result = vec4(xy, 0.0, 1.0);
+            expect(result).toBeInstanceOf(Expression);
+            expect(result.toGLSL()).toBe('vec4(uPosition, 0.0, 1.0)');
+            expect(result.toWGSL()).toBe('vec4<f32>(uPosition, 0.0, 1.0)');
+        });
+
+        it('应该从 Vec2 attribute 和两个数字创建 Expression', () =>
+        {
+            const attribute = new Attribute('aPosition', 0);
+            const xy = vec2(attribute);
+            const result = vec4(xy, 0.0, 1.0);
+            expect(result).toBeInstanceOf(Expression);
+            expect(result.toGLSL()).toBe('vec4(aPosition, 0.0, 1.0)');
+            expect(result.toWGSL()).toBe('vec4<f32>(aPosition, 0.0, 1.0)');
         });
     });
 });

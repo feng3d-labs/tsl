@@ -49,7 +49,7 @@ describe('Shader', () =>
 
             expect(glsl).toContain('attribute vec2 position;');
             expect(glsl).toContain('void main()');
-            expect(glsl).toContain('gl_Position = vec4(vec2(position), 0, 1);');
+            expect(glsl).toContain('gl_Position = vec4(position, 0.0, 1.0);');
         });
 
         it('应该能够生成正确的 fragment shader GLSL 代码', () =>

@@ -12,3 +12,4 @@ export function ivec3(...args: (string | number | FunctionCallConfig)[]): Functi
     };
 }
 
+

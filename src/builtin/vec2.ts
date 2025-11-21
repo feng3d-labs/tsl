@@ -47,3 +47,4 @@ export function vec2(...args: (string | number | FunctionCallConfig | Attribute 
     };
 }
 
+

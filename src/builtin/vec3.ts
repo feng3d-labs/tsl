@@ -47,3 +47,4 @@ export function vec3(...args: (string | number | FunctionCallConfig | Attribute 
     };
 }
 
+

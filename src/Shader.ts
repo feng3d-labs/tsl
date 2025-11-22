@@ -1,6 +1,7 @@
 import { Attribute } from './Attribute';
 import { Fragment } from './Fragment';
 import { IShader } from './IShader';
+import { Precision } from './Precision';
 import { Uniform } from './Uniform';
 import { Vertex } from './Vertex';
 import { clearCurrentShaderInstance, setCurrentShaderInstance } from './currentShaderInstance';
@@ -11,11 +12,6 @@ import { clearCurrentShaderInstance, setCurrentShaderInstance } from './currentS
  */
 export class Shader implements IShader
 {
-    /**
-     * GLSL 精度声明（仅用于 fragment shader）
-     */
-    precision: 'lowp' | 'mediump' | 'highp';
-
     /**
      * Vertex 函数字典（以函数名为 key）
      */
@@ -34,14 +30,15 @@ export class Shader implements IShader
     }
 
     /**
-     * 分析函数依赖中使用的 attributes 和 uniforms
+     * 分析函数依赖中使用的 attributes、uniforms 和 precision
      * @param dependencies 函数依赖数组
-     * @returns 使用的 Attribute 和 Uniform 实例集合
+     * @returns 使用的 Attribute、Uniform 和 Precision 实例集合
      */
-    private analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform> }
+    private analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision }
     {
         const attributes = new Set<Attribute>();
         const uniforms = new Set<Uniform>();
+        let precision: Precision | undefined;
         const visited = new WeakSet();
 
         const analyzeValue = (value: any): void =>
@@ -76,6 +73,17 @@ export class Shader implements IShader
                 return;
             }
 
+            // 如果是 Precision 实例，保存（只取第一个）
+            if (value instanceof Precision)
+            {
+                if (!precision)
+                {
+                    precision = value;
+                }
+
+                return;
+            }
+
             // 如果是 IElement 实例（Vec2, Vec4 等），分析其 dependencies
             if (typeof value === 'object' && 'dependencies' in value && Array.isArray(value.dependencies))
             {
@@ -92,7 +100,7 @@ export class Shader implements IShader
             analyzeValue(dep);
         }
 
-        return { attributes, uniforms };
+        return { attributes, uniforms, precision };
     }
 
     /**
@@ -187,18 +195,18 @@ export class Shader implements IShader
             throw new Error(`未找到片段着色器的${entryDesc}入口函数。请确保已定义 fragment() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
         }
 
-        // Fragment shader 需要 precision 声明
-        if (this.precision)
-        {
-            lines.push(`precision ${this.precision} float;`);
-        }
-
         // 先执行 body 收集依赖（通过调用 toGLSL 来触发，它会执行 body 并填充 dependencies）
         // 这里只为了收集依赖，不生成完整代码
         entryFunc.toGLSL();
 
-        // 从函数的 dependencies 中分析获取 uniforms
+        // 从函数的 dependencies 中分析获取 uniforms 和 precision
         const dependencies = this.analyzeDependencies(entryFunc.dependencies);
+
+        // Fragment shader 需要 precision 声明（从函数依赖中获取）
+        if (dependencies.precision)
+        {
+            lines.push(dependencies.precision.toGLSL());
+        }
 
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)
@@ -218,7 +226,6 @@ export class Shader implements IShader
 
         return lines.join('\n') + '\n';
     }
-
 
     /**
      * 生成 Vertex Shader 的 WGSL 代码

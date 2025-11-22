@@ -2,9 +2,6 @@ import { _let, _return, attribute, fragment, mat4, precision, shader, uniform, v
 
 export const sample2Shader = shader("sample2", () =>
 {
-    // precision: 'lowp' | 'mediump' | 'highp' = 'highp';
-    // precision('highp');
-
     // Vertex shader 的 attribute
     const aVertexPosition = vec2(attribute("aVertexPosition", 0));
 
@@ -15,9 +12,9 @@ export const sample2Shader = shader("sample2", () =>
     // Vertex shader 入口函数
     vertex("main", () =>
     {
-        // const position = _let("position", vec4(aVertexPosition, 0.0, 1.0));
+        const position = _let("position", vec4(aVertexPosition, 0.0, 1.0));
 
-        _return(uProjectionMatrix.multiply(uModelViewMatrix).multiply(vec4(aVertexPosition, 0.0, 1.0)));
+        _return(uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
     });
 
     // Fragment shader 入口函数

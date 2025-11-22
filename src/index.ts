@@ -6,8 +6,8 @@ export * from './Precision';
 export * from './Shader';
 export * from './Uniform';
 // 导出 builtin 类型和工具函数
-export { _let } from './builtin/let';
-export { _return } from './builtin/return';
+export { let_ as _let } from './builtin/let';
+export { return_ as _return } from './builtin/return';
 // 导出向量类型
 export { Vec2 } from './builtin/vec2';
 export { Vec4 } from './builtin/vec4';

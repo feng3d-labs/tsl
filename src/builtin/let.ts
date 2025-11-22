@@ -1,4 +1,4 @@
-import { IElement } from '../IElement';
+import { IType } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
 
 /**
@@ -7,10 +7,10 @@ import { getCurrentFunc } from '../currentFunc';
  * @param expr 表达式
  * @returns 设置了变量名的表达式实例
  */
-export function _let<T extends IElement>(name: string, expr: T): T
+export function let_<T extends IType>(name: string, expr: T): T
 {
     const cls = expr.constructor;
-    const result: IElement = new (cls as any)();
+    const result: IType = new (cls as any)();
 
     result.toGLSL = () => `${name}`;
     result.toWGSL = () => `${name}`;
@@ -21,11 +21,11 @@ export function _let<T extends IElement>(name: string, expr: T): T
     if (currentFunc)
     {
         currentFunc.statements.push({
-            toGLSL: () => `${name} = ${expr.toGLSL()};`,
+            toGLSL: () => `${expr.glslType} ${name} = ${expr.toGLSL()};`,
             toWGSL: () => `let ${name} = ${expr.toWGSL()};`,
         });
         // 收集依赖
-        currentFunc.dependencies.push(expr);
+        currentFunc.dependencies.push(result);
     }
 
     return result as T;

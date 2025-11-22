@@ -1,4 +1,4 @@
-import { IElement } from '../IElement';
+import { IType } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
 
 /**
@@ -6,7 +6,7 @@ import { getCurrentFunc } from '../currentFunc';
  * @param expr 返回值表达式
  * @returns 返回值表达式（原样返回，用于链式调用）
  */
-export function _return<T extends IElement>(expr: T): void
+export function return_<T extends IType>(expr: T): void
 {
     const currentFunc = getCurrentFunc();
     if (currentFunc)

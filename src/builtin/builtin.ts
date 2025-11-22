@@ -16,24 +16,26 @@ export class Builtin implements IElement
         this.varName = varName;
     }
 
-    toGLSL(type: 'vertex' | 'fragment'): string
+    toGLSL(): string
     {
-        // 根据内置变量名称和着色器类型返回对应的 GLSL 变量名
-        if (this.builtinName === 'position')
+        if (!this.value)
         {
-            if (type === 'vertex')
-            {
-                return 'gl_Position';
-            }
-            throw `内置变量 ${this.builtinName} 不能用于 fragment shader`;
+            throw new Error(`Builtin '${this.builtinName}' 没有设置 value，无法生成 GLSL。`);
         }
-        throw `内置变量 ${this.builtinName} 不支持 GLSL`;
+
+        return ``;
     }
 
-    toWGSL(type: 'vertex' | 'fragment'): string
+    toWGSL(): string
     {
-        // 返回用户自定义的变量名
-        return this.varName;
+        // @builtin(position) position: vec4<f32>,
+        const wgslType = this.value?.wgslType;
+        if (!wgslType)
+        {
+            throw new Error(`Builtin '${this.builtinName}' 的 value 没有设置 wgslType，无法生成 WGSL。`);
+        }
+
+        return `@builtin(${this.builtinName}) ${this.varName}: ${wgslType};`;
     }
 }
 

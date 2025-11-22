@@ -41,6 +41,10 @@ export class Attribute implements IElement
      */
     toWGSL(type: 'vertex' | 'fragment'): string
     {
+        if (!this.value)
+        {
+            throw new Error(`Attribute '${this.name}' 没有设置 value，无法生成 WGSL。`);
+        }
         const wgslType = this.value?.wgslType;
         const location = this.location !== undefined ? `@location(${this.location})` : '@location(0)';
 

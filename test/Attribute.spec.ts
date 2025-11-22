@@ -53,11 +53,16 @@ describe('Attribute', () =>
                 expect(position).toBeDefined();
                 expect(position.toGLSL()).toBe('position');
                 expect(position.toWGSL()).toBe('position');
+
+                vertex('main', () =>
+                {
+                    return vec4(position, 0.0, 1.0);
+                });
             });
 
-            expect(testShader.attributes['position']).toBeDefined();
-            expect(testShader.attributes['position'].value?.glslType).toBe('vec2');
-            expect(testShader.attributes['position'].value?.wgslType).toBe('vec2<f32>');
+            // 验证生成的着色器代码中包含 attribute 声明
+            const glsl = testShader.generateGLSL('vertex');
+            expect(glsl).toContain('attribute vec2 position;');
         });
     });
 });

@@ -56,11 +56,16 @@ describe('Uniform', () =>
                 expect(color).toBeDefined();
                 expect(color.toGLSL()).toBe('color');
                 expect(color.toWGSL()).toBe('color');
+
+                fragment('main', () =>
+                {
+                    return color;
+                });
             });
 
-            expect(testShader.uniforms['color']).toBeDefined();
-            expect(testShader.uniforms['color'].value?.glslType).toBe('vec4');
-            expect(testShader.uniforms['color'].value?.wgslType).toBe('vec4<f32>');
+            // 验证生成的着色器代码中包含 uniform 声明
+            const glsl = testShader.generateGLSL('fragment');
+            expect(glsl).toContain('uniform vec4 color;');
         });
     });
 });

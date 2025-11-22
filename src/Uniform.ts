@@ -1,4 +1,3 @@
-import { getCurrentShaderInstance } from './currentShaderInstance';
 import { IElement, IType } from './IElement';
 
 /**
@@ -71,19 +70,6 @@ export class Uniform implements IElement
  */
 export function uniform(name: string, binding?: number, group?: number): Uniform
 {
-    const def = new Uniform(name, binding, group);
-
-    // 如果当前正在构造 Shader 实例，自动添加到 uniforms 字典
-    const currentShaderInstance = getCurrentShaderInstance();
-    if (currentShaderInstance && currentShaderInstance.uniforms)
-    {
-        if (currentShaderInstance.uniforms[name])
-        {
-            throw new Error(`Uniform '${name}' 已经定义过了，不能重复定义。`);
-        }
-        currentShaderInstance.uniforms[name] = def;
-    }
-
-    return def;
+    return new Uniform(name, binding, group);
 }
 

@@ -17,16 +17,6 @@ export class Shader implements IShader
     precision: 'lowp' | 'mediump' | 'highp' = 'highp';
 
     /**
-     * Attributes 字典（以变量名为 key）
-     */
-    public attributes: Record<string, Attribute> = {};
-
-    /**
-     * Uniforms 字典（以变量名为 key）
-     */
-    public uniforms: Record<string, Uniform> = {};
-
-    /**
      * Vertex 函数字典（以函数名为 key）
      */
     public vertexs: Record<string, Vertex> = {};
@@ -44,20 +34,31 @@ export class Shader implements IShader
     }
 
     /**
-     * 分析函数返回值中使用的变量名（attributes 和 uniforms）
+     * 分析函数返回值中使用的依赖（attributes 和 uniforms）
      * @param returnValue 函数返回值
-     * @returns 使用的变量名集合
+     * @returns 使用的 Attribute 和 Uniform 实例集合
      */
-    private analyzeDependencies(returnValue: any): { attributes: Set<string>; uniforms: Set<string> }
+    private analyzeDependencies(returnValue: any): { attributes: Set<Attribute>; uniforms: Set<Uniform> }
     {
-        const attributes = new Set<string>();
-        const uniforms = new Set<string>();
+        const attributes = new Set<Attribute>();
+        const uniforms = new Set<Uniform>();
+        const visited = new WeakSet();
 
         const analyzeValue = (value: any): void =>
         {
             if (value === null || value === undefined)
             {
                 return;
+            }
+
+            // 避免重复访问同一个对象
+            if (typeof value === 'object' && visited.has(value))
+            {
+                return;
+            }
+            if (typeof value === 'object')
+            {
+                visited.add(value);
             }
 
             // 如果是 IElement 实例（Vec2, Vec4 等），分析其 dependencies
@@ -71,17 +72,16 @@ export class Shader implements IShader
                 return;
             }
 
-
             // 如果是 Uniform 或 Attribute 实例
             if (value instanceof Uniform)
             {
-                uniforms.add(value.name);
+                uniforms.add(value);
 
                 return;
             }
             if (value instanceof Attribute)
             {
-                attributes.add(value.name);
+                attributes.add(value);
 
                 return;
             }
@@ -149,24 +149,16 @@ export class Shader implements IShader
         // 生成 attributes（仅 vertex shader，且只包含实际使用的）
         if (shaderType === 'vertex')
         {
-            for (const attrName of dependencies.attributes)
+            for (const attr of dependencies.attributes)
             {
-                const attr = this.attributes[attrName];
-                if (attr)
-                {
-                    lines.push(attr.toGLSL());
-                }
+                lines.push(attr.toGLSL());
             }
         }
 
         // 生成 uniforms（只包含实际使用的）
-        for (const uniformName of dependencies.uniforms)
+        for (const uniform of dependencies.uniforms)
         {
-            const uniform = this.uniforms[uniformName];
-            if (uniform)
-            {
-                lines.push(uniform.toGLSL());
-            }
+            lines.push(uniform.toGLSL());
         }
 
         // 空行
@@ -230,13 +222,9 @@ export class Shader implements IShader
         const dependencies = this.analyzeDependencies(returnValue);
 
         // 生成 uniforms（只包含实际使用的）
-        for (const uniformName of dependencies.uniforms)
+        for (const uniform of dependencies.uniforms)
         {
-            const uniform = this.uniforms[uniformName];
-            if (uniform)
-            {
-                lines.push(uniform.toWGSL());
-            }
+            lines.push(uniform.toWGSL());
         }
 
         // 空行
@@ -248,8 +236,6 @@ export class Shader implements IShader
         // 准备 attributes 配置（仅用于 vertex shader，且只包含实际使用的）
         const attributes = shaderType === 'vertex'
             ? Array.from(dependencies.attributes)
-                .map(attrName => this.attributes[attrName])
-                .filter(attr => attr !== undefined)
             : undefined;
 
         // 使用 entryFunc 生成函数代码
@@ -272,7 +258,7 @@ export class Shader implements IShader
 /**
  * 定义着色器（函数式方式）
  * @param name 着色器名称
- * @param builder 构建函数，在其中定义 attributes、uniforms、vertex 和 fragment 函数
+ * @param builder 构建函数，在其中定义 vertex 和 fragment 函数
  * @returns Shader 实例
  */
 export function shader(name: string, builder: () => void): Shader
@@ -280,7 +266,7 @@ export function shader(name: string, builder: () => void): Shader
     // 创建 Shader 实例
     const shaderInstance = new Shader();
 
-    // 设置当前 Shader 实例，以便 attribute、uniform 等函数可以自动收集
+    // 设置当前 Shader 实例，以便 vertex 和 fragment 函数可以自动收集
     setCurrentShaderInstance(shaderInstance);
 
     // 执行构建函数

@@ -1,4 +1,3 @@
-import { getCurrentShaderInstance } from './currentShaderInstance';
 import { IElement, IType } from './IElement';
 
 /**
@@ -59,19 +58,6 @@ export class Attribute implements IElement
  */
 export function attribute(name: string, location?: number): Attribute
 {
-    const def = new Attribute(name, location);
-
-    // 如果当前正在构造 Shader 实例，自动添加到 attributes 字典
-    const currentShaderInstance = getCurrentShaderInstance();
-    if (currentShaderInstance && currentShaderInstance.attributes)
-    {
-        if (currentShaderInstance.attributes[name])
-        {
-            throw new Error(`Attribute '${name}' 已经定义过了，不能重复定义。`);
-        }
-        currentShaderInstance.attributes[name] = def;
-    }
-
-    return def;
+    return new Attribute(name, location);
 }
 

@@ -256,7 +256,7 @@ export class Shader implements IShader
         let funcCode: string;
         if (entryFunc instanceof Vertex)
         {
-            funcCode = entryFunc.toWGSL('vertex', attributes);
+            funcCode = entryFunc.toWGSL(attributes);
         }
         else
         {

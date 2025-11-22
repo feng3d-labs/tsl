@@ -85,10 +85,9 @@ export class Func
 
     /**
      * 转换为 WGSL 代码
-     * @param shaderType 着色器类型（vertex 或 fragment）
      * @param attributes 属性列表（仅用于 vertex shader）
      */
-    toWGSL(shaderType: 'vertex' | 'fragment', attributes?: Attribute[]): string
+    toWGSL(attributes?: Attribute[]): string
     {
         const lines: string[] = [];
 
@@ -101,6 +100,13 @@ export class Func
         catch (error)
         {
             throw new Error(`执行函数 '${this.name}' 时出错: ${error}`);
+        }
+
+        // 从 shaderType 属性获取着色器类型
+        const shaderType = this.shaderType;
+        if (!shaderType)
+        {
+            throw new Error(`函数 '${this.name}' 没有设置 shaderType，无法生成 WGSL 代码。`);
         }
 
         // 生成函数签名

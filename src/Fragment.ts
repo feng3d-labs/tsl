@@ -26,7 +26,7 @@ export class Fragment extends Func
      */
     toWGSL(): string
     {
-        return super.toWGSL('fragment');
+        return super.toWGSL();
     }
 }
 

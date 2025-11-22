@@ -27,12 +27,11 @@ export class Vertex extends Func
 
     /**
      * 转换为 WGSL 代码（vertex shader）
-     * @param shaderType 着色器类型（忽略，固定为 'vertex'）
      * @param attributes 属性列表
      */
-    toWGSL(shaderType?: 'vertex' | 'fragment', attributes?: Attribute[]): string
+    toWGSL(attributes?: Attribute[]): string
     {
-        return super.toWGSL('vertex', attributes);
+        return super.toWGSL(attributes);
     }
 }
 

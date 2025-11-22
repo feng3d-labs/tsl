@@ -52,8 +52,8 @@ export class Vec4 implements IElement
             {
                 const builtin = args[0] as Builtin;
 
-                this.toGLSL = (type) => builtin.toGLSL(type);
-                this.toWGSL = (type) => builtin.toWGSL(type);
+                this.toGLSL = (type) => builtin.varName;
+                this.toWGSL = (type) => builtin.varName;
                 this.dependencies = [builtin];
                 builtin.value = this;
             }

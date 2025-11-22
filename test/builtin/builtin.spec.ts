@@ -49,6 +49,13 @@ describe('Builtin', () =>
             b.value = v;
             expect(b.toGLSL()).toBe('');
         });
+
+        it('应该返回正确的 GLSL 代码', () =>
+        {
+            const b = vec4(builtin('position', 'position_vec4'));
+
+            expect(b.toGLSL('vertex')).toBe('position_vec4');
+        });
     });
 
     describe('toWGSL', () =>

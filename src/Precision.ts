@@ -8,9 +8,6 @@ export function precision(value: 'lowp' | 'mediump' | 'highp'): void
 {
     // 如果当前正在构造 Shader 实例，设置 precision
     const currentShaderInstance = getCurrentShaderInstance();
-    if (currentShaderInstance && typeof currentShaderInstance.precision !== 'undefined')
-    {
-        currentShaderInstance.precision = value;
-    }
+    currentShaderInstance.precision = value;
 }
 

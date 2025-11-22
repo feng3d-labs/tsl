@@ -3,15 +3,20 @@ import { WebGL } from "@feng3d/webgl";
 import { WebGPU } from "@feng3d/webgpu";
 import { mat4 } from "gl-matrix";
 
+import vertexGlsl from "./shaders/vertex.glsl";
+import fragmentGlsl from "./shaders/fragment.glsl";
+import vertexWgsl from "./shaders/vertex.wgsl";
+import fragmentWgsl from "./shaders/fragment.wgsl";
+
 import { sample2Shader } from "./shaders/shader";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 使用 TSL 生成着色器代码
     const vertexGlsl = sample2Shader.generateGLSL('vertex', 'main');
-    const vertexWgsl = sample2Shader.generateWGSL('vertex', 'main');
     const fragmentGlsl = sample2Shader.generateGLSL('fragment', 'main');
-    const fragmentWgsl = sample2Shader.generateWGSL('fragment', 'main');
+    // const vertexWgsl = sample2Shader.generateWGSL('vertex', 'main');
+    // const fragmentWgsl = sample2Shader.generateWGSL('fragment', 'main');
 
     const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = {
         clearColorValue: [0, 0, 0, 1],

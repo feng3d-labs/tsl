@@ -3,7 +3,7 @@ import { _let, attribute, fragment, mat4, precision, shader, uniform, vec2, vec4
 export const sample2Shader = shader("sample2", () =>
 {
     // precision: 'lowp' | 'mediump' | 'highp' = 'highp';
-    precision('highp');
+    // precision('highp');
 
     // Vertex shader 的 attribute
     const aVertexPosition = vec2(attribute("aVertexPosition", 0));

@@ -17,12 +17,14 @@ export class Vec4 implements IElement
     toWGSL: () => string;
     dependencies: IElement[];
 
+    constructor();
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(xy: Vec2, z: number, w: number);
     constructor(x: number, y: number, z: number, w: number);
     constructor(...args: (number | Uniform | Attribute | Vec2)[])
     {
+        if (args.length === 0) return;
         if (args.length === 1)
         {
             // 处理 uniform 或 attribute

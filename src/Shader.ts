@@ -14,7 +14,7 @@ export class Shader implements IShader
     /**
      * GLSL 精度声明（仅用于 fragment shader）
      */
-    precision: 'lowp' | 'mediump' | 'highp' = 'highp';
+    precision: 'lowp' | 'mediump' | 'highp';
 
     /**
      * Vertex 函数字典（以函数名为 key）
@@ -137,14 +137,7 @@ export class Shader implements IShader
 
         // 分析函数体中使用的依赖
         let returnValue: any;
-        try
-        {
-            returnValue = entryFunc.body();
-        }
-        catch (error)
-        {
-            throw new Error(`执行函数 '${entryFunc.name}' 时出错: ${error}`);
-        }
+        returnValue = entryFunc.body();
         const dependencies = this.analyzeDependencies(returnValue);
 
         // 生成 attributes（仅 vertex shader，且只包含实际使用的）

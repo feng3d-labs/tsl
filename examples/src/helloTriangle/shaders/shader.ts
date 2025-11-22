@@ -1,4 +1,4 @@
-import { _return, attribute, fragment, precision, shader, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
+import { return_, attribute, fragment, precision, shader, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
 
 export const helloTriangle = shader("helloTriangle", () =>
 {
@@ -11,7 +11,7 @@ export const helloTriangle = shader("helloTriangle", () =>
     // Vertex shader 入口函数
     vertex("main", () =>
     {
-        _return(vec4(position, 0.0, 1.0));
+        return_(vec4(position, 0.0, 1.0));
     });
 
     // Fragment shader 入口函数
@@ -19,6 +19,6 @@ export const helloTriangle = shader("helloTriangle", () =>
     {
         precision('highp');
 
-        _return(color);
+        return_(color);
     });
 });

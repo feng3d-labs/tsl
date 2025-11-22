@@ -17,16 +17,16 @@ let squareRotation = 0.0;
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 使用 TSL 生成着色器代码
-    // const vertexGlsl = sample4Shader.generateVertexGLSL();
-    // const fragmentGlsl = sample4Shader.generateFragmentGLSL();
-    // const vertexWgsl = sample4Shader.generateVertexWGSL();
-    // const fragmentWgsl = sample4Shader.generateFragmentWGSL();
+    const vertexGlsl = sample4Shader.generateVertexGLSL();
+    const fragmentGlsl = sample4Shader.generateFragmentGLSL();
+    const vertexWgsl = sample4Shader.generateVertexWGSL();
+    const fragmentWgsl = sample4Shader.generateFragmentWGSL();
 
     // 如果需要使用原始 GLSL/WGSL 文件，可以取消下面的注释：
-    const vertexGlsl = vertexGlslOriginal;
-    const fragmentGlsl = fragmentGlslOriginal;
-    const vertexWgsl = vertexWgslOriginal;
-    const fragmentWgsl = fragmentWgslOriginal;
+    // const vertexGlsl = vertexGlslOriginal;
+    // const fragmentGlsl = fragmentGlslOriginal;
+    // const vertexWgsl = vertexWgslOriginal;
+    // const fragmentWgsl = fragmentWgslOriginal;
 
     const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = {
         clearColorValue: [0, 0, 0, 1],

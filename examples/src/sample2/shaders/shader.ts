@@ -1,4 +1,4 @@
-import { _let, _return, attribute, fragment, mat4, precision, shader, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
+import { let_, return_, attribute, fragment, mat4, precision, shader, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
 
 export const sample2Shader = shader("sample2", () =>
 {
@@ -12,15 +12,15 @@ export const sample2Shader = shader("sample2", () =>
     // Vertex shader 入口函数
     vertex("main", () =>
     {
-        const position = _let("position", vec4(aVertexPosition, 0.0, 1.0));
+        const position = let_("position", vec4(aVertexPosition, 0.0, 1.0));
 
-        _return(uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
+        return_(uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
     });
 
     // Fragment shader 入口函数
     fragment("main", () =>
     {
-        _return(vec4(1.0, 0.0, 1.0, 1.0));
+        return_(vec4(1.0, 0.0, 1.0, 1.0));
     });
 });
 

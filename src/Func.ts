@@ -29,17 +29,17 @@ export class Func
     }
 
     /**
-     * 转换为 GLSL 代码
-     * @param shaderType 着色器类型（vertex 或 fragment）
+     * 执行函数体并收集语句和依赖（如果尚未收集）
      */
-    toGLSL(shaderType: 'vertex' | 'fragment'): string
+    private executeBodyIfNeeded(): void
     {
-        const lines: string[] = [];
+        // 如果已经有依赖，说明已经执行过 body，不需要重复执行
+        if (this.dependencies.length > 0 || this.statements.length > 0)
+        {
+            return;
+        }
 
-        // 清空之前的语句
-        this.statements = [];
-
-        // 设置当前函数，以便 _let 和 _return 可以收集语句
+        // 设置当前函数，以便 _let 和 _return 可以收集语句和依赖
         setCurrentFunc(this);
 
         try
@@ -51,6 +51,18 @@ export class Func
             // 清除当前函数引用
             setCurrentFunc(null);
         }
+    }
+
+    /**
+     * 转换为 GLSL 代码
+     * @param shaderType 着色器类型（vertex 或 fragment）
+     */
+    toGLSL(shaderType: 'vertex' | 'fragment'): string
+    {
+        // 执行函数体收集语句和依赖（如果尚未收集）
+        this.executeBodyIfNeeded();
+
+        const lines: string[] = [];
 
         // 生成函数签名
         lines.push(`void ${this.name}() {`);
@@ -71,23 +83,10 @@ export class Func
      */
     toWGSL(attributes?: Attribute[]): string
     {
+        // 执行函数体收集语句和依赖（如果尚未收集）
+        this.executeBodyIfNeeded();
+
         const lines: string[] = [];
-
-        // 清空之前的语句
-        this.statements = [];
-
-        // 设置当前函数，以便 _let 和 _return 可以收集语句
-        setCurrentFunc(this);
-
-        try
-        {
-            this.body();
-        }
-        finally
-        {
-            // 清除当前函数引用
-            setCurrentFunc(null);
-        }
 
         // 从 shaderType 属性获取着色器类型
         const shaderType = this.shaderType;

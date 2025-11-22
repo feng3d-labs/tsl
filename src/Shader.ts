@@ -4,7 +4,6 @@ import { IShader } from './IShader';
 import { Uniform } from './Uniform';
 import { Vertex } from './Vertex';
 import { clearCurrentShaderInstance, setCurrentShaderInstance } from './currentShaderInstance';
-import { setCurrentFunc } from './currentFunc';
 
 /**
  * Shader 基类
@@ -96,29 +95,6 @@ export class Shader implements IShader
         return { attributes, uniforms };
     }
 
-    /**
-     * 收集函数的依赖（通过执行 body 来填充 dependencies）
-     * @param entryFunc 入口函数
-     */
-    private collectFunctionDependencies(entryFunc: Vertex | Fragment): void
-    {
-        // 清空之前的依赖
-        entryFunc.dependencies = [];
-
-        // 设置当前函数，以便 _let 和 _return 可以收集依赖
-        setCurrentFunc(entryFunc);
-
-        try
-        {
-            // 执行函数体，这会触发 _let 和 _return 收集依赖
-            entryFunc.body();
-        }
-        finally
-        {
-            // 清除当前函数引用
-            setCurrentFunc(null);
-        }
-    }
 
     /**
      * 生成 GLSL 着色器代码
@@ -161,8 +137,9 @@ export class Shader implements IShader
             lines.push(`precision ${this.precision} float;`);
         }
 
-        // 先收集函数的依赖（通过执行 body 来填充 dependencies）
-        this.collectFunctionDependencies(entryFunc);
+        // 先执行 body 收集依赖（通过调用 toGLSL 来触发，它会执行 body 并填充 dependencies）
+        // 这里只为了收集依赖，不生成完整代码
+        entryFunc.toGLSL();
 
         // 从函数的 dependencies 中分析获取 attributes 和 uniforms
         const dependencies = this.analyzeDependencies(entryFunc.dependencies);
@@ -188,7 +165,7 @@ export class Shader implements IShader
             lines.push('');
         }
 
-        // 使用 entryFunc 生成函数代码（会再次执行 body，但这次是为了生成代码）
+        // 使用 entryFunc 生成函数代码（不会再次执行 body，因为依赖已收集）
         const funcCode = entryFunc.toGLSL();
         lines.push(...funcCode.split('\n'));
 
@@ -230,8 +207,9 @@ export class Shader implements IShader
 
         const functionName = entryFunc.name;
 
-        // 先收集函数的依赖（通过执行 body 来填充 dependencies）
-        this.collectFunctionDependencies(entryFunc);
+        // 先执行 body 收集依赖（通过调用 toWGSL 来触发，它会执行 body 并填充 dependencies）
+        // 这里只为了收集依赖，不生成完整代码
+        entryFunc.toWGSL();
 
         // 从函数的 dependencies 中分析获取 attributes 和 uniforms
         const dependencies = this.analyzeDependencies(entryFunc.dependencies);
@@ -253,7 +231,7 @@ export class Shader implements IShader
             ? Array.from(dependencies.attributes)
             : undefined;
 
-        // 使用 entryFunc 生成函数代码（会再次执行 body，但这次是为了生成代码）
+        // 使用 entryFunc 生成函数代码（不会再次执行 body，因为依赖已收集）
         let funcCode: string;
         if (entryFunc instanceof Vertex)
         {

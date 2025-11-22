@@ -28,14 +28,13 @@ export class Builtin implements IElement
 
     toWGSL(): string
     {
-        // @builtin(position) position: vec4<f32>,
         const wgslType = this.value?.wgslType;
         if (!wgslType)
         {
             throw new Error(`Builtin '${this.builtinName}' 的 value 没有设置 wgslType，无法生成 WGSL。`);
         }
 
-        return `@builtin(${this.builtinName}) ${this.varName}: ${wgslType};`;
+        return `@builtin(${this.builtinName}) ${this.varName}: ${wgslType}`;
     }
 }
 

@@ -52,7 +52,12 @@ export class Vec4 implements IElement
             {
                 const builtin = args[0] as Builtin;
 
-                this.toGLSL = (type) => builtin.varName;
+                this.toGLSL = (type) =>
+                {
+                    if (builtin.builtinName === 'position') return 'gl_Position';
+
+                    throw new Error(`Builtin '${builtin.builtinName}' 不支持 GLSL，无法生成 GLSL 代码。`);
+                };
                 this.toWGSL = (type) => builtin.varName;
                 this.dependencies = [builtin];
                 builtin.value = this;

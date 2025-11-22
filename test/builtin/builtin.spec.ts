@@ -49,13 +49,6 @@ describe('Builtin', () =>
             b.value = v;
             expect(b.toGLSL()).toBe('');
         });
-
-        it('应该返回正确的 GLSL 代码', () =>
-        {
-            const b = vec4(builtin('position', 'position_vec4'));
-
-            expect(b.toGLSL('vertex')).toBe('position_vec4');
-        });
     });
 
     describe('toWGSL', () =>
@@ -79,7 +72,7 @@ describe('Builtin', () =>
             const b = new Builtin('position', 'position_vec4');
             const v = vec4(1.0, 2.0, 3.0, 4.0);
             b.value = v;
-            expect(b.toWGSL()).toBe('@builtin(position) position_vec4: vec4<f32>;');
+            expect(b.toWGSL()).toBe('@builtin(position) position_vec4: vec4<f32>');
         });
 
         it('应该返回不同变量名的 WGSL 代码', () =>
@@ -87,7 +80,7 @@ describe('Builtin', () =>
             const b = new Builtin('position', 'myPosition');
             const v = vec4(1.0, 2.0, 3.0, 4.0);
             b.value = v;
-            expect(b.toWGSL()).toBe('@builtin(position) myPosition: vec4<f32>;');
+            expect(b.toWGSL()).toBe('@builtin(position) myPosition: vec4<f32>');
         });
     });
 
@@ -122,10 +115,8 @@ describe('builtin() 函数', () =>
 
     it('应该能够生成正确的 GLSL 代码', () =>
     {
-        const result = builtin('position', 'position_vec4');
-        const v = vec4(1.0, 2.0, 3.0, 4.0);
-        result.value = v;
-        expect(result.toGLSL()).toBe('');
+        const result = vec4(builtin('position', 'position_vec4'));
+        expect(result.toGLSL('vertex')).toBe('gl_Position');
     });
 
     it('应该能够生成正确的 WGSL 代码', () =>
@@ -133,7 +124,7 @@ describe('builtin() 函数', () =>
         const result = builtin('position', 'position_vec4');
         const v = vec4(1.0, 2.0, 3.0, 4.0);
         result.value = v;
-        expect(result.toWGSL()).toBe('@builtin(position) position_vec4: vec4<f32>;');
+        expect(result.toWGSL()).toBe('@builtin(position) position_vec4: vec4<f32>');
     });
 
     it('应该支持不同的内置变量名称', () =>

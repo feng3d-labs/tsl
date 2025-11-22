@@ -8,8 +8,8 @@ export class Vec3 implements IType
     readonly glslType = 'vec3';
     readonly wgslType = 'vec3<f32>';
     dependencies: IElement[];
-    toGLSL: () => string;
-    toWGSL: () => string;
+    toGLSL: (type: 'vertex' | 'fragment') => string;
+    toWGSL: (type: 'vertex' | 'fragment') => string;
 
     constructor();
     constructor(uniform: Uniform);
@@ -22,16 +22,16 @@ export class Vec3 implements IType
         {
             const uniform = args[0] as Uniform;
             this.dependencies = [uniform];
-            this.toGLSL = () => uniform.name;
-            this.toWGSL = () => uniform.name;
+            this.toGLSL = (type: 'vertex' | 'fragment') => uniform.name;
+            this.toWGSL = (type: 'vertex' | 'fragment') => uniform.name;
             uniform.value = this;
         }
         else if (args.length === 1 && args[0] instanceof Attribute)
         {
             const attribute = args[0] as Attribute;
             this.dependencies = [attribute];
-            this.toGLSL = () => attribute.name;
-            this.toWGSL = () => attribute.name;
+            this.toGLSL = (type: 'vertex' | 'fragment') => attribute.name;
+            this.toWGSL = (type: 'vertex' | 'fragment') => attribute.name;
             attribute.value = this;
         }
         else if (args.length === 3 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number')
@@ -39,8 +39,8 @@ export class Vec3 implements IType
             const x = args[0] as number;
             const y = args[1] as number;
             const z = args[2] as number;
-            this.toGLSL = () => `vec3(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
-            this.toWGSL = () => `vec3<f32>(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
+            this.toGLSL = (type: 'vertex' | 'fragment') => `vec3(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
+            this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<f32>(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
             this.dependencies = [];
         }
         else

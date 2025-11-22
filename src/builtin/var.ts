@@ -12,8 +12,8 @@ export function var_<T extends IType>(name: string, expr: T): T
     const cls = expr.constructor;
     const result: IType = new (cls as any)();
 
-    result.toGLSL = () => `${name}`;
-    result.toWGSL = () => `${name}`;
+    result.toGLSL = (type: 'vertex' | 'fragment') => `${name}`;
+    result.toWGSL = (type: 'vertex' | 'fragment') => `${name}`;
     result.dependencies = [expr];
 
     // 收集 var 语句
@@ -21,8 +21,8 @@ export function var_<T extends IType>(name: string, expr: T): T
     if (currentFunc)
     {
         currentFunc.statements.push({
-            toGLSL: () => `${expr.glslType} ${name} = ${expr.toGLSL()};`,
-            toWGSL: () => `var ${name} = ${expr.toWGSL()};`,
+            toGLSL: (type: 'vertex' | 'fragment') => `${expr.glslType} ${name} = ${expr.toGLSL(type)};`,
+            toWGSL: (type: 'vertex' | 'fragment') => `var ${name} = ${expr.toWGSL(type)};`,
         });
         // 收集依赖
         currentFunc.dependencies.push(result);

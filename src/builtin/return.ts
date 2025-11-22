@@ -12,20 +12,20 @@ export function return_<T extends IType>(expr: T): void
     if (currentFunc)
     {
         currentFunc.statements.push({
-            toGLSL: (type?: 'vertex' | 'fragment') =>
+            toGLSL: (type: 'vertex' | 'fragment') =>
             {
                 if (type === 'vertex')
                 {
-                    return `gl_Position = ${expr.toGLSL()};`;
+                    return `gl_Position = ${expr.toGLSL(type)};`;
                 }
                 else if (type === 'fragment')
                 {
-                    return `gl_FragColor = ${expr.toGLSL()};`;
+                    return `gl_FragColor = ${expr.toGLSL(type)};`;
                 }
 
-                return `return ${expr.toGLSL()};`;
+                return `return ${expr.toGLSL(type)};`;
             },
-            toWGSL: () => `return ${expr.toWGSL()};`,
+            toWGSL: (type: 'vertex' | 'fragment') => `return ${expr.toWGSL(type)};`,
         });
         currentFunc.dependencies.push(expr);
     }

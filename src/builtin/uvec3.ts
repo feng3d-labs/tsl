@@ -12,8 +12,8 @@ export class Uvec3 implements IType
     readonly wgslType = 'vec3<u32>';
 
     dependencies: IElement[];
-    toGLSL: () => string;
-    toWGSL: () => string;
+    toGLSL: (type: 'vertex' | 'fragment') => string;
+    toWGSL: (type: 'vertex' | 'fragment') => string;
 
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
@@ -69,8 +69,8 @@ export class Uvec3 implements IType
     get x(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.x`;
-        float.toWGSL = () => `${this.toWGSL()}.x`;
+        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.x`;
+        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.x`;
         float.dependencies = [this];
 
         return float;
@@ -82,8 +82,8 @@ export class Uvec3 implements IType
     get y(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.y`;
-        float.toWGSL = () => `${this.toWGSL()}.y`;
+        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.y`;
+        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.y`;
         float.dependencies = [this];
 
         return float;
@@ -95,8 +95,8 @@ export class Uvec3 implements IType
     get z(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.z`;
-        float.toWGSL = () => `${this.toWGSL()}.z`;
+        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.z`;
+        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.z`;
         float.dependencies = [this];
 
         return float;

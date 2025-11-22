@@ -14,8 +14,8 @@ export class Vec4 implements IElement
     readonly glslType = 'vec4';
     readonly wgslType = 'vec4<f32>';
 
-    toGLSL: (type?: 'vertex' | 'fragment') => string;
-    toWGSL: (type?: 'vertex' | 'fragment') => string;
+    toGLSL: (type: 'vertex' | 'fragment') => string;
+    toWGSL: (type: 'vertex' | 'fragment') => string;
     dependencies: IElement[];
 
     constructor();
@@ -35,16 +35,16 @@ export class Vec4 implements IElement
                 const uniform = args[0] as Uniform;
                 uniform.value = this;
 
-                this.toGLSL = () => uniform.name;
-                this.toWGSL = () => uniform.name;
+                this.toGLSL = (type: 'vertex' | 'fragment') => uniform.name;
+                this.toWGSL = (type: 'vertex' | 'fragment') => uniform.name;
                 this.dependencies = [uniform];
             }
             else if (args[0] instanceof Attribute)
             {
                 const attribute = args[0] as Attribute;
 
-                this.toGLSL = () => attribute.name;
-                this.toWGSL = () => attribute.name;
+                this.toGLSL = (type: 'vertex' | 'fragment') => attribute.name;
+                this.toWGSL = (type: 'vertex' | 'fragment') => attribute.name;
                 this.dependencies = [attribute];
                 attribute.value = this;
             }
@@ -69,8 +69,8 @@ export class Vec4 implements IElement
             const z = args[1] as number;
             const w = args[2] as number;
 
-            this.toGLSL = () => `vec4(${xy.toGLSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
-            this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
+            this.toGLSL = (type: 'vertex' | 'fragment') => `vec4(${xy.toGLSL(type)}, ${formatNumber(z)}, ${formatNumber(w)})`;
+            this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${xy.toWGSL(type)}, ${formatNumber(z)}, ${formatNumber(w)})`;
             this.dependencies = [xy];
         }
         else if (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number' && typeof args[3] === 'number')
@@ -81,8 +81,8 @@ export class Vec4 implements IElement
             const z = args[2] as number;
             const w = args[3] as number;
 
-            this.toGLSL = () => `vec4(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)}, ${formatNumber(w)})`;
-            this.toWGSL = () => `vec4<f32>(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)}, ${formatNumber(w)})`;
+            this.toGLSL = (type: 'vertex' | 'fragment') => `vec4(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)}, ${formatNumber(w)})`;
+            this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)}, ${formatNumber(w)})`;
             this.dependencies = [];
         }
         else
@@ -97,8 +97,8 @@ export class Vec4 implements IElement
     get x(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.x`;
-        float.toWGSL = () => `${this.toWGSL()}.x`;
+        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.x`;
+        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.x`;
         float.dependencies = [this];
 
         return float;
@@ -110,8 +110,8 @@ export class Vec4 implements IElement
     get y(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.y`;
-        float.toWGSL = () => `${this.toWGSL()}.y`;
+        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.y`;
+        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.y`;
         float.dependencies = [this];
 
         return float;
@@ -123,8 +123,8 @@ export class Vec4 implements IElement
     get z(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.z`;
-        float.toWGSL = () => `${this.toWGSL()}.z`;
+        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.z`;
+        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.z`;
         float.dependencies = [this];
 
         return float;
@@ -136,8 +136,8 @@ export class Vec4 implements IElement
     get w(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.w`;
-        float.toWGSL = () => `${this.toWGSL()}.w`;
+        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.w`;
+        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.w`;
         float.dependencies = [this];
 
         return float;

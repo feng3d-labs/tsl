@@ -12,8 +12,8 @@ export class IVec2 implements IType
     readonly wgslType = 'vec2<i32>';
 
     dependencies: IElement[];
-    toGLSL: () => string;
-    toWGSL: () => string;
+    toGLSL: (type: 'vertex' | 'fragment') => string;
+    toWGSL: (type: 'vertex' | 'fragment') => string;
 
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
@@ -27,8 +27,8 @@ export class IVec2 implements IType
             {
                 const uniform = args[0] as Uniform;
 
-                this.toGLSL = () => uniform.name;
-                this.toWGSL = () => uniform.name;
+                this.toGLSL = (type: 'vertex' | 'fragment') => uniform.name;
+                this.toWGSL = (type: 'vertex' | 'fragment') => uniform.name;
                 this.dependencies = [uniform];
 
                 uniform.value = this;
@@ -37,8 +37,8 @@ export class IVec2 implements IType
             {
                 const attribute = args[0] as Attribute;
 
-                this.toGLSL = () => attribute.name;
-                this.toWGSL = () => attribute.name;
+                this.toGLSL = (type: 'vertex' | 'fragment') => attribute.name;
+                this.toWGSL = (type: 'vertex' | 'fragment') => attribute.name;
                 this.dependencies = [attribute];
 
                 attribute.value = this;
@@ -52,8 +52,8 @@ export class IVec2 implements IType
         {
             const x = args[0] as number;
             const y = args[1] as number;
-            this.toGLSL = () => `ivec2(${x}, ${y})`;
-            this.toWGSL = () => `vec2<i32>(${x}, ${y})`;
+            this.toGLSL = (type: 'vertex' | 'fragment') => `ivec2(${x}, ${y})`;
+            this.toWGSL = (type: 'vertex' | 'fragment') => `vec2<i32>(${x}, ${y})`;
             this.dependencies = [];
         }
         else
@@ -68,8 +68,8 @@ export class IVec2 implements IType
     get x(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.x`;
-        float.toWGSL = () => `${this.toWGSL()}.x`;
+        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.x`;
+        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.x`;
         float.dependencies = [this];
 
         return float;
@@ -81,8 +81,8 @@ export class IVec2 implements IType
     get y(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.y`;
-        float.toWGSL = () => `${this.toWGSL()}.y`;
+        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.y`;
+        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.y`;
         float.dependencies = [this];
 
         return float;

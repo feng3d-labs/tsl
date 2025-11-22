@@ -16,7 +16,7 @@ export class Builtin implements IElement
         this.varName = varName;
     }
 
-    toGLSL(type?: 'vertex' | 'fragment'): string
+    toGLSL(type: 'vertex' | 'fragment'): string
     {
         // 根据内置变量名称和着色器类型返回对应的 GLSL 变量名
         if (this.builtinName === 'position')
@@ -30,7 +30,7 @@ export class Builtin implements IElement
         throw `内置变量 ${this.builtinName} 不支持 GLSL`;
     }
 
-    toWGSL(type?: 'vertex' | 'fragment'): string
+    toWGSL(type: 'vertex' | 'fragment'): string
     {
         // 返回用户自定义的变量名
         return this.varName;

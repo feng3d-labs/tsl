@@ -25,26 +25,26 @@ export class Attribute implements IElement
     /**
      * 转换为 GLSL 代码
      */
-    toGLSL(): string
+    toGLSL(type: 'vertex' | 'fragment'): string
     {
         if (!this.value)
         {
             throw new Error(`Attribute '${this.name}' 没有设置 value，无法生成 GLSL。`);
         }
-        const type = this.value?.glslType;
+        const glslType = this.value?.glslType;
 
-        return `attribute ${type} ${this.name};`;
+        return `attribute ${glslType} ${this.name};`;
     }
 
     /**
      * 转换为 WGSL 代码（用于函数参数）
      */
-    toWGSL(): string
+    toWGSL(type: 'vertex' | 'fragment'): string
     {
-        const type = this.value?.wgslType;
+        const wgslType = this.value?.wgslType;
         const location = this.location !== undefined ? `@location(${this.location})` : '@location(0)';
 
-        return `${location} ${this.name}: ${type}`;
+        return `${location} ${this.name}: ${wgslType}`;
     }
 
 }

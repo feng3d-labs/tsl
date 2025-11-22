@@ -13,22 +13,22 @@ export function assign(target: IType, value: IType): void
     if (currentFunc)
     {
         currentFunc.statements.push({
-            toGLSL: (type?: 'vertex' | 'fragment') =>
+            toGLSL: (type: 'vertex' | 'fragment') =>
             {
                 return `${target.toGLSL(type)} = ${value.toGLSL(type)};`;
             },
-            toWGSL: (type?: 'vertex' | 'fragment') =>
+            toWGSL: (type: 'vertex' | 'fragment') =>
             {
                 // 在 WGSL 中，如果是 vertex shader 的 position，需要特殊处理
                 const isPositionBuiltin = target instanceof Builtin && target.builtinName === 'position';
                 if (isPositionBuiltin && type === 'vertex')
                 {
                     // 在 vertex shader 中，position 是返回值，使用 return
-                    return `return ${value.toWGSL()};`;
+                    return `return ${value.toWGSL(type)};`;
                 }
                 else
                 {
-                    return `${target.toWGSL(type)} = ${value.toWGSL()};`;
+                    return `${target.toWGSL(type)} = ${value.toWGSL(type)};`;
                 }
             },
         });

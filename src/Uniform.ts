@@ -29,21 +29,21 @@ export class Uniform implements IElement
     /**
      * 转换为 GLSL 代码
      */
-    toGLSL(): string
+    toGLSL(type: 'vertex' | 'fragment'): string
     {
         if (!this.value)
         {
             throw new Error(`Uniform '${this.name}' 没有设置 value，无法生成 GLSL。`);
         }
-        const type = this.value.glslType;
+        const glslType = this.value.glslType;
 
-        return `uniform ${type} ${this.name};`;
+        return `uniform ${glslType} ${this.name};`;
     }
 
     /**
      * 转换为 WGSL 代码
      */
-    toWGSL(): string
+    toWGSL(type: 'vertex' | 'fragment'): string
     {
         if (!this.value)
         {

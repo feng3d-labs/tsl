@@ -107,7 +107,7 @@ export class Func
             {
                 for (const attr of attributes)
                 {
-                    params.push(attr.toWGSL());
+                    params.push(attr.toWGSL('vertex'));
                 }
             }
 

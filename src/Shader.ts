@@ -143,13 +143,13 @@ export class Shader implements IShader
         // 生成 attributes（只包含实际使用的）
         for (const attr of dependencies.attributes)
         {
-            lines.push(attr.toGLSL());
+            lines.push(attr.toGLSL('vertex'));
         }
 
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)
         {
-            lines.push(uniform.toGLSL());
+            lines.push(uniform.toGLSL('vertex'));
         }
 
         // 空行
@@ -205,13 +205,13 @@ export class Shader implements IShader
         // Fragment shader 需要 precision 声明（从函数依赖中获取）
         if (dependencies.precision)
         {
-            lines.push(dependencies.precision.toGLSL());
+            lines.push(dependencies.precision.toGLSL('fragment'));
         }
 
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)
         {
-            lines.push(uniform.toGLSL());
+            lines.push(uniform.toGLSL('fragment'));
         }
 
         // 空行
@@ -259,7 +259,7 @@ export class Shader implements IShader
 
         // 先执行 body 收集依赖（通过调用 toWGSL 来触发，它会执行 body 并填充 dependencies）
         // 这里只为了收集依赖，不生成完整代码
-        entryFunc.toWGSL();
+        entryFunc.toWGSL([]);
 
         // 从函数的 dependencies 中分析获取 attributes 和 uniforms
         const dependencies = this.analyzeDependencies(entryFunc.dependencies);
@@ -267,7 +267,7 @@ export class Shader implements IShader
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)
         {
-            lines.push(uniform.toWGSL());
+            lines.push(uniform.toWGSL('vertex'));
         }
 
         // 空行
@@ -326,7 +326,7 @@ export class Shader implements IShader
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)
         {
-            lines.push(uniform.toWGSL());
+            lines.push(uniform.toWGSL('fragment'));
         }
 
         // 空行

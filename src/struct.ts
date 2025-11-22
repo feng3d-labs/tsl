@@ -6,8 +6,8 @@ export class Struct implements IElement
 {
     readonly __type__ = STRUCT_SYMBOL;
 
-    toGLSL: () => string;
-    toWGSL: () => string;
+    toGLSL: (type: 'vertex' | 'fragment') => string;
+    toWGSL: (type: 'vertex' | 'fragment') => string;
 
     dependencies: IElement[];
     readonly name: string;
@@ -18,8 +18,8 @@ export class Struct implements IElement
         this.name = name;
         this.fields = fields;
 
-        this.toGLSL = () => `struct ${this.name} { ${Object.entries(this.fields).map(([key, value]) => `${key}: ${value.toGLSL()}`).join('; ')} };`;
-        this.toWGSL = () => `struct ${this.name} { ${Object.entries(this.fields).map(([key, value]) => `${key}: ${value.toWGSL()}`).join('; ')} };`;
+        this.toGLSL = (type: 'vertex' | 'fragment') => `struct ${this.name} { ${Object.entries(this.fields).map(([key, value]) => `${key}: ${value.toGLSL(type)}`).join('; ')} };`;
+        this.toWGSL = (type: 'vertex' | 'fragment') => `struct ${this.name} { ${Object.entries(this.fields).map(([key, value]) => `${key}: ${value.toWGSL(type)}`).join('; ')} };`;
         this.dependencies = Object.values(fields);
     }
 }

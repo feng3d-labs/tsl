@@ -4,6 +4,7 @@ import { vec2 } from '../src/builtin/vec2';
 import { shader } from '../src/Shader';
 import { vertex } from '../src/Vertex';
 import { vec4 } from '../src/builtin/vec4';
+import { _return } from '../src/index';
 
 describe('Attribute', () =>
 {
@@ -58,7 +59,7 @@ describe('Attribute', () =>
 
                 vertex('main', () =>
                 {
-                    return vec4(position, 0.0, 1.0);
+                    _return(vec4(position, 0.0, 1.0));
                 });
             });
 

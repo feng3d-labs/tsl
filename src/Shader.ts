@@ -4,6 +4,7 @@ import { IShader } from './IShader';
 import { Uniform } from './Uniform';
 import { Vertex } from './Vertex';
 import { clearCurrentShaderInstance, setCurrentShaderInstance } from './currentShaderInstance';
+import { setCurrentFunc } from './currentFunc';
 
 /**
  * Shader 基类
@@ -34,11 +35,11 @@ export class Shader implements IShader
     }
 
     /**
-     * 分析函数返回值中使用的依赖（attributes 和 uniforms）
-     * @param returnValue 函数返回值
+     * 分析函数依赖中使用的 attributes 和 uniforms
+     * @param dependencies 函数依赖数组
      * @returns 使用的 Attribute 和 Uniform 实例集合
      */
-    private analyzeDependencies(returnValue: any): { attributes: Set<Attribute>; uniforms: Set<Uniform> }
+    private analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform> }
     {
         const attributes = new Set<Attribute>();
         const uniforms = new Set<Uniform>();
@@ -61,18 +62,7 @@ export class Shader implements IShader
                 visited.add(value);
             }
 
-            // 如果是 IElement 实例（Vec2, Vec4 等），分析其 dependencies
-            if (typeof value === 'object' && 'dependencies' in value && Array.isArray(value.dependencies))
-            {
-                for (const dep of value.dependencies)
-                {
-                    analyzeValue(dep);
-                }
-
-                return;
-            }
-
-            // 如果是 Uniform 或 Attribute 实例
+            // 如果是 Uniform 或 Attribute 实例，直接添加
             if (value instanceof Uniform)
             {
                 uniforms.add(value);
@@ -87,11 +77,47 @@ export class Shader implements IShader
                 return;
             }
 
+            // 如果是 IElement 实例（Vec2, Vec4 等），分析其 dependencies
+            if (typeof value === 'object' && 'dependencies' in value && Array.isArray(value.dependencies))
+            {
+                for (const dep of value.dependencies)
+                {
+                    analyzeValue(dep);
+                }
+            }
         };
 
-        analyzeValue(returnValue);
+        // 分析所有依赖
+        for (const dep of dependencies)
+        {
+            analyzeValue(dep);
+        }
 
         return { attributes, uniforms };
+    }
+
+    /**
+     * 收集函数的依赖（通过执行 body 来填充 dependencies）
+     * @param entryFunc 入口函数
+     */
+    private collectFunctionDependencies(entryFunc: Vertex | Fragment): void
+    {
+        // 清空之前的依赖
+        entryFunc.dependencies = [];
+
+        // 设置当前函数，以便 _let 和 _return 可以收集依赖
+        setCurrentFunc(entryFunc);
+
+        try
+        {
+            // 执行函数体，这会触发 _let 和 _return 收集依赖
+            entryFunc.body();
+        }
+        finally
+        {
+            // 清除当前函数引用
+            setCurrentFunc(null);
+        }
     }
 
     /**
@@ -135,10 +161,11 @@ export class Shader implements IShader
             lines.push(`precision ${this.precision} float;`);
         }
 
-        // 分析函数体中使用的依赖
-        let returnValue: any;
-        returnValue = entryFunc.body();
-        const dependencies = this.analyzeDependencies(returnValue);
+        // 先收集函数的依赖（通过执行 body 来填充 dependencies）
+        this.collectFunctionDependencies(entryFunc);
+
+        // 从函数的 dependencies 中分析获取 attributes 和 uniforms
+        const dependencies = this.analyzeDependencies(entryFunc.dependencies);
 
         // 生成 attributes（仅 vertex shader，且只包含实际使用的）
         if (shaderType === 'vertex')
@@ -161,7 +188,7 @@ export class Shader implements IShader
             lines.push('');
         }
 
-        // 使用 entryFunc 生成函数代码
+        // 使用 entryFunc 生成函数代码（会再次执行 body，但这次是为了生成代码）
         const funcCode = entryFunc.toGLSL();
         lines.push(...funcCode.split('\n'));
 
@@ -203,17 +230,11 @@ export class Shader implements IShader
 
         const functionName = entryFunc.name;
 
-        // 分析函数体中使用的依赖
-        let returnValue: any;
-        try
-        {
-            returnValue = entryFunc.body();
-        }
-        catch (error)
-        {
-            throw new Error(`执行函数 '${entryFunc.name}' 时出错: ${error}`);
-        }
-        const dependencies = this.analyzeDependencies(returnValue);
+        // 先收集函数的依赖（通过执行 body 来填充 dependencies）
+        this.collectFunctionDependencies(entryFunc);
+
+        // 从函数的 dependencies 中分析获取 attributes 和 uniforms
+        const dependencies = this.analyzeDependencies(entryFunc.dependencies);
 
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)
@@ -232,7 +253,7 @@ export class Shader implements IShader
             ? Array.from(dependencies.attributes)
             : undefined;
 
-        // 使用 entryFunc 生成函数代码
+        // 使用 entryFunc 生成函数代码（会再次执行 body，但这次是为了生成代码）
         let funcCode: string;
         if (entryFunc instanceof Vertex)
         {

@@ -12,7 +12,7 @@ export class Vertex extends Func
 {
     readonly shaderType = 'vertex' as const;
 
-    constructor(name: string, body: () => any)
+    constructor(name: string, body: () => void)
     {
         super(name, body, 'vertex');
     }
@@ -41,7 +41,7 @@ export class Vertex extends Func
  * @param body 函数体
  * @returns Vertex 实例
  */
-export function vertex(name: string, body: () => any): Vertex
+export function vertex(name: string, body: () => void): Vertex
 {
     const def = new Vertex(name, body);
 

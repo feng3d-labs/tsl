@@ -10,17 +10,15 @@ export const sample4Shader = shader("sample4", () =>
     const uModelViewMatrix = mat4(uniform("uModelViewMatrix", 0, 0));
     const uProjectionMatrix = mat4(uniform("uProjectionMatrix", 1, 0));
 
-    const position = vec4(builtin("position", "position_vec4"));
-    // const vColor = vec4(varying("vColor", 0));
+    const positionBuiltin = vec4(builtin("position", "position_vec4"));
 
     // Vertex shader 入口函数
     vertex("main", () =>
     {
-        const position = var_("position", vec4(1.0, 1, 0.0, 1.0));
-        assign(position, vec4(aVertexPosition, 0.0, 1.0));
-        // const position = let_("position", vec4(aVertexPosition, 0.0, 1.0));
+        const position = let_("position", vec4(aVertexPosition, 0.0, 1.0));
 
         return_(uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
+        // assign(positionBuiltin, uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
         // assign(vColor, aVertexColor);
     });
 

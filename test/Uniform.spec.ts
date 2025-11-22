@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Uniform, uniform } from '../src/Uniform';
 import { vec4 } from '../src/builtin/vec4';
 import { shader } from '../src/Shader';
+import { fragment } from '../src/Fragment';
 
 describe('Uniform', () =>
 {

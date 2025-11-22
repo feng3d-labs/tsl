@@ -79,6 +79,7 @@ export class Shader implements IShader
 
                 return;
             }
+
             if (value instanceof Attribute)
             {
                 attributes.add(value);

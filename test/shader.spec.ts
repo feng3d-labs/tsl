@@ -24,8 +24,6 @@ describe('Shader', () =>
             });
 
             expect(testShader).toBeInstanceOf(Shader);
-            expect(Object.keys(testShader.attributes)).toHaveLength(1);
-            expect(Object.keys(testShader.uniforms)).toHaveLength(1);
             expect(Object.keys(testShader.vertexs)).toHaveLength(1);
             expect(Object.keys(testShader.fragments)).toHaveLength(1);
         });

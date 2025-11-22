@@ -10,7 +10,7 @@ export class Builtin implements IElement
     value: IType;
     dependencies: IElement[] = [];
 
-    constructor(builtinName: string, varName: string)
+    constructor(builtinName: 'position', varName: string)
     {
         this.builtinName = builtinName;
         this.varName = varName;
@@ -43,7 +43,7 @@ export class Builtin implements IElement
  * @param varName 用户自定义的变量名称（如 'position_vec4'）
  * @returns Builtin 实例
  */
-export function builtin(builtinName: string, varName: string): Builtin
+export function builtin(builtinName: 'position', varName: string): Builtin
 {
     return new Builtin(builtinName, varName);
 }

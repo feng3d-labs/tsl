@@ -34,8 +34,8 @@ describe('vec3', () =>
         {
             const uniform = new Uniform('uPosition', 0, 0);
             const result = vec3(uniform);
-            expect(result.toGLSL()).toBe('uPosition');
-            expect(result.toWGSL()).toBe('uPosition');
+            expect(result.toGLSL('vertex')).toBe('uPosition');
+            expect(result.toWGSL('vertex')).toBe('uPosition');
         });
 
         it('应该设置正确的 dependencies', () =>
@@ -66,8 +66,8 @@ describe('vec3', () =>
         {
             const attribute = new Attribute('aPosition', 0);
             const result = vec3(attribute);
-            expect(result.toGLSL()).toBe('aPosition');
-            expect(result.toWGSL()).toBe('aPosition');
+            expect(result.toGLSL('vertex')).toBe('aPosition');
+            expect(result.toWGSL('vertex')).toBe('aPosition');
         });
 
         it('应该设置正确的 dependencies', () =>
@@ -89,13 +89,13 @@ describe('vec3', () =>
         it('应该正确设置 toGLSL 方法', () =>
         {
             const result = vec3(1.0, 2.0, 3.0);
-            expect(result.toGLSL()).toBe('vec3(1.0, 2.0, 3.0)');
+            expect(result.toGLSL('vertex')).toBe('vec3(1.0, 2.0, 3.0)');
         });
 
         it('应该正确设置 toWGSL 方法', () =>
         {
             const result = vec3(1.0, 2.0, 3.0);
-            expect(result.toWGSL()).toBe('vec3<f32>(1.0, 2.0, 3.0)');
+            expect(result.toWGSL('vertex')).toBe('vec3<f32>(1.0, 2.0, 3.0)');
         });
 
         it('应该设置空的 dependencies', () =>

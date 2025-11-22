@@ -20,21 +20,21 @@ describe('Uniform', () =>
         it('应该在没有设置 value 时抛出错误', () =>
         {
             const uni = new Uniform('color', 0, 0);
-            expect(() => uni.toGLSL()).toThrow(/没有设置 value/);
+            expect(() => uni.toGLSL('fragment')).toThrow(/没有设置 value/);
         });
 
         it('应该能够设置 value 并生成 GLSL', () =>
         {
             const uni = new Uniform('color', 0, 0);
             vec4(uni);
-            expect(uni.toGLSL()).toBe('uniform vec4 color;');
+            expect(uni.toGLSL('fragment')).toBe('uniform vec4 color;');
         });
 
         it('应该能够生成 WGSL', () =>
         {
             const uni = new Uniform('color', 0, 0);
             vec4(uni);
-            expect(uni.toWGSL()).toBe('@binding(0) @group(0) var<uniform> color : vec4<f32>;');
+            expect(uni.toWGSL('fragment')).toBe('@binding(0) @group(0) var<uniform> color : vec4<f32>;');
         });
 
     });
@@ -56,8 +56,8 @@ describe('Uniform', () =>
             {
                 const color = vec4(uniform('color', 0, 0));
                 expect(color).toBeDefined();
-                expect(color.toGLSL()).toBe('color');
-                expect(color.toWGSL()).toBe('color');
+                expect(color.toGLSL('fragment')).toBe('color');
+                expect(color.toWGSL('fragment')).toBe('color');
 
                 fragment('main', () =>
                 {

@@ -50,15 +50,17 @@ describe('Builtin', () =>
 
         it('应该为不支持的内置变量抛出错误', () =>
         {
+            // @ts-ignore
             const b = new Builtin('unknown', 'unknown_var');
             expect(() => b.toGLSL('vertex')).toThrow('内置变量 unknown 不支持 GLSL');
         });
 
-        it('应该在没有指定 type 时为 position 抛出错误', () =>
+        it('应该要求传入 type 参数', () =>
         {
             const b = new Builtin('position', 'position_vec4');
-            // 注意：根据实现，如果没有指定 type，会抛出错误
-            expect(() => b.toGLSL()).toThrow('内置变量 position 不能用于 fragment shader');
+            // type 参数现在是必需的，不传入会报 TypeScript 错误
+            // 这里测试传入正确的参数
+            expect(b.toGLSL('vertex')).toBe('gl_Position');
         });
     });
 
@@ -67,13 +69,13 @@ describe('Builtin', () =>
         it('应该返回用户自定义的变量名', () =>
         {
             const b = new Builtin('position', 'position_vec4');
-            expect(b.toWGSL()).toBe('position_vec4');
+            expect(b.toWGSL('vertex')).toBe('position_vec4');
         });
 
         it('应该返回不同的自定义变量名', () =>
         {
             const b = new Builtin('position', 'myPosition');
-            expect(b.toWGSL()).toBe('myPosition');
+            expect(b.toWGSL('vertex')).toBe('myPosition');
         });
 
         it('应该在 vertex shader 中返回用户自定义的变量名', () =>
@@ -127,7 +129,7 @@ describe('builtin() 函数', () =>
     it('应该能够生成正确的 WGSL 代码', () =>
     {
         const result = builtin('position', 'position_vec4');
-        expect(result.toWGSL()).toBe('position_vec4');
+        expect(result.toWGSL('vertex')).toBe('position_vec4');
     });
 
     it('应该支持不同的内置变量名称', () =>

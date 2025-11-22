@@ -10,6 +10,7 @@ export const sample4Shader = shader("sample4", () =>
     const uModelViewMatrix = mat4(uniform("uModelViewMatrix", 0, 0));
     const uProjectionMatrix = mat4(uniform("uProjectionMatrix", 1, 0));
 
+    // const position = vec4(builtin("position"));
     // const vColor = vec4(varying("vColor", 0));
 
     // Vertex shader 入口函数

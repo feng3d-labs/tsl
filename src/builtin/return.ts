@@ -12,7 +12,19 @@ export function _return<T extends IElement>(expr: T): void
     if (currentFunc)
     {
         currentFunc.statements.push({
-            toGLSL: () => `return ${expr.toGLSL()};`,
+            toGLSL: (type?: 'vertex' | 'fragment') =>
+            {
+                if (type === 'vertex')
+                {
+                    return `gl_Position = ${expr.toGLSL()};`;
+                }
+                else if (type === 'fragment')
+                {
+                    return `gl_FragColor = ${expr.toGLSL()};`;
+                }
+
+                return `return ${expr.toGLSL()};`;
+            },
             toWGSL: () => `return ${expr.toWGSL()};`,
         });
         currentFunc.dependencies.push(expr);

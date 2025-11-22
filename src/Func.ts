@@ -69,7 +69,7 @@ export class Func
 
         this.statements.forEach(stmt =>
         {
-            lines.push(stmt.toGLSL());
+            lines.push(`    ${stmt.toGLSL(shaderType)}`);
         });
 
         lines.push('}');
@@ -116,7 +116,7 @@ export class Func
 
             this.statements.forEach(stmt =>
             {
-                lines.push(stmt.toWGSL());
+                lines.push(`    ${stmt.toWGSL(shaderType)}`);
             });
         }
         else
@@ -126,7 +126,7 @@ export class Func
 
             this.statements.forEach(stmt =>
             {
-                lines.push(stmt.toWGSL());
+                lines.push(`    ${stmt.toWGSL(shaderType)}`);
             });
         }
 

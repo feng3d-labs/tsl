@@ -18,12 +18,15 @@ export function _let<T extends IElement>(name: string, expr: T): T
 
     // 收集 let 语句
     const currentFunc = getCurrentFunc();
-    currentFunc.statements.push({
-        toGLSL: () => `let ${name} = ${expr.toGLSL()};`,
-        toWGSL: () => `let ${name} = ${expr.toWGSL()};`,
-    });
-    // 收集依赖
-    currentFunc.dependencies.push(expr);
+    if (currentFunc)
+    {
+        currentFunc.statements.push({
+            toGLSL: () => `${name} = ${expr.toGLSL()};`,
+            toWGSL: () => `let ${name} = ${expr.toWGSL()};`,
+        });
+        // 收集依赖
+        currentFunc.dependencies.push(expr);
+    }
 
     return result as T;
 }

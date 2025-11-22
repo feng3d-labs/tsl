@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Vertex, vertex } from '../src/Vertex';
-import { _return } from '../src/index';
+import { return_ } from '../src/index';
 import { vec4 } from '../src/builtin/vec4';
 
 describe('Vertex', () =>
@@ -11,7 +11,7 @@ describe('Vertex', () =>
         {
             const vert = new Vertex('main', () =>
             {
-                _return(vec4(1.0, 0.0, 0.0, 1.0));
+                return_(vec4(1.0, 0.0, 0.0, 1.0));
             });
             expect(vert.name).toBe('main');
             expect(vert.shaderType).toBe('vertex');
@@ -21,7 +21,7 @@ describe('Vertex', () =>
         {
             const vert = new Vertex('main', () =>
             {
-                _return(vec4(1.0, 0.0, 0.0, 1.0));
+                return_(vec4(1.0, 0.0, 0.0, 1.0));
             });
             const glsl = vert.toGLSL();
             expect(glsl).toContain('void main()');
@@ -32,7 +32,7 @@ describe('Vertex', () =>
         {
             const vert = new Vertex('main', () =>
             {
-                _return(vec4(1.0, 0.0, 0.0, 1.0));
+                return_(vec4(1.0, 0.0, 0.0, 1.0));
             });
             const wgsl = vert.toWGSL();
             expect(wgsl).toContain('@vertex');
@@ -47,7 +47,7 @@ describe('Vertex', () =>
         {
             const vert = vertex('main', () =>
             {
-                _return(vec4(1.0, 0.0, 0.0, 1.0));
+                return_(vec4(1.0, 0.0, 0.0, 1.0));
             });
             expect(vert).toBeInstanceOf(Vertex);
             expect(vert.name).toBe('main');

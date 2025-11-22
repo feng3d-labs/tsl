@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Func, func } from '../src/Func';
-import { _return } from '../src/index';
+import { return_ } from '../src/index';
 import { vec4 } from '../src/builtin/vec4';
 
 describe('Func', () =>
@@ -18,7 +18,7 @@ describe('Func', () =>
         {
             const funcInstance = new Func('main', () =>
             {
-                _return(vec4(1.0, 0.0, 0.0, 1.0));
+                return_(vec4(1.0, 0.0, 0.0, 1.0));
             }, 'vertex');
             const glsl = funcInstance.toGLSL('vertex');
             expect(glsl).toContain('void main()');
@@ -29,7 +29,7 @@ describe('Func', () =>
         {
             const funcInstance = new Func('main', () =>
             {
-                _return(vec4(1.0, 0.0, 0.0, 1.0));
+                return_(vec4(1.0, 0.0, 0.0, 1.0));
             }, 'fragment');
             const wgsl = funcInstance.toWGSL();
             expect(wgsl).toContain('@fragment');

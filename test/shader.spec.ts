@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Shader, shader, attribute, fragment, uniform, vec2, vec4, vertex, _return } from '../src/index';
+import { attribute, fragment, return_, Shader, shader, uniform, vec2, vec4, vertex } from '../src/index';
 
 describe('Shader', () =>
 {
@@ -14,12 +14,12 @@ describe('Shader', () =>
 
                 vertex('main', () =>
                 {
-                    _return(vec4(position, 0.0, 1.0));
+                    return_(vec4(position, 0.0, 1.0));
                 });
 
                 fragment('main', () =>
                 {
-                    _return(color);
+                    return_(color);
                 });
             });
 
@@ -39,7 +39,7 @@ describe('Shader', () =>
 
                 vertex('main', () =>
                 {
-                    _return(vec4(position, 0.0, 1.0));
+                    return_(vec4(position, 0.0, 1.0));
                 });
             });
 
@@ -58,7 +58,7 @@ describe('Shader', () =>
 
                 fragment('main', () =>
                 {
-                    _return(color);
+                    return_(color);
                 });
             });
 
@@ -80,12 +80,12 @@ describe('Shader', () =>
 
                 vertex('main', () =>
                 {
-                    _return(vec4(pos, 0.0, 1.0));
+                    return_(vec4(pos, 0.0, 1.0));
                 });
 
                 fragment('main', () =>
                 {
-                    _return(color);
+                    return_(color);
                 });
             });
 
@@ -109,7 +109,7 @@ describe('Shader', () =>
                 const color = vec4(uniform('color', 0, 0));
                 fragment('main', () =>
                 {
-                    _return(color);
+                    return_(color);
                 });
             });
 
@@ -129,7 +129,7 @@ describe('Shader', () =>
 
                 vertex('main', () =>
                 {
-                    _return(vec4(position, 0.0, 1.0));
+                    return_(vec4(position, 0.0, 1.0));
                 });
             });
 
@@ -149,7 +149,7 @@ describe('Shader', () =>
 
                 fragment('main', () =>
                 {
-                    _return(color);
+                    return_(color);
                 });
             });
 
@@ -170,12 +170,12 @@ describe('Shader', () =>
 
                 vertex('main', () =>
                 {
-                    _return(vec4(position, 0.0, 1.0));
+                    return_(vec4(position, 0.0, 1.0));
                 });
 
                 fragment('main', () =>
                 {
-                    _return(color);
+                    return_(color);
                 });
             });
 

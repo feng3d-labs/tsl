@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { Attribute, attribute } from '../src/Attribute';
 import { vec2 } from '../src/builtin/vec2';
+import { vec4 } from '../src/builtin/vec4';
+import { return_ } from '../src/index';
 import { shader } from '../src/Shader';
 import { vertex } from '../src/Vertex';
-import { vec4 } from '../src/builtin/vec4';
-import { _return } from '../src/index';
 
 describe('Attribute', () =>
 {
@@ -59,7 +59,7 @@ describe('Attribute', () =>
 
                 vertex('main', () =>
                 {
-                    _return(vec4(position, 0.0, 1.0));
+                    return_(vec4(position, 0.0, 1.0));
                 });
             });
 

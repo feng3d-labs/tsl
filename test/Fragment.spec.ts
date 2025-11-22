@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Fragment, fragment } from '../src/Fragment';
-import { _return } from '../src/index';
 import { vec4 } from '../src/builtin/vec4';
+import { Fragment, fragment } from '../src/Fragment';
+import { return_ } from '../src/index';
 
 describe('Fragment', () =>
 {
@@ -11,7 +11,7 @@ describe('Fragment', () =>
         {
             const frag = new Fragment('main', () =>
             {
-                _return(vec4(1.0, 0.0, 0.0, 1.0));
+                return_(vec4(1.0, 0.0, 0.0, 1.0));
             });
             expect(frag.name).toBe('main');
             expect(frag.shaderType).toBe('fragment');
@@ -21,7 +21,7 @@ describe('Fragment', () =>
         {
             const frag = new Fragment('main', () =>
             {
-                _return(vec4(1.0, 0.0, 0.0, 1.0));
+                return_(vec4(1.0, 0.0, 0.0, 1.0));
             });
             const glsl = frag.toGLSL();
             expect(glsl).toContain('void main()');
@@ -32,7 +32,7 @@ describe('Fragment', () =>
         {
             const frag = new Fragment('main', () =>
             {
-                _return(vec4(1.0, 0.0, 0.0, 1.0));
+                return_(vec4(1.0, 0.0, 0.0, 1.0));
             });
             const wgsl = frag.toWGSL();
             expect(wgsl).toContain('@fragment');
@@ -47,7 +47,7 @@ describe('Fragment', () =>
         {
             const frag = fragment('main', () =>
             {
-                _return(vec4(1.0, 0.0, 0.0, 1.0));
+                return_(vec4(1.0, 0.0, 0.0, 1.0));
             });
             expect(frag).toBeInstanceOf(Fragment);
             expect(frag.name).toBe('main');

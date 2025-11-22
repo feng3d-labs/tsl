@@ -3,7 +3,7 @@ import { Uniform, uniform } from '../src/Uniform';
 import { vec4 } from '../src/builtin/vec4';
 import { shader } from '../src/Shader';
 import { fragment } from '../src/Fragment';
-import { _return } from '../src/index';
+import { return_ } from '../src/index';
 
 describe('Uniform', () =>
 {
@@ -61,7 +61,7 @@ describe('Uniform', () =>
 
                 fragment('main', () =>
                 {
-                    _return(color);
+                    return_(color);
                 });
             });
 

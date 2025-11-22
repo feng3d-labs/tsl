@@ -1,6 +1,6 @@
+import { Attribute } from './Attribute';
 import { getCurrentShaderInstance } from './currentShaderInstance';
 import { Func, FUNC_SYMBOL } from './Func';
-import type { FunctionCallConfig } from './builtin/vec4';
 
 // 重新导出 FUNC_SYMBOL 以便向后兼容
 export { FUNC_SYMBOL };
@@ -10,9 +10,9 @@ export { FUNC_SYMBOL };
  */
 export class Vertex extends Func
 {
-    readonly shaderType: 'vertex' = 'vertex';
+    readonly shaderType = 'vertex' as const;
 
-    constructor(name: string, body: () => any)
+    constructor(name: string, body: () => void)
     {
         super(name, body, 'vertex');
     }
@@ -27,31 +27,11 @@ export class Vertex extends Func
 
     /**
      * 转换为 WGSL 代码（vertex shader）
-     * @param shaderType 着色器类型（忽略，固定为 'vertex'）
      * @param attributes 属性列表
      */
-    toWGSL(shaderType?: 'vertex' | 'fragment', attributes?: Array<{ name: string; type: string; location?: number }>): string
+    toWGSL(attributes?: Attribute[]): string
     {
-        return super.toWGSL('vertex', attributes);
-    }
-
-    /**
-     * 转换为配置对象（vertex shader）
-     */
-    toConfig(): { name: string; return?: string | FunctionCallConfig }
-    {
-        return super.toConfig('vertex');
-    }
-
-    /**
-     * 从配置对象创建 Vertex 实例
-     * @param config 配置对象
-     * @returns Vertex 实例
-     */
-    static fromConfig(config: { name: string; return?: string | FunctionCallConfig }): Vertex
-    {
-        const body = () => config.return;
-        return new Vertex(config.name, body);
+        return super.toWGSL(attributes);
     }
 }
 
@@ -61,7 +41,7 @@ export class Vertex extends Func
  * @param body 函数体
  * @returns Vertex 实例
  */
-export function vertex(name: string, body: () => any): Vertex
+export function vertex(name: string, body: () => void): Vertex
 {
     const def = new Vertex(name, body);
 

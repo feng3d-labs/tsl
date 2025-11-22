@@ -1,199 +1,151 @@
 import { Attribute } from '../Attribute';
+import { IElement } from '../IElement';
 import { Uniform } from '../Uniform';
+import { Float } from './float';
+import { formatNumber } from './formatNumber';
+import { Vec2 } from './vec2';
 
 /**
- * 函数调用配置接口
+ * Vec4 类型，表示 vec4 字面量值或 uniform/attribute 变量
  */
-export interface FunctionCallConfig
+export class Vec4 implements IElement
 {
-    /** 函数名，如 vec4, vec3, vec2 等 */
-    function: string;
-    /** 函数参数列表 */
-    args: (string | number | FunctionCallConfig)[];
-    /** 类型参数（仅用于 WGSL，如 f32, i32, u32） */
-    typeParam?: 'f32' | 'i32' | 'u32';
-}
+    readonly glslType = 'vec4';
+    readonly wgslType = 'vec4<f32>';
 
-/**
- * 类型映射：GLSL 类型到 WGSL 类型
- */
-const typeMap: Record<string, string> = {
-    float: 'f32',
-    int: 'i32',
-    uint: 'u32',
-    bool: 'bool',
-    vec2: 'vec2<f32>',
-    vec3: 'vec3<f32>',
-    vec4: 'vec4<f32>',
-    ivec2: 'vec2<i32>',
-    ivec3: 'vec3<i32>',
-    ivec4: 'vec4<i32>',
-    uvec2: 'vec2<u32>',
-    uvec3: 'vec3<u32>',
-    uvec4: 'vec4<u32>',
-    bvec2: 'vec2<bool>',
-    bvec3: 'vec3<bool>',
-    bvec4: 'vec4<bool>',
-    mat2: 'mat2x2<f32>',
-    mat3: 'mat3x3<f32>',
-    mat4: 'mat4x4<f32>',
-};
+    toGLSL: () => string;
+    toWGSL: () => string;
+    dependencies: IElement[];
 
-/**
- * 将 GLSL 类型转换为 WGSL 类型
- */
-export function convertTypeToWGSL(glslType: string): string
-{
-    return typeMap[glslType] || glslType;
-}
-
-/**
- * 生成 GLSL 函数调用代码
- */
-export function generateFunctionCallGLSL(call: FunctionCallConfig): string
-{
-    const args = call.args.map(arg =>
+    constructor();
+    constructor(uniform: Uniform);
+    constructor(attribute: Attribute);
+    constructor(xy: Vec2, z: number, w: number);
+    constructor(x: number, y: number, z: number, w: number);
+    constructor(...args: (number | Uniform | Attribute | Vec2)[])
     {
-        if (typeof arg === 'string' || typeof arg === 'number')
+        if (args.length === 0) return;
+        if (args.length === 1)
         {
-            return String(arg);
+            // 处理 uniform 或 attribute
+            if (args[0] instanceof Uniform)
+            {
+                const uniform = args[0] as Uniform;
+                uniform.value = this;
+
+                this.toGLSL = () => uniform.name;
+                this.toWGSL = () => uniform.name;
+                this.dependencies = [uniform];
+            }
+            else if (args[0] instanceof Attribute)
+            {
+                const attribute = args[0] as Attribute;
+
+                this.toGLSL = () => attribute.name;
+                this.toWGSL = () => attribute.name;
+                this.dependencies = [attribute];
+                attribute.value = this;
+            }
+            else
+            {
+                throw new Error('Vec4 constructor: invalid argument');
+            }
         }
-        // 递归处理嵌套的函数调用
-        return generateFunctionCallGLSL(arg);
-    }).join(', ');
-
-    return `${call.function}(${args})`;
-}
-
-/**
- * 生成 WGSL 函数调用代码
- */
-export function generateFunctionCallWGSL(call: FunctionCallConfig): string
-{
-    const args = call.args.map(arg =>
-    {
-        if (typeof arg === 'string' || typeof arg === 'number')
+        else if (args.length === 3 && args[0] instanceof Vec2 && typeof args[1] === 'number' && typeof args[2] === 'number')
         {
-            return String(arg);
+            // 处理 vec4(xy: Vec2, z: number, w: number) 的情况
+            const xy = args[0] as Vec2;
+            const z = args[1] as number;
+            const w = args[2] as number;
+
+            this.toGLSL = () => `vec4(${xy.toGLSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
+            this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
+            this.dependencies = [xy];
         }
-        // 递归处理嵌套的函数调用
-        return generateFunctionCallWGSL(arg);
-    }).join(', ');
-
-    // 如果有类型参数，使用类型参数；否则根据函数名推断
-    if (call.typeParam)
-    {
-        const typeParam = call.typeParam;
-        const functionName = call.function;
-
-        // 检查是否是向量类型（vec2, vec3, vec4, ivec2, ivec3, ivec4, uvec2, uvec3, uvec4）
-        const vecMatch = functionName.match(/^(i|u)?vec(\d)$/);
-        if (vecMatch)
+        else if (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number' && typeof args[3] === 'number')
         {
-            const dimension = vecMatch[2];
-            return `vec${dimension}<${typeParam}>(${args})`;
-        }
+            // 从字面量值创建
+            const x = args[0] as number;
+            const y = args[1] as number;
+            const z = args[2] as number;
+            const w = args[3] as number;
 
-        // 检查是否是矩阵类型
-        const matMatch = functionName.match(/^mat(\d)$/);
-        if (matMatch)
-        {
-            const dimension = matMatch[1];
-            return `mat${dimension}x${dimension}<${typeParam}>(${args})`;
-        }
-
-        // 其他类型：直接使用类型参数
-        return `${functionName}<${typeParam}>(${args})`;
-    }
-
-    // 如果没有类型参数，根据函数名推断类型
-    const functionName = call.function;
-    const vecMatch = functionName.match(/^(i|u)?vec(\d)$/);
-    if (vecMatch)
-    {
-        const prefix = vecMatch[1] || '';
-        const dimension = vecMatch[2];
-        let typeParam: string;
-
-        if (prefix === 'i')
-        {
-            typeParam = 'i32';
-        }
-        else if (prefix === 'u')
-        {
-            typeParam = 'u32';
+            this.toGLSL = () => `vec4(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)}, ${formatNumber(w)})`;
+            this.toWGSL = () => `vec4<f32>(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)}, ${formatNumber(w)})`;
+            this.dependencies = [];
         }
         else
         {
-            typeParam = 'f32';
-        }
-
-        // 检查是否是基本类型（如 float, int, uint, bool）
-        const wgslType = convertTypeToWGSL(functionName);
-        if (wgslType !== functionName)
-        {
-            // 是基本类型，直接使用转换后的类型
-            return `${wgslType}(${args})`;
-        } else
-        {
-            // 向量类型：vec4 -> vec4<f32>
-            return `vec${dimension}<${typeParam}>(${args})`;
+            throw new Error('Vec4 constructor: invalid arguments');
         }
     }
 
-    // 检查是否是矩阵类型
-    const matMatch = functionName.match(/^mat(\d)$/);
-    if (matMatch)
+    /**
+     * 获取 x 分量
+     */
+    get x(): Float
     {
-        const dimension = matMatch[1];
-        const typeParam = 'f32'; // 矩阵默认使用 f32
-        return `mat${dimension}x${dimension}<${typeParam}>(${args})`;
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.x`;
+        float.toWGSL = () => `${this.toWGSL()}.x`;
+        float.dependencies = [this];
+
+        return float;
     }
 
-    return `${call.function}(${args})`;
+    /**
+     * 获取 y 分量
+     */
+    get y(): Float
+    {
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.y`;
+        float.toWGSL = () => `${this.toWGSL()}.y`;
+        float.dependencies = [this];
+
+        return float;
+    }
+
+    /**
+     * 获取 z 分量
+     */
+    get z(): Float
+    {
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.z`;
+        float.toWGSL = () => `${this.toWGSL()}.z`;
+        float.dependencies = [this];
+
+        return float;
+    }
+
+    /**
+     * 获取 w 分量
+     */
+    get w(): Float
+    {
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.w`;
+        float.toWGSL = () => `${this.toWGSL()}.w`;
+        float.dependencies = [this];
+
+        return float;
+    }
 }
 
 /**
  * vec4 构造函数
- * 如果传入单个 Uniform 或 Attribute 实例，则将 FunctionCallConfig 保存到 uniform.value 或 attribute.value
+ * 直接调用 Vec4 构造函数，所有参数处理逻辑都在 Vec4 构造函数中
  */
-export function vec4(uniform: Uniform): FunctionCallConfig;
-export function vec4(attribute: Attribute): FunctionCallConfig;
-export function vec4(...args: (string | number | FunctionCallConfig)[]): FunctionCallConfig;
-export function vec4(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
+export function vec4(uniform: Uniform): Vec4;
+export function vec4(attribute: Attribute): Vec4;
+export function vec4(xy: Vec2, z: number, w: number): Vec4;
+export function vec4(x: number, y: number, z: number, w: number): Vec4;
+export function vec4(...args: any[]): Vec4
 {
-    // 如果只有一个参数且是 Uniform 实例，则将 FunctionCallConfig 保存到 uniform.value
-    if (args.length === 1 && args[0] instanceof Uniform)
-    {
-        const uniformArg = args[0] as Uniform;
-        const valueConfig: FunctionCallConfig = {
-            function: 'vec4',
-            args: [uniformArg.name],
-        };
+    if (args.length === 1) return new Vec4(args[0] as any);
+    if (args.length === 3) return new Vec4(args[0] as any, args[1] as any, args[2] as any);
+    if (args.length === 4) return new Vec4(args[0] as any, args[1] as any, args[2] as any, args[3] as any);
 
-        // 直接更新 uniform 的 value
-        uniformArg.value = valueConfig;
-
-        return valueConfig;
-    }
-
-    // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
-    if (args.length === 1 && args[0] instanceof Attribute)
-    {
-        const attributeArg = args[0] as Attribute;
-        const valueConfig: FunctionCallConfig = {
-            function: 'vec4',
-            args: [attributeArg.name],
-        };
-
-        // 直接更新 attribute 的 value
-        attributeArg.value = valueConfig;
-
-        return valueConfig;
-    }
-
-    return {
-        function: 'vec4',
-        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
-    };
+    throw new Error('vec4: invalid arguments');
 }

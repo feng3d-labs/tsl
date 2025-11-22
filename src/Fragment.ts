@@ -1,13 +1,12 @@
 import { getCurrentShaderInstance } from './currentShaderInstance';
 import { Func } from './Func';
-import type { FunctionCallConfig } from './builtin/vec4';
 
 /**
  * Fragment 类，继承自 Func
  */
 export class Fragment extends Func
 {
-    readonly shaderType: 'fragment' = 'fragment';
+    readonly shaderType = 'fragment' as const;
 
     constructor(name: string, body: () => any)
     {
@@ -27,26 +26,7 @@ export class Fragment extends Func
      */
     toWGSL(): string
     {
-        return super.toWGSL('fragment');
-    }
-
-    /**
-     * 转换为配置对象（fragment shader）
-     */
-    toConfig(): { name: string; return?: string | FunctionCallConfig }
-    {
-        return super.toConfig('fragment');
-    }
-
-    /**
-     * 从配置对象创建 Fragment 实例
-     * @param config 配置对象
-     * @returns Fragment 实例
-     */
-    static fromConfig(config: { name: string; return?: string | FunctionCallConfig }): Fragment
-    {
-        const body = () => config.return;
-        return new Fragment(config.name, body);
+        return super.toWGSL();
     }
 }
 

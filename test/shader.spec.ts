@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Shader, shader, attribute, fragment, uniform, vec2, vec4, vertex } from '../src/index';
+import { Shader, shader, attribute, fragment, uniform, vec2, vec4, vertex, _return } from '../src/index';
 
 describe('Shader', () =>
 {
@@ -14,18 +14,16 @@ describe('Shader', () =>
 
                 vertex('main', () =>
                 {
-                    return vec4(position, 0.0, 1.0);
+                    _return(vec4(position, 0.0, 1.0));
                 });
 
                 fragment('main', () =>
                 {
-                    return color;
+                    _return(color);
                 });
             });
 
             expect(testShader).toBeInstanceOf(Shader);
-            expect(Object.keys(testShader.attributes)).toHaveLength(1);
-            expect(Object.keys(testShader.uniforms)).toHaveLength(1);
             expect(Object.keys(testShader.vertexs)).toHaveLength(1);
             expect(Object.keys(testShader.fragments)).toHaveLength(1);
         });
@@ -41,15 +39,15 @@ describe('Shader', () =>
 
                 vertex('main', () =>
                 {
-                    return vec4(position, 0.0, 1.0);
+                    _return(vec4(position, 0.0, 1.0));
                 });
             });
 
-            const glsl = testShader.generateGLSL('vertex', 'main');
-            
+            const glsl = testShader.generateVertexGLSL('main');
+
             expect(glsl).toContain('attribute vec2 position;');
             expect(glsl).toContain('void main()');
-            expect(glsl).toContain('gl_Position = vec4(vec2(position), 0, 1);');
+            expect(glsl).toContain('gl_Position = vec4(position, 0.0, 1.0);');
         });
 
         it('应该能够生成正确的 fragment shader GLSL 代码', () =>
@@ -60,15 +58,15 @@ describe('Shader', () =>
 
                 fragment('main', () =>
                 {
-                    return color;
+                    _return(color);
                 });
             });
 
-            const glsl = testShader.generateGLSL('fragment', 'main');
-            
+            const glsl = testShader.generateFragmentGLSL('main');
+
             expect(glsl).toContain('uniform vec4 color;');
             expect(glsl).toContain('void main()');
-            expect(glsl).toContain('gl_FragColor = vec4(color);');
+            expect(glsl).toContain('gl_FragColor = color;');
         });
 
         it('应该只包含实际使用的 uniforms 和 attributes', () =>
@@ -82,23 +80,23 @@ describe('Shader', () =>
 
                 vertex('main', () =>
                 {
-                    return vec4(pos, 1.0);
+                    _return(vec4(pos, 0.0, 1.0));
                 });
 
                 fragment('main', () =>
                 {
-                    return color;
+                    _return(color);
                 });
             });
 
-            const vertexGlsl = testShader.generateGLSL('vertex', 'main');
+            const vertexGlsl = testShader.generateVertexGLSL('main');
             expect(vertexGlsl).toContain('attribute vec2 pos;');
             // uv 在 vertex shader 中没有使用，所以不应该包含
             expect(vertexGlsl).not.toContain('attribute vec2 uv;');
             // color 和 time 在 vertex shader 中没有使用，所以不应该包含
             expect(vertexGlsl).not.toContain('uniform');
 
-            const fragmentGlsl = testShader.generateGLSL('fragment', 'main');
+            const fragmentGlsl = testShader.generateFragmentGLSL('main');
             expect(fragmentGlsl).toContain('uniform vec4 color;');
             // time 在 fragment shader 中没有使用，所以不应该包含
             expect(fragmentGlsl).not.toContain('uniform vec4 time;');
@@ -111,13 +109,13 @@ describe('Shader', () =>
                 const color = vec4(uniform('color', 0, 0));
                 fragment('main', () =>
                 {
-                    return color;
+                    _return(color);
                 });
             });
 
-            expect(() => testShader.generateGLSL('fragment', 'main')).not.toThrow();
-            expect(() => testShader.generateGLSL('vertex', 'main')).toThrow(/未找到顶点着色器/);
-            expect(() => testShader.generateGLSL('fragment', 'nonexistent')).toThrow(/未找到片段着色器/);
+            expect(() => testShader.generateFragmentGLSL('main')).not.toThrow();
+            expect(() => testShader.generateVertexGLSL('main')).toThrow(/未找到顶点着色器/);
+            expect(() => testShader.generateFragmentGLSL('nonexistent')).toThrow(/未找到片段着色器/);
         });
     });
 
@@ -131,16 +129,16 @@ describe('Shader', () =>
 
                 vertex('main', () =>
                 {
-                    return vec4(position, 0.0, 1.0);
+                    _return(vec4(position, 0.0, 1.0));
                 });
             });
 
-            const wgsl = testShader.generateWGSL('vertex', 'main');
-            
+            const wgsl = testShader.generateVertexWGSL('main');
+
             expect(wgsl).toContain('@vertex');
             expect(wgsl).toContain('fn main');
             expect(wgsl).toContain('@location(0) position: vec2<f32>');
-            expect(wgsl).toContain('return vec4<f32>(vec2<f32>(position), 0, 1);');
+            expect(wgsl).toContain('return vec4<f32>(position, 0.0, 1.0);');
         });
 
         it('应该能够生成正确的 fragment shader WGSL 代码', () =>
@@ -151,12 +149,12 @@ describe('Shader', () =>
 
                 fragment('main', () =>
                 {
-                    return color;
+                    _return(color);
                 });
             });
 
-            const wgsl = testShader.generateWGSL('fragment', 'main');
-            
+            const wgsl = testShader.generateFragmentWGSL('main');
+
             expect(wgsl).toContain('@fragment');
             expect(wgsl).toContain('fn main');
             expect(wgsl).toContain('color');
@@ -172,86 +170,26 @@ describe('Shader', () =>
 
                 vertex('main', () =>
                 {
-                    return vec4(position, 0.0, 1.0);
+                    _return(vec4(position, 0.0, 1.0));
                 });
 
                 fragment('main', () =>
                 {
-                    return color;
+                    _return(color);
                 });
             });
 
-            const vertexWgsl = testShader.generateWGSL('vertex', 'main');
+            const vertexWgsl = testShader.generateVertexWGSL('main');
             expect(vertexWgsl).toContain('@location(0) position: vec2<f32>');
             // color 和 time 在 vertex shader 中没有使用，所以不应该包含
             expect(vertexWgsl).not.toContain('var<uniform> color');
             expect(vertexWgsl).not.toContain('var<uniform> time');
 
-            const fragmentWgsl = testShader.generateWGSL('fragment', 'main');
+            const fragmentWgsl = testShader.generateFragmentWGSL('main');
             expect(fragmentWgsl).toContain('var<uniform> color : vec4<f32>');
             // time 在 fragment shader 中没有使用，所以不应该包含
             expect(fragmentWgsl).not.toContain('var<uniform> time');
         });
     });
 
-    describe('Shader.toConfig', () =>
-    {
-        it('应该能够序列化为 ShaderConfig', () =>
-        {
-            const testShader = shader('testShader', () =>
-            {
-                const position = vec2(attribute('position', 0));
-                const color = vec4(uniform('color', 0, 0));
-
-                vertex('main', () =>
-                {
-                    return vec4(position, 0.0, 1.0);
-                });
-
-                fragment('main', () =>
-                {
-                    return color;
-                });
-            });
-
-            const vertexConfig = testShader.toConfig('vertex', 'main');
-            expect(vertexConfig.type).toBe('vertex');
-            expect(vertexConfig.attributes).toBeDefined();
-            expect(vertexConfig.attributes?.length).toBe(1);
-
-            const fragmentConfig = testShader.toConfig('fragment', 'main');
-            expect(fragmentConfig.type).toBe('fragment');
-            expect(fragmentConfig.uniforms).toBeDefined();
-            expect(fragmentConfig.uniforms?.length).toBe(1);
-        });
-    });
-
-    describe('Shader.fromConfig', () =>
-    {
-        it('应该能够从 ShaderConfig 反序列化', () =>
-        {
-            const config = {
-                type: 'fragment' as const,
-                precision: 'highp' as const,
-                uniforms: [
-                    {
-                        name: 'color',
-                        type: 'vec4',
-                        binding: 0,
-                        group: 0,
-                    },
-                ],
-                main: {
-                    return: 'color',
-                },
-                entryName: 'main',
-            };
-
-            const shaderInstance = Shader.fromConfig(config);
-            expect(shaderInstance).toBeInstanceOf(Shader);
-            expect(shaderInstance.precision).toBe('highp');
-            expect(Object.keys(shaderInstance.uniforms)).toHaveLength(1);
-            expect(shaderInstance.uniforms['color'].value?.function).toBe('vec4');
-        });
-    });
 });

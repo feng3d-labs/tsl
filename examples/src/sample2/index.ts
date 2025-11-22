@@ -3,14 +3,20 @@ import { WebGL } from "@feng3d/webgl";
 import { WebGPU } from "@feng3d/webgpu";
 import { mat4 } from "gl-matrix";
 
-import fragmentGlsl from "./shaders/fragment.glsl";
-import fragmentWgsl from "./shaders/fragment.wgsl";
 import vertexGlsl from "./shaders/vertex.glsl";
+import fragmentGlsl from "./shaders/fragment.glsl";
 import vertexWgsl from "./shaders/vertex.wgsl";
+import fragmentWgsl from "./shaders/fragment.wgsl";
+
+import { sample2Shader } from "./shaders/shader";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    const devicePixelRatio = window.devicePixelRatio || 1;
+    // 使用 TSL 生成着色器代码
+    const vertexGlsl = sample2Shader.generateVertexGLSL();
+    const fragmentGlsl = sample2Shader.generateFragmentGLSL();
+    const vertexWgsl = sample2Shader.generateVertexWGSL();
+    const fragmentWgsl = sample2Shader.generateFragmentWGSL();
 
     const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = {
         clearColorValue: [0, 0, 0, 1],
@@ -19,6 +25,8 @@ document.addEventListener('DOMContentLoaded', async () =>
         depthLoadOp: 'clear',
         depthStoreOp: 'store',
     };
+
+    const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;

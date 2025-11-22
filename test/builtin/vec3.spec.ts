@@ -1,0 +1,143 @@
+import { describe, expect, it } from 'vitest';
+import { Attribute } from '../../src/Attribute';
+import { vec3, Vec3 } from '../../src/builtin/vec3';
+import { Uniform } from '../../src/Uniform';
+
+describe('vec3', () =>
+{
+    describe('vec3()', () =>
+    {
+        it('应该返回 Vec3 实例', () =>
+        {
+            const result = vec3();
+            expect(result).toBeInstanceOf(Vec3);
+        });
+    });
+
+    describe('vec3(uniform: Uniform)', () =>
+    {
+        it('应该返回 Vec3 实例', () =>
+        {
+            const uniform = new Uniform('uPosition', 0, 0);
+            const result = vec3(uniform);
+            expect(result).toBeInstanceOf(Vec3);
+        });
+
+        it('应该将 Vec3 实例保存到 uniform.value', () =>
+        {
+            const uniform = new Uniform('uPosition', 0, 0);
+            const vec3Instance = vec3(uniform);
+            expect(uniform.value).toBe(vec3Instance);
+        });
+
+        it('应该正确设置 toGLSL 和 toWGSL 方法', () =>
+        {
+            const uniform = new Uniform('uPosition', 0, 0);
+            const result = vec3(uniform);
+            expect(result.toGLSL()).toBe('uPosition');
+            expect(result.toWGSL()).toBe('uPosition');
+        });
+
+        it('应该设置正确的 dependencies', () =>
+        {
+            const uniform = new Uniform('uPosition', 0, 0);
+            const result = vec3(uniform);
+            expect(result.dependencies).toEqual([uniform]);
+        });
+    });
+
+    describe('vec3(attribute: Attribute)', () =>
+    {
+        it('应该返回 Vec3 实例', () =>
+        {
+            const attribute = new Attribute('aPosition', 0);
+            const result = vec3(attribute);
+            expect(result).toBeInstanceOf(Vec3);
+        });
+
+        it('应该将 Vec3 实例保存到 attribute.value', () =>
+        {
+            const attribute = new Attribute('aPosition', 0);
+            const vec3Instance = vec3(attribute);
+            expect(attribute.value).toBe(vec3Instance);
+        });
+
+        it('应该正确设置 toGLSL 和 toWGSL 方法', () =>
+        {
+            const attribute = new Attribute('aPosition', 0);
+            const result = vec3(attribute);
+            expect(result.toGLSL()).toBe('aPosition');
+            expect(result.toWGSL()).toBe('aPosition');
+        });
+
+        it('应该设置正确的 dependencies', () =>
+        {
+            const attribute = new Attribute('aPosition', 0);
+            const result = vec3(attribute);
+            expect(result.dependencies).toEqual([attribute]);
+        });
+    });
+
+    describe('vec3(x: number, y: number, z: number)', () =>
+    {
+        it('应该处理三个数字参数并返回 Vec3 实例', () =>
+        {
+            const result = vec3(1.0, 2.0, 3.0);
+            expect(result).toBeInstanceOf(Vec3);
+        });
+
+        it('应该正确设置 toGLSL 方法', () =>
+        {
+            const result = vec3(1.0, 2.0, 3.0);
+            expect(result.toGLSL()).toBe('vec3(1.0, 2.0, 3.0)');
+        });
+
+        it('应该正确设置 toWGSL 方法', () =>
+        {
+            const result = vec3(1.0, 2.0, 3.0);
+            expect(result.toWGSL()).toBe('vec3<f32>(1.0, 2.0, 3.0)');
+        });
+
+        it('应该设置空的 dependencies', () =>
+        {
+            const result = vec3(1.0, 2.0, 3.0);
+            expect(result.dependencies).toEqual([]);
+        });
+    });
+
+    describe('无效参数', () =>
+    {
+        it('应该拒绝两个参数', () =>
+        {
+            // @ts-ignore
+            expect(() => vec3(1.0, 2.0)).toThrow('Invalid arguments for vec3');
+        });
+
+        it('应该拒绝四个参数', () =>
+        {
+            // @ts-ignore
+            expect(() => vec3(1.0, 2.0, 3.0, 4.0)).toThrow('Invalid arguments for vec3');
+        });
+
+        it('应该拒绝非数字、非Uniform、非Attribute类型的参数', () =>
+        {
+            expect(() => vec3('x' as any, 'y' as any, 'z' as any)).toThrow('Invalid arguments for vec3');
+        });
+    });
+
+    describe('Vec3 类属性', () =>
+    {
+        it('应该具有正确的 glslType', () =>
+        {
+            const result = vec3();
+            expect(result.glslType).toBe('vec3');
+        });
+
+        it('应该具有正确的 wgslType', () =>
+        {
+            const result = vec3();
+            expect(result.wgslType).toBe('vec3<f32>');
+        });
+    });
+});
+

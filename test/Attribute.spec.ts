@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { Attribute, attribute } from '../src/Attribute';
 import { vec2 } from '../src/builtin/vec2';
 import { shader } from '../src/Shader';
+import { vertex } from '../src/Vertex';
+import { vec4 } from '../src/builtin/vec4';
+import { _return } from '../src/index';
 
 describe('Attribute', () =>
 {
@@ -23,34 +26,15 @@ describe('Attribute', () =>
         it('应该能够设置 value 并生成 GLSL', () =>
         {
             const attr = new Attribute('position', 0);
-            attr.value = {
-                function: 'vec2',
-                args: ['position'],
-            };
+            attr.value = vec2(attribute('position', 0));
             expect(attr.toGLSL()).toBe('attribute vec2 position;');
         });
 
         it('应该能够生成 WGSL', () =>
         {
             const attr = new Attribute('position', 0);
-            attr.value = {
-                function: 'vec2',
-                args: ['position'],
-            };
+            attr.value = vec2(attribute('position', 0));
             expect(attr.toWGSL()).toBe('@location(0) position: vec2<f32>');
-        });
-
-        it('应该能够转换为配置', () =>
-        {
-            const attr = new Attribute('position', 0);
-            attr.value = {
-                function: 'vec2',
-                args: ['position'],
-            };
-            const config = attr.toConfig();
-            expect(config.name).toBe('position');
-            expect(config.type).toBe('vec2');
-            expect(config.location).toBe(0);
         });
     });
 
@@ -70,11 +54,18 @@ describe('Attribute', () =>
             {
                 const position = vec2(attribute('position', 0));
                 expect(position).toBeDefined();
-                expect(position).toHaveProperty('function', 'vec2');
+                expect(position.toGLSL()).toBe('position');
+                expect(position.toWGSL()).toBe('position');
+
+                vertex('main', () =>
+                {
+                    _return(vec4(position, 0.0, 1.0));
+                });
             });
 
-            expect(testShader.attributes['position']).toBeDefined();
-            expect(testShader.attributes['position'].value?.function).toBe('vec2');
+            // 验证生成的着色器代码中包含 attribute 声明
+            const glsl = testShader.generateVertexGLSL();
+            expect(glsl).toContain('attribute vec2 position;');
         });
     });
 });

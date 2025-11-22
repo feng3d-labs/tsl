@@ -1,50 +1,105 @@
 import { Attribute } from '../Attribute';
+import { IElement } from '../IElement';
 import { Uniform } from '../Uniform';
-import { FunctionCallConfig } from './vec4';
+import { Float } from './float';
+import { formatNumber } from './formatNumber';
+
+/**
+ * Vec2 类，用于表示 vec2 字面量值或 uniform/attribute 变量
+ */
+export class Vec2 implements IElement
+{
+    readonly glslType = 'vec2';
+    readonly wgslType = 'vec2<f32>';
+
+    dependencies: IElement[];
+    toGLSL: () => string;
+    toWGSL: () => string;
+
+    constructor(uniform: Uniform);
+    constructor(attribute: Attribute);
+    constructor(x: number, y: number);
+    constructor(...args: (number | Uniform | Attribute)[])
+    {
+        if (args.length === 1)
+        {
+            // 处理 uniform 或 attribute
+            if (args[0] instanceof Uniform)
+            {
+                const uniform = args[0] as Uniform;
+
+                this.toGLSL = () => uniform.name;
+                this.toWGSL = () => uniform.name;
+                this.dependencies = [uniform];
+
+                uniform.value = this;
+            }
+            else if (args[0] instanceof Attribute)
+            {
+                const attribute = args[0] as Attribute;
+
+                this.toGLSL = () => attribute.name;
+                this.toWGSL = () => attribute.name;
+                this.dependencies = [attribute];
+
+                attribute.value = this;
+            }
+            else
+            {
+                throw new Error('Vec2 constructor: invalid argument');
+            }
+        }
+        else if (args.length === 2 && typeof args[0] === 'number' && typeof args[1] === 'number')
+        {
+            const x = args[0] as number;
+            const y = args[1] as number;
+            this.toGLSL = () => `vec2(${formatNumber(x)}, ${formatNumber(y)})`;
+            this.toWGSL = () => `vec2<f32>(${formatNumber(x)}, ${formatNumber(y)})`;
+            this.dependencies = [];
+        }
+        else
+        {
+            throw new Error('Vec2 constructor: invalid arguments');
+        }
+    }
+
+    /**
+     * 获取 x 分量
+     */
+    get x(): Float
+    {
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.x`;
+        float.toWGSL = () => `${this.toWGSL()}.x`;
+        float.dependencies = [this];
+
+        return float;
+    }
+
+    /**
+     * 获取 y 分量
+     */
+    get y(): Float
+    {
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.y`;
+        float.toWGSL = () => `${this.toWGSL()}.y`;
+        float.dependencies = [this];
+
+        return float;
+    }
+}
 
 /**
  * vec2 构造函数
- * 如果传入单个 Uniform 或 Attribute 实例，则将 FunctionCallConfig 保存到 uniform.value 或 attribute.value
  */
-export function vec2(uniform: Uniform): FunctionCallConfig;
-export function vec2(attribute: Attribute): FunctionCallConfig;
-export function vec2(...args: (string | number | FunctionCallConfig)[]): FunctionCallConfig;
-export function vec2(...args: (string | number | FunctionCallConfig | Attribute | Uniform)[]): FunctionCallConfig
+export function vec2(uniform: Uniform): Vec2;
+export function vec2(attribute: Attribute): Vec2;
+export function vec2(x: number, y: number): Vec2;
+export function vec2(...args: any[]): Vec2
 {
-    // 如果只有一个参数且是 Uniform 实例，则将 FunctionCallConfig 保存到 uniform.value
-    if (args.length === 1 && args[0] instanceof Uniform)
-    {
-        const uniformArg = args[0] as Uniform;
-        const valueConfig: FunctionCallConfig = {
-            function: 'vec2',
-            args: [uniformArg.name],
-        };
+    if (args.length === 1) return new Vec2(args[0] as any);
+    if (args.length === 2) return new Vec2(args[0] as any, args[1] as any);
 
-        // 直接更新 uniform 的 value
-        uniformArg.value = valueConfig;
-
-        return valueConfig;
-    }
-
-    // 如果只有一个参数且是 Attribute 实例，则将 FunctionCallConfig 保存到 attribute.value
-    if (args.length === 1 && args[0] instanceof Attribute)
-    {
-        const attributeArg = args[0] as Attribute;
-        const valueConfig: FunctionCallConfig = {
-            function: 'vec2',
-            args: [attributeArg.name],
-        };
-
-        // 直接更新 attribute 的 value
-        attributeArg.value = valueConfig;
-
-        return valueConfig;
-    }
-
-    return {
-        function: 'vec2',
-        args: args.map(arg => typeof arg === 'object' && ('name' in arg) ? arg.name : arg),
-    };
+    throw new Error('vec2: invalid arguments');
 }
-
-

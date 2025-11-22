@@ -1,13 +1,10 @@
+import { Attribute } from './Attribute';
+import { Fragment } from './Fragment';
 import { IShader } from './IShader';
-import { MainFunctionConfig } from './main';
-import { ShaderConfig } from './shaderGenerator';
-import { attribute, Attribute } from './Attribute';
-import { uniform, Uniform } from './Uniform';
-import { fragment, Fragment } from './Fragment';
-import { vertex, Vertex } from './Vertex';
-import { setCurrentShaderInstance, clearCurrentShaderInstance } from './currentShaderInstance';
-import { generateUniformsWGSL, UniformConfig } from './uniforms';
-import { FunctionCallConfig } from './builtin/vec4';
+import { Precision } from './Precision';
+import { Uniform } from './Uniform';
+import { Vertex } from './Vertex';
+import { clearCurrentShaderInstance, setCurrentShaderInstance } from './currentShaderInstance';
 
 /**
  * Shader 基类
@@ -15,21 +12,6 @@ import { FunctionCallConfig } from './builtin/vec4';
  */
 export class Shader implements IShader
 {
-    /**
-     * GLSL 精度声明（仅用于 fragment shader）
-     */
-    precision: 'lowp' | 'mediump' | 'highp' = 'highp';
-
-    /**
-     * Attributes 字典（以变量名为 key）
-     */
-    public attributes: Record<string, Attribute> = {};
-
-    /**
-     * Uniforms 字典（以变量名为 key）
-     */
-    public uniforms: Record<string, Uniform> = {};
-
     /**
      * Vertex 函数字典（以函数名为 key）
      */
@@ -48,14 +30,16 @@ export class Shader implements IShader
     }
 
     /**
-     * 分析函数返回值中使用的变量名（attributes 和 uniforms）
-     * @param returnValue 函数返回值
-     * @returns 使用的变量名集合
+     * 分析函数依赖中使用的 attributes、uniforms 和 precision
+     * @param dependencies 函数依赖数组
+     * @returns 使用的 Attribute、Uniform 和 Precision 实例集合
      */
-    private analyzeDependencies(returnValue: any): { attributes: Set<string>; uniforms: Set<string> }
+    private analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision }
     {
-        const attributes = new Set<string>();
-        const uniforms = new Set<string>();
+        const attributes = new Set<Attribute>();
+        const uniforms = new Set<Uniform>();
+        let precision: Precision | undefined;
+        const visited = new WeakSet();
 
         const analyzeValue = (value: any): void =>
         {
@@ -64,125 +48,108 @@ export class Shader implements IShader
                 return;
             }
 
-            // 如果是 Uniform 或 Attribute 实例
-            if (value instanceof Uniform)
+            // 避免重复访问同一个对象
+            if (typeof value === 'object' && visited.has(value))
             {
-                uniforms.add(value.name);
                 return;
             }
-            if (value instanceof Attribute)
+            if (typeof value === 'object')
             {
-                attributes.add(value.name);
+                visited.add(value);
+            }
+
+            // 如果是 Uniform 或 Attribute 实例，直接添加
+            if (value instanceof Uniform)
+            {
+                uniforms.add(value);
+
                 return;
             }
 
-            // 如果是 FunctionCallConfig
-            if (typeof value === 'object' && 'function' in value && 'args' in value)
+            if (value instanceof Attribute)
             {
-                const config = value as FunctionCallConfig;
-                // 递归分析参数
-                for (const arg of config.args)
+                attributes.add(value);
+
+                return;
+            }
+
+            // 如果是 Precision 实例，保存（只取第一个）
+            if (value instanceof Precision)
+            {
+                if (!precision)
                 {
-                    // 如果是字符串，检查是否是变量名
-                    if (typeof arg === 'string')
-                    {
-                        // 检查是否是 attribute 或 uniform 的名称
-                        if (this.attributes[arg])
-                        {
-                            attributes.add(arg);
-                        }
-                        else if (this.uniforms[arg])
-                        {
-                            uniforms.add(arg);
-                        }
-                    }
-                    // 如果是 FunctionCallConfig，递归分析
-                    else if (typeof arg === 'object' && 'function' in arg)
-                    {
-                        analyzeValue(arg);
-                    }
+                    precision = value;
+                }
+
+                return;
+            }
+
+            // 如果是 IElement 实例（Vec2, Vec4 等），分析其 dependencies
+            if (typeof value === 'object' && 'dependencies' in value && Array.isArray(value.dependencies))
+            {
+                for (const dep of value.dependencies)
+                {
+                    analyzeValue(dep);
                 }
             }
         };
 
-        analyzeValue(returnValue);
-        return { attributes, uniforms };
+        // 分析所有依赖
+        for (const dep of dependencies)
+        {
+            analyzeValue(dep);
+        }
+
+        return { attributes, uniforms, precision };
     }
 
     /**
-     * 生成 GLSL 着色器代码
-     * @param shaderType 着色器类型，必须提供：'vertex' 或 'fragment'
-     * @param entry 入口函数名（可选）。如果提供则查找同名同类型的入口函数，否则取第一个入口函数
+     * 生成 Vertex Shader 的 GLSL 代码
+     * @param entry 入口函数名（可选）。如果提供则查找同名函数，否则取第一个 vertex 函数
      */
-    generateGLSL(shaderType: 'vertex' | 'fragment', entry?: string): string
+    generateVertexGLSL(entry?: string): string
     {
         const lines: string[] = [];
 
         // 查找入口函数
-        const funcDict = shaderType === 'vertex' ? this.vertexs : this.fragments;
-        let entryFunc: Vertex | Fragment | undefined;
+        let entryFunc: Vertex | undefined;
 
         if (entry)
         {
-            entryFunc = funcDict[entry];
+            entryFunc = this.vertexs[entry];
         }
         else
         {
-            const keys = Object.keys(funcDict);
+            const keys = Object.keys(this.vertexs);
             if (keys.length > 0)
             {
-                entryFunc = funcDict[keys[0]];
+                entryFunc = this.vertexs[keys[0]];
             }
         }
 
         if (!entryFunc)
         {
             const entryDesc = entry ? `名为 '${entry}' 的` : '';
-            const shaderTypeDesc = shaderType === 'vertex' ? '顶点' : '片段';
-            throw new Error(`未找到${shaderTypeDesc}着色器的${entryDesc}入口函数。请确保已定义 ${shaderType === 'vertex' ? 'vertex' : 'fragment'}() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
+            throw new Error(`未找到顶点着色器的${entryDesc}入口函数。请确保已定义 vertex() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
         }
 
-        const functionName = entryFunc.name;
+        // 先执行 body 收集依赖（通过调用 toGLSL 来触发，它会执行 body 并填充 dependencies）
+        // 这里只为了收集依赖，不生成完整代码
+        entryFunc.toGLSL();
 
-        // Fragment shader 需要 precision 声明
-        if (shaderType === 'fragment' && this.precision)
-        {
-            lines.push(`precision ${this.precision} float;`);
-        }
+        // 从函数的 dependencies 中分析获取 attributes 和 uniforms
+        const dependencies = this.analyzeDependencies(entryFunc.dependencies);
 
-        // 分析函数体中使用的依赖
-        let returnValue: any;
-        try
+        // 生成 attributes（只包含实际使用的）
+        for (const attr of dependencies.attributes)
         {
-            returnValue = entryFunc.body();
-        }
-        catch (error)
-        {
-            throw new Error(`执行函数 '${entryFunc.name}' 时出错: ${error}`);
-        }
-        const dependencies = this.analyzeDependencies(returnValue);
-
-        // 生成 attributes（仅 vertex shader，且只包含实际使用的）
-        if (shaderType === 'vertex')
-        {
-            for (const attrName of dependencies.attributes)
-            {
-                const attr = this.attributes[attrName];
-                if (attr)
-                {
-                    lines.push(attr.toGLSL());
-                }
-            }
+            lines.push(attr.toGLSL());
         }
 
         // 生成 uniforms（只包含实际使用的）
-        for (const uniformName of dependencies.uniforms)
+        for (const uniform of dependencies.uniforms)
         {
-            const uniform = this.uniforms[uniformName];
-            if (uniform)
-            {
-                lines.push(uniform.toGLSL());
-            }
+            lines.push(uniform.toGLSL());
         }
 
         // 空行
@@ -191,7 +158,7 @@ export class Shader implements IShader
             lines.push('');
         }
 
-        // 使用 entryFunc 生成函数代码
+        // 使用 entryFunc 生成函数代码（不会再次执行 body，因为依赖已收集）
         const funcCode = entryFunc.toGLSL();
         lines.push(...funcCode.split('\n'));
 
@@ -199,65 +166,52 @@ export class Shader implements IShader
     }
 
     /**
-     * 生成 WGSL 着色器代码
-     * @param shaderType 着色器类型，必须提供：'vertex' 或 'fragment'
-     * @param entry 入口函数名（可选）。如果提供则查找同名同类型的入口函数，否则取第一个入口函数
+     * 生成 Fragment Shader 的 GLSL 代码
+     * @param entry 入口函数名（可选）。如果提供则查找同名函数，否则取第一个 fragment 函数
      */
-    generateWGSL(shaderType: 'vertex' | 'fragment', entry?: string): string
+    generateFragmentGLSL(entry?: string): string
     {
         const lines: string[] = [];
 
         // 查找入口函数
-        const funcDict = shaderType === 'vertex' ? this.vertexs : this.fragments;
-        let entryFunc: Vertex | Fragment | undefined;
+        let entryFunc: Fragment | undefined;
 
         if (entry)
         {
-            entryFunc = funcDict[entry];
+            entryFunc = this.fragments[entry];
         }
         else
         {
-            const keys = Object.keys(funcDict);
+            const keys = Object.keys(this.fragments);
             if (keys.length > 0)
             {
-                entryFunc = funcDict[keys[0]];
+                entryFunc = this.fragments[keys[0]];
             }
         }
 
         if (!entryFunc)
         {
             const entryDesc = entry ? `名为 '${entry}' 的` : '';
-            const shaderTypeDesc = shaderType === 'vertex' ? '顶点' : '片段';
-            throw new Error(`未找到${shaderTypeDesc}着色器的${entryDesc}入口函数。请确保已定义 ${shaderType === 'vertex' ? 'vertex' : 'fragment'}() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
+            throw new Error(`未找到片段着色器的${entryDesc}入口函数。请确保已定义 fragment() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
         }
 
-        const functionName = entryFunc.name;
+        // 先执行 body 收集依赖（通过调用 toGLSL 来触发，它会执行 body 并填充 dependencies）
+        // 这里只为了收集依赖，不生成完整代码
+        entryFunc.toGLSL();
 
-        // 分析函数体中使用的依赖
-        let returnValue: any;
-        try
+        // 从函数的 dependencies 中分析获取 uniforms 和 precision
+        const dependencies = this.analyzeDependencies(entryFunc.dependencies);
+
+        // Fragment shader 需要 precision 声明（从函数依赖中获取）
+        if (dependencies.precision)
         {
-            returnValue = entryFunc.body();
+            lines.push(dependencies.precision.toGLSL());
         }
-        catch (error)
-        {
-            throw new Error(`执行函数 '${entryFunc.name}' 时出错: ${error}`);
-        }
-        const dependencies = this.analyzeDependencies(returnValue);
 
         // 生成 uniforms（只包含实际使用的）
-        const uniformConfigs: UniformConfig[] = [];
-        for (const uniformName of dependencies.uniforms)
+        for (const uniform of dependencies.uniforms)
         {
-            const uniform = this.uniforms[uniformName];
-            if (uniform)
-            {
-                uniformConfigs.push(uniform.toConfig());
-            }
-        }
-        if (uniformConfigs.length > 0)
-        {
-            lines.push(...generateUniformsWGSL(uniformConfigs));
+            lines.push(uniform.toGLSL());
         }
 
         // 空行
@@ -266,174 +220,134 @@ export class Shader implements IShader
             lines.push('');
         }
 
-        // 准备 attributes 配置（仅用于 vertex shader，且只包含实际使用的）
-        const attributes = shaderType === 'vertex'
-            ? Array.from(dependencies.attributes)
-                .map(attrName => this.attributes[attrName])
-                .filter(attr => attr !== undefined)
-                .map(attr => attr.toConfig())
-            : undefined;
-
-        // 使用 entryFunc 生成函数代码
-        let funcCode: string;
-        if (entryFunc instanceof Vertex)
-        {
-            funcCode = entryFunc.toWGSL('vertex', attributes);
-        }
-        else
-        {
-            funcCode = entryFunc.toWGSL();
-        }
+        // 使用 entryFunc 生成函数代码（不会再次执行 body，因为依赖已收集）
+        const funcCode = entryFunc.toGLSL();
         lines.push(...funcCode.split('\n'));
 
         return lines.join('\n') + '\n';
     }
 
     /**
-     * 将 Shader 序列化为 ShaderConfig（用于指定类型的着色器）
-     * @param shaderType 着色器类型，必须提供：'vertex' 或 'fragment'
-     * @param entry 入口函数名（可选）。如果提供则查找同名同类型的入口函数，否则取第一个入口函数
-     * @returns ShaderConfig 对象
+     * 生成 Vertex Shader 的 WGSL 代码
+     * @param entry 入口函数名（可选）。如果提供则查找同名函数，否则取第一个 vertex 函数
      */
-    toConfig(shaderType: 'vertex' | 'fragment', entry?: string): ShaderConfig
+    generateVertexWGSL(entry?: string): string
     {
+        const lines: string[] = [];
+
         // 查找入口函数
-        const funcDict = shaderType === 'vertex' ? this.vertexs : this.fragments;
-        let entryFunc: Vertex | Fragment | undefined;
+        let entryFunc: Vertex | undefined;
 
         if (entry)
         {
-            entryFunc = funcDict[entry];
+            entryFunc = this.vertexs[entry];
         }
         else
         {
-            const keys = Object.keys(funcDict);
+            const keys = Object.keys(this.vertexs);
             if (keys.length > 0)
             {
-                entryFunc = funcDict[keys[0]];
+                entryFunc = this.vertexs[keys[0]];
             }
         }
 
         if (!entryFunc)
         {
             const entryDesc = entry ? `名为 '${entry}' 的` : '';
-            const shaderTypeDesc = shaderType === 'vertex' ? '顶点' : '片段';
-            throw new Error(`未找到${shaderTypeDesc}着色器的${entryDesc}入口函数。请确保已定义 ${shaderType === 'vertex' ? 'vertex' : 'fragment'}() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
+            throw new Error(`未找到顶点着色器的${entryDesc}入口函数。请确保已定义 vertex() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
         }
 
-        const functionName = entryFunc.name;
+        // 先执行 body 收集依赖（通过调用 toWGSL 来触发，它会执行 body 并填充 dependencies）
+        // 这里只为了收集依赖，不生成完整代码
+        entryFunc.toWGSL();
 
-        // 使用 entryFunc 生成配置
-        const funcConfig = entryFunc.toConfig();
+        // 从函数的 dependencies 中分析获取 attributes 和 uniforms
+        const dependencies = this.analyzeDependencies(entryFunc.dependencies);
 
-        // 构建 MainFunctionConfig
-        const main: MainFunctionConfig = {};
-        if (funcConfig.return !== undefined)
+        // 生成 uniforms（只包含实际使用的）
+        for (const uniform of dependencies.uniforms)
         {
-            main.return = funcConfig.return;
+            lines.push(uniform.toWGSL());
         }
 
-        // 构建 ShaderConfig
-        const config: ShaderConfig = {
-            type: shaderType,
-            main,
-            entryName: functionName,
-        };
-
-        // 设置 precision（仅用于 fragment shader）
-        if (shaderType === 'fragment' && this.precision)
+        // 空行
+        if (lines.length > 0)
         {
-            config.precision = this.precision;
+            lines.push('');
         }
 
-        // 收集 uniforms
-        const uniformKeys = Object.keys(this.uniforms);
-        if (uniformKeys.length > 0)
-        {
-            config.uniforms = uniformKeys.map(key => this.uniforms[key].toConfig());
-        }
+        // 准备 attributes 配置（只包含实际使用的）
+        const attributes = Array.from(dependencies.attributes);
 
-        // 收集 attributes（仅用于 vertex shader）
-        if (shaderType === 'vertex')
-        {
-            const attrKeys = Object.keys(this.attributes);
-            if (attrKeys.length > 0)
-            {
-                config.attributes = attrKeys.map(key => this.attributes[key].toConfig());
-            }
-        }
+        // 使用 entryFunc 生成函数代码（不会再次执行 body，因为依赖已收集）
+        const funcCode = entryFunc.toWGSL(attributes);
+        lines.push(...funcCode.split('\n'));
 
-        return config;
+        return lines.join('\n') + '\n';
     }
 
     /**
-     * 从 ShaderConfig 创建 Shader 实例（反序列化）
-     * @param config ShaderConfig 对象
-     * @returns Shader 实例
+     * 生成 Fragment Shader 的 WGSL 代码
+     * @param entry 入口函数名（可选）。如果提供则查找同名函数，否则取第一个 fragment 函数
      */
-    static fromConfig(config: ShaderConfig): Shader
+    generateFragmentWGSL(entry?: string): string
     {
-        const shaderInstance = new Shader();
+        const lines: string[] = [];
 
-        // 设置 precision
-        if (config.precision)
+        // 查找入口函数
+        let entryFunc: Fragment | undefined;
+
+        if (entry)
         {
-            shaderInstance.precision = config.precision as 'lowp' | 'mediump' | 'highp';
+            entryFunc = this.fragments[entry];
         }
-
-        // 设置 uniforms（通过 uniform() 函数创建，以确保正确的 Symbol）
-        if (config.uniforms)
+        else
         {
-            for (const uniformConfig of config.uniforms)
+            const keys = Object.keys(this.fragments);
+            if (keys.length > 0)
             {
-                const uniformDef = uniform(uniformConfig.name, uniformConfig.binding, uniformConfig.group);
-                // 从 type 创建 FunctionCallConfig 并设置到 value
-                uniformDef.value = {
-                    function: uniformConfig.type,
-                    args: [uniformConfig.name],
-                };
-                shaderInstance.uniforms[uniformConfig.name] = uniformDef;
+                entryFunc = this.fragments[keys[0]];
             }
         }
 
-        // 设置 attributes（通过 attribute() 函数创建，以确保正确的 Symbol）
-        if (config.attributes)
+        if (!entryFunc)
         {
-            for (const attrConfig of config.attributes)
-            {
-                const attrDef = attribute(attrConfig.name, attrConfig.location);
-                // 从 type 创建 FunctionCallConfig 并设置到 value
-                attrDef.value = {
-                    function: attrConfig.type,
-                    args: [attrConfig.name],
-                };
-                shaderInstance.attributes[attrConfig.name] = attrDef;
-            }
+            const entryDesc = entry ? `名为 '${entry}' 的` : '';
+            throw new Error(`未找到片段着色器的${entryDesc}入口函数。请确保已定义 fragment() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
         }
 
-        // 设置入口函数（通过 vertex() 或 fragment() 函数创建，以确保正确的 Symbol）
-        const entryName = config.entryName || 'main';
-        const funcBody = () => config.main.return;
+        // 先执行 body 收集依赖（通过调用 toWGSL 来触发，它会执行 body 并填充 dependencies）
+        // 这里只为了收集依赖，不生成完整代码
+        entryFunc.toWGSL();
 
-        if (config.type === 'vertex')
+        // 从函数的 dependencies 中分析获取 uniforms
+        const dependencies = this.analyzeDependencies(entryFunc.dependencies);
+
+        // 生成 uniforms（只包含实际使用的）
+        for (const uniform of dependencies.uniforms)
         {
-            const vertexFunc = vertex(entryName, funcBody);
-            shaderInstance.vertexs[entryName] = vertexFunc;
-        }
-        else if (config.type === 'fragment')
-        {
-            const fragmentFunc = fragment(entryName, funcBody);
-            shaderInstance.fragments[entryName] = fragmentFunc;
+            lines.push(uniform.toWGSL());
         }
 
-        return shaderInstance;
+        // 空行
+        if (lines.length > 0)
+        {
+            lines.push('');
+        }
+
+        // 使用 entryFunc 生成函数代码（不会再次执行 body，因为依赖已收集）
+        const funcCode = entryFunc.toWGSL();
+        lines.push(...funcCode.split('\n'));
+
+        return lines.join('\n') + '\n';
     }
+
 }
 
 /**
  * 定义着色器（函数式方式）
  * @param name 着色器名称
- * @param builder 构建函数，在其中定义 attributes、uniforms、vertex 和 fragment 函数
+ * @param builder 构建函数，在其中定义 vertex 和 fragment 函数
  * @returns Shader 实例
  */
 export function shader(name: string, builder: () => void): Shader
@@ -441,7 +355,7 @@ export function shader(name: string, builder: () => void): Shader
     // 创建 Shader 实例
     const shaderInstance = new Shader();
 
-    // 设置当前 Shader 实例，以便 attribute、uniform 等函数可以自动收集
+    // 设置当前 Shader 实例，以便 vertex 和 fragment 函数可以自动收集
     setCurrentShaderInstance(shaderInstance);
 
     // 执行构建函数
@@ -457,5 +371,4 @@ export function shader(name: string, builder: () => void): Shader
 
     return shaderInstance;
 }
-
 

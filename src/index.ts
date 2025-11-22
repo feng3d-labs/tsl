@@ -1,17 +1,16 @@
 export * from './Attribute';
 export * from './currentShaderInstance';
-export { Fragment, fragment } from './Fragment';
+export * from './Fragment';
 export * from './Func';
-export * from './main';
 export * from './Precision';
 export * from './Shader';
-export * from './shaderGenerator';
-export * from './types';
 export * from './Uniform';
-export * from './uniforms';
 // 导出 builtin 类型和工具函数
-export type { FunctionCallConfig } from './builtin/vec4';
-export { convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL } from './builtin/vec4';
+export { let_ as _let } from './builtin/let';
+export { return_ as _return } from './builtin/return';
+// 导出向量类型
+export { Vec2 } from './builtin/vec2';
+export { Vec4 } from './builtin/vec4';
 // 导出向量构造函数
 export { vec2 } from './builtin/vec2';
 export { vec3 } from './builtin/vec3';
@@ -22,5 +21,6 @@ export { ivec4 } from './builtin/ivec4';
 export { uvec2 } from './builtin/uvec2';
 export { uvec3 } from './builtin/uvec3';
 export { uvec4 } from './builtin/uvec4';
-export { Vertex, vertex, FUNC_SYMBOL } from './Vertex';
+export { mat4 } from './builtin/mat4';
+export * from './Vertex';
 

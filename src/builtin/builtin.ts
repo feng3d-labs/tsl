@@ -1,65 +1,50 @@
-import { IType } from '../IElement';
+import { IElement, IType } from '../IElement';
 
 /**
  * Builtin 类，表示内置变量（如 position）
  */
-export class Builtin implements IType
+export class Builtin implements IElement
 {
-    readonly name: string;
-    readonly glslType: string;
-    readonly wgslType: string;
-    dependencies: any[] = [];
+    readonly builtinName: string; // WGSL 中内置的固定名称（如 "position"）
+    readonly varName: string; // 用户自定义的变量名称（如 "position_vec4"）
+    value: IType;
+    dependencies: IElement[] = [];
 
-    constructor(name: string, glslType: string, wgslType: string)
+    constructor(builtinName: string, varName: string)
     {
-        this.name = name;
-        this.glslType = glslType;
-        this.wgslType = wgslType;
+        this.builtinName = builtinName;
+        this.varName = varName;
     }
 
     toGLSL(type?: 'vertex' | 'fragment'): string
     {
         // 根据内置变量名称和着色器类型返回对应的 GLSL 变量名
-        if (this.name === 'position')
+        if (this.builtinName === 'position')
         {
             if (type === 'vertex')
             {
                 return 'gl_Position';
             }
-            else if (type === 'fragment')
-            {
-                return 'gl_FragColor';
-            }
+            throw `内置变量 ${this.builtinName} 不能用于 fragment shader`;
         }
-
-        return `gl_${this.name}`;
+        throw `内置变量 ${this.builtinName} 不支持 GLSL`;
     }
 
     toWGSL(type?: 'vertex' | 'fragment'): string
     {
-        // 在 WGSL 中，内置变量通常作为函数参数或返回值
-        // 这里返回变量名，实际使用时会在函数签名中声明
-        return this.name;
+        // 返回用户自定义的变量名
+        return this.varName;
     }
 }
 
 /**
  * 创建内置变量引用
- * @param name 内置变量名称（如 'position'）
+ * @param builtinName WGSL 中内置的固定名称（如 'position'）
+ * @param varName 用户自定义的变量名称（如 'position_vec4'）
  * @returns Builtin 实例
  */
-export function builtin(name: string): Builtin
+export function builtin(builtinName: string, varName: string): Builtin
 {
-    // 根据内置变量名称确定类型
-    let glslType = 'vec4';
-    let wgslType = 'vec4<f32>';
-
-    if (name === 'position')
-    {
-        glslType = 'vec4';
-        wgslType = 'vec4<f32>';
-    }
-
-    return new Builtin(name, glslType, wgslType);
+    return new Builtin(builtinName, varName);
 }
 

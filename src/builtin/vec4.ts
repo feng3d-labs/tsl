@@ -1,6 +1,7 @@
 import { Attribute } from '../Attribute';
 import { IElement } from '../IElement';
 import { Uniform } from '../Uniform';
+import { Builtin } from './builtin';
 import { Float } from './float';
 import { formatNumber } from './formatNumber';
 import { Vec2 } from './vec2';
@@ -13,21 +14,22 @@ export class Vec4 implements IElement
     readonly glslType = 'vec4';
     readonly wgslType = 'vec4<f32>';
 
-    toGLSL: () => string;
-    toWGSL: () => string;
+    toGLSL: (type?: 'vertex' | 'fragment') => string;
+    toWGSL: (type?: 'vertex' | 'fragment') => string;
     dependencies: IElement[];
 
     constructor();
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
+    constructor(builtin: Builtin);
     constructor(xy: Vec2, z: number, w: number);
     constructor(x: number, y: number, z: number, w: number);
-    constructor(...args: (number | Uniform | Attribute | Vec2)[])
+    constructor(...args: (number | Uniform | Attribute | Builtin | Vec2)[])
     {
         if (args.length === 0) return;
         if (args.length === 1)
         {
-            // 处理 uniform 或 attribute
+            // 处理 uniform、attribute 或 builtin
             if (args[0] instanceof Uniform)
             {
                 const uniform = args[0] as Uniform;
@@ -45,6 +47,15 @@ export class Vec4 implements IElement
                 this.toWGSL = () => attribute.name;
                 this.dependencies = [attribute];
                 attribute.value = this;
+            }
+            else if (args[0] instanceof Builtin)
+            {
+                const builtin = args[0] as Builtin;
+
+                this.toGLSL = (type) => builtin.toGLSL(type);
+                this.toWGSL = (type) => builtin.toWGSL(type);
+                this.dependencies = [builtin];
+                builtin.value = this;
             }
             else
             {
@@ -139,6 +150,7 @@ export class Vec4 implements IElement
  */
 export function vec4(uniform: Uniform): Vec4;
 export function vec4(attribute: Attribute): Vec4;
+export function vec4(builtin: Builtin): Vec4;
 export function vec4(xy: Vec2, z: number, w: number): Vec4;
 export function vec4(x: number, y: number, z: number, w: number): Vec4;
 export function vec4(...args: any[]): Vec4

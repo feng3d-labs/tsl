@@ -5,10 +5,10 @@ import { WebGPU } from "@feng3d/webgpu";
 import { mat4 } from "gl-matrix";
 
 // 导入原始 GLSL 和 WGSL 文件作为参考和备选
-import vertexGlslOriginal from "./shaders/vertex.glsl";
-import fragmentGlslOriginal from "./shaders/fragment.glsl";
-import vertexWgslOriginal from "./shaders/vertex.wgsl";
-import fragmentWgslOriginal from "./shaders/fragment.wgsl";
+import vertexGlsl from "./shaders/vertex.glsl";
+import fragmentGlsl from "./shaders/fragment.glsl";
+import vertexWgsl from "./shaders/vertex.wgsl";
+import fragmentWgsl from "./shaders/fragment.wgsl";
 
 import { sample4Shader } from "./shaders/shader";
 

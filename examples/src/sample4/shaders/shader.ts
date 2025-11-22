@@ -12,6 +12,10 @@ export const sample4Shader = shader("sample4", () =>
 
     const positionBuiltin = vec4(builtin("position", "position_vec4"));
 
+    // struct("VertexOutput", {
+    //     position: positionBuiltin,
+    // });
+
     // Vertex shader 入口函数
     vertex("main", () =>
     {

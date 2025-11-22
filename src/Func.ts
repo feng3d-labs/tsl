@@ -1,8 +1,5 @@
 import { Attribute } from './Attribute';
 import { Uniform } from './Uniform';
-import { Expression } from './builtin/Expression';
-import { collectLetStatements } from './builtin/collectLetStatements';
-import { FunctionCallConfig, generateFunctionCallGLSL, generateFunctionCallWGSL } from './builtin/utils';
 
 /**
  * Func 标记
@@ -57,20 +54,10 @@ export class Func
                 // IElement 形式（Vec2, Vec4 等）
                 glslReturn = returnValue.toGLSL();
             }
-            else if (returnValue instanceof Expression)
-            {
-                // Expression 形式
-                glslReturn = generateFunctionCallGLSL(returnValue);
-            }
             else if (typeof returnValue === 'string')
             {
                 // 字符串形式：将 WGSL 语法转换为 GLSL 语法（移除类型参数）
                 glslReturn = returnValue.replace(/<f32>/g, '').replace(/<i32>/g, '').replace(/<u32>/g, '');
-            }
-            else if (typeof returnValue === 'object' && 'function' in returnValue)
-            {
-                // 对象形式：函数调用配置
-                glslReturn = generateFunctionCallGLSL(returnValue as FunctionCallConfig);
             }
             else if (returnValue instanceof Uniform || returnValue instanceof Attribute)
             {
@@ -138,26 +125,15 @@ export class Func
             if (returnValue !== undefined && returnValue !== null)
             {
                 let wgslReturn: string;
-                const letStatements: string[] = [];
 
                 if (typeof returnValue === 'object' && returnValue !== null && 'toWGSL' in returnValue && typeof returnValue.toWGSL === 'function')
                 {
                     // IElement 形式（Vec2, Vec4 等）
                     wgslReturn = returnValue.toWGSL();
                 }
-                else if (returnValue instanceof Expression)
-                {
-                    // Expression 形式
-                    // 收集所有嵌套的 let 语句
-                    wgslReturn = collectLetStatements(returnValue, letStatements);
-                }
                 else if (typeof returnValue === 'string')
                 {
                     wgslReturn = returnValue;
-                }
-                else if (typeof returnValue === 'object' && 'function' in returnValue)
-                {
-                    wgslReturn = generateFunctionCallWGSL(returnValue as FunctionCallConfig);
                 }
                 else if (returnValue instanceof Uniform || returnValue instanceof Attribute)
                 {
@@ -168,11 +144,6 @@ export class Func
                     wgslReturn = String(returnValue);
                 }
 
-                // 插入 let 语句（如果有）
-                if (letStatements.length > 0)
-                {
-                    lines.push(...letStatements);
-                }
                 lines.push(`    return ${wgslReturn};`);
             }
         }
@@ -184,26 +155,15 @@ export class Func
             if (returnValue !== undefined && returnValue !== null)
             {
                 let wgslReturn: string;
-                const letStatements: string[] = [];
 
                 if (typeof returnValue === 'object' && returnValue !== null && 'toWGSL' in returnValue && typeof returnValue.toWGSL === 'function')
                 {
                     // IElement 形式（Vec2, Vec4 等）
                     wgslReturn = returnValue.toWGSL();
                 }
-                else if (returnValue instanceof Expression)
-                {
-                    // Expression 形式
-                    // 收集所有嵌套的 let 语句
-                    wgslReturn = collectLetStatements(returnValue, letStatements);
-                }
                 else if (typeof returnValue === 'string')
                 {
                     wgslReturn = returnValue;
-                }
-                else if (typeof returnValue === 'object' && 'function' in returnValue)
-                {
-                    wgslReturn = generateFunctionCallWGSL(returnValue as FunctionCallConfig);
                 }
                 else if (returnValue instanceof Uniform || returnValue instanceof Attribute)
                 {
@@ -214,11 +174,6 @@ export class Func
                     wgslReturn = String(returnValue);
                 }
 
-                // 插入 let 语句（如果有）
-                if (letStatements.length > 0)
-                {
-                    lines.push(...letStatements);
-                }
                 lines.push(`    return ${wgslReturn};`);
             }
         }

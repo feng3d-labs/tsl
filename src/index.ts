@@ -8,9 +8,7 @@ export * from './Shader';
 export * from './Uniform';
 export * from './uniforms';
 // 导出 builtin 类型和工具函数
-export type { FunctionCallConfig } from './builtin/utils';
-export { convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL } from './builtin/utils';
-export { Expression, expr } from './builtin/Expression';
+export { convertTypeToWGSL } from './builtin/utils';
 export { _let } from './builtin/let';
 // 导出向量类型
 export { Vec2 } from './builtin/vec2';

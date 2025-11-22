@@ -116,5 +116,3 @@ export function ivec3(...args: any[]): IVec3
 
     throw new Error('ivec3: invalid arguments');
 }
-
-

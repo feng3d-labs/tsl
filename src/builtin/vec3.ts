@@ -52,7 +52,7 @@ export class Vec3 implements IType
 
 /**
  * vec3 构造函数
- * 如果传入单个 Uniform 或 Attribute 实例，则将 FunctionCallConfig 保存到 uniform.value 或 attribute.value
+ * 如果传入单个 Uniform 或 Attribute 实例，则将类型信息保存到 uniform.value 或 attribute.value
  */
 export function vec3(): Vec3;
 export function vec3(uniform: Uniform): Vec3;

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { Attribute } from '../../src/Attribute';
-import { Expression } from '../../src/builtin/Expression';
 import { Float } from '../../src/builtin/float';
 import { vec2, Vec2 } from '../../src/builtin/vec2';
 import { Uniform } from '../../src/Uniform';
@@ -119,7 +118,7 @@ describe('vec2', () =>
 
     describe('vec2(uniform: Uniform)', () =>
     {
-        it('应该返回 Expression 实例', () =>
+        it('应该返回 Vec2 实例', () =>
         {
             const uniform = new Uniform('uPosition', 0, 0);
             const result = vec2(uniform);

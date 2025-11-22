@@ -1,6 +1,5 @@
 import { getCurrentShaderInstance } from './currentShaderInstance';
 import { Func } from './Func';
-import type { FunctionCallConfig } from './builtin/utils';
 
 /**
  * Fragment 类，继承自 Func

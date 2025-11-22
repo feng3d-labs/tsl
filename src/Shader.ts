@@ -3,8 +3,6 @@ import { Fragment } from './Fragment';
 import { IShader } from './IShader';
 import { Uniform } from './Uniform';
 import { Vertex } from './Vertex';
-import { Expression } from './builtin/Expression';
-import { FunctionCallConfig } from './builtin/utils';
 import { clearCurrentShaderInstance, setCurrentShaderInstance } from './currentShaderInstance';
 
 /**
@@ -73,13 +71,6 @@ export class Shader implements IShader
                 return;
             }
 
-            // 如果是 Expression 实例，分析其 config
-            if (value instanceof Expression)
-            {
-                analyzeValue(value.config);
-
-                return;
-            }
 
             // 如果是 Uniform 或 Attribute 实例
             if (value instanceof Uniform)
@@ -95,38 +86,6 @@ export class Shader implements IShader
                 return;
             }
 
-            // 如果是 FunctionCallConfig
-            if (typeof value === 'object' && 'function' in value && 'args' in value)
-            {
-                const config = value as FunctionCallConfig;
-                // 递归分析参数
-                for (const arg of config.args)
-                {
-                    // 如果是字符串，检查是否是变量名
-                    if (typeof arg === 'string')
-                    {
-                        // 检查是否是 attribute 或 uniform 的名称
-                        if (this.attributes[arg])
-                        {
-                            attributes.add(arg);
-                        }
-                        else if (this.uniforms[arg])
-                        {
-                            uniforms.add(arg);
-                        }
-                    }
-                    // 如果是 Expression，递归分析
-                    else if (arg instanceof Expression)
-                    {
-                        analyzeValue(arg);
-                    }
-                    // 如果是 FunctionCallConfig，递归分析
-                    else if (typeof arg === 'object' && 'function' in arg)
-                    {
-                        analyzeValue(arg);
-                    }
-                }
-            }
         };
 
         analyzeValue(returnValue);

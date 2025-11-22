@@ -103,4 +103,3 @@ export function ivec2(...args: any[]): IVec2
     throw new Error('ivec2: invalid arguments');
 }
 
-

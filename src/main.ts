@@ -1,12 +1,12 @@
-import { FunctionCallConfig, convertTypeToWGSL, generateFunctionCallGLSL, generateFunctionCallWGSL } from './builtin/utils';
+import { convertTypeToWGSL } from './builtin/utils';
 
 /**
  * 主函数配置
  */
 export interface MainFunctionConfig
 {
-    /** 返回值表达式（字符串形式，兼容旧格式） */
-    return?: string | FunctionCallConfig;
+    /** 返回值表达式（字符串形式） */
+    return?: string;
     /** 函数体代码（可选，如果提供则使用此代码，否则使用 return） */
     body?: string;
 }
@@ -34,15 +34,8 @@ export function generateMainGLSL(config: { type: string; main: MainFunctionConfi
         // 使用 return 表达式
         let glslReturn: string;
 
-        if (typeof config.main.return === 'string')
-        {
-            // 字符串形式：将 WGSL 语法转换为 GLSL 语法（移除类型参数，如 vec4<f32> -> vec4）
-            glslReturn = config.main.return.replace(/<f32>/g, '').replace(/<i32>/g, '').replace(/<u32>/g, '');
-        } else
-        {
-            // 对象形式：函数调用配置
-            glslReturn = generateFunctionCallGLSL(config.main.return);
-        }
+        // 字符串形式：将 WGSL 语法转换为 GLSL 语法（移除类型参数，如 vec4<f32> -> vec4）
+        glslReturn = config.main.return.replace(/<f32>/g, '').replace(/<i32>/g, '').replace(/<u32>/g, '');
 
         if (config.type === 'fragment')
         {
@@ -95,17 +88,8 @@ export function generateMainWGSL(config: { type: string; attributes?: Array<{ na
             }
         } else if (config.main.return)
         {
-            let wgslReturn: string;
-
-            if (typeof config.main.return === 'string')
-            {
-                // 字符串形式：直接使用
-                wgslReturn = config.main.return;
-            } else
-            {
-                // 对象形式：函数调用配置
-                wgslReturn = generateFunctionCallWGSL(config.main.return);
-            }
+            // 字符串形式：直接使用
+            const wgslReturn = config.main.return;
 
             lines.push(`    return ${wgslReturn};`);
         }
@@ -124,17 +108,8 @@ export function generateMainWGSL(config: { type: string; attributes?: Array<{ na
             }
         } else if (config.main.return)
         {
-            let wgslReturn: string;
-
-            if (typeof config.main.return === 'string')
-            {
-                // 字符串形式：直接使用
-                wgslReturn = config.main.return;
-            } else
-            {
-                // 对象形式：函数调用配置
-                wgslReturn = generateFunctionCallWGSL(config.main.return);
-            }
+            // 字符串形式：直接使用
+            const wgslReturn = config.main.return;
 
             lines.push(`    return ${wgslReturn};`);
         }

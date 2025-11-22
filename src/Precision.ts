@@ -43,10 +43,11 @@ export function precision(value: 'lowp' | 'mediump' | 'highp'): Precision
 
     // 如果当前正在执行函数，将 precision 添加到依赖中
     const currentFunc = getCurrentFunc();
-    if (currentFunc)
+    if (!currentFunc)
     {
-        currentFunc.dependencies.push(precisionInstance);
+        throw new Error('precision() 必须在 fragment shader 函数中调用');
     }
+    currentFunc.dependencies.push(precisionInstance);
 
     return precisionInstance;
 }

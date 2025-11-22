@@ -2,9 +2,6 @@ import { _return, attribute, fragment, precision, shader, uniform, vec2, vec4, v
 
 export const helloTriangle = shader("helloTriangle", () =>
 {
-    // precision: 'lowp' | 'mediump' | 'highp' = 'highp';
-    precision('highp');
-
     // Vertex shader 的 attribute
     const position = vec2(attribute("position", 0));
 
@@ -20,6 +17,8 @@ export const helloTriangle = shader("helloTriangle", () =>
     // Fragment shader 入口函数
     fragment("main", () =>
     {
+        precision('highp');
+
         _return(color);
     });
 });

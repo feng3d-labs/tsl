@@ -131,7 +131,7 @@ describe('vec2', () =>
             expect(result.y.toWGSL()).toBe('uPosition.y');
         });
 
-        it('应该将 FunctionCallConfig 保存到 uniform.value', () =>
+        it('应该将类型信息保存到 uniform.value', () =>
         {
             const uniform = new Uniform('uPosition', 0, 0);
             vec2(uniform);
@@ -156,7 +156,7 @@ describe('vec2', () =>
             expect(result.y.toWGSL()).toBe('aPosition.y');
         });
 
-        it('应该将 FunctionCallConfig 保存到 attribute.value', () =>
+        it('应该将类型信息保存到 attribute.value', () =>
         {
             const attribute = new Attribute('aPosition', 0);
             vec2(attribute);

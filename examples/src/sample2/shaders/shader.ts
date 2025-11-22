@@ -1,4 +1,4 @@
-import { _let, attribute, fragment, mat4, precision, shader, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
+import { _let, _return, attribute, fragment, mat4, precision, shader, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
 
 export const sample2Shader = shader("sample2", () =>
 {
@@ -17,7 +17,7 @@ export const sample2Shader = shader("sample2", () =>
     {
         const position = _let("position", vec4(aVertexPosition, 0.0, 1.0));
 
-        return uProjectionMatrix.multiply(uModelViewMatrix).multiply(position);
+        _return(uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
     });
 
     // Fragment shader 入口函数

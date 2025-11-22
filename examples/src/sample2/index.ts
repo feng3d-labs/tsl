@@ -13,8 +13,8 @@ import { sample2Shader } from "./shaders/shader";
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 使用 TSL 生成着色器代码
-    const vertexGlsl = sample2Shader.generateGLSL('vertex', 'main');
-    const fragmentGlsl = sample2Shader.generateGLSL('fragment', 'main');
+    const vertexGlsl = sample2Shader.generateVertexGLSL('main');
+    const fragmentGlsl = sample2Shader.generateFragmentGLSL('main');
     // const vertexWgsl = sample2Shader.generateWGSL('vertex', 'main');
     // const fragmentWgsl = sample2Shader.generateWGSL('fragment', 'main');
 

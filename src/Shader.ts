@@ -95,46 +95,34 @@ export class Shader implements IShader
         return { attributes, uniforms };
     }
 
-
     /**
-     * 生成 GLSL 着色器代码
-     * @param shaderType 着色器类型，必须提供：'vertex' 或 'fragment'
-     * @param entry 入口函数名（可选）。如果提供则查找同名同类型的入口函数，否则取第一个入口函数
+     * 生成 Vertex Shader 的 GLSL 代码
+     * @param entry 入口函数名（可选）。如果提供则查找同名函数，否则取第一个 vertex 函数
      */
-    generateGLSL(shaderType: 'vertex' | 'fragment', entry?: string): string
+    generateVertexGLSL(entry?: string): string
     {
         const lines: string[] = [];
 
         // 查找入口函数
-        const funcDict = shaderType === 'vertex' ? this.vertexs : this.fragments;
-        let entryFunc: Vertex | Fragment | undefined;
+        let entryFunc: Vertex | undefined;
 
         if (entry)
         {
-            entryFunc = funcDict[entry];
+            entryFunc = this.vertexs[entry];
         }
         else
         {
-            const keys = Object.keys(funcDict);
+            const keys = Object.keys(this.vertexs);
             if (keys.length > 0)
             {
-                entryFunc = funcDict[keys[0]];
+                entryFunc = this.vertexs[keys[0]];
             }
         }
 
         if (!entryFunc)
         {
             const entryDesc = entry ? `名为 '${entry}' 的` : '';
-            const shaderTypeDesc = shaderType === 'vertex' ? '顶点' : '片段';
-            throw new Error(`未找到${shaderTypeDesc}着色器的${entryDesc}入口函数。请确保已定义 ${shaderType === 'vertex' ? 'vertex' : 'fragment'}() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
-        }
-
-        const functionName = entryFunc.name;
-
-        // Fragment shader 需要 precision 声明
-        if (shaderType === 'fragment' && this.precision)
-        {
-            lines.push(`precision ${this.precision} float;`);
+            throw new Error(`未找到顶点着色器的${entryDesc}入口函数。请确保已定义 vertex() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
         }
 
         // 先执行 body 收集依赖（通过调用 toGLSL 来触发，它会执行 body 并填充 dependencies）
@@ -144,13 +132,10 @@ export class Shader implements IShader
         // 从函数的 dependencies 中分析获取 attributes 和 uniforms
         const dependencies = this.analyzeDependencies(entryFunc.dependencies);
 
-        // 生成 attributes（仅 vertex shader，且只包含实际使用的）
-        if (shaderType === 'vertex')
+        // 生成 attributes（只包含实际使用的）
+        for (const attr of dependencies.attributes)
         {
-            for (const attr of dependencies.attributes)
-            {
-                lines.push(attr.toGLSL());
-            }
+            lines.push(attr.toGLSL());
         }
 
         // 生成 uniforms（只包含实际使用的）
@@ -173,39 +158,97 @@ export class Shader implements IShader
     }
 
     /**
-     * 生成 WGSL 着色器代码
-     * @param shaderType 着色器类型，必须提供：'vertex' 或 'fragment'
-     * @param entry 入口函数名（可选）。如果提供则查找同名同类型的入口函数，否则取第一个入口函数
+     * 生成 Fragment Shader 的 GLSL 代码
+     * @param entry 入口函数名（可选）。如果提供则查找同名函数，否则取第一个 fragment 函数
      */
-    generateWGSL(shaderType: 'vertex' | 'fragment', entry?: string): string
+    generateFragmentGLSL(entry?: string): string
     {
         const lines: string[] = [];
 
         // 查找入口函数
-        const funcDict = shaderType === 'vertex' ? this.vertexs : this.fragments;
-        let entryFunc: Vertex | Fragment | undefined;
+        let entryFunc: Fragment | undefined;
 
         if (entry)
         {
-            entryFunc = funcDict[entry];
+            entryFunc = this.fragments[entry];
         }
         else
         {
-            const keys = Object.keys(funcDict);
+            const keys = Object.keys(this.fragments);
             if (keys.length > 0)
             {
-                entryFunc = funcDict[keys[0]];
+                entryFunc = this.fragments[keys[0]];
             }
         }
 
         if (!entryFunc)
         {
             const entryDesc = entry ? `名为 '${entry}' 的` : '';
-            const shaderTypeDesc = shaderType === 'vertex' ? '顶点' : '片段';
-            throw new Error(`未找到${shaderTypeDesc}着色器的${entryDesc}入口函数。请确保已定义 ${shaderType === 'vertex' ? 'vertex' : 'fragment'}() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
+            throw new Error(`未找到片段着色器的${entryDesc}入口函数。请确保已定义 fragment() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
         }
 
-        const functionName = entryFunc.name;
+        // Fragment shader 需要 precision 声明
+        if (this.precision)
+        {
+            lines.push(`precision ${this.precision} float;`);
+        }
+
+        // 先执行 body 收集依赖（通过调用 toGLSL 来触发，它会执行 body 并填充 dependencies）
+        // 这里只为了收集依赖，不生成完整代码
+        entryFunc.toGLSL();
+
+        // 从函数的 dependencies 中分析获取 uniforms
+        const dependencies = this.analyzeDependencies(entryFunc.dependencies);
+
+        // 生成 uniforms（只包含实际使用的）
+        for (const uniform of dependencies.uniforms)
+        {
+            lines.push(uniform.toGLSL());
+        }
+
+        // 空行
+        if (lines.length > 0)
+        {
+            lines.push('');
+        }
+
+        // 使用 entryFunc 生成函数代码（不会再次执行 body，因为依赖已收集）
+        const funcCode = entryFunc.toGLSL();
+        lines.push(...funcCode.split('\n'));
+
+        return lines.join('\n') + '\n';
+    }
+
+
+    /**
+     * 生成 Vertex Shader 的 WGSL 代码
+     * @param entry 入口函数名（可选）。如果提供则查找同名函数，否则取第一个 vertex 函数
+     */
+    generateVertexWGSL(entry?: string): string
+    {
+        const lines: string[] = [];
+
+        // 查找入口函数
+        let entryFunc: Vertex | undefined;
+
+        if (entry)
+        {
+            entryFunc = this.vertexs[entry];
+        }
+        else
+        {
+            const keys = Object.keys(this.vertexs);
+            if (keys.length > 0)
+            {
+                entryFunc = this.vertexs[keys[0]];
+            }
+        }
+
+        if (!entryFunc)
+        {
+            const entryDesc = entry ? `名为 '${entry}' 的` : '';
+            throw new Error(`未找到顶点着色器的${entryDesc}入口函数。请确保已定义 vertex() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
+        }
 
         // 先执行 body 收集依赖（通过调用 toWGSL 来触发，它会执行 body 并填充 dependencies）
         // 这里只为了收集依赖，不生成完整代码
@@ -226,21 +269,67 @@ export class Shader implements IShader
             lines.push('');
         }
 
-        // 准备 attributes 配置（仅用于 vertex shader，且只包含实际使用的）
-        const attributes = shaderType === 'vertex'
-            ? Array.from(dependencies.attributes)
-            : undefined;
+        // 准备 attributes 配置（只包含实际使用的）
+        const attributes = Array.from(dependencies.attributes);
 
         // 使用 entryFunc 生成函数代码（不会再次执行 body，因为依赖已收集）
-        let funcCode: string;
-        if (entryFunc instanceof Vertex)
+        const funcCode = entryFunc.toWGSL(attributes);
+        lines.push(...funcCode.split('\n'));
+
+        return lines.join('\n') + '\n';
+    }
+
+    /**
+     * 生成 Fragment Shader 的 WGSL 代码
+     * @param entry 入口函数名（可选）。如果提供则查找同名函数，否则取第一个 fragment 函数
+     */
+    generateFragmentWGSL(entry?: string): string
+    {
+        const lines: string[] = [];
+
+        // 查找入口函数
+        let entryFunc: Fragment | undefined;
+
+        if (entry)
         {
-            funcCode = entryFunc.toWGSL(attributes);
+            entryFunc = this.fragments[entry];
         }
         else
         {
-            funcCode = entryFunc.toWGSL();
+            const keys = Object.keys(this.fragments);
+            if (keys.length > 0)
+            {
+                entryFunc = this.fragments[keys[0]];
+            }
         }
+
+        if (!entryFunc)
+        {
+            const entryDesc = entry ? `名为 '${entry}' 的` : '';
+            throw new Error(`未找到片段着色器的${entryDesc}入口函数。请确保已定义 fragment() 函数${entry ? `，且函数名为 '${entry}'` : ''}。`);
+        }
+
+        // 先执行 body 收集依赖（通过调用 toWGSL 来触发，它会执行 body 并填充 dependencies）
+        // 这里只为了收集依赖，不生成完整代码
+        entryFunc.toWGSL();
+
+        // 从函数的 dependencies 中分析获取 uniforms
+        const dependencies = this.analyzeDependencies(entryFunc.dependencies);
+
+        // 生成 uniforms（只包含实际使用的）
+        for (const uniform of dependencies.uniforms)
+        {
+            lines.push(uniform.toWGSL());
+        }
+
+        // 空行
+        if (lines.length > 0)
+        {
+            lines.push('');
+        }
+
+        // 使用 entryFunc 生成函数代码（不会再次执行 body，因为依赖已收集）
+        const funcCode = entryFunc.toWGSL();
         lines.push(...funcCode.split('\n'));
 
         return lines.join('\n') + '\n';

@@ -65,7 +65,7 @@ describe('Uniform', () =>
             });
 
             // 验证生成的着色器代码中包含 uniform 声明
-            const glsl = testShader.generateGLSL('fragment');
+            const glsl = testShader.generateFragmentGLSL();
             expect(glsl).toContain('uniform vec4 color;');
         });
     });

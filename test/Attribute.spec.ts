@@ -63,7 +63,7 @@ describe('Attribute', () =>
             });
 
             // 验证生成的着色器代码中包含 attribute 声明
-            const glsl = testShader.generateGLSL('vertex');
+            const glsl = testShader.generateVertexGLSL();
             expect(glsl).toContain('attribute vec2 position;');
         });
     });

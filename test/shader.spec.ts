@@ -43,7 +43,7 @@ describe('Shader', () =>
                 });
             });
 
-            const glsl = testShader.generateGLSL('vertex', 'main');
+            const glsl = testShader.generateVertexGLSL('main');
 
             expect(glsl).toContain('attribute vec2 position;');
             expect(glsl).toContain('void main()');
@@ -62,7 +62,7 @@ describe('Shader', () =>
                 });
             });
 
-            const glsl = testShader.generateGLSL('fragment', 'main');
+            const glsl = testShader.generateFragmentGLSL('main');
 
             expect(glsl).toContain('uniform vec4 color;');
             expect(glsl).toContain('void main()');
@@ -89,14 +89,14 @@ describe('Shader', () =>
                 });
             });
 
-            const vertexGlsl = testShader.generateGLSL('vertex', 'main');
+            const vertexGlsl = testShader.generateVertexGLSL('main');
             expect(vertexGlsl).toContain('attribute vec2 pos;');
             // uv 在 vertex shader 中没有使用，所以不应该包含
             expect(vertexGlsl).not.toContain('attribute vec2 uv;');
             // color 和 time 在 vertex shader 中没有使用，所以不应该包含
             expect(vertexGlsl).not.toContain('uniform');
 
-            const fragmentGlsl = testShader.generateGLSL('fragment', 'main');
+            const fragmentGlsl = testShader.generateFragmentGLSL('main');
             expect(fragmentGlsl).toContain('uniform vec4 color;');
             // time 在 fragment shader 中没有使用，所以不应该包含
             expect(fragmentGlsl).not.toContain('uniform vec4 time;');
@@ -113,9 +113,9 @@ describe('Shader', () =>
                 });
             });
 
-            expect(() => testShader.generateGLSL('fragment', 'main')).not.toThrow();
-            expect(() => testShader.generateGLSL('vertex', 'main')).toThrow(/未找到顶点着色器/);
-            expect(() => testShader.generateGLSL('fragment', 'nonexistent')).toThrow(/未找到片段着色器/);
+            expect(() => testShader.generateFragmentGLSL('main')).not.toThrow();
+            expect(() => testShader.generateVertexGLSL('main')).toThrow(/未找到顶点着色器/);
+            expect(() => testShader.generateFragmentGLSL('nonexistent')).toThrow(/未找到片段着色器/);
         });
     });
 
@@ -133,7 +133,7 @@ describe('Shader', () =>
                 });
             });
 
-            const wgsl = testShader.generateWGSL('vertex', 'main');
+            const wgsl = testShader.generateVertexWGSL('main');
 
             expect(wgsl).toContain('@vertex');
             expect(wgsl).toContain('fn main');
@@ -153,7 +153,7 @@ describe('Shader', () =>
                 });
             });
 
-            const wgsl = testShader.generateWGSL('fragment', 'main');
+            const wgsl = testShader.generateFragmentWGSL('main');
 
             expect(wgsl).toContain('@fragment');
             expect(wgsl).toContain('fn main');
@@ -179,13 +179,13 @@ describe('Shader', () =>
                 });
             });
 
-            const vertexWgsl = testShader.generateWGSL('vertex', 'main');
+            const vertexWgsl = testShader.generateVertexWGSL('main');
             expect(vertexWgsl).toContain('@location(0) position: vec2<f32>');
             // color 和 time 在 vertex shader 中没有使用，所以不应该包含
             expect(vertexWgsl).not.toContain('var<uniform> color');
             expect(vertexWgsl).not.toContain('var<uniform> time');
 
-            const fragmentWgsl = testShader.generateWGSL('fragment', 'main');
+            const fragmentWgsl = testShader.generateFragmentWGSL('main');
             expect(fragmentWgsl).toContain('var<uniform> color : vec4<f32>');
             // time 在 fragment shader 中没有使用，所以不应该包含
             expect(fragmentWgsl).not.toContain('var<uniform> time');

@@ -15,16 +15,15 @@ export const sample2Shader = shader("sample2", () =>
     // Vertex shader 入口函数
     vertex("main", () =>
     {
-        const position = _let("position", vec4(aVertexPosition, 0.0, 1.0));
+        // const position = _let("position", vec4(aVertexPosition, 0.0, 1.0));
 
-        _return(uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
+        _return(uProjectionMatrix.multiply(uModelViewMatrix).multiply(vec4(aVertexPosition, 0.0, 1.0)));
     });
 
     // Fragment shader 入口函数
     fragment("main", () =>
     {
-        // gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
-        return vec4(1.0, 0.0, 1.0, 1.0);
+        _return(vec4(1.0, 0.0, 1.0, 1.0));
     });
 });
 

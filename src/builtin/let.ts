@@ -1,6 +1,5 @@
 import { IElement } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
-import { Statement } from './return';
 
 /**
  * 创建一个带变量名的表达式（用于 WGSL 中的 let 语句）
@@ -11,22 +10,20 @@ import { Statement } from './return';
 export function _let<T extends IElement>(name: string, expr: T): T
 {
     const cls = expr.constructor;
-    const instance: IElement = new (cls as any)();
+    const result: IElement = new (cls as any)();
 
-    instance.toGLSL = () => `${name}`;
-    instance.toWGSL = () => `${name}`;
-    instance.dependencies = [expr];
+    result.toGLSL = () => `${name}`;
+    result.toWGSL = () => `${name}`;
+    result.dependencies = [expr];
 
     // 收集 let 语句
     const currentFunc = getCurrentFunc();
-    if (currentFunc && 'addStatement' in currentFunc && typeof currentFunc.addStatement === 'function')
-    {
-        currentFunc.addStatement({
-            type: 'let',
-            name,
-            expr,
-        });
-    }
+    currentFunc.statements.push({
+        toGLSL: () => `let ${name} = ${expr.toGLSL()};`,
+        toWGSL: () => `let ${name} = ${expr.toWGSL()};`,
+    });
+    // 收集依赖
+    currentFunc.dependencies.push(expr);
 
-    return instance as T;
+    return result as T;
 }

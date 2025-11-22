@@ -1,6 +1,7 @@
 import { Attribute } from '../Attribute';
 import { IElement, IType } from '../IElement';
 import { Uniform } from '../Uniform';
+import { Vec4 } from './vec4';
 
 /**
  * Mat4 类，用于表示 mat4 字面量值或 uniform/attribute 变量
@@ -14,10 +15,12 @@ export class Mat4 implements IType
     toGLSL: () => string;
     toWGSL: () => string;
 
+    constructor();
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(...args: (Uniform | Attribute)[])
     {
+        if (args.length === 0) return;
         if (args.length === 1)
         {
             // 处理 uniform 或 attribute
@@ -52,7 +55,27 @@ export class Mat4 implements IType
         }
     }
 
+    multiply<T extends Mat4 | Vec4>(other: T): T
+    {
+        if (other instanceof Vec4)
+        {
+            const vec4 = new Vec4(0, 0, 0, 0);
+            vec4.toGLSL = () => `${this.toGLSL()} * ${other.toGLSL()}`;
+            vec4.toWGSL = () => `${this.toWGSL()} * ${other.toWGSL()}`;
+            vec4.dependencies = [this, other];
 
+            return vec4 as T;
+        }
+        else
+        {
+            const mat4 = new Mat4();
+            mat4.toGLSL = () => `${this.toGLSL()} * ${other.toGLSL()}`;
+            mat4.toWGSL = () => `${this.toWGSL()} * ${other.toWGSL()}`;
+            mat4.dependencies = [this, other];
+
+            return mat4 as T;
+        }
+    }
 }
 
 /**

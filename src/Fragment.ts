@@ -1,4 +1,3 @@
-import { analyzeDependencies } from './analyzeDependencies';
 import { Func } from './Func';
 
 /**
@@ -23,8 +22,8 @@ export class Fragment extends Func
         // 这里只为了收集依赖，不生成完整代码
         super.toGLSL('fragment');
 
-        // 从函数的 dependencies 中分析获取 uniforms 和 precision
-        const dependencies = analyzeDependencies(this.dependencies);
+        // 从函数的 dependencies 中分析获取 uniforms 和 precision（使用缓存）
+        const dependencies = this.getAnalyzedDependencies();
 
         // Fragment shader 需要 precision 声明（从函数依赖中获取）
         if (dependencies.precision)
@@ -63,8 +62,8 @@ export class Fragment extends Func
         // 这里只为了收集依赖，不生成完整代码
         super.toWGSL('fragment');
 
-        // 从函数的 dependencies 中分析获取 uniforms
-        const dependencies = analyzeDependencies(this.dependencies);
+        // 从函数的 dependencies 中分析获取 uniforms（使用缓存）
+        const dependencies = this.getAnalyzedDependencies();
 
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)

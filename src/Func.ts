@@ -1,6 +1,9 @@
 import { analyzeDependencies } from './analyzeDependencies';
+import { Attribute } from './Attribute';
 import { IElement } from './IElement';
+import { Precision } from './Precision';
 import { IStatement } from './builtin/Statement';
+import { Uniform } from './Uniform';
 import { setCurrentFunc } from './currentFunc';
 
 /**
@@ -12,6 +15,7 @@ export class Func
     readonly body: () => any;
     statements: IStatement[] = [];
     dependencies: IElement[] = [];
+    private _analyzedDependencies?: { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision };
 
     constructor(name: string, body: () => any)
     {
@@ -42,6 +46,21 @@ export class Func
             // 清除当前函数引用
             setCurrentFunc(null);
         }
+    }
+
+    /**
+     * 获取分析后的依赖（只分析一次，后续使用缓存）
+     */
+    protected getAnalyzedDependencies(): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision }
+    {
+        if (!this._analyzedDependencies)
+        {
+            // 确保依赖已收集
+            this.executeBodyIfNeeded();
+            this._analyzedDependencies = analyzeDependencies(this.dependencies);
+        }
+
+        return this._analyzedDependencies;
     }
 
     /**
@@ -86,7 +105,7 @@ export class Func
         if (shaderType === 'vertex')
         {
             // Vertex shader - 从 dependencies 中获取 attributes
-            const dependencies = analyzeDependencies(this.dependencies);
+            const dependencies = this.getAnalyzedDependencies();
             const params: string[] = [];
 
             for (const attr of dependencies.attributes)

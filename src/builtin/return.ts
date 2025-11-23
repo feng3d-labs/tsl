@@ -18,10 +18,10 @@ export function return_<T extends IType>(expr: T): void
         currentFunc.statements.push({
             toGLSL: (type: 'vertex' | 'fragment') =>
             {
-                // 如果是结构体变量，在 GLSL 中不生成代码（输出已通过 assign 设置）
+                // 如果是结构体变量，在 GLSL 中只生成 return;（输出已通过 assign 设置）
                 if (isStructVar)
                 {
-                    return '';
+                    return 'return;';
                 }
 
                 if (type === 'vertex')

@@ -25,5 +25,6 @@ export { uvec4 } from './builtin/uvec4';
 export { vec2 } from './builtin/vec2';
 export { vec3 } from './builtin/vec3';
 export { vec4 } from './builtin/vec4';
+export * from './struct';
 export * from './Vertex';
 

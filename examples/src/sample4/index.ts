@@ -22,12 +22,6 @@ document.addEventListener('DOMContentLoaded', async () =>
     const vertexWgsl = sample4Shader.generateVertexWGSL();
     const fragmentWgsl = sample4Shader.generateFragmentWGSL();
 
-    // 如果需要使用原始 GLSL/WGSL 文件，可以取消下面的注释：
-    // const vertexGlsl = vertexGlslOriginal;
-    // const fragmentGlsl = fragmentGlslOriginal;
-    // const vertexWgsl = vertexWgslOriginal;
-    // const fragmentWgsl = fragmentWgslOriginal;
-
     const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = {
         clearColorValue: [0, 0, 0, 1],
         loadColorOp: 'clear',
@@ -128,7 +122,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         webgpu.submit(submit);
         webgl.submit(submit);
 
-        requestAnimationFrame(render);
+        // requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
 });

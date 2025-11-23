@@ -12,7 +12,7 @@ export function assign(target: IType, value: IType): void
     const currentFunc = getCurrentFunc();
     if (currentFunc)
     {
-        currentFunc.statements.push({
+        const stmt: any = {
             toGLSL: (type: 'vertex' | 'fragment') =>
             {
                 return `${target.toGLSL(type)} = ${value.toGLSL(type)};`;
@@ -31,7 +31,13 @@ export function assign(target: IType, value: IType): void
                     return `${target.toWGSL(type)} = ${value.toWGSL(type)};`;
                 }
             },
-        });
+        };
+        
+        // 保存原始信息，用于自动创建结构体
+        stmt._assignTarget = target;
+        stmt._assignValue = value;
+        
+        currentFunc.statements.push(stmt);
         // 收集依赖（包括 target 和 value）
         currentFunc.dependencies.push(target);
         currentFunc.dependencies.push(value);

@@ -15,7 +15,7 @@ export function return_<T extends IType>(expr: T): void
         // 检查是否是结构体变量（通过检查 dependencies 中是否包含 Struct 实例）
         const isStructVar = expr.dependencies && expr.dependencies.some(dep => dep instanceof Struct);
 
-        currentFunc.statements.push({
+        const stmt: any = {
             toGLSL: (type: 'vertex' | 'fragment') =>
             {
                 // 如果是结构体变量，在 GLSL 中只生成 return;（输出已通过 assign 设置）
@@ -36,7 +36,12 @@ export function return_<T extends IType>(expr: T): void
                 return `return ${expr.toGLSL(type)};`;
             },
             toWGSL: (type: 'vertex' | 'fragment') => `return ${expr.toWGSL(type)};`,
-        });
+        };
+
+        // 保存原始表达式，用于 fragment shader 中自动创建结构体
+        stmt._returnExpr = expr;
+
+        currentFunc.statements.push(stmt);
         currentFunc.dependencies.push(expr);
     }
 }

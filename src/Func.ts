@@ -1,6 +1,7 @@
 import { analyzeDependencies } from './analyzeDependencies';
 import { Attribute } from './Attribute';
-import { IElement } from './IElement';
+import { Builtin } from './builtin/builtin';
+import { IElement, IType } from './IElement';
 import { Precision } from './Precision';
 import { IStatement } from './builtin/Statement';
 import { Struct } from './struct';
@@ -163,6 +164,159 @@ export class Func
                 }
             }
 
+            // 如果没有找到结构体变量，检查是否有对 builtin 和 varying 的直接赋值
+            // 如果有，自动创建结构体来包装这些变量
+            if (!returnStruct)
+            {
+                const builtinAssignments = new Map<Builtin, { target: IType; fieldName: string; value: IType }>();
+                const varyingAssignments = new Map<Varying, { target: IType; fieldName: string; value: IType }>();
+
+                // 从 statements 中找出所有对 builtin 和 varying 的赋值
+                // 使用保存在 statement 中的原始信息
+                for (const stmt of this.statements)
+                {
+                    const stmtAny = stmt as any;
+                    if (stmtAny._assignTarget && stmtAny._assignValue)
+                    {
+                        const target = stmtAny._assignTarget as IType;
+                        const value = stmtAny._assignValue as IType;
+
+                        // 检查 target 是否是 builtin 或 varying
+                        if (target && typeof target === 'object' && 'dependencies' in target && Array.isArray(target.dependencies) && target.dependencies.length > 0)
+                        {
+                            const firstDep = target.dependencies[0];
+                            if (firstDep instanceof Builtin)
+                            {
+                                const fieldName = firstDep.builtinName === 'position' ? 'position' : firstDep.varName;
+                                if (!builtinAssignments.has(firstDep))
+                                {
+                                    builtinAssignments.set(firstDep, { target, fieldName, value });
+                                }
+                            }
+                            else if (firstDep instanceof Varying)
+                            {
+                                const fieldName = firstDep.name;
+                                if (!varyingAssignments.has(firstDep))
+                                {
+                                    varyingAssignments.set(firstDep, { target, fieldName, value });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 如果有对 builtin 或 varying 的赋值，创建结构体
+                if (builtinAssignments.size > 0 || varyingAssignments.size > 0)
+                {
+                    // 创建结构体字段
+                    const structFields: { [key: string]: IElement } = {};
+
+                    // 添加 builtin 字段
+                    for (const [builtin, { target }] of builtinAssignments)
+                    {
+                        structFields[builtin.builtinName === 'position' ? 'position' : builtin.varName] = target;
+                    }
+
+                    // 添加 varying 字段
+                    for (const [varying, { target }] of varyingAssignments)
+                    {
+                        structFields[varying.name] = target;
+                    }
+
+                    // 创建结构体
+                    const autoStructName = 'VertexOutput';
+                    returnStruct = new Struct(autoStructName, structFields);
+
+                    // 创建结构体变量
+                    const structVarName = 'output';
+                    const structVar = {
+                        toGLSL: () => '',
+                        toWGSL: () => structVarName,
+                        dependencies: [returnStruct],
+                    } as IElement;
+
+                    // 修改赋值语句，使其赋值给结构体字段
+                    const newStatements: IStatement[] = [];
+                    newStatements.push({
+                        toGLSL: () => '',
+                        toWGSL: () => `var ${structVarName}: ${autoStructName};`,
+                    });
+
+                    // 使用保存的原始信息来匹配赋值语句
+                    for (let i = 0; i < this.statements.length; i++)
+                    {
+                        const stmt = this.statements[i];
+                        const stmtAny = stmt as any;
+
+                        // 检查是否是 assign 语句（有保存的原始信息）
+                        if (stmtAny._assignTarget && stmtAny._assignValue)
+                        {
+                            const target = stmtAny._assignTarget as IType;
+                            const value = stmtAny._assignValue as IType;
+
+                            // 检查 target 是否是 builtin 或 varying
+                            if (target && typeof target === 'object' && 'dependencies' in target && Array.isArray(target.dependencies) && target.dependencies.length > 0)
+                            {
+                                const firstDep = target.dependencies[0];
+                                let isBuiltinOrVaryingAssignment = false;
+                                let fieldName = '';
+
+                                if (firstDep instanceof Builtin)
+                                {
+                                    fieldName = firstDep.builtinName === 'position' ? 'position' : firstDep.varName;
+                                    isBuiltinOrVaryingAssignment = builtinAssignments.has(firstDep);
+                                }
+                                else if (firstDep instanceof Varying)
+                                {
+                                    fieldName = firstDep.name;
+                                    isBuiltinOrVaryingAssignment = varyingAssignments.has(firstDep);
+                                }
+
+                                if (isBuiltinOrVaryingAssignment)
+                                {
+                                    // 转换为结构体字段赋值
+                                    const valueExpr = value.toWGSL(shaderType);
+                                    newStatements.push({
+                                        toGLSL: stmt.toGLSL,
+                                        toWGSL: () => `${structVarName}.${fieldName} = ${valueExpr};`,
+                                    });
+                                }
+                                else
+                                {
+                                    // 保留其他语句
+                                    newStatements.push(stmt);
+                                }
+                            }
+                            else
+                            {
+                                // 保留其他语句
+                                newStatements.push(stmt);
+                            }
+                        }
+                        else
+                        {
+                            // 保留非赋值语句
+                            newStatements.push(stmt);
+                        }
+                    }
+
+                    // 添加 return 语句
+                    newStatements.push({
+                        toGLSL: () => '',
+                        toWGSL: () => `return ${structVarName};`,
+                    });
+
+                    // 替换 statements
+                    this.statements = newStatements;
+
+                    // 添加结构体变量到 dependencies
+                    this.dependencies.push(structVar);
+
+                    // 清除缓存，以便重新分析依赖（包含新创建的结构体）
+                    this._analyzedDependencies = undefined;
+                }
+            }
+
             // 如果没有找到 return 语句，但存在结构体变量且有赋值操作，也认为返回结构体
             // 需要在最后添加 return 语句
             if (returnStruct && !this.statements.some(stmt => stmt.toWGSL(shaderType).includes('return')))
@@ -234,8 +388,35 @@ export class Func
                 }
             }
 
-            // 生成函数参数（格式化，参数单独一行，末尾没有逗号）
-            const paramStr = inputStruct ? `(\n    ${inputStruct.varName}: ${inputStruct.struct.structName}\n)` : '()';
+            // 如果没有找到结构体变量，检查是否有直接使用的 varying
+            // 如果有，直接在函数参数中添加 varying 定义
+            const varyingParams: string[] = [];
+            if (!inputStruct && dependencies.varyings.size > 0)
+            {
+                // 收集所有使用的 varying，生成函数参数
+                for (const varying of dependencies.varyings)
+                {
+                    if (varying.value)
+                    {
+                        const wgslType = varying.value.wgslType;
+                        const location = varying.location !== undefined ? `@location(${varying.location})` : '@location(0)';
+                        varyingParams.push(`${location} ${varying.name}: ${wgslType}`);
+                    }
+                }
+            }
+
+            // 生成函数参数
+            let paramStr = '()';
+            if (inputStruct)
+            {
+                // 使用结构体作为参数
+                paramStr = `(\n    ${inputStruct.varName}: ${inputStruct.struct.structName}\n)`;
+            }
+            else if (varyingParams.length > 0)
+            {
+                // 使用 varying 作为参数
+                paramStr = `(\n    ${varyingParams.map(p => `${p},`).join('\n    ')}\n)`;
+            }
             lines.push(`fn ${this.name}${paramStr} -> @location(0) vec4<f32> {`);
 
             this.statements.forEach(stmt =>

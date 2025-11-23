@@ -36,6 +36,17 @@ describe('Struct', () =>
             expect(wgsl).toContain('@builtin(position) position: vec4<f32>');
         });
 
+        it('应该能够生成正确的 GLSL 代码（单个字段）', () =>
+        {
+            const VertexOutput = struct('VertexOutput', {
+                position: vec4(builtin('position', 'position')),
+            });
+
+            const wgsl = VertexOutput.toGLSL('vertex');
+
+            expect(wgsl).equal('');
+        });
+
         it('应该能够生成正确的 WGSL 代码（字段名与 varName 不同）', () =>
         {
             const VertexOutput = struct('VertexOutput', {

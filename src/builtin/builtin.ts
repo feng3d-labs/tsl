@@ -22,8 +22,12 @@ export class Builtin implements IElement
         {
             throw new Error(`Builtin '${this.builtinName}' 没有设置 value，无法生成 GLSL。`);
         }
+        if (this.builtinName === 'position')
+        {
+            return 'gl_Position';
+        }
 
-        return ``;
+        throw ``;
     }
 
     toWGSL(): string

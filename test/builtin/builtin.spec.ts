@@ -44,10 +44,8 @@ describe('Builtin', () =>
 
         it('应该在设置 value 后返回空字符串', () =>
         {
-            const b = new Builtin('position', 'position_vec4');
-            const v = vec4(1.0, 2.0, 3.0, 4.0);
-            b.value = v;
-            expect(b.toGLSL()).toBe('');
+            const v = vec4(builtin('position', 'position_vec4'));
+            expect(v.toGLSL('vertex')).toBe('gl_Position');
         });
     });
 

@@ -44,7 +44,7 @@ export function var_(...args: any[]): any
 function var_struct<T extends { [key: string]: IElement }>(varName: string, struct: Struct<T>): IElement & T
 {
     const result = {
-        toGLSL: (type: 'vertex' | 'fragment') => `${varName}`,
+        toGLSL: (type: 'vertex' | 'fragment') => ``,
         toWGSL: (type: 'vertex' | 'fragment') => `${varName}`,
         dependencies: [struct],
     } as IElement as IElement & T;
@@ -53,7 +53,10 @@ function var_struct<T extends { [key: string]: IElement }>(varName: string, stru
     {
         const cls = value.constructor as new () => IElement;
         const instance = new cls();
-        instance.toGLSL = (type: 'vertex' | 'fragment') => `${varName}.${key}`;
+        instance.toGLSL = (type: 'vertex' | 'fragment') =>
+        {
+            return value.dependencies[0].toGLSL(type)
+        };
         instance.toWGSL = (type: 'vertex' | 'fragment') => `${varName}.${key}`;
         instance.dependencies = [result];
 

@@ -204,8 +204,8 @@ describe('Struct', () =>
             const vertexGlsl = output.toGLSL('vertex');
             const fragmentGlsl = output.toGLSL('fragment');
 
-            expect(vertexGlsl).toBe('output');
-            expect(fragmentGlsl).toBe('output');
+            expect(vertexGlsl).toBe('');
+            expect(fragmentGlsl).toBe('');
         });
 
         it('应该能够为结构体字段生成正确的 GLSL 代码', () =>
@@ -217,7 +217,7 @@ describe('Struct', () =>
             const output = var_('output', VertexOutput);
 
             const glsl = output.position.toGLSL('vertex');
-            expect(glsl).toBe('output.position');
+            expect(glsl).toBe('gl_Position');
         });
 
         it('应该能够为结构体字段属性生成正确的 GLSL 代码', () =>
@@ -229,7 +229,7 @@ describe('Struct', () =>
             const output = var_('output', VertexOutput);
 
             const glsl = output.position.x.toGLSL('vertex');
-            expect(glsl).toBe('output.position.x');
+            expect(glsl).toBe('gl_Position.x');
         });
     });
 });

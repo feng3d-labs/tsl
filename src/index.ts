@@ -2,6 +2,7 @@ export * from './Attribute';
 export * from './Fragment';
 export * from './Func';
 export * from './Precision';
+export * from './Sampler';
 export * from './Uniform';
 export * from './Varying';
 // 导出 builtin 类型和工具函数
@@ -9,6 +10,7 @@ export * from './builtin/assign';
 export * from './builtin/builtin';
 export { let_ } from './builtin/let';
 export { return_ } from './builtin/return';
+export { texture2D } from './builtin/texture2D';
 export { var_ } from './builtin/var';
 // 导出向量类型
 export { Vec2 } from './builtin/vec2';

@@ -5,6 +5,7 @@
 	],
 	"webgl-examples": [
 		"sample2",
-		"sample4"
+		"sample4",
+		"sample6"
 	]
 }

@@ -3,6 +3,7 @@ import { Attribute } from './Attribute';
 import { Builtin } from './builtin/builtin';
 import { IElement, IType } from './IElement';
 import { Precision } from './Precision';
+import { Sampler } from './Sampler';
 import { IStatement } from './builtin/Statement';
 import { Struct } from './struct';
 import { Uniform } from './Uniform';
@@ -18,7 +19,7 @@ export class Func
     readonly body: () => any;
     statements: IStatement[] = [];
     dependencies: IElement[] = [];
-    private _analyzedDependencies?: { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying> };
+    private _analyzedDependencies?: { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying>; samplers: Set<Sampler> };
 
     constructor(name: string, body: () => any)
     {
@@ -54,7 +55,7 @@ export class Func
     /**
      * 获取分析后的依赖（只分析一次，后续使用缓存）
      */
-    protected getAnalyzedDependencies(): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying> }
+    protected getAnalyzedDependencies(): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying>; samplers: Set<Sampler> }
     {
         if (!this._analyzedDependencies)
         {

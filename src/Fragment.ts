@@ -22,7 +22,7 @@ export class Fragment extends Func
         // 这里只为了收集依赖，不生成完整代码
         super.toGLSL('fragment');
 
-        // 从函数的 dependencies 中分析获取 uniforms、precision 和 varyings（使用缓存）
+        // 从函数的 dependencies 中分析获取 uniforms、precision、varyings 和 samplers（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
 
         // Fragment shader 需要 precision 声明（从函数依赖中获取）
@@ -41,6 +41,12 @@ export class Fragment extends Func
         for (const uniform of dependencies.uniforms)
         {
             lines.push(uniform.toGLSL('fragment'));
+        }
+
+        // 生成 samplers（只包含实际使用的）
+        for (const sampler of dependencies.samplers)
+        {
+            lines.push(sampler.toGLSL('fragment'));
         }
 
         // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
@@ -97,6 +103,14 @@ export class Fragment extends Func
         for (const uniform of dependencies.uniforms)
         {
             lines.push(uniform.toWGSL('fragment'));
+        }
+
+        // 生成 samplers（只包含实际使用的）
+        // 在 WGSL 中，sampler.toWGSL() 返回多行（texture 和 sampler 声明）
+        for (const sampler of dependencies.samplers)
+        {
+            const samplerWgsl = sampler.toWGSL('fragment');
+            lines.push(...samplerWgsl.split('\n'));
         }
 
         // 空行

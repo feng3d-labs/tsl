@@ -1,5 +1,6 @@
 import { Attribute } from './Attribute';
 import { Precision } from './Precision';
+import { Sampler } from './Sampler';
 import { Struct } from './struct';
 import { Uniform } from './Uniform';
 import { Varying } from './Varying';
@@ -9,12 +10,13 @@ import { Varying } from './Varying';
  * @param dependencies 函数依赖数组
  * @returns 使用的 Attribute、Uniform、Precision、Struct 和 Varying 实例集合
  */
-export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying> }
+export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying>; samplers: Set<Sampler> }
 {
     const attributes = new Set<Attribute>();
     const uniforms = new Set<Uniform>();
     const structs = new Set<Struct<any>>();
     const varyings = new Set<Varying>();
+    const samplers = new Set<Sampler>();
     let precision: Precision | undefined;
     const visited = new WeakSet();
 
@@ -65,6 +67,14 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
         if (value instanceof Varying)
         {
             varyings.add(value);
+
+            return;
+        }
+
+        // 如果是 Sampler 实例，添加到 samplers 集合
+        if (value instanceof Sampler)
+        {
+            samplers.add(value);
 
             return;
         }
@@ -120,6 +130,6 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
         analyzeValue(dep);
     }
 
-    return { attributes, uniforms, precision, structs, varyings };
+    return { attributes, uniforms, precision, structs, varyings, samplers };
 }
 

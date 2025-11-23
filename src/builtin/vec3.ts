@@ -64,8 +64,6 @@ export function vec3(...args: (number | Uniform | Attribute)[]): Vec3
 
     if (args.length === 1) return new Vec3(args[0] as any);
 
-    if (args.length === 2) return new Vec3(args[0] as number, args[1] as number, args[2] as number);
-
     if (args.length === 3) return new Vec3(args[0] as number, args[1] as number, args[2] as number);
 
     throw new Error('Invalid arguments for vec3');

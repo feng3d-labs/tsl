@@ -22,7 +22,7 @@ export class Vertex extends Func
         // 这里只为了收集依赖，不生成完整代码
         super.toGLSL('vertex');
 
-        // 从函数的 dependencies 中分析获取 attributes、uniforms 和 varyings（使用缓存）
+        // 从函数的 dependencies 中分析获取 attributes、uniforms、varyings 和 samplers（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
 
         // 生成 attributes（只包含实际使用的）

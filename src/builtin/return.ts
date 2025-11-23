@@ -16,11 +16,11 @@ export function return_<T extends IType>(expr: T): void
             {
                 if (type === 'vertex')
                 {
-                    return `gl_Position = ${expr.toGLSL(type)};`;
+                    return `gl_Position = ${expr.toGLSL(type)}; return;`;
                 }
                 else if (type === 'fragment')
                 {
-                    return `gl_FragColor = ${expr.toGLSL(type)};`;
+                    return `gl_FragColor = ${expr.toGLSL(type)}; return;`;
                 }
 
                 return `return ${expr.toGLSL(type)};`;

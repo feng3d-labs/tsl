@@ -10,7 +10,7 @@ const uProjectionMatrix = mat4(uniform("uProjectionMatrix", 1, 0));
 
 const VertexOutput = struct("VertexOutput", {
     position: vec4(builtin("position", "position_vec4")),
-    color: vec4(varying("vColor", 1)),
+    color: vec4(varying("vColor", 0)),
 });
 
 // Vertex shader 入口函数
@@ -25,14 +25,11 @@ export const vertexShader = vertex("main", () =>
 });
 
 // Fragment shader 入口函数
-// 注意：由于 TSL 目前不支持 varying，这里使用 uniform 传递颜色
-// 在实际应用中，可以通过其他方式传递顶点颜色
 export const fragmentShader = fragment("main", () =>
 {
     precision('lowp');
+    const input = var_('input', VertexOutput);
 
-    // 使用一个固定的颜色，或者可以通过 uniform 传递
-    // 这里为了演示，使用白色
-    return_(vec4(1.0, 1.0, 1.0, 1.0));
+    return_(input.color);
 });
 

@@ -3,6 +3,7 @@ export * from './Fragment';
 export * from './Func';
 export * from './Precision';
 export * from './Uniform';
+export * from './Varying';
 // 导出 builtin 类型和工具函数
 export * from './builtin/assign';
 export * from './builtin/builtin';

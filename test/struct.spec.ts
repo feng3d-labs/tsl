@@ -7,6 +7,7 @@ import { mat4 } from '../src/builtin/mat4';
 import { vec3 } from '../src/builtin/vec3';
 import { vec4 } from '../src/builtin/vec4';
 import { Struct, struct } from '../src/struct';
+import { varying } from '../src/Varying';
 
 describe('Struct', () =>
 {
@@ -40,7 +41,7 @@ describe('Struct', () =>
                 struct('Material', {
                     position: vec3(attribute('position', 0)),
                 });
-            }).toThrow('必须是 builtin 类型');
+            }).toThrow('必须是 builtin 或 varying 类型');
         });
 
         it('应该拒绝非 builtin 类型的字段（uniform）', () =>
@@ -50,7 +51,7 @@ describe('Struct', () =>
                 struct('Material', {
                     modelMatrix: mat4(uniform('modelMatrix', 0, 0)),
                 });
-            }).toThrow('必须是 builtin 类型');
+            }).toThrow('必须是 builtin 或 varying 类型');
         });
     });
 
@@ -64,7 +65,7 @@ describe('Struct', () =>
 
             const wgsl = VertexOutput.toWGSL('vertex');
 
-            expect(wgsl).toBe('struct VertexOutput { @builtin(position) position: vec4<f32> }');
+            expect(wgsl).toBe('struct VertexOutput {\n    @builtin(position) position: vec4<f32>,\n}');
         });
 
         it('应该能够生成正确的 WGSL 代码（字段名与 varName 不同）', () =>
@@ -230,6 +231,18 @@ describe('Struct', () =>
 
             const glsl = output.position.x.toGLSL('vertex');
             expect(glsl).toBe('gl_Position.x');
+        });
+
+        it('应该能够为 Varying 字段生成正确的 GLSL 代码', () =>
+        {
+            const VertexOutput = struct('VertexOutput', {
+                color: vec4(varying('vColor', 1)),
+            });
+
+            const output = var_('output', VertexOutput);
+
+            const glsl = output.color.toGLSL('vertex');
+            expect(glsl).toBe('vColor');
         });
     });
 });

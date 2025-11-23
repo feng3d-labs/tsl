@@ -1,4 +1,4 @@
-import { attribute, builtin, fragment, mat4, precision, return_, struct, uniform, var_, vec2, vec4, vertex } from '@feng3d/tsl';
+import { assign, attribute, builtin, fragment, mat4, precision, return_, struct, uniform, var_, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes
 const aVertexPosition = vec2(attribute("aVertexPosition", 0));
@@ -8,21 +8,20 @@ const aVertexColor = vec4(attribute("aVertexColor", 1));
 const uModelViewMatrix = mat4(uniform("uModelViewMatrix", 0, 0));
 const uProjectionMatrix = mat4(uniform("uProjectionMatrix", 1, 0));
 
-const positionBuiltin = vec4(builtin("position", "position_vec4"));
-
 const VertexOutput = struct("VertexOutput", {
-    position: positionBuiltin,
+    position: vec4(builtin("position", "position_vec4")),
+    color: vec4(varying("vColor", 1)),
 });
 
 // Vertex shader 入口函数
 export const vertexShader = vertex("main", () =>
 {
-    var_('output', VertexOutput);
+    const output = var_('output', VertexOutput);
     const position = var_("position", vec4(aVertexPosition, 0.0, 1.0));
 
-    return_(uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
-    // assign(positionBuiltin, uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
-    // return_(output as any);
+    assign(output.position, uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
+    assign(output.color, aVertexColor);
+    return_(output as any);
 });
 
 // Fragment shader 入口函数

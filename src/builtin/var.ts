@@ -1,6 +1,8 @@
 import { IElement, IType } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
 import { Struct } from '../struct';
+import { Varying } from '../Varying';
+import { Builtin } from './builtin';
 
 /**
  * 创建一个带变量名的表达式（用于 WGSL 中的 var 语句）
@@ -53,9 +55,22 @@ function var_struct<T extends { [key: string]: IElement }>(varName: string, stru
     {
         const cls = value.constructor as new () => IElement;
         const instance = new cls();
+        const dep = value.dependencies[0];
         instance.toGLSL = (type: 'vertex' | 'fragment') =>
         {
-            return value.dependencies[0].toGLSL(type)
+            // 对于 Varying，返回变量名而不是声明语句
+            if (dep instanceof Varying)
+            {
+                return dep.name;
+            }
+            // 对于 Builtin，使用其 toGLSL 方法（如 position 返回 gl_Position）
+            if (dep instanceof Builtin)
+            {
+                return dep.toGLSL();
+            }
+
+            // 其他情况使用依赖的 toGLSL
+            return dep.toGLSL(type);
         };
         instance.toWGSL = (type: 'vertex' | 'fragment') => `${varName}.${key}`;
         instance.dependencies = [result];

@@ -22,7 +22,7 @@ export class Vertex extends Func
         // 这里只为了收集依赖，不生成完整代码
         super.toGLSL('vertex');
 
-        // 从函数的 dependencies 中分析获取 attributes 和 uniforms（使用缓存）
+        // 从函数的 dependencies 中分析获取 attributes、uniforms 和 varyings（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
 
         // 生成 attributes（只包含实际使用的）
@@ -37,17 +37,39 @@ export class Vertex extends Func
             lines.push(uniform.toGLSL('vertex'));
         }
 
-        // 空行
-        if (lines.length > 0)
+        // 生成 varyings（只包含实际使用的，在 vertex shader 中作为输出）
+        for (const varying of dependencies.varyings)
         {
-            lines.push('');
+            lines.push(varying.toGLSL('vertex'));
         }
 
         // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
         const funcCode = super.toGLSL('vertex');
-        lines.push(...funcCode.split('\n'));
+        const funcLines = funcCode.split('\n').filter(line => line.trim() !== '');
 
-        return lines.join('\n') + '\n';
+        // 如果有声明和函数代码，在它们之间添加一个空行
+        if (lines.length > 0 && funcLines.length > 0)
+        {
+            lines.push('');
+        }
+
+        lines.push(...funcLines);
+
+        // 移除末尾的空行，但保留其他空行（用于分隔）
+        const result: string[] = [];
+        for (let i = 0; i < lines.length; i++)
+        {
+            const line = lines[i];
+            const isLast = i === lines.length - 1;
+            // 如果是最后一行且为空，跳过
+            if (isLast && line.trim() === '')
+            {
+                continue;
+            }
+            result.push(line);
+        }
+
+        return result.join('\n');
     }
 
     /**

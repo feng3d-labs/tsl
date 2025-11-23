@@ -2,17 +2,19 @@ import { Attribute } from './Attribute';
 import { Precision } from './Precision';
 import { Struct } from './struct';
 import { Uniform } from './Uniform';
+import { Varying } from './Varying';
 
 /**
- * 分析函数依赖中使用的 attributes、uniforms、precision 和 structs
+ * 分析函数依赖中使用的 attributes、uniforms、precision、structs 和 varyings
  * @param dependencies 函数依赖数组
- * @returns 使用的 Attribute、Uniform、Precision 和 Struct 实例集合
+ * @returns 使用的 Attribute、Uniform、Precision、Struct 和 Varying 实例集合
  */
-export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>> }
+export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying> }
 {
     const attributes = new Set<Attribute>();
     const uniforms = new Set<Uniform>();
     const structs = new Set<Struct<any>>();
+    const varyings = new Set<Varying>();
     let precision: Precision | undefined;
     const visited = new WeakSet();
 
@@ -59,17 +61,43 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
             return;
         }
 
+        // 如果是 Varying 实例，添加到 varyings 集合
+        if (value instanceof Varying)
+        {
+            varyings.add(value);
+
+            return;
+        }
+
         // 如果是 Struct 实例，添加到 structs 集合
         if (value instanceof Struct)
         {
             structs.add(value);
 
-            // 继续分析结构体的依赖
+            // 继续分析结构体的依赖，提取其中的 Varying
             if (typeof value === 'object' && 'dependencies' in value && Array.isArray(value.dependencies))
             {
                 for (const dep of value.dependencies)
                 {
                     analyzeValue(dep);
+                }
+            }
+
+            // 分析结构体字段中的 Varying
+            if (typeof value === 'object' && 'fields' in value)
+            {
+                for (const fieldValue of Object.values((value as any).fields))
+                {
+                    if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
+                    {
+                        for (const dep of fieldValue.dependencies)
+                        {
+                            if (dep instanceof Varying)
+                            {
+                                varyings.add(dep);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -92,6 +120,6 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
         analyzeValue(dep);
     }
 
-    return { attributes, uniforms, precision, structs };
+    return { attributes, uniforms, precision, structs, varyings };
 }
 

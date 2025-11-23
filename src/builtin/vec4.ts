@@ -1,6 +1,7 @@
 import { Attribute } from '../Attribute';
 import { IElement } from '../IElement';
 import { Uniform } from '../Uniform';
+import { Varying } from '../Varying';
 import { Builtin } from './builtin';
 import { Float } from './float';
 import { formatNumber } from './formatNumber';
@@ -22,9 +23,10 @@ export class Vec4 implements IElement
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(builtin: Builtin);
+    constructor(varying: Varying);
     constructor(xy: Vec2, z: number, w: number);
     constructor(x: number, y: number, z: number, w: number);
-    constructor(...args: (number | Uniform | Attribute | Builtin | Vec2)[])
+    constructor(...args: (number | Uniform | Attribute | Builtin | Varying | Vec2)[])
     {
         if (args.length === 0) return;
         if (args.length === 1)
@@ -61,6 +63,15 @@ export class Vec4 implements IElement
                 this.toWGSL = (type) => builtin.varName;
                 this.dependencies = [builtin];
                 builtin.value = this;
+            }
+            else if (args[0] instanceof Varying)
+            {
+                const varying = args[0] as Varying;
+
+                this.toGLSL = (type: 'vertex' | 'fragment') => varying.name;
+                this.toWGSL = (type: 'vertex' | 'fragment') => varying.name;
+                this.dependencies = [varying];
+                varying.value = this;
             }
             else
             {
@@ -156,6 +167,7 @@ export class Vec4 implements IElement
 export function vec4(uniform: Uniform): Vec4;
 export function vec4(attribute: Attribute): Vec4;
 export function vec4(builtin: Builtin): Vec4;
+export function vec4(varying: Varying): Vec4;
 export function vec4(xy: Vec2, z: number, w: number): Vec4;
 export function vec4(x: number, y: number, z: number, w: number): Vec4;
 export function vec4(...args: any[]): Vec4

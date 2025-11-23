@@ -61,7 +61,7 @@ export class Vertex extends Func
 
         // 先执行 body 收集依赖（通过调用父类的 toWGSL 来触发，它会执行 body 并填充 dependencies）
         // 这里只为了收集依赖，不生成完整代码
-        super.toWGSL('vertex', []);
+        super.toWGSL('vertex');
 
         // 从函数的 dependencies 中分析获取 attributes 和 uniforms
         const dependencies = analyzeDependencies(this.dependencies);
@@ -78,11 +78,8 @@ export class Vertex extends Func
             lines.push('');
         }
 
-        // 准备 attributes 配置（只包含实际使用的）
-        const attributes = Array.from(dependencies.attributes);
-
         // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-        const funcCode = super.toWGSL('vertex', attributes);
+        const funcCode = super.toWGSL('vertex');
         lines.push(...funcCode.split('\n'));
 
         return lines.join('\n') + '\n';

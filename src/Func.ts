@@ -1,4 +1,4 @@
-import { Attribute } from './Attribute';
+import { analyzeDependencies } from './analyzeDependencies';
 import { IElement } from './IElement';
 import { IStatement } from './builtin/Statement';
 import { setCurrentFunc } from './currentFunc';
@@ -71,9 +71,8 @@ export class Func
     /**
      * 转换为 WGSL 代码
      * @param shaderType 着色器类型（vertex 或 fragment）
-     * @param attributes 属性列表（仅用于 vertex shader）
      */
-    toWGSL(shaderType: 'vertex' | 'fragment', attributes?: Attribute[]): string
+    toWGSL(shaderType: 'vertex' | 'fragment'): string
     {
         // 执行函数体收集语句和依赖（如果尚未收集）
         this.executeBodyIfNeeded();
@@ -86,14 +85,13 @@ export class Func
 
         if (shaderType === 'vertex')
         {
-            // Vertex shader
+            // Vertex shader - 从 dependencies 中获取 attributes
+            const dependencies = analyzeDependencies(this.dependencies);
             const params: string[] = [];
-            if (attributes)
+
+            for (const attr of dependencies.attributes)
             {
-                for (const attr of attributes)
-                {
-                    params.push(attr.toWGSL('vertex'));
-                }
+                params.push(attr.toWGSL('vertex'));
             }
 
             const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';

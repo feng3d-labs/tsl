@@ -3,7 +3,6 @@ import { Attribute, attribute } from '../src/Attribute';
 import { vec2 } from '../src/builtin/vec2';
 import { vec4 } from '../src/builtin/vec4';
 import { return_ } from '../src/index';
-import { shader } from '../src/Shader';
 import { vertex } from '../src/Vertex';
 
 describe('Attribute', () =>
@@ -50,21 +49,18 @@ describe('Attribute', () =>
 
         it('应该支持 vec2(attribute(...)) 形式', () =>
         {
-            const testShader = shader('test', () =>
-            {
-                const position = vec2(attribute('position', 0));
-                expect(position).toBeDefined();
-                expect(position.toGLSL('vertex')).toBe('position');
-                expect(position.toWGSL('vertex')).toBe('position');
+            const position = vec2(attribute('position', 0));
+            expect(position).toBeDefined();
+            expect(position.toGLSL('vertex')).toBe('position');
+            expect(position.toWGSL('vertex')).toBe('position');
 
-                vertex('main', () =>
-                {
-                    return_(vec4(position, 0.0, 1.0));
-                });
+            const vertexShader = vertex('main', () =>
+            {
+                return_(vec4(position, 0.0, 1.0));
             });
 
             // 验证生成的着色器代码中包含 attribute 声明
-            const glsl = testShader.generateVertexGLSL();
+            const glsl = vertexShader.toGLSL();
             expect(glsl).toContain('attribute vec2 position;');
         });
     });

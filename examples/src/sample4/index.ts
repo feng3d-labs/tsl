@@ -10,17 +10,17 @@ import fragmentGlsl from "./shaders/fragment.glsl";
 import vertexWgsl from "./shaders/vertex.wgsl";
 import fragmentWgsl from "./shaders/fragment.wgsl";
 
-import { sample4Shader } from "./shaders/shader";
+import { vertexShader, fragmentShader } from "./shaders/shader";
 
 let squareRotation = 0.0;
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 使用 TSL 生成着色器代码
-    const vertexGlsl = sample4Shader.generateVertexGLSL();
-    const fragmentGlsl = sample4Shader.generateFragmentGLSL();
-    const vertexWgsl = sample4Shader.generateVertexWGSL();
-    const fragmentWgsl = sample4Shader.generateFragmentWGSL();
+    const vertexGlsl = vertexShader.toGLSL();
+    const fragmentGlsl = fragmentShader.toGLSL();
+    const vertexWgsl = vertexShader.toWGSL();
+    const fragmentWgsl = fragmentShader.toWGSL();
 
     const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = {
         clearColorValue: [0, 0, 0, 1],

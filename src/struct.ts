@@ -1,11 +1,8 @@
 import { Builtin } from './builtin/builtin';
 import { IElement } from './IElement';
 
-const STRUCT_SYMBOL = Symbol('Struct');
-
 export class Struct<T extends { [key: string]: IElement }> implements IElement
 {
-    readonly __type__ = STRUCT_SYMBOL;
     dependencies: IElement[];
     toGLSL: (type: 'vertex' | 'fragment') => string;
     toWGSL: (type: 'vertex' | 'fragment') => string;

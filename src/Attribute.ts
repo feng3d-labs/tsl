@@ -1,16 +1,10 @@
 import { IElement, IType } from './IElement';
 
 /**
- * Attribute 标记
- */
-export const ATTRIBUTE_SYMBOL = Symbol('attribute');
-
-/**
  * Attribute 类
  */
 export class Attribute implements IElement
 {
-    readonly __type__ = ATTRIBUTE_SYMBOL;
     dependencies: IElement[];
     readonly name: string;
     value?: IType;

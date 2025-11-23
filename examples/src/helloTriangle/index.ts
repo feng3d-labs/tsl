@@ -6,16 +6,16 @@ import vertexGlsl from "./shaders/vertex.glsl";
 import vertexWgsl from "./shaders/vertex.wgsl";
 import fragmentGlsl from "./shaders/fragment.glsl";
 import fragmentWgsl from "./shaders/fragment.wgsl";
-import { helloTriangle } from "./shaders/shader";
+import { fragmentShader, vertexShader } from "./shaders/shader";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 使用函数式方式定义着色器生成着色器代码
     // shaderType 作为第一个参数，必须提供；entry 作为第二个参数，可选（对应 vertex("main", ...) 和 fragment("main", ...) 中的函数名）
-    const vertexGlsl = helloTriangle.generateVertexGLSL();
-    const vertexWgsl = helloTriangle.generateVertexWGSL();
-    const fragmentGlsl = helloTriangle.generateFragmentGLSL();
-    const fragmentWgsl = helloTriangle.generateFragmentWGSL();
+    const vertexGlsl = vertexShader.toGLSL();
+    const vertexWgsl = vertexShader.toWGSL();
+    const fragmentGlsl = fragmentShader.toGLSL();
+    const fragmentWgsl = fragmentShader.toWGSL();
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 

@@ -8,15 +8,15 @@ import fragmentGlsl from "./shaders/fragment.glsl";
 import vertexWgsl from "./shaders/vertex.wgsl";
 import fragmentWgsl from "./shaders/fragment.wgsl";
 
-import { sample2Shader } from "./shaders/shader";
+import { vertexShader, fragmentShader } from "./shaders/shader";
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 使用 TSL 生成着色器代码
-    const vertexGlsl = sample2Shader.generateVertexGLSL();
-    const fragmentGlsl = sample2Shader.generateFragmentGLSL();
-    const vertexWgsl = sample2Shader.generateVertexWGSL();
-    const fragmentWgsl = sample2Shader.generateFragmentWGSL();
+    const vertexGlsl = vertexShader.toGLSL();
+    const fragmentGlsl = fragmentShader.toGLSL();
+    const vertexWgsl = vertexShader.toWGSL();
+    const fragmentWgsl = fragmentShader.toWGSL();
 
     const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = {
         clearColorValue: [0, 0, 0, 1],

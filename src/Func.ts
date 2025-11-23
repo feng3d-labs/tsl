@@ -1,20 +1,13 @@
 import { Attribute } from './Attribute';
 import { IElement } from './IElement';
-import { Uniform } from './Uniform';
 import { IStatement } from './builtin/Statement';
 import { setCurrentFunc } from './currentFunc';
-
-/**
- * Func 标记
- */
-export const FUNC_SYMBOL = Symbol('func');
 
 /**
  * Func 类
  */
 export class Func
 {
-    readonly __type__: typeof FUNC_SYMBOL = FUNC_SYMBOL;
     readonly name: string;
     readonly body: () => any;
     readonly shaderType?: 'vertex' | 'fragment';

@@ -1,17 +1,10 @@
 import { IElement, IType } from './IElement';
 
 /**
- * Uniform 标记
- */
-export const UNIFORM_SYMBOL = Symbol('uniform');
-
-/**
  * Uniform 类
  */
 export class Uniform implements IElement
 {
-    readonly __type__ = UNIFORM_SYMBOL;
-
     dependencies: IElement[];
 
     readonly name: string;

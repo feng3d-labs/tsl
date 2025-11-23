@@ -2,16 +2,10 @@ import { IElement } from './IElement';
 import { getCurrentFunc } from './currentFunc';
 
 /**
- * Precision 标记
- */
-export const PRECISION_SYMBOL = Symbol('precision');
-
-/**
  * Precision 类，表示 GLSL 精度声明（仅用于 fragment shader）
  */
 export class Precision implements IElement
 {
-    readonly __type__ = PRECISION_SYMBOL;
     readonly value: 'lowp' | 'mediump' | 'highp';
     dependencies: IElement[] = [];
 

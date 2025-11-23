@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Uniform, uniform } from '../src/Uniform';
 import { vec4 } from '../src/builtin/vec4';
-import { shader } from '../src/Shader';
 import { fragment } from '../src/Fragment';
 import { return_ } from '../src/index';
 
@@ -52,21 +51,18 @@ describe('Uniform', () =>
 
         it('应该支持 vec4(uniform(...)) 形式', () =>
         {
-            const testShader = shader('test', () =>
-            {
-                const color = vec4(uniform('color', 0, 0));
-                expect(color).toBeDefined();
-                expect(color.toGLSL('fragment')).toBe('color');
-                expect(color.toWGSL('fragment')).toBe('color');
+            const color = vec4(uniform('color', 0, 0));
+            expect(color).toBeDefined();
+            expect(color.toGLSL('fragment')).toBe('color');
+            expect(color.toWGSL('fragment')).toBe('color');
 
-                fragment('main', () =>
-                {
-                    return_(color);
-                });
+            const fragmentShader = fragment('main', () =>
+            {
+                return_(color);
             });
 
             // 验证生成的着色器代码中包含 uniform 声明
-            const glsl = testShader.generateFragmentGLSL();
+            const glsl = fragmentShader.toGLSL();
             expect(glsl).toContain('uniform vec4 color;');
         });
     });

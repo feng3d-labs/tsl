@@ -17,7 +17,7 @@ const VertexOutput = struct("VertexOutput", {
 // Vertex shader 入口函数
 export const vertexShader = vertex("main", () =>
 {
-    // var_('output', VertexOutput);
+    var_('output', VertexOutput);
     const position = var_("position", vec4(aVertexPosition, 0.0, 1.0));
 
     return_(uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));

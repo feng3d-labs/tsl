@@ -25,7 +25,25 @@ export class Struct<T extends { [key: string]: IElement }> implements IElement
         }
 
         this.toGLSL = (type: 'vertex' | 'fragment') => ``;
-        this.toWGSL = (type: 'vertex' | 'fragment') => `struct ${this.structName} { ${Object.entries(this.fields).map(([key, value]) => `${value.dependencies[0].toWGSL(type)}`).join('; ')} }`;
+        this.toWGSL = (type: 'vertex' | 'fragment') =>
+        {
+            const fieldDefs = Object.entries(this.fields).map(([fieldName, value]) =>
+            {
+                const builtin = value.dependencies[0] as Builtin;
+                // Builtin.toWGSL() 返回格式: @builtin(position) varName: vec4<f32>
+                // 我们需要提取 @builtin(...) 和类型，使用结构体字段名
+                const builtinWgsl = builtin.toWGSL();
+                // 提取 @builtin(...) 部分
+                const builtinMatch = builtinWgsl.match(/@builtin\([^)]+\)/);
+                const builtinPart = builtinMatch ? builtinMatch[0] : '';
+                // 提取类型部分（在冒号之后）
+                const typeMatch = builtinWgsl.match(/:\s*([^;]+)/);
+                const typePart = typeMatch ? typeMatch[1].trim() : builtin.value?.wgslType || '';
+
+                return `${builtinPart} ${fieldName}: ${typePart}`;
+            });
+            return `struct ${this.structName} { ${fieldDefs.join('; ')} }`;
+        };
         this.dependencies = Object.values(this.fields);
     }
 }

@@ -1,16 +1,18 @@
 import { Attribute } from './Attribute';
 import { Precision } from './Precision';
+import { Struct } from './struct';
 import { Uniform } from './Uniform';
 
 /**
- * 分析函数依赖中使用的 attributes、uniforms 和 precision
+ * 分析函数依赖中使用的 attributes、uniforms、precision 和 structs
  * @param dependencies 函数依赖数组
- * @returns 使用的 Attribute、Uniform 和 Precision 实例集合
+ * @returns 使用的 Attribute、Uniform、Precision 和 Struct 实例集合
  */
-export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision }
+export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>> }
 {
     const attributes = new Set<Attribute>();
     const uniforms = new Set<Uniform>();
+    const structs = new Set<Struct<any>>();
     let precision: Precision | undefined;
     const visited = new WeakSet();
 
@@ -57,6 +59,23 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
             return;
         }
 
+        // 如果是 Struct 实例，添加到 structs 集合
+        if (value instanceof Struct)
+        {
+            structs.add(value);
+
+            // 继续分析结构体的依赖
+            if (typeof value === 'object' && 'dependencies' in value && Array.isArray(value.dependencies))
+            {
+                for (const dep of value.dependencies)
+                {
+                    analyzeValue(dep);
+                }
+            }
+
+            return;
+        }
+
         // 如果是 IElement 实例（Vec2, Vec4 等），分析其 dependencies
         if (typeof value === 'object' && 'dependencies' in value && Array.isArray(value.dependencies))
         {
@@ -73,6 +92,6 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
         analyzeValue(dep);
     }
 
-    return { attributes, uniforms, precision };
+    return { attributes, uniforms, precision, structs };
 }
 

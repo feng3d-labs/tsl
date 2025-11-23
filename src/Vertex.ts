@@ -62,8 +62,14 @@ export class Vertex extends Func
         // 这里只为了收集依赖，不生成完整代码
         super.toWGSL('vertex');
 
-        // 从函数的 dependencies 中分析获取 attributes 和 uniforms（使用缓存）
+        // 从函数的 dependencies 中分析获取 attributes、uniforms 和 structs（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
+
+        // 生成结构体定义（只包含实际使用的）
+        for (const struct of dependencies.structs)
+        {
+            lines.push(struct.toWGSL('vertex'));
+        }
 
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)

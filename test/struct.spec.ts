@@ -76,8 +76,8 @@ describe('Struct', () =>
             const wgsl = VertexOutput.toWGSL('vertex');
 
             expect(wgsl).toContain('struct VertexOutput');
-            // 注意：当前实现使用 varName 而不是字段名
-            expect(wgsl).toContain('@builtin(position) position_vec4: vec4<f32>');
+            // 结构体字段使用结构体定义的字段名，而不是 builtin 的 varName
+            expect(wgsl).toContain('@builtin(position) pos: vec4<f32>');
         });
 
         it('应该能够为 vertex 和 fragment 生成相同的 WGSL 代码', () =>

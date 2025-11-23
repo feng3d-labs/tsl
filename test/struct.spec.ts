@@ -36,6 +36,19 @@ describe('Struct', () =>
             expect(wgsl).toContain('@builtin(position) position: vec4<f32>');
         });
 
+        it('应该能够生成正确的 WGSL 代码（字段名与 varName 不同）', () =>
+        {
+            const VertexOutput = struct('VertexOutput', {
+                pos: vec4(builtin('position', 'position_vec4')),
+            });
+
+            const wgsl = VertexOutput.toWGSL('vertex');
+
+            expect(wgsl).toContain('struct VertexOutput');
+            // 注意：当前实现使用 varName 而不是字段名
+            expect(wgsl).toContain('@builtin(position) position_vec4: vec4<f32>');
+        });
+
         it('应该能够生成正确的 WGSL 代码（多个字段）', () =>
         {
             const VertexOutput = struct('VertexOutput', {
@@ -50,6 +63,18 @@ describe('Struct', () =>
             expect(wgsl).toContain('@builtin(position) position: vec4<f32>');
             expect(wgsl).toContain('color');
             expect(wgsl).toContain('uv');
+        });
+
+        it('应该能够生成完整的 WGSL 结构体定义', () =>
+        {
+            const VertexOutput = struct('VertexOutput', {
+                position: vec4(builtin('position', 'position')),
+            });
+
+            const wgsl = VertexOutput.toWGSL('vertex');
+
+            // 验证完整的结构体定义格式
+            expect(wgsl).toBe('struct VertexOutput { @builtin(position) position: vec4<f32> }');
         });
 
         it('应该能够生成正确的 WGSL 代码（不同类型的字段）', () =>

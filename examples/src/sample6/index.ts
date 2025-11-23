@@ -82,20 +82,14 @@ document.addEventListener('DOMContentLoaded', async () =>
         },
         indices: buffers.indices,
         draw: { __type__: 'DrawIndexed', firstIndex: 0, indexCount: 36 },
+        // bindingResources: {
+        //     uSampler_texture: { texture: texture.texture },
+        //     uSampler: texture.sampler
+        // },
         bindingResources: { uSampler: texture },
     };
 
     const renderPass: RenderPass = {
-        descriptor: {
-            colorAttachments: [{
-                clearValue: [0.0, 0.0, 0.0, 1.0],
-                loadOp: 'clear',
-            }],
-            depthStencilAttachment: {
-                depthClearValue: 1.0,
-                depthLoadOp: 'clear',
-            },
-        },
         renderPassObjects: [renderObject],
     };
 
@@ -119,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () =>
             }],
         };
 
-        // webgpu.submit(submit);
+        webgpu.submit(submit);
         webgl.submit(submit);
 
         requestAnimationFrame(render);

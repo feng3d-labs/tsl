@@ -8,6 +8,22 @@ export class Struct<T extends { [key: string]: IElement }> implements IElement
     toGLSL: (type: 'vertex' | 'fragment') => string;
     toWGSL: (type: 'vertex' | 'fragment') => string;
 
+    /**
+     * 检查结构体是否包含 varying 字段
+     */
+    hasVarying(): boolean
+    {
+        return Object.values(this.fields).some(value =>
+        {
+            if (value.dependencies && value.dependencies.length > 0)
+            {
+                return value.dependencies[0] instanceof Varying;
+            }
+
+            return false;
+        });
+    }
+
     constructor(public readonly structName: string, public readonly fields: T)
     {
         // 验证所有字段都必须是 builtin 或 varying 类型
@@ -19,6 +35,7 @@ export class Struct<T extends { [key: string]: IElement }> implements IElement
             }
 
             const dep = value.dependencies[0];
+
             if (!(dep instanceof Builtin) && !(dep instanceof Varying))
             {
                 throw new Error(`结构体 '${this.structName}' 的字段 '${fieldName}' 必须是 builtin 或 varying 类型，当前类型不支持。`);

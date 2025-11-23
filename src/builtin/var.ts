@@ -1,5 +1,6 @@
 import { IElement, IType } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
+import { Fragment } from '../Fragment';
 import { Struct } from '../struct';
 import { Varying } from '../Varying';
 import { Builtin } from './builtin';
@@ -78,16 +79,26 @@ function var_struct<T extends { [key: string]: IElement }>(varName: string, stru
         (result as any)[key] = instance;
     });
 
-    // 收集 var 语句
+    // 收集 var 语句或标记为输入参数
     const currentFunc = getCurrentFunc();
     if (currentFunc)
     {
-        currentFunc.statements.push({
-            // GLSL 中不需要输出结构体变量声明
-            toGLSL: (type: 'vertex' | 'fragment') => ``,
-            toWGSL: (type: 'vertex' | 'fragment') => `var ${varName}: ${struct.structName};`,
-        });
-        // 收集依赖
+        // 如果结构体包含 varying 字段，在 fragment shader 中作为函数参数，不生成 var 语句
+        // 在 vertex shader 中，无论是否有 varying，都生成 var 语句（作为输出变量）
+        const isFragment = currentFunc instanceof Fragment;
+        const hasVarying = struct.hasVarying();
+
+        // 只在 fragment shader 中，如果结构体包含 varying，才不生成 var 语句
+        // 在 vertex shader 中，始终生成 var 语句
+        if (!isFragment || !hasVarying)
+        {
+            currentFunc.statements.push({
+                // GLSL 中不需要输出结构体变量声明
+                toGLSL: (type: 'vertex' | 'fragment') => ``,
+                toWGSL: (type: 'vertex' | 'fragment') => `var ${varName}: ${struct.structName};`,
+            });
+        }
+        // 收集依赖（用于在 fragment shader 中生成函数参数）
         currentFunc.dependencies.push(result);
     }
 

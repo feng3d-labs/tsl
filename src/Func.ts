@@ -205,7 +205,38 @@ export class Func
         else
         {
             // Fragment shader
-            lines.push(`fn ${this.name}() -> @location(0) vec4<f32> {`);
+            // 检查是否有包含 varying 的结构体变量作为输入参数
+            const dependencies = this.getAnalyzedDependencies();
+            let inputStruct: { varName: string; struct: Struct<any> } | undefined;
+
+            for (const dep of this.dependencies)
+            {
+                // 检查是否是结构体变量（结构体变量的 dependencies 包含 Struct）
+                if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
+                {
+                    for (const subDep of dep.dependencies)
+                    {
+                        if (subDep instanceof Struct && subDep.hasVarying())
+                        {
+                            // 找到包含 varying 的结构体变量
+                            if (typeof dep.toWGSL === 'function')
+                            {
+                                const varName = dep.toWGSL(shaderType);
+                                inputStruct = { varName, struct: subDep };
+                                break;
+                            }
+                        }
+                    }
+                    if (inputStruct)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            // 生成函数参数（格式化，参数单独一行，末尾没有逗号）
+            const paramStr = inputStruct ? `(\n    ${inputStruct.varName}: ${inputStruct.struct.structName}\n)` : '()';
+            lines.push(`fn ${this.name}${paramStr} -> @location(0) vec4<f32> {`);
 
             this.statements.forEach(stmt =>
             {

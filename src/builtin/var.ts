@@ -68,7 +68,8 @@ function var_struct<T extends { [key: string]: IElement }>(varName: string, stru
     if (currentFunc)
     {
         currentFunc.statements.push({
-            toGLSL: (type: 'vertex' | 'fragment') => `${struct.structName} ${varName};`,
+            // GLSL 中不需要输出结构体变量声明
+            toGLSL: (type: 'vertex' | 'fragment') => ``,
             toWGSL: (type: 'vertex' | 'fragment') => `var ${varName}: ${struct.structName};`,
         });
         // 收集依赖

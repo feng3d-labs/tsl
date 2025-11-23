@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { assign } from '../src/builtin/assign';
+import { attribute } from '../src/Attribute';
+import { builtin } from '../src/builtin/builtin';
+import { var_ } from '../src/builtin/var';
+import { vec4 } from '../src/builtin/vec4';
+import { varying } from '../src/Varying';
 import { Vertex, vertex } from '../src/Vertex';
 import { return_ } from '../src/index';
-import { vec4 } from '../src/builtin/vec4';
 
 describe('Vertex', () =>
 {
@@ -50,6 +55,28 @@ describe('Vertex', () =>
             });
             expect(vert).toBeInstanceOf(Vertex);
             expect(vert.name).toBe('main');
+        });
+    });
+
+    describe('不使用结构体的写法', () =>
+    {
+        it('应该能够生成包含 varying 声明的 GLSL 代码', () =>
+        {
+            const aVertexColor = vec4(attribute('aVertexColor', 0));
+            const vColor = vec4(varying('vColor', 0));
+            const vPosition = vec4(builtin('position', 'position_vec4'));
+
+            const vert = vertex('main', () =>
+            {
+                const position = var_('position', vec4(1.0, 0.0, 0.0, 1.0));
+                assign(vPosition, position);
+                assign(vColor, aVertexColor);
+            });
+
+            const glsl = vert.toGLSL();
+            expect(glsl).toContain('varying vec4 vColor;');
+            expect(glsl).toContain('gl_Position = position;');
+            expect(glsl).toContain('vColor = aVertexColor;');
         });
     });
 });

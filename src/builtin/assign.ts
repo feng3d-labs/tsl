@@ -32,7 +32,8 @@ export function assign(target: IType, value: IType): void
                 }
             },
         });
-        // 收集依赖
+        // 收集依赖（包括 target 和 value）
+        currentFunc.dependencies.push(target);
         currentFunc.dependencies.push(value);
     }
 }

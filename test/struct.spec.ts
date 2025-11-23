@@ -135,6 +135,18 @@ describe('Struct', () =>
             expect(wgsl).toBe('output.position');
         });
 
+        it('应该能够为结构体字段属性设置正确的 WGSL 代码', () =>
+        {
+            const VertexOutput = structType('VertexOutput', {
+                position: vec4(builtin('position', 'position')),
+            });
+
+            const output = struct('output', VertexOutput);
+
+            const wgsl = output.position.x.toWGSL('vertex');
+            expect(wgsl).toBe('output.position.x');
+        });
+
         it('应该能够生成正确的 WGSL 代码', () =>
         {
             const VertexOutput = structType('VertexOutput', {

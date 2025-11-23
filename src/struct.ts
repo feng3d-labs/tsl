@@ -24,13 +24,13 @@ export function struct<T extends { [key: string]: IElement }>(varName: string, s
 
     Object.entries(structType.fields).forEach(([key, value]) =>
     {
-        const element: IElement = {
-            toGLSL: (type: 'vertex' | 'fragment') => `${varName}.${key}`,
-            toWGSL: (type: 'vertex' | 'fragment') => `${varName}.${key}`,
-            dependencies: [result],
-        };
+        const cls = value.constructor as new () => IElement;
+        const instance = new cls();
+        instance.toGLSL = (type: 'vertex' | 'fragment') => `${varName}.${key}`;
+        instance.toWGSL = (type: 'vertex' | 'fragment') => `${varName}.${key}`;
+        instance.dependencies = [result];
 
-        (result as any)[key] = element;
+        (result as any)[key] = instance;
     });
 
     return result;

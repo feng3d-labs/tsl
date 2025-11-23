@@ -53,16 +53,12 @@ describe('Struct', () =>
         {
             const VertexOutput = struct('VertexOutput', {
                 position: vec4(builtin('position', 'position')),
-                color: vec4(attribute('color', 1)),
-                uv: vec2(attribute('uv', 2)),
             });
 
             const wgsl = VertexOutput.toWGSL('vertex');
 
             expect(wgsl).toContain('struct VertexOutput');
             expect(wgsl).toContain('@builtin(position) position: vec4<f32>');
-            expect(wgsl).toContain('color');
-            expect(wgsl).toContain('uv');
         });
 
         it('应该能够生成完整的 WGSL 结构体定义', () =>
@@ -77,22 +73,24 @@ describe('Struct', () =>
             expect(wgsl).toBe('struct VertexOutput { @builtin(position) position: vec4<f32> }');
         });
 
-        it('应该能够生成正确的 WGSL 代码（不同类型的字段）', () =>
+        it('应该拒绝非 builtin 类型的字段（attribute）', () =>
         {
-            const Material = struct('Material', {
-                position: vec3(attribute('position', 0)),
-                normal: vec3(attribute('normal', 1)),
-                uv: vec2(attribute('uv', 2)),
-                modelMatrix: mat4(uniform('modelMatrix', 0, 0)),
-            });
+            expect(() =>
+            {
+                struct('Material', {
+                    position: vec3(attribute('position', 0)),
+                });
+            }).toThrow('必须是 builtin 类型');
+        });
 
-            const wgsl = Material.toWGSL('vertex');
-
-            expect(wgsl).toContain('struct Material');
-            expect(wgsl).toContain('position');
-            expect(wgsl).toContain('normal');
-            expect(wgsl).toContain('uv');
-            expect(wgsl).toContain('modelMatrix');
+        it('应该拒绝非 builtin 类型的字段（uniform）', () =>
+        {
+            expect(() =>
+            {
+                struct('Material', {
+                    modelMatrix: mat4(uniform('modelMatrix', 0, 0)),
+                });
+            }).toThrow('必须是 builtin 类型');
         });
 
         it('应该能够为 vertex 和 fragment 生成相同的 WGSL 代码', () =>
@@ -121,16 +119,13 @@ describe('Struct', () =>
         it('应该正确设置 dependencies', () =>
         {
             const position = vec4(builtin('position', 'position'));
-            const color = vec4(attribute('color', 1));
 
             const VertexOutput = struct('VertexOutput', {
                 position,
-                color,
             });
 
-            expect(VertexOutput.dependencies).toHaveLength(2);
+            expect(VertexOutput.dependencies).toHaveLength(1);
             expect(VertexOutput.dependencies).toContain(position);
-            expect(VertexOutput.dependencies).toContain(color);
         });
     });
 

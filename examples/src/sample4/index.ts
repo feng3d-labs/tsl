@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         webgpu.submit(submit);
         webgl.submit(submit);
 
-        // requestAnimationFrame(render);
+        requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
 });

@@ -123,6 +123,18 @@ describe('Struct', () =>
             expect(output.dependencies[0]).toBe(VertexOutput);
         });
 
+        it('应该能够为结构体字段生成正确的 WGSL 代码', () =>
+        {
+            const VertexOutput = structType('VertexOutput', {
+                position: vec4(builtin('position', 'position')),
+            });
+
+            const output = struct('output', VertexOutput);
+
+            const wgsl = output.position.toWGSL('vertex');
+            expect(wgsl).toBe('output.position');
+        });
+
         it('应该能够生成正确的 WGSL 代码', () =>
         {
             const VertexOutput = structType('VertexOutput', {

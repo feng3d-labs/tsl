@@ -14,7 +14,6 @@ describe('Fragment', () =>
                 return_(vec4(1.0, 0.0, 0.0, 1.0));
             });
             expect(frag.name).toBe('main');
-            expect(frag.shaderType).toBe('fragment');
         });
 
         it('应该能够生成 GLSL 代码', () =>

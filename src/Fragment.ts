@@ -6,11 +6,9 @@ import { Func } from './Func';
  */
 export class Fragment extends Func
 {
-    readonly shaderType = 'fragment' as const;
-
     constructor(name: string, body: () => any)
     {
-        super(name, body, 'fragment');
+        super(name, body);
     }
 
     /**
@@ -63,7 +61,7 @@ export class Fragment extends Func
 
         // 先执行 body 收集依赖（通过调用父类的 toWGSL 来触发，它会执行 body 并填充 dependencies）
         // 这里只为了收集依赖，不生成完整代码
-        super.toWGSL();
+        super.toWGSL('fragment');
 
         // 从函数的 dependencies 中分析获取 uniforms
         const dependencies = analyzeDependencies(this.dependencies);
@@ -81,7 +79,7 @@ export class Fragment extends Func
         }
 
         // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-        const funcCode = super.toWGSL();
+        const funcCode = super.toWGSL('fragment');
         lines.push(...funcCode.split('\n'));
 
         return lines.join('\n') + '\n';

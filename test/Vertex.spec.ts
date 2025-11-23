@@ -14,7 +14,6 @@ describe('Vertex', () =>
                 return_(vec4(1.0, 0.0, 0.0, 1.0));
             });
             expect(vert.name).toBe('main');
-            expect(vert.shaderType).toBe('vertex');
         });
 
         it('应该能够生成 GLSL 代码', () =>

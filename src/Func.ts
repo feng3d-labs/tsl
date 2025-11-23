@@ -10,15 +10,13 @@ export class Func
 {
     readonly name: string;
     readonly body: () => any;
-    readonly shaderType?: 'vertex' | 'fragment';
     statements: IStatement[] = [];
     dependencies: IElement[] = [];
 
-    constructor(name: string, body: () => any, shaderType?: 'vertex' | 'fragment')
+    constructor(name: string, body: () => any)
     {
         this.name = name;
         this.body = body;
-        this.shaderType = shaderType;
     }
 
     /**
@@ -72,21 +70,15 @@ export class Func
 
     /**
      * 转换为 WGSL 代码
+     * @param shaderType 着色器类型（vertex 或 fragment）
      * @param attributes 属性列表（仅用于 vertex shader）
      */
-    toWGSL(attributes?: Attribute[]): string
+    toWGSL(shaderType: 'vertex' | 'fragment', attributes?: Attribute[]): string
     {
         // 执行函数体收集语句和依赖（如果尚未收集）
         this.executeBodyIfNeeded();
 
         const lines: string[] = [];
-
-        // 从 shaderType 属性获取着色器类型
-        const shaderType = this.shaderType;
-        if (!shaderType)
-        {
-            throw new Error(`函数 '${this.name}' 没有设置 shaderType，无法生成 WGSL 代码。`);
-        }
 
         // 生成函数签名
         const stage = shaderType === 'vertex' ? '@vertex' : '@fragment';
@@ -134,10 +126,9 @@ export class Func
  * 定义函数（通用函数，不指定着色器类型）
  * @param name 函数名
  * @param body 函数体
- * @param shaderType 着色器类型（可选）
  * @returns Func 实例
  */
-export function func(name: string, body: () => any, shaderType?: 'vertex' | 'fragment'): Func
+export function func(name: string, body: () => any): Func
 {
-    return new Func(name, body, shaderType);
+    return new Func(name, body);
 }

@@ -6,11 +6,11 @@ export * from './Precision';
 export * from './Shader';
 export * from './Uniform';
 // 导出 builtin 类型和工具函数
+export * from './builtin/assign';
+export * from './builtin/builtin';
 export { let_ } from './builtin/let';
-export { var_ } from './builtin/var';
 export { return_ } from './builtin/return';
-export { builtin, Builtin } from './builtin/builtin';
-export { assign } from './builtin/assign';
+export { var_ } from './builtin/var';
 // 导出向量类型
 export { Vec2 } from './builtin/vec2';
 export { Vec4 } from './builtin/vec4';

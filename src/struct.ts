@@ -10,21 +10,38 @@ export class Struct implements IElement
     toWGSL: (type: 'vertex' | 'fragment') => string;
 
     dependencies: IElement[];
-    readonly name: string;
-    readonly fields: { [key: string]: IElement };
 
-    constructor(name: string, fields: { [key: string]: IElement })
+    constructor(varName: string, structType: StructType)
     {
-        this.name = name;
-        this.fields = fields;
-
-        this.toGLSL = (type: 'vertex' | 'fragment') => `struct ${this.name} { ${Object.entries(this.fields).map(([key, value]) => `${key}: ${value.toGLSL(type)}`).join('; ')} };`;
-        this.toWGSL = (type: 'vertex' | 'fragment') => `struct ${this.name} { ${Object.entries(this.fields).map(([key, value]) => `${key}: ${value.toWGSL(type)}`).join('; ')} };`;
-        this.dependencies = Object.values(fields);
+        this.toGLSL = (type: 'vertex' | 'fragment') => `${varName}`;
+        this.toWGSL = (type: 'vertex' | 'fragment') => `${varName}`;
+        this.dependencies = [structType];
     }
 }
 
-export function struct<T extends { [key: string]: IElement }>(name: string, fields: T): T
+export function struct(varName: string, structType: StructType): Struct
 {
-    return new Struct(name, fields) as unknown as T;
+    return new Struct(varName, structType);
+}
+
+const STRUCT_TYPE_SYMBOL = Symbol('StructType');
+
+export class StructType implements IElement
+{
+    readonly __type__ = STRUCT_TYPE_SYMBOL;
+    dependencies: IElement[];
+    toGLSL: (type: 'vertex' | 'fragment') => string;
+    toWGSL: (type: 'vertex' | 'fragment') => string;
+
+    constructor(public readonly structName: string, public readonly fields: { [key: string]: IElement })
+    {
+        this.toGLSL = (type: 'vertex' | 'fragment') => ``;
+        this.toWGSL = (type: 'vertex' | 'fragment') => `struct ${this.structName} { ${Object.entries(this.fields).map(([key, value]) => `${value.dependencies[0].toWGSL(type)}`).join('; ')} }`;
+        this.dependencies = Object.values(this.fields);
+    }
+}
+
+export function structType(structName: string, fields: { [key: string]: IElement })
+{
+    return new StructType(structName, fields);
 }

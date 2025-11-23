@@ -5,42 +5,6 @@ const STRUCT_SYMBOL = Symbol('Struct');
 export class Struct<T extends { [key: string]: IElement }> implements IElement
 {
     readonly __type__ = STRUCT_SYMBOL;
-    toGLSL: (type: 'vertex' | 'fragment') => string;
-    toWGSL: (type: 'vertex' | 'fragment') => string;
-
-    dependencies: IElement[];
-
-    constructor(varName: string, structType: StructType<T>)
-    {
-        this.toGLSL = (type: 'vertex' | 'fragment') => `${varName}`;
-        this.toWGSL = (type: 'vertex' | 'fragment') => `${varName}`;
-        this.dependencies = [structType];
-    }
-}
-
-export function struct<T extends { [key: string]: IElement }>(varName: string, structType: StructType<T>): (Struct<T> & T)
-{
-    const result = new Struct(varName, structType) as Struct<T> & T;
-
-    Object.entries(structType.fields).forEach(([key, value]) =>
-    {
-        const cls = value.constructor as new () => IElement;
-        const instance = new cls();
-        instance.toGLSL = (type: 'vertex' | 'fragment') => `${varName}.${key}`;
-        instance.toWGSL = (type: 'vertex' | 'fragment') => `${varName}.${key}`;
-        instance.dependencies = [result];
-
-        (result as any)[key] = instance;
-    });
-
-    return result;
-}
-
-const STRUCT_TYPE_SYMBOL = Symbol('StructType');
-
-export class StructType<T extends { [key: string]: IElement }> implements IElement
-{
-    readonly __type__ = STRUCT_TYPE_SYMBOL;
     dependencies: IElement[];
     toGLSL: (type: 'vertex' | 'fragment') => string;
     toWGSL: (type: 'vertex' | 'fragment') => string;
@@ -53,7 +17,7 @@ export class StructType<T extends { [key: string]: IElement }> implements IEleme
     }
 }
 
-export function structType<T extends { [key: string]: IElement }>(structName: string, fields: T): StructType<T>
+export function struct<T extends { [key: string]: IElement }>(structName: string, fields: T): Struct<T>
 {
-    return new StructType(structName, fields);
+    return new Struct(structName, fields);
 }

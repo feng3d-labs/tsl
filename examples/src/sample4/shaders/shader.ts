@@ -1,4 +1,4 @@
-import { let_, return_, attribute, fragment, mat4, precision, shader, uniform, vec2, vec4, vertex, builtin, assign, var_, Vec4, struct, structType } from '@feng3d/tsl';
+import { attribute, builtin, fragment, mat4, precision, return_, shader, struct, uniform, var_, vec2, vec4, vertex } from '@feng3d/tsl';
 
 export const sample4Shader = shader("sample4", () =>
 {
@@ -12,10 +12,9 @@ export const sample4Shader = shader("sample4", () =>
 
     const positionBuiltin = vec4(builtin("position", "position_vec4"));
 
-    const VertexOutput = structType("VertexOutput", {
+    const VertexOutput = struct("VertexOutput", {
         position: positionBuiltin,
     });
-    const output = struct("output", VertexOutput);
 
     // Vertex shader 入口函数
     vertex("main", () =>

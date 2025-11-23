@@ -56,7 +56,7 @@ export class Vec4 implements IElement
 
                 this.toGLSL = (type) =>
                 {
-                    if (builtin.builtinName === 'position') return 'gl_Position';
+                    if (builtin.isPosition) return 'gl_Position';
 
                     throw new Error(`Builtin '${builtin.builtinName}' 不支持 GLSL，无法生成 GLSL 代码。`);
                 };

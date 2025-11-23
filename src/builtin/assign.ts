@@ -20,7 +20,7 @@ export function assign(target: IType, value: IType): void
             toWGSL: (type: 'vertex' | 'fragment') =>
             {
                 // 在 WGSL 中，如果是 vertex shader 的 position，需要特殊处理
-                const isPositionBuiltin = target instanceof Builtin && target.builtinName === 'position';
+                const isPositionBuiltin = target instanceof Builtin && target.isPosition;
                 if (isPositionBuiltin && type === 'vertex')
                 {
                     // 在 vertex shader 中，position 是返回值，使用 return

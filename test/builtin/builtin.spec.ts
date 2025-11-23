@@ -132,5 +132,40 @@ describe('builtin() 函数', () =>
         expect(result1.builtinName).toBe('position');
         expect(result2.builtinName).toBe('position');
     });
+
+    describe('gl_Position 与 position 等价', () =>
+    {
+        it('应该能够创建 gl_Position builtin', () =>
+        {
+            const b = builtin('gl_Position', 'position_vec4');
+            expect(b.builtinName).toBe('gl_Position');
+            expect(b.isPosition).toBe(true);
+        });
+
+        it('gl_Position 和 position 应该生成相同的 GLSL 代码', () =>
+        {
+            const v1 = vec4(builtin('position', 'position_vec4'));
+            const v2 = vec4(builtin('gl_Position', 'position_vec4'));
+            expect(v1.toGLSL('vertex')).toBe('gl_Position');
+            expect(v2.toGLSL('vertex')).toBe('gl_Position');
+        });
+
+        it('gl_Position 和 position 应该生成相同的 WGSL 代码', () =>
+        {
+            const b1 = builtin('position', 'position_vec4');
+            const b2 = builtin('gl_Position', 'position_vec4');
+            const v = vec4(1.0, 2.0, 3.0, 4.0);
+            b1.value = v;
+            b2.value = v;
+            expect(b1.toWGSL()).toBe('@builtin(position) position_vec4: vec4<f32>');
+            expect(b2.toWGSL()).toBe('@builtin(position) position_vec4: vec4<f32>');
+        });
+
+        it('gl_Position 应该正确映射为 WGSL 的 position', () =>
+        {
+            const b = builtin('gl_Position', 'position_vec4');
+            expect(b.wgslBuiltinName).toBe('position');
+        });
+    });
 });
 

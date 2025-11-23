@@ -187,7 +187,7 @@ export class Func
                             const firstDep = target.dependencies[0];
                             if (firstDep instanceof Builtin)
                             {
-                                const fieldName = firstDep.builtinName === 'position' ? 'position' : firstDep.varName;
+                                const fieldName = firstDep.isPosition ? 'position' : firstDep.varName;
                                 if (!builtinAssignments.has(firstDep))
                                 {
                                     builtinAssignments.set(firstDep, { target, fieldName, value });
@@ -214,7 +214,7 @@ export class Func
                     // 添加 builtin 字段
                     for (const [builtin, { target }] of builtinAssignments)
                     {
-                        structFields[builtin.builtinName === 'position' ? 'position' : builtin.varName] = target;
+                        structFields[builtin.isPosition ? 'position' : builtin.varName] = target;
                     }
 
                     // 添加 varying 字段
@@ -263,7 +263,7 @@ export class Func
 
                                 if (firstDep instanceof Builtin)
                                 {
-                                    fieldName = firstDep.builtinName === 'position' ? 'position' : firstDep.varName;
+                                    fieldName = firstDep.isPosition ? 'position' : firstDep.varName;
                                     isBuiltinOrVaryingAssignment = builtinAssignments.has(firstDep);
                                 }
                                 else if (firstDep instanceof Varying)

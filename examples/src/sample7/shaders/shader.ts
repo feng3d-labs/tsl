@@ -16,8 +16,9 @@ const uProjectionMatrix = mat4(uniform("uProjectionMatrix", 0, 1));
 const uNormalMatrix = mat4(uniform("uNormalMatrix", 0, 2));
 
 const vPosition = vec4(builtin("position", "position_vec4"));
-const vTextureCoord = vec2(varying("vTextureCoord", 0));
-const vLighting = vec3(varying("vLighting", 1));
+// varyings（location 缺省时自动分配）
+const vTextureCoord = vec2(varying("vTextureCoord"));
+const vLighting = vec3(varying("vLighting"));
 
 // Vertex shader 入口函数
 export const vertexShader = vertex("main", () =>

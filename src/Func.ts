@@ -400,7 +400,8 @@ export class Func
                     if (varying.value)
                     {
                         const wgslType = varying.value.wgslType;
-                        const location = varying.location !== undefined ? `@location(${varying.location})` : '@location(0)';
+                        const effectiveLocation = varying.getEffectiveLocation();
+                        const location = `@location(${effectiveLocation})`;
                         varyingParams.push(`${location} ${varying.name}: ${wgslType}`);
                     }
                 }

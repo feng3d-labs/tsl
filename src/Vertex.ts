@@ -2,6 +2,7 @@ import { Func } from './Func';
 import { Uniform } from './Uniform';
 import { Sampler } from './Sampler';
 import { Attribute } from './Attribute';
+import { Varying } from './Varying';
 
 /**
  * Vertex 类，继承自 Func
@@ -93,6 +94,9 @@ export class Vertex extends Func
         // 自动分配 location（对于 location 缺省的 attribute）
         this.allocateLocations(dependencies.attributes);
 
+        // 自动分配 varying location（对于 location 缺省的 varying）
+        this.allocateVaryingLocations(dependencies.varyings);
+
         // 自动分配 binding（对于 binding 缺省的 uniform）
         this.allocateBindings(dependencies.uniforms, new Set());
 
@@ -152,6 +156,42 @@ export class Vertex extends Func
 
                 // 分配 location
                 attribute.setAutoLocation(nextLocation);
+                usedLocations.add(nextLocation);
+            }
+        }
+    }
+
+    /**
+     * 自动分配 varying location 值
+     * @param varyings varying 集合
+     */
+    private allocateVaryingLocations(varyings: Set<Varying>): void
+    {
+        const usedLocations = new Set<number>();
+
+        // 收集已显式指定的 location
+        for (const varying of varyings)
+        {
+            if (varying.location !== undefined)
+            {
+                usedLocations.add(varying.location);
+            }
+        }
+
+        // 为 location 缺省的 varying 自动分配 location
+        for (const varying of varyings)
+        {
+            if (varying.location === undefined)
+            {
+                // 找到下一个未使用的 location
+                let nextLocation = 0;
+                while (usedLocations.has(nextLocation))
+                {
+                    nextLocation++;
+                }
+
+                // 分配 location
+                varying.setAutoLocation(nextLocation);
                 usedLocations.add(nextLocation);
             }
         }

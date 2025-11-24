@@ -2,6 +2,7 @@ import { Func } from './Func';
 import { Sampler } from './Sampler';
 import { Uniform } from './Uniform';
 import { Vertex } from './Vertex';
+import { Varying } from './Varying';
 
 /**
  * Fragment 类，继承自 Func
@@ -99,6 +100,9 @@ export class Fragment extends Func
         // 从函数的 dependencies 中分析获取 uniforms 和 structs（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
 
+        // 自动分配 varying location（对于 location 缺省的 varying），确保与 vertex shader 一致
+        this.allocateVaryingLocations(dependencies.varyings, vertexShader);
+
         // 自动分配 binding（对于 binding 缺省的 uniform），考虑顶点着色器的 binding
         this.allocateBindings(dependencies.uniforms, dependencies.samplers, vertexShader);
 
@@ -133,6 +137,69 @@ export class Fragment extends Func
         lines.push(...funcCode.split('\n'));
 
         return lines.join('\n') + '\n';
+    }
+
+    /**
+     * 自动分配 varying location 值
+     * @param varyings varying 集合
+     * @param vertexShader 可选的顶点着色器，用于确保 varying location 一致
+     */
+    private allocateVaryingLocations(varyings: Set<Varying>, vertexShader?: Vertex): void
+    {
+        // 收集已使用的 location
+        const usedLocations = new Map<string, number>(); // name -> location
+
+        // 如果提供了顶点着色器，从顶点着色器中获取已分配的 varying location
+        if (vertexShader)
+        {
+            // 确保顶点着色器的依赖已收集
+            vertexShader.toWGSL();
+            const vertexDependencies = vertexShader.getAnalyzedDependencies();
+
+            // 从 vertex shader 中收集已分配的 varying location
+            for (const varying of vertexDependencies.varyings)
+            {
+                const effectiveLocation = varying.getEffectiveLocation();
+                usedLocations.set(varying.name, effectiveLocation);
+            }
+        }
+
+        // 收集 fragment shader 中已显式指定的 location
+        for (const varying of varyings)
+        {
+            if (varying.location !== undefined)
+            {
+                usedLocations.set(varying.name, varying.location);
+            }
+        }
+
+        // 为 location 缺省的 varying 自动分配 location
+        for (const varying of varyings)
+        {
+            if (varying.location === undefined)
+            {
+                // 如果 vertex shader 中有同名 varying，使用相同的 location
+                const existingLocation = usedLocations.get(varying.name);
+                if (existingLocation !== undefined)
+                {
+                    varying.setAutoLocation(existingLocation);
+                }
+                else
+                {
+                    // 找到下一个未使用的 location
+                    const allUsedLocations = new Set(usedLocations.values());
+                    let nextLocation = 0;
+                    while (allUsedLocations.has(nextLocation))
+                    {
+                        nextLocation++;
+                    }
+
+                    // 分配 location
+                    varying.setAutoLocation(nextLocation);
+                    usedLocations.set(varying.name, nextLocation);
+                }
+            }
+        }
     }
 
     /**

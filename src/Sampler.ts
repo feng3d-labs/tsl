@@ -1,4 +1,4 @@
-import { IElement, IType } from './IElement';
+import { IElement } from './IElement';
 
 /**
  * Sampler 类，表示纹理采样器

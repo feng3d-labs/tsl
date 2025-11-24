@@ -1,10 +1,10 @@
-import { CanvasRenderPassDescriptor, RenderObject, RenderPass, Sampler, Submit, Texture } from "@feng3d/render-api";
 import { reactive } from "@feng3d/reactivity";
+import { CanvasRenderPassDescriptor, RenderObject, Sampler, Submit, Texture } from "@feng3d/render-api";
 import { WebGL } from "@feng3d/webgl";
 import { WebGPU } from "@feng3d/webgpu";
 import { mat4 } from "gl-matrix";
 
-import { vertexShader, fragmentShader } from "./shaders/shader";
+import { fragmentShader, vertexShader } from "./shaders/shader";
 
 let cubeRotation = 0.0;
 
@@ -31,12 +31,15 @@ async function main()
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 
+    // 使用 WebGPU 首选画布格式，提升渲染性能，也可以指定纹理默认格式 'rgba8unorm'。下面拷贝纹理要求画布与纹理格式相同。
+    const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+
     // 初始化 WebGPU
     const canvas = document.getElementById('webgpu') as HTMLCanvasElement;
     canvas.width = canvas.clientWidth * devicePixelRatio;
     canvas.height = canvas.clientHeight * devicePixelRatio;
     const webgpu = await new WebGPU(
-        { canvasId: 'webgpu', configuration: { format: 'rgba8unorm' } },
+        { canvasId: 'webgpu', configuration: { format: presentationFormat } },
         canvasRenderPassDescriptor
     ).init();
 
@@ -56,7 +59,7 @@ async function main()
     const texture: {
         texture: Texture;
         sampler: Sampler;
-    } = { texture: { descriptor: { size: [canvas.width, canvas.height] } }, sampler: {} };
+    } = { texture: { descriptor: { size: [canvas.width, canvas.height], format: presentationFormat } }, sampler: {} };
 
     const renderObject: RenderObject = {
         pipeline: {

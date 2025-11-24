@@ -9,11 +9,28 @@ export class Attribute implements IElement
     readonly name: string;
     value?: IType;
     readonly location?: number;
+    private _autoLocation?: number; // 自动分配的 location
 
     constructor(name: string, location?: number)
     {
         this.name = name;
         this.location = location;
+    }
+
+    /**
+     * 设置自动分配的 location（内部使用）
+     */
+    setAutoLocation(location: number): void
+    {
+        this._autoLocation = location;
+    }
+
+    /**
+     * 获取实际使用的 location（优先使用显式指定的，否则使用自动分配的）
+     */
+    getEffectiveLocation(): number
+    {
+        return this.location !== undefined ? this.location : (this._autoLocation ?? 0);
     }
 
     /**
@@ -40,7 +57,8 @@ export class Attribute implements IElement
             throw new Error(`Attribute '${this.name}' 没有设置 value，无法生成 WGSL。`);
         }
         const wgslType = this.value?.wgslType;
-        const location = this.location !== undefined ? `@location(${this.location})` : '@location(0)';
+        const effectiveLocation = this.getEffectiveLocation();
+        const location = `@location(${effectiveLocation})`;
 
         return `${location} ${this.name}: ${wgslType}`;
     }

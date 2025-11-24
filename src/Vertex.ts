@@ -1,6 +1,7 @@
 import { Func } from './Func';
 import { Uniform } from './Uniform';
 import { Sampler } from './Sampler';
+import { Attribute } from './Attribute';
 
 /**
  * Vertex 类，继承自 Func
@@ -89,6 +90,9 @@ export class Vertex extends Func
         // 从函数的 dependencies 中分析获取 attributes、uniforms 和 structs（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
 
+        // 自动分配 location（对于 location 缺省的 attribute）
+        this.allocateLocations(dependencies.attributes);
+
         // 自动分配 binding（对于 binding 缺省的 uniform）
         this.allocateBindings(dependencies.uniforms, new Set());
 
@@ -115,6 +119,42 @@ export class Vertex extends Func
         lines.push(...funcCode.split('\n'));
 
         return lines.join('\n') + '\n';
+    }
+
+    /**
+     * 自动分配 location 值
+     * @param attributes attribute 集合
+     */
+    private allocateLocations(attributes: Set<Attribute>): void
+    {
+        const usedLocations = new Set<number>();
+
+        // 收集已显式指定的 location
+        for (const attribute of attributes)
+        {
+            if (attribute.location !== undefined)
+            {
+                usedLocations.add(attribute.location);
+            }
+        }
+
+        // 为 location 缺省的 attribute 自动分配 location
+        for (const attribute of attributes)
+        {
+            if (attribute.location === undefined)
+            {
+                // 找到下一个未使用的 location
+                let nextLocation = 0;
+                while (usedLocations.has(nextLocation))
+                {
+                    nextLocation++;
+                }
+
+                // 分配 location
+                attribute.setAutoLocation(nextLocation);
+                usedLocations.add(nextLocation);
+            }
+        }
     }
 
     /**

@@ -1,8 +1,8 @@
 import { assign, attribute, builtin, fragment, mat4, return_, sampler, texture2D, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
-// Vertex shader 的 attributes
-const aVertexPosition = vec3(attribute("aVertexPosition", 0));
-const aTextureCoord = vec2(attribute("aTextureCoord", 1));
+// Vertex shader 的 attributes（location 缺省时自动分配）
+const aVertexPosition = vec3(attribute("aVertexPosition"));
+const aTextureCoord = vec2(attribute("aTextureCoord"));
 
 // Vertex shader 的 uniforms（group 缺省时使用默认值 0）
 const uModelViewMatrix = mat4(uniform("uModelViewMatrix"));

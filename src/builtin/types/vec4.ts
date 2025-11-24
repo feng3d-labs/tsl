@@ -227,6 +227,69 @@ export class Vec4 implements ShaderValue
 
         return float;
     }
+
+    /**
+     * 向量乘法（分量相乘或标量乘法）
+     */
+    multiply(other: Vec4 | Float | number): Vec4
+    {
+        const result = new Vec4();
+        if (other instanceof Vec4)
+        {
+            // 检查 this 是否是复合表达式（包含运算符），如果是则加括号
+            const thisExpr = this.toGLSL('vertex');
+            const needsParens = thisExpr.includes('+') || thisExpr.includes('-') || thisExpr.includes('*') || thisExpr.includes('/');
+
+            result.toGLSL = (type: 'vertex' | 'fragment') =>
+            {
+                const thisStr = needsParens ? `(${this.toGLSL(type)})` : this.toGLSL(type);
+
+                return `${thisStr} * ${other.toGLSL(type)}`;
+            };
+            result.toWGSL = (type: 'vertex' | 'fragment') =>
+            {
+                const thisStr = needsParens ? `(${this.toWGSL(type)})` : this.toWGSL(type);
+
+                return `${thisStr} * ${other.toWGSL(type)}`;
+            };
+            result.dependencies = [this, other];
+        }
+        else
+        {
+            // 检查 this 是否是复合表达式（包含运算符），如果是则加括号
+            const thisExpr = this.toGLSL('vertex');
+            const needsParens = thisExpr.includes('+') || thisExpr.includes('-') || thisExpr.includes('*') || thisExpr.includes('/');
+
+            result.toGLSL = (type: 'vertex' | 'fragment') =>
+            {
+                const thisStr = needsParens ? `(${this.toGLSL(type)})` : this.toGLSL(type);
+
+                return `${thisStr} * ${typeof other === 'number' ? other : other.toGLSL(type)}`;
+            };
+            result.toWGSL = (type: 'vertex' | 'fragment') =>
+            {
+                const thisStr = needsParens ? `(${this.toWGSL(type)})` : this.toWGSL(type);
+
+                return `${thisStr} * ${typeof other === 'number' ? other : other.toWGSL(type)}`;
+            };
+            result.dependencies = typeof other === 'number' ? [this] : [this, other];
+        }
+
+        return result;
+    }
+
+    /**
+     * 向量加法
+     */
+    add(other: Vec4): Vec4
+    {
+        const result = new Vec4();
+        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} + ${other.toGLSL(type)}`;
+        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} + ${other.toWGSL(type)}`;
+        result.dependencies = [this, other];
+
+        return result;
+    }
 }
 
 /**

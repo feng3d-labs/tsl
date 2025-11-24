@@ -4,17 +4,16 @@ import { WebGL } from "@feng3d/webgl";
 import { WebGPU } from "@feng3d/webgpu";
 import { mat4 } from "gl-matrix";
 
-// 导入原始 GLSL 和 WGSL 文件作为参考和备选
-import vertexGlsl from "./shaders/vertex.glsl";
-import fragmentGlsl from "./shaders/fragment.glsl";
-import vertexWgsl from "./shaders/vertex.wgsl";
-import fragmentWgsl from "./shaders/fragment.wgsl";
-
 import { vertexShader, fragmentShader } from "./shaders/shader";
 
 let cubeRotation = 0.0;
 
-document.addEventListener('DOMContentLoaded', async () =>
+main();
+
+//
+// Start here
+//
+async function main()
 {
     // 使用 TSL 生成着色器代码
     const vertexGlsl = vertexShader.toGLSL();
@@ -23,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = {
-        clearColorValue: [0.0, 0.0, 0.0, 1.0],
+        clearColorValue: [0.5, 0.5, 0.5, 1.0],
         loadColorOp: 'clear',
         depthClearValue: 1.0,
         depthLoadOp: 'clear',
@@ -33,11 +32,11 @@ document.addEventListener('DOMContentLoaded', async () =>
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
+    const canvas = document.getElementById('webgpu') as HTMLCanvasElement;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
     const webgpu = await new WebGPU(
-        { canvasId: 'webgpu' },
+        { canvasId: 'webgpu', configuration: { format: 'rgba8unorm' } },
         canvasRenderPassDescriptor
     ).init();
 
@@ -46,17 +45,19 @@ document.addEventListener('DOMContentLoaded', async () =>
     webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
     webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
     const webgl = new WebGL(
-        { canvasId: 'webgl', webGLcontextId: 'webgl' },
+        { canvasId: 'webgl', webGLcontextId: 'webgl2' },
         canvasRenderPassDescriptor
     );
 
-    // 初始化缓冲区
+    // Here's where we call the routine that builds all the
+    // objects we'll be drawing.
     const buffers = initBuffers();
 
-    // 加载纹理
-    const texture = await loadTexture('./cubetexture.png');
+    const texture: {
+        texture: Texture;
+        sampler: Sampler;
+    } = { texture: { descriptor: { size: [canvas.width, canvas.height] } }, sampler: {} };
 
-    // 创建渲染对象
     const renderObject: RenderObject = {
         pipeline: {
             vertex: {
@@ -75,10 +76,6 @@ document.addEventListener('DOMContentLoaded', async () =>
                 format: 'float32x3',
                 data: buffers.position,
             },
-            aVertexNormal: {
-                format: 'float32x3',
-                data: buffers.normal,
-            },
             aTextureCoord: {
                 format: 'float32x2',
                 data: buffers.textureCoord,
@@ -89,38 +86,46 @@ document.addEventListener('DOMContentLoaded', async () =>
         bindingResources: { uSampler: texture },
     };
 
-    const renderPass: RenderPass = {
-        renderPassObjects: [renderObject],
+    const submit: Submit = {
+        commandEncoders: [{
+            passEncoders: [
+                // 绘制
+                {
+                    renderPassObjects: [renderObject],
+                },
+                // 从画布中拷贝到纹理。
+                {
+                    __type__: 'CopyTextureToTexture',
+                    source: { texture: null }, // 当值设置为 null或者undefined时表示当前画布。
+                    destination: { texture: texture.texture },
+                    copySize: [canvas.width, canvas.height],
+                },
+            ],
+        }],
     };
 
     let then = 0;
 
-    // 绘制场景
-    function render(now: number)
+    // Draw the scene repeatedly
+    function render()
     {
-        now *= 0.001; // 转换为秒
+        let now = Date.now();
+        now *= 0.001; // convert to seconds
         const deltaTime = now - then;
         then = now;
 
-        const { projectionMatrix, modelViewMatrix, normalMatrix } = drawScene(webgpuCanvas, deltaTime);
+        const { projectionMatrix, modelViewMatrix } = drawScene(canvas, deltaTime);
 
         reactive(renderObject.bindingResources).uProjectionMatrix = { value: projectionMatrix as Float32Array };
         reactive(renderObject.bindingResources).uModelViewMatrix = { value: modelViewMatrix as Float32Array };
-        reactive(renderObject.bindingResources).uNormalMatrix = { value: normalMatrix as Float32Array };
 
-        const submit: Submit = {
-            commandEncoders: [{
-                passEncoders: [renderPass],
-            }],
-        };
-
-        // webgpu.submit(submit);
+        webgpu.submit(submit);
         webgl.submit(submit);
 
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
-});
+}
 
 //
 // initBuffers
@@ -168,46 +173,6 @@ function initBuffers()
         -1.0, -1.0, 1.0,
         -1.0, 1.0, 1.0,
         -1.0, 1.0, -1.0,
-    ];
-
-    // Set up the normals for the vertices, so that we can compute lighting.
-
-    const vertexNormals = [
-        // Front
-        0.0, 0.0, 1.0,
-        0.0, 0.0, 1.0,
-        0.0, 0.0, 1.0,
-        0.0, 0.0, 1.0,
-
-        // Back
-        0.0, 0.0, -1.0,
-        0.0, 0.0, -1.0,
-        0.0, 0.0, -1.0,
-        0.0, 0.0, -1.0,
-
-        // Top
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-
-        // Bottom
-        0.0, -1.0, 0.0,
-        0.0, -1.0, 0.0,
-        0.0, -1.0, 0.0,
-        0.0, -1.0, 0.0,
-
-        // Right
-        1.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-
-        // Left
-        -1.0, 0.0, 0.0,
-        -1.0, 0.0, 0.0,
-        -1.0, 0.0, 0.0,
-        -1.0, 0.0, 0.0,
     ];
 
     // Now set up the texture coordinates for the faces.
@@ -260,50 +225,9 @@ function initBuffers()
 
     return {
         position: new Float32Array(positions),
-        normal: new Float32Array(vertexNormals),
         textureCoord: new Float32Array(textureCoordinates),
         indices: new Uint16Array(indices),
     };
-}
-
-//
-// Initialize a texture and load an image.
-// When the image finished loading copy it into the texture.
-//
-async function loadTexture(url: string)
-{
-    // Because images have to be download over the internet
-    // they might take a moment until they are ready.
-    // Until then put a single pixel in the texture so we can
-    // use it immediately. When the image has finished downloading
-    // we'll update the texture with the contents of the image.
-    const img = new Image();
-    img.src = url;
-    await img.decode();
-
-    const generateMipmap = isPowerOf2(img.width) && isPowerOf2(img.height);
-
-    const texture: Texture = {
-        descriptor: {
-            size: [img.width, img.height],
-            format: 'rgba8unorm',
-            generateMipmap,
-        },
-        sources: [{ image: img }],
-    };
-
-    let sampler: Sampler = {};
-    if (!generateMipmap)
-    {
-        sampler = { addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge', minFilter: 'linear' };
-    }
-
-    return { texture, sampler };
-}
-
-function isPowerOf2(value: number)
-{
-    return (value & (value - 1)) === 0;
 }
 
 //
@@ -351,14 +275,10 @@ function drawScene(canvas: HTMLCanvasElement, deltaTime: number)
         cubeRotation * 0.7, // amount to rotate in radians
         [0, 1, 0]); // axis to rotate around (X)
 
-    const normalMatrix = mat4.create();
-    mat4.invert(normalMatrix, modelViewMatrix);
-    mat4.transpose(normalMatrix, normalMatrix);
-
     // Update the rotation for the next draw
 
     cubeRotation += deltaTime;
 
-    return { projectionMatrix, modelViewMatrix, normalMatrix };
+    return { projectionMatrix, modelViewMatrix };
 }
 

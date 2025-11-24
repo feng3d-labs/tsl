@@ -1,9 +1,4 @@
-// 注意：由于 TSL 目前不支持 max, normalize, dot 等数学函数，
-// 此示例暂时使用 GLSL 和 WGSL 文件（vertex.glsl, fragment.glsl, vertex.wgsl, fragment.wgsl）
-// 未来当 TSL 支持这些函数时，可以取消注释下面的代码
-
-
-import { assign, attribute, builtin, fragment, mat4, return_, sampler, texture2D, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { assign, attribute, builtin, dot, fragment, mat4, max, normalize, return_, sampler, texture2D, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes（location 缺省时自动分配）
 const aVertexPosition = vec3(attribute("aVertexPosition"));
@@ -28,14 +23,14 @@ export const vertexShader = vertex("main", () =>
     assign(vPosition, uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
     assign(vTextureCoord, aTextureCoord);
 
-    // TODO: 应用光照效果（需要 max, normalize, dot 函数支持）
-    // const ambientLight = var_("ambientLight", vec3(0.3, 0.3, 0.3));
-    // const directionalLightColor = var_("directionalLightColor", vec3(1.0, 1.0, 1.0));
-    // const directionalVector = var_("directionalVector", normalize(vec3(0.85, 0.8, 0.75)));
-    // const transformedNormal = var_("transformedNormal", vec4(uNormalMatrix.multiply(vec4(aVertexNormal, 1.0))));
-    // const directional = var_("directional", max(dot(transformedNormal.xyz, directionalVector), 0.0));
-    // const lighting = var_("lighting", ambientLight.add(directionalLightColor.multiply(directional)));
-    // assign(vLighting, lighting);
+    // 应用光照效果
+    const ambientLight = var_("ambientLight", vec3(0.3, 0.3, 0.3));
+    const directionalLightColor = var_("directionalLightColor", vec3(1.0, 1.0, 1.0));
+    const directionalVector = var_("directionalVector", normalize(vec3(0.85, 0.8, 0.75)));
+    const transformedNormal = var_("transformedNormal", uNormalMatrix.multiply(vec4(aVertexNormal, 1.0)));
+    const directional = var_("directional", max(dot(transformedNormal.xyz, directionalVector), 0.0));
+    const lighting = var_("lighting", ambientLight.add(directionalLightColor.multiply(directional)));
+    assign(vLighting, lighting);
 });
 
 // Fragment shader 入口函数
@@ -45,10 +40,9 @@ export const fragmentShader = fragment("main", () =>
     const uSampler = sampler("uSampler");
 
     const texelColor = var_("texelColor", texture2D(uSampler, vTextureCoord));
-    // TODO: 应用光照效果（需要访问 vec4 的 rgb 和 a 属性）
-    // const finalColor = var_("finalColor", vec4(texelColor.rgb.multiply(vLighting), texelColor.a));
-    // return_(finalColor);
-    return_(texelColor);
+    // 应用光照效果
+    const finalColor = var_("finalColor", vec4(texelColor.rgb.multiply(vLighting), texelColor.a));
+    return_(finalColor);
 });
 
 

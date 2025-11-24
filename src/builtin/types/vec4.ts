@@ -25,10 +25,11 @@ export class Vec4 implements ShaderValue
     constructor(attribute: Attribute);
     constructor(builtin: Builtin);
     constructor(varying: Varying);
+    constructor(vec4: Vec4);
     constructor(xy: Vec2, z: number, w: number);
-    constructor(xyz: Vec3, w: number);
+    constructor(xyz: Vec3, w: number | Float);
     constructor(x: number, y: number, z: number, w: number);
-    constructor(...args: (number | Uniform | Attribute | Builtin | Varying | Vec2 | Vec3)[])
+    constructor(...args: (number | Uniform | Attribute | Builtin | Varying | Vec2 | Vec3 | Float | Vec4)[])
     {
         if (args.length === 0) return;
         if (args.length === 1)
@@ -75,6 +76,14 @@ export class Vec4 implements ShaderValue
                 this.dependencies = [varying];
                 varying.value = this;
             }
+            else if (args[0] instanceof Vec4)
+            {
+                // 处理 vec4(vec4) 的情况，直接返回自身
+                const vec4 = args[0] as Vec4;
+                this.toGLSL = vec4.toGLSL;
+                this.toWGSL = vec4.toWGSL;
+                this.dependencies = vec4.dependencies;
+            }
             else
             {
                 throw new Error('Vec4 constructor: invalid argument');
@@ -91,15 +100,24 @@ export class Vec4 implements ShaderValue
             this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${xy.toWGSL(type)}, ${formatNumber(z)}, ${formatNumber(w)})`;
             this.dependencies = [xy];
         }
-        else if (args.length === 2 && args[0] instanceof Vec3 && typeof args[1] === 'number')
+        else if (args.length === 2 && args[0] instanceof Vec3 && (typeof args[1] === 'number' || args[1] instanceof Float))
         {
-            // 处理 vec4(xyz: Vec3, w: number) 的情况
+            // 处理 vec4(xyz: Vec3, w: number | Float) 的情况
             const xyz = args[0] as Vec3;
-            const w = args[1] as number;
+            const w = args[1] as number | Float;
 
-            this.toGLSL = (type: 'vertex' | 'fragment') => `vec4(${xyz.toGLSL(type)}, ${formatNumber(w)})`;
-            this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${xyz.toWGSL(type)}, ${formatNumber(w)})`;
-            this.dependencies = [xyz];
+            if (typeof w === 'number')
+            {
+                this.toGLSL = (type: 'vertex' | 'fragment') => `vec4(${xyz.toGLSL(type)}, ${formatNumber(w)})`;
+                this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${xyz.toWGSL(type)}, ${formatNumber(w)})`;
+                this.dependencies = [xyz];
+            }
+            else
+            {
+                this.toGLSL = (type: 'vertex' | 'fragment') => `vec4(${xyz.toGLSL(type)}, ${w.toGLSL(type)})`;
+                this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${xyz.toWGSL(type)}, ${w.toWGSL(type)})`;
+                this.dependencies = [xyz, w];
+            }
         }
         else if (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number' && typeof args[3] === 'number')
         {
@@ -170,6 +188,45 @@ export class Vec4 implements ShaderValue
 
         return float;
     }
+
+    /**
+     * 获取 xyz 分量（返回 Vec3）
+     */
+    get xyz(): Vec3
+    {
+        const vec3 = new Vec3();
+        vec3.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.xyz`;
+        vec3.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.xyz`;
+        vec3.dependencies = [this];
+
+        return vec3;
+    }
+
+    /**
+     * 获取 rgb 分量（返回 Vec3）
+     */
+    get rgb(): Vec3
+    {
+        const vec3 = new Vec3();
+        vec3.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.rgb`;
+        vec3.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.rgb`;
+        vec3.dependencies = [this];
+
+        return vec3;
+    }
+
+    /**
+     * 获取 alpha 分量（返回 Float）
+     */
+    get a(): Float
+    {
+        const float = new Float();
+        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.a`;
+        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.a`;
+        float.dependencies = [this];
+
+        return float;
+    }
 }
 
 /**
@@ -181,7 +238,7 @@ export function vec4(attribute: Attribute): Vec4;
 export function vec4(builtin: Builtin): Vec4;
 export function vec4(varying: Varying): Vec4;
 export function vec4(xy: Vec2, z: number, w: number): Vec4;
-export function vec4(xyz: Vec3, w: number): Vec4;
+export function vec4(xyz: Vec3, w: number | Float): Vec4;
 export function vec4(x: number, y: number, z: number, w: number): Vec4;
 export function vec4(...args: any[]): Vec4
 {

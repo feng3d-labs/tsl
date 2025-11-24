@@ -8,7 +8,10 @@ export * from './Varying';
 // 导出 builtin 类型和工具函数
 export * from './builtin/assign';
 export * from './builtin/builtin';
+export { dot } from './builtin/dot';
 export { let_ } from './builtin/let';
+export { max } from './builtin/max';
+export { normalize } from './builtin/normalize';
 export { return_ } from './builtin/return';
 export { texture2D } from './builtin/texture2D';
 export { var_ } from './builtin/var';

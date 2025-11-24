@@ -3,6 +3,7 @@ import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../Uniform';
 import { Varying } from '../../Varying';
 import { formatNumber } from '../formatNumber';
+import { Float } from './float';
 
 export class Vec3 implements ShaderValue
 {
@@ -57,6 +58,43 @@ export class Vec3 implements ShaderValue
         {
             throw new Error('Invalid arguments for vec3');
         }
+    }
+
+    /**
+     * 向量乘法（分量相乘或标量乘法）
+     */
+    multiply(other: Vec3 | Float | number): Vec3
+    {
+        const result = new Vec3();
+        if (other instanceof Vec3)
+        {
+            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${other.toGLSL(type)}`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${other.toWGSL(type)}`;
+            result.dependencies = [this, other];
+        }
+        else
+        {
+            const otherStr = typeof other === 'number' ? other.toString() : other.toGLSL('vertex');
+            const otherWgsl = typeof other === 'number' ? other.toString() : other.toWGSL('vertex');
+            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${typeof other === 'number' ? other : other.toGLSL(type)}`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${typeof other === 'number' ? other : other.toWGSL(type)}`;
+            result.dependencies = typeof other === 'number' ? [this] : [this, other];
+        }
+
+        return result;
+    }
+
+    /**
+     * 向量加法
+     */
+    add(other: Vec3): Vec3
+    {
+        const result = new Vec3();
+        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} + ${other.toGLSL(type)}`;
+        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} + ${other.toWGSL(type)}`;
+        result.dependencies = [this, other];
+
+        return result;
     }
 }
 

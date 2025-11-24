@@ -64,7 +64,7 @@ describe('Vertex 和 Fragment', () =>
             const pos = vec2(attribute('pos', 0));
             const uv = vec2(attribute('uv', 1));
             const color = vec4(uniform('color', 0, 0));
-            const time = vec4(uniform('time', 1, 0));
+            const time = vec4(uniform('time', 0, 1));
 
             const vertexShader = vertex('main', () =>
             {
@@ -129,7 +129,7 @@ describe('Vertex 和 Fragment', () =>
         {
             const position = vec2(attribute('position', 0));
             const color = vec4(uniform('color', 0, 0));
-            const time = vec4(uniform('time', 1, 0));
+            const time = vec4(uniform('time', 0, 1));
 
             const vertexShader = vertex('main', () =>
             {

@@ -6,7 +6,7 @@ const aTextureCoord = vec2(attribute("aTextureCoord", 1));
 
 // Vertex shader 的 uniforms
 const uModelViewMatrix = mat4(uniform("uModelViewMatrix", 0, 0));
-const uProjectionMatrix = mat4(uniform("uProjectionMatrix", 1, 0));
+const uProjectionMatrix = mat4(uniform("uProjectionMatrix", 0, 1));
 
 const vPosition = vec4(builtin("position", "position_vec4"));
 const vTextureCoord = vec2(varying("vTextureCoord", 0));

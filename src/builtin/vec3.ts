@@ -1,6 +1,7 @@
 import { Attribute } from '../Attribute';
 import { IElement, IType } from '../IElement';
 import { Uniform } from '../Uniform';
+import { Varying } from '../Varying';
 import { formatNumber } from './formatNumber';
 
 export class Vec3 implements IType
@@ -14,8 +15,9 @@ export class Vec3 implements IType
     constructor();
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
+    constructor(varying: Varying);
     constructor(x: number, y: number, z: number);
-    constructor(...args: (number | Uniform | Attribute)[])
+    constructor(...args: (number | Uniform | Attribute | Varying)[])
     {
         if (args.length === 0) return;
         if (args.length === 1 && args[0] instanceof Uniform)
@@ -33,6 +35,14 @@ export class Vec3 implements IType
             this.toGLSL = (type: 'vertex' | 'fragment') => attribute.name;
             this.toWGSL = (type: 'vertex' | 'fragment') => attribute.name;
             attribute.value = this;
+        }
+        else if (args.length === 1 && args[0] instanceof Varying)
+        {
+            const varying = args[0] as Varying;
+            this.dependencies = [varying];
+            this.toGLSL = (type: 'vertex' | 'fragment') => varying.name;
+            this.toWGSL = (type: 'vertex' | 'fragment') => varying.name;
+            varying.value = this;
         }
         else if (args.length === 3 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number')
         {
@@ -52,13 +62,14 @@ export class Vec3 implements IType
 
 /**
  * vec3 构造函数
- * 如果传入单个 Uniform 或 Attribute 实例，则将类型信息保存到 uniform.value 或 attribute.value
+ * 如果传入单个 Uniform、Attribute 或 Varying 实例，则将类型信息保存到对应的 value 属性
  */
 export function vec3(): Vec3;
 export function vec3(uniform: Uniform): Vec3;
 export function vec3(attribute: Attribute): Vec3;
+export function vec3(varying: Varying): Vec3;
 export function vec3(x: number, y: number, z: number): Vec3;
-export function vec3(...args: (number | Uniform | Attribute)[]): Vec3
+export function vec3(...args: (number | Uniform | Attribute | Varying)[]): Vec3
 {
     if (args.length === 0) return new Vec3();
 

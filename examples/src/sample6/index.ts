@@ -17,10 +17,10 @@ let cubeRotation = 0.0;
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 使用 TSL 生成着色器代码
-    // const vertexGlsl = vertexShader.toGLSL();
-    // const fragmentGlsl = fragmentShader.toGLSL();
-    // const vertexWgsl = vertexShader.toWGSL();
-    // const fragmentWgsl = fragmentShader.toWGSL();
+    const vertexGlsl = vertexShader.toGLSL();
+    const fragmentGlsl = fragmentShader.toGLSL();
+    const vertexWgsl = vertexShader.toWGSL();
+    const fragmentWgsl = fragmentShader.toWGSL();
 
     const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = {
         clearColorValue: [0.0, 0.0, 0.0, 1.0],

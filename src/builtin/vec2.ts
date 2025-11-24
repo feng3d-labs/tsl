@@ -1,6 +1,7 @@
 import { Attribute } from '../Attribute';
 import { IElement } from '../IElement';
 import { Uniform } from '../Uniform';
+import { Varying } from '../Varying';
 import { Float } from './float';
 import { formatNumber } from './formatNumber';
 
@@ -18,12 +19,13 @@ export class Vec2 implements IElement
 
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
+    constructor(varying: Varying);
     constructor(x: number, y: number);
-    constructor(...args: (number | Uniform | Attribute)[])
+    constructor(...args: (number | Uniform | Attribute | Varying)[])
     {
         if (args.length === 1)
         {
-            // 处理 uniform 或 attribute
+            // 处理 uniform、attribute 或 varying
             if (args[0] instanceof Uniform)
             {
                 const uniform = args[0] as Uniform;
@@ -43,6 +45,16 @@ export class Vec2 implements IElement
                 this.dependencies = [attribute];
 
                 attribute.value = this;
+            }
+            else if (args[0] instanceof Varying)
+            {
+                const varying = args[0] as Varying;
+
+                this.toGLSL = (type: 'vertex' | 'fragment') => varying.name;
+                this.toWGSL = (type: 'vertex' | 'fragment') => varying.name;
+                this.dependencies = [varying];
+
+                varying.value = this;
             }
             else
             {
@@ -95,6 +107,7 @@ export class Vec2 implements IElement
  */
 export function vec2(uniform: Uniform): Vec2;
 export function vec2(attribute: Attribute): Vec2;
+export function vec2(varying: Varying): Vec2;
 export function vec2(x: number, y: number): Vec2;
 export function vec2(...args: any[]): Vec2
 {

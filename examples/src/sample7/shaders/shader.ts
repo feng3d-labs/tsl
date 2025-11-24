@@ -2,7 +2,7 @@
 // 此示例暂时使用 GLSL 和 WGSL 文件（vertex.glsl, fragment.glsl, vertex.wgsl, fragment.wgsl）
 // 未来当 TSL 支持这些函数时，可以取消注释下面的代码
 
-/*
+
 import { assign, attribute, builtin, fragment, mat4, return_, sampler, texture2D, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes
@@ -48,9 +48,5 @@ export const fragmentShader = fragment("main", () =>
     // return_(finalColor);
     return_(texelColor);
 });
-*/
 
-// 临时导出，避免编译错误
-export const vertexShader = null as any;
-export const fragmentShader = null as any;
 

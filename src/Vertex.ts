@@ -127,17 +127,23 @@ export class Vertex extends Func
         // 按 group 分组，计算每个 group 下已使用的 binding
         const usedBindingsByGroup = new Map<number, Set<number>>();
 
+        // 获取或创建指定 group 的 usedBindings 集合
+        const getUsedBindings = (group: number): Set<number> =>
+        {
+            if (!usedBindingsByGroup.has(group))
+            {
+                usedBindingsByGroup.set(group, new Set());
+            }
+
+            return usedBindingsByGroup.get(group)!;
+        };
+
         // 收集已显式指定的 binding
         for (const uniform of uniforms)
         {
             if (uniform.binding !== undefined)
             {
-                const group = uniform.group ?? 0;
-                if (!usedBindingsByGroup.has(group))
-                {
-                    usedBindingsByGroup.set(group, new Set());
-                }
-                usedBindingsByGroup.get(group)!.add(uniform.binding);
+                getUsedBindings(uniform.group ?? 0).add(uniform.binding);
             }
         }
 
@@ -147,12 +153,9 @@ export class Vertex extends Func
             if (sampler.binding !== undefined)
             {
                 const group = sampler.group ?? 0;
-                if (!usedBindingsByGroup.has(group))
-                {
-                    usedBindingsByGroup.set(group, new Set());
-                }
-                usedBindingsByGroup.get(group)!.add(sampler.binding);
-                usedBindingsByGroup.get(group)!.add(sampler.binding + 1);
+                const usedBindings = getUsedBindings(group);
+                usedBindings.add(sampler.binding);
+                usedBindings.add(sampler.binding + 1);
             }
         }
 
@@ -162,7 +165,7 @@ export class Vertex extends Func
             if (uniform.binding === undefined)
             {
                 const group = uniform.group ?? 0;
-                const usedBindings = usedBindingsByGroup.get(group) ?? new Set();
+                const usedBindings = getUsedBindings(group);
 
                 // 找到下一个未使用的 binding
                 let nextBinding = 0;
@@ -174,7 +177,6 @@ export class Vertex extends Func
                 // 分配 binding
                 uniform.setAutoBinding(nextBinding);
                 usedBindings.add(nextBinding);
-                usedBindingsByGroup.set(group, usedBindings);
             }
         }
 
@@ -184,7 +186,7 @@ export class Vertex extends Func
             if (sampler.binding === undefined)
             {
                 const group = sampler.group ?? 0;
-                const usedBindings = usedBindingsByGroup.get(group) ?? new Set();
+                const usedBindings = getUsedBindings(group);
 
                 // 找到下一个未使用的 binding（需要连续两个 binding）
                 let nextBinding = 0;
@@ -197,7 +199,6 @@ export class Vertex extends Func
                 sampler.setAutoBinding(nextBinding);
                 usedBindings.add(nextBinding);
                 usedBindings.add(nextBinding + 1);
-                usedBindingsByGroup.set(group, usedBindings);
             }
         }
     }

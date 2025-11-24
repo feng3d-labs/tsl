@@ -88,16 +88,8 @@ export class Fragment extends Func
      */
     toWGSL(): string;
     toWGSL(vertexShader?: Vertex): string
-    toWGSL(vertexShaderOrType?: Vertex): string
+    toWGSL(vertexShader?: Vertex): string
     {
-        // 如果参数是字符串类型，调用父类方法
-        if (typeof vertexShaderOrType === 'string' || vertexShaderOrType === undefined)
-        {
-            return super.toWGSL('fragment');
-        }
-
-        // 如果参数是 Vertex 类型，使用新的逻辑
-        const vertexShader = vertexShaderOrType as Vertex;
         const lines: string[] = [];
 
         // 先执行 body 收集依赖（通过调用父类的 toWGSL 来触发，它会执行 body 并填充 dependencies）
@@ -154,12 +146,23 @@ export class Fragment extends Func
         // 按 group 分组，计算每个 group 下已使用的 binding
         const usedBindingsByGroup = new Map<number, Set<number>>();
 
+        // 获取或创建指定 group 的 usedBindings 集合
+        const getUsedBindings = (group: number): Set<number> =>
+        {
+            if (!usedBindingsByGroup.has(group))
+            {
+                usedBindingsByGroup.set(group, new Set());
+            }
+
+            return usedBindingsByGroup.get(group)!;
+        };
+
         // 如果提供了顶点着色器，先收集顶点着色器中已使用的 binding
         if (vertexShader)
         {
             // 确保顶点着色器的依赖已收集
             vertexShader.toWGSL();
-            const vertexDependencies = (vertexShader as any).getAnalyzedDependencies();
+            const vertexDependencies = vertexShader.getAnalyzedDependencies();
 
             // 收集顶点着色器中的 uniform binding
             for (const uniform of vertexDependencies.uniforms)
@@ -167,12 +170,7 @@ export class Fragment extends Func
                 const effectiveBinding = uniform.getEffectiveBinding();
                 if (effectiveBinding !== undefined)
                 {
-                    const group = uniform.group ?? 0;
-                    if (!usedBindingsByGroup.has(group))
-                    {
-                        usedBindingsByGroup.set(group, new Set());
-                    }
-                    usedBindingsByGroup.get(group)!.add(effectiveBinding);
+                    getUsedBindings(uniform.group ?? 0).add(effectiveBinding);
                 }
             }
 
@@ -181,12 +179,9 @@ export class Fragment extends Func
             {
                 const effectiveBinding = sampler.getEffectiveBinding();
                 const group = sampler.group ?? 0;
-                if (!usedBindingsByGroup.has(group))
-                {
-                    usedBindingsByGroup.set(group, new Set());
-                }
-                usedBindingsByGroup.get(group)!.add(effectiveBinding);
-                usedBindingsByGroup.get(group)!.add(effectiveBinding + 1);
+                const usedBindings = getUsedBindings(group);
+                usedBindings.add(effectiveBinding);
+                usedBindings.add(effectiveBinding + 1);
             }
         }
 
@@ -195,12 +190,7 @@ export class Fragment extends Func
         {
             if (uniform.binding !== undefined)
             {
-                const group = uniform.group ?? 0;
-                if (!usedBindingsByGroup.has(group))
-                {
-                    usedBindingsByGroup.set(group, new Set());
-                }
-                usedBindingsByGroup.get(group)!.add(uniform.binding);
+                getUsedBindings(uniform.group ?? 0).add(uniform.binding);
             }
         }
 
@@ -210,12 +200,9 @@ export class Fragment extends Func
             if (sampler.binding !== undefined)
             {
                 const group = sampler.group ?? 0;
-                if (!usedBindingsByGroup.has(group))
-                {
-                    usedBindingsByGroup.set(group, new Set());
-                }
-                usedBindingsByGroup.get(group)!.add(sampler.binding);
-                usedBindingsByGroup.get(group)!.add(sampler.binding + 1);
+                const usedBindings = getUsedBindings(group);
+                usedBindings.add(sampler.binding);
+                usedBindings.add(sampler.binding + 1);
             }
         }
 
@@ -225,7 +212,7 @@ export class Fragment extends Func
             if (uniform.binding === undefined)
             {
                 const group = uniform.group ?? 0;
-                const usedBindings = usedBindingsByGroup.get(group) ?? new Set();
+                const usedBindings = getUsedBindings(group);
 
                 // 找到下一个未使用的 binding
                 let nextBinding = 0;
@@ -237,7 +224,6 @@ export class Fragment extends Func
                 // 分配 binding
                 uniform.setAutoBinding(nextBinding);
                 usedBindings.add(nextBinding);
-                usedBindingsByGroup.set(group, usedBindings);
             }
         }
 
@@ -247,7 +233,7 @@ export class Fragment extends Func
             if (sampler.binding === undefined)
             {
                 const group = sampler.group ?? 0;
-                const usedBindings = usedBindingsByGroup.get(group) ?? new Set();
+                const usedBindings = getUsedBindings(group);
 
                 // 找到下一个未使用的 binding（需要连续两个 binding）
                 let nextBinding = 0;
@@ -260,7 +246,6 @@ export class Fragment extends Func
                 sampler.setAutoBinding(nextBinding);
                 usedBindings.add(nextBinding);
                 usedBindings.add(nextBinding + 1);
-                usedBindingsByGroup.set(group, usedBindings);
             }
         }
     }

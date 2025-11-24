@@ -55,7 +55,7 @@ export class Func
     /**
      * 获取分析后的依赖（只分析一次，后续使用缓存）
      */
-    protected getAnalyzedDependencies(): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying>; samplers: Set<Sampler> }
+    public getAnalyzedDependencies(): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying>; samplers: Set<Sampler> }
     {
         if (!this._analyzedDependencies)
         {

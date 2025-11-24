@@ -6,6 +6,7 @@
 	"webgl-examples": [
 		"sample2",
 		"sample4",
-		"sample6"
+		"sample6",
+		"sample7"
 	]
 }

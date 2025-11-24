@@ -1,5 +1,7 @@
 import { Func } from './Func';
+import { Sampler } from './Sampler';
 import { Uniform } from './Uniform';
+import { Vertex } from './Vertex';
 
 /**
  * Fragment 类，继承自 Func
@@ -81,10 +83,21 @@ export class Fragment extends Func
 
     /**
      * 转换为完整的 WGSL 代码（fragment shader）
+     * @param vertexShader 可选的顶点着色器，用于避免 binding 冲突
      * @returns 完整的 WGSL 代码，包括 uniforms 和函数定义
      */
-    toWGSL(): string
+    toWGSL(): string;
+    toWGSL(vertexShader?: Vertex): string
+    toWGSL(vertexShaderOrType?: Vertex): string
     {
+        // 如果参数是字符串类型，调用父类方法
+        if (typeof vertexShaderOrType === 'string' || vertexShaderOrType === undefined)
+        {
+            return super.toWGSL('fragment');
+        }
+
+        // 如果参数是 Vertex 类型，使用新的逻辑
+        const vertexShader = vertexShaderOrType as Vertex;
         const lines: string[] = [];
 
         // 先执行 body 收集依赖（通过调用父类的 toWGSL 来触发，它会执行 body 并填充 dependencies）
@@ -94,8 +107,8 @@ export class Fragment extends Func
         // 从函数的 dependencies 中分析获取 uniforms 和 structs（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
 
-        // 自动分配 binding（对于 binding 缺省的 uniform）
-        this.allocateBindings(dependencies.uniforms, dependencies.samplers);
+        // 自动分配 binding（对于 binding 缺省的 uniform），考虑顶点着色器的 binding
+        this.allocateBindings(dependencies.uniforms, dependencies.samplers, vertexShader);
 
         // 生成结构体定义（只包含实际使用的）
         for (const struct of dependencies.structs)
@@ -134,11 +147,48 @@ export class Fragment extends Func
      * 自动分配 binding 值
      * @param uniforms uniform 集合
      * @param samplers sampler 集合
+     * @param vertexShader 可选的顶点着色器，用于避免 binding 冲突
      */
-    private allocateBindings(uniforms: Set<Uniform>, samplers: Set<any>): void
+    private allocateBindings(uniforms: Set<Uniform>, samplers: Set<Sampler>, vertexShader?: Vertex): void
     {
         // 按 group 分组，计算每个 group 下已使用的 binding
         const usedBindingsByGroup = new Map<number, Set<number>>();
+
+        // 如果提供了顶点着色器，先收集顶点着色器中已使用的 binding
+        if (vertexShader)
+        {
+            // 确保顶点着色器的依赖已收集
+            vertexShader.toWGSL();
+            const vertexDependencies = (vertexShader as any).getAnalyzedDependencies();
+
+            // 收集顶点着色器中的 uniform binding
+            for (const uniform of vertexDependencies.uniforms)
+            {
+                const effectiveBinding = uniform.getEffectiveBinding();
+                if (effectiveBinding !== undefined)
+                {
+                    const group = uniform.group ?? 0;
+                    if (!usedBindingsByGroup.has(group))
+                    {
+                        usedBindingsByGroup.set(group, new Set());
+                    }
+                    usedBindingsByGroup.get(group)!.add(effectiveBinding);
+                }
+            }
+
+            // 收集顶点着色器中的 sampler binding（如果有）
+            for (const sampler of vertexDependencies.samplers)
+            {
+                const effectiveBinding = sampler.getEffectiveBinding();
+                const group = sampler.group ?? 0;
+                if (!usedBindingsByGroup.has(group))
+                {
+                    usedBindingsByGroup.set(group, new Set());
+                }
+                usedBindingsByGroup.get(group)!.add(effectiveBinding);
+                usedBindingsByGroup.get(group)!.add(effectiveBinding + 1);
+            }
+        }
 
         // 收集已显式指定的 binding
         for (const uniform of uniforms)
@@ -154,17 +204,19 @@ export class Fragment extends Func
             }
         }
 
-        // 收集 sampler 占用的 binding（sampler 占用两个 binding：texture 和 sampler）
+        // 收集已显式指定的 sampler binding（sampler 占用两个 binding：texture 和 sampler）
         for (const sampler of samplers)
         {
-            const group = sampler.group ?? 0;
-            const binding = sampler.binding ?? 0;
-            if (!usedBindingsByGroup.has(group))
+            if (sampler.binding !== undefined)
             {
-                usedBindingsByGroup.set(group, new Set());
+                const group = sampler.group ?? 0;
+                if (!usedBindingsByGroup.has(group))
+                {
+                    usedBindingsByGroup.set(group, new Set());
+                }
+                usedBindingsByGroup.get(group)!.add(sampler.binding);
+                usedBindingsByGroup.get(group)!.add(sampler.binding + 1);
             }
-            usedBindingsByGroup.get(group)!.add(binding);
-            usedBindingsByGroup.get(group)!.add(binding + 1);
         }
 
         // 为 binding 缺省的 uniform 自动分配 binding
@@ -185,6 +237,29 @@ export class Fragment extends Func
                 // 分配 binding
                 uniform.setAutoBinding(nextBinding);
                 usedBindings.add(nextBinding);
+                usedBindingsByGroup.set(group, usedBindings);
+            }
+        }
+
+        // 为 binding 缺省的 sampler 自动分配 binding（sampler 占用两个 binding）
+        for (const sampler of samplers)
+        {
+            if (sampler.binding === undefined)
+            {
+                const group = sampler.group ?? 0;
+                const usedBindings = usedBindingsByGroup.get(group) ?? new Set();
+
+                // 找到下一个未使用的 binding（需要连续两个 binding）
+                let nextBinding = 0;
+                while (usedBindings.has(nextBinding) || usedBindings.has(nextBinding + 1))
+                {
+                    nextBinding++;
+                }
+
+                // 分配 binding
+                sampler.setAutoBinding(nextBinding);
+                usedBindings.add(nextBinding);
+                usedBindings.add(nextBinding + 1);
                 usedBindingsByGroup.set(group, usedBindings);
             }
         }

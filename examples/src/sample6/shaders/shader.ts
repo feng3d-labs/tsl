@@ -20,12 +20,11 @@ export const vertexShader = vertex("main", () =>
     assign(vTextureCoord, aTextureCoord);
 });
 
+const uSampler = sampler("uSampler", 0);
+
 // Fragment shader 入口函数
 export const fragmentShader = fragment("main", () =>
 {
-    // sampler 的 binding 从 2 开始，因为 vertex shader 的 uniform 已经占用了 0 和 1
-    const uSampler = sampler("uSampler", 0, 2);
-
     return_(texture2D(uSampler, vTextureCoord));
 });
 

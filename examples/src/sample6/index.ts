@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     const vertexGlsl = vertexShader.toGLSL();
     const fragmentGlsl = fragmentShader.toGLSL();
     const vertexWgsl = vertexShader.toWGSL();
-    const fragmentWgsl = fragmentShader.toWGSL();
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = {
         clearColorValue: [0.0, 0.0, 0.0, 1.0],

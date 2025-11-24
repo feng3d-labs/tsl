@@ -10,12 +10,29 @@ export class Sampler implements IElement
     readonly name: string;
     readonly binding?: number;
     readonly group?: number;
+    private _autoBinding?: number; // 自动分配的 binding
 
     constructor(name: string, group?: number, binding?: number)
     {
         this.name = name;
         this.group = group;
         this.binding = binding;
+    }
+
+    /**
+     * 设置自动分配的 binding（内部使用）
+     */
+    setAutoBinding(binding: number): void
+    {
+        this._autoBinding = binding;
+    }
+
+    /**
+     * 获取实际使用的 binding（优先使用显式指定的，否则使用自动分配的）
+     */
+    getEffectiveBinding(): number
+    {
+        return this.binding !== undefined ? this.binding : (this._autoBinding ?? 0);
     }
 
     /**
@@ -32,12 +49,12 @@ export class Sampler implements IElement
      */
     toWGSL(type: 'vertex' | 'fragment'): string
     {
-        const binding = this.binding !== undefined ? this.binding : 0;
+        const effectiveBinding = this.getEffectiveBinding();
         const group = this.group !== undefined ? this.group : 0;
         // 在 WGSL 中，texture 和 sampler 需要分别声明
         // texture 在 binding，sampler 在 binding+1
-        const textureBinding = `@binding(${binding}) @group(${group})`;
-        const samplerBinding = `@binding(${binding + 1}) @group(${group})`;
+        const textureBinding = `@binding(${effectiveBinding}) @group(${group})`;
+        const samplerBinding = `@binding(${effectiveBinding + 1}) @group(${group})`;
 
         return `${textureBinding} var ${this.name}_texture: texture_2d<f32>;\n${samplerBinding} var ${this.name}: sampler;`;
     }

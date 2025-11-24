@@ -1,5 +1,6 @@
 import { Func } from './Func';
 import { Uniform } from './Uniform';
+import { Sampler } from './Sampler';
 
 /**
  * Vertex 类，继承自 Func
@@ -121,7 +122,7 @@ export class Vertex extends Func
      * @param uniforms uniform 集合
      * @param samplers sampler 集合
      */
-    private allocateBindings(uniforms: Set<Uniform>, samplers: Set<any>): void
+    private allocateBindings(uniforms: Set<Uniform>, samplers: Set<Sampler>): void
     {
         // 按 group 分组，计算每个 group 下已使用的 binding
         const usedBindingsByGroup = new Map<number, Set<number>>();
@@ -140,17 +141,19 @@ export class Vertex extends Func
             }
         }
 
-        // 收集 sampler 占用的 binding（sampler 占用两个 binding：texture 和 sampler）
+        // 收集已显式指定的 sampler binding（sampler 占用两个 binding：texture 和 sampler）
         for (const sampler of samplers)
         {
-            const group = sampler.group ?? 0;
-            const binding = sampler.binding ?? 0;
-            if (!usedBindingsByGroup.has(group))
+            if (sampler.binding !== undefined)
             {
-                usedBindingsByGroup.set(group, new Set());
+                const group = sampler.group ?? 0;
+                if (!usedBindingsByGroup.has(group))
+                {
+                    usedBindingsByGroup.set(group, new Set());
+                }
+                usedBindingsByGroup.get(group)!.add(sampler.binding);
+                usedBindingsByGroup.get(group)!.add(sampler.binding + 1);
             }
-            usedBindingsByGroup.get(group)!.add(binding);
-            usedBindingsByGroup.get(group)!.add(binding + 1);
         }
 
         // 为 binding 缺省的 uniform 自动分配 binding
@@ -171,6 +174,29 @@ export class Vertex extends Func
                 // 分配 binding
                 uniform.setAutoBinding(nextBinding);
                 usedBindings.add(nextBinding);
+                usedBindingsByGroup.set(group, usedBindings);
+            }
+        }
+
+        // 为 binding 缺省的 sampler 自动分配 binding（sampler 占用两个 binding）
+        for (const sampler of samplers)
+        {
+            if (sampler.binding === undefined)
+            {
+                const group = sampler.group ?? 0;
+                const usedBindings = usedBindingsByGroup.get(group) ?? new Set();
+
+                // 找到下一个未使用的 binding（需要连续两个 binding）
+                let nextBinding = 0;
+                while (usedBindings.has(nextBinding) || usedBindings.has(nextBinding + 1))
+                {
+                    nextBinding++;
+                }
+
+                // 分配 binding
+                sampler.setAutoBinding(nextBinding);
+                usedBindings.add(nextBinding);
+                usedBindings.add(nextBinding + 1);
                 usedBindingsByGroup.set(group, usedBindings);
             }
         }

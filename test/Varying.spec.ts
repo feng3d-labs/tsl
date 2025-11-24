@@ -31,7 +31,7 @@ describe('Varying', () =>
             const v = new Varying('vColor', 0);
             v.value = vec4(varying('vColor', 0));
             expect(v.toGLSL('vertex')).toBe('varying vec4 vColor;');
-            expect(v.toGLSL('fragment')).toBe('varying lowp vec4 vColor;');
+            expect(v.toGLSL('fragment')).toBe('varying vec4 vColor;');
         });
 
         it('应该能够生成 WGSL', () =>

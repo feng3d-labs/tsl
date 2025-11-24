@@ -43,10 +43,8 @@ export class Varying implements IElement
             throw new Error(`Varying '${this.name}' 没有设置 value，无法生成 GLSL。`);
         }
         const glslType = this.value.glslType;
-        // GLSL 中 varying 需要 precision 修饰符（在 fragment shader 中）
-        const precision = type === 'fragment' ? ' lowp' : '';
 
-        return `varying${precision} ${glslType} ${this.name};`;
+        return `varying ${glslType} ${this.name};`;
     }
 
     /**

@@ -1,4 +1,5 @@
 import { Func } from './Func';
+import { Precision } from './Precision';
 import { Sampler } from './Sampler';
 import { Uniform } from './Uniform';
 import { Vertex } from './Vertex';
@@ -29,10 +30,16 @@ export class Fragment extends Func
         // 从函数的 dependencies 中分析获取 uniforms、precision、varyings 和 samplers（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
 
-        // Fragment shader 需要 precision 声明（从函数依赖中获取）
+        // Fragment shader 需要 precision 声明（从函数依赖中获取，如果没有则默认使用 highp）
         if (dependencies.precision)
         {
             lines.push(dependencies.precision.toGLSL('fragment'));
+        }
+        else
+        {
+            // 如果没有指定 precision，默认使用 highp
+            const defaultPrecision = new Precision('highp');
+            lines.push(defaultPrecision.toGLSL('fragment'));
         }
 
         // 生成 varyings（只包含实际使用的，在 fragment shader 中作为输入）

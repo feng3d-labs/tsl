@@ -64,5 +64,57 @@ describe('Attribute', () =>
             expect(glsl).toContain('attribute vec2 position;');
         });
     });
+
+    describe('location 自动分配', () =>
+    {
+        it('应该支持 location 缺省时的自动分配', () =>
+        {
+            const attr1 = attribute('position');
+            const attr2 = attribute('color');
+            attr1.value = vec2(attr1);
+            attr2.value = vec4(attr2);
+
+            const vertexShader = vertex('main', () =>
+            {
+                return_(vec4(vec2(attr1), 0.0, 1.0));
+            });
+
+            const wgsl = vertexShader.toWGSL();
+            // 验证自动分配的 location
+            expect(wgsl).toContain('@location(0) position: vec2<f32>');
+        });
+
+        it('应该能够自动分配多个 attribute 的 location', () =>
+        {
+            const aPos = vec2(attribute('aPos'));
+            const aColor = vec4(attribute('aColor'));
+            const aTexCoord = vec2(attribute('aTexCoord'));
+
+            const vertexShader = vertex('main', () =>
+            {
+                return_(vec4(aPos, 0.0, 1.0));
+            });
+
+            const wgsl = vertexShader.toWGSL();
+            // 验证自动分配的 location 是连续的
+            expect(wgsl).toMatch(/@location\(0\).*aPos/);
+        });
+
+        it('应该能够混合显式指定和自动分配的 location', () =>
+        {
+            const aPos = vec2(attribute('aPos', 2)); // 显式指定 location 2
+            const aColor = vec4(attribute('aColor')); // 自动分配
+
+            const vertexShader = vertex('main', () =>
+            {
+                return_(vec4(aPos, 0.0, 1.0));
+            });
+
+            const wgsl = vertexShader.toWGSL();
+            // 验证显式指定的 location 被保留
+            expect(wgsl).toContain('@location(2) aPos: vec2<f32>');
+            // 验证自动分配的 location 从 0 开始（因为 2 已被占用）
+        });
+    });
 });
 

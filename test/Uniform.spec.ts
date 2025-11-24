@@ -66,5 +66,72 @@ describe('Uniform', () =>
             expect(glsl).toContain('uniform vec4 color;');
         });
     });
+
+    describe('group 和 binding 自动分配', () =>
+    {
+        it('应该支持 group 缺省时使用默认值 0', () =>
+        {
+            const uni = uniform('color');
+            vec4(uni);
+            expect(uni.getEffectiveGroup()).toBe(0);
+            expect(uni.toWGSL('fragment')).toContain('@group(0)');
+        });
+
+        it('应该支持 binding 缺省时的自动分配', () =>
+        {
+            const uni1 = uniform('color1');
+            const uni2 = uniform('color2');
+            vec4(uni1);
+            vec4(uni2);
+
+            const fragmentShader = fragment('main', () =>
+            {
+                return_(vec4(uni1));
+            });
+
+            const wgsl = fragmentShader.toWGSL();
+            // 验证自动分配的 binding
+            expect(wgsl).toContain('@binding(0)');
+        });
+
+        it('应该能够自动分配多个 uniform 的 binding', () =>
+        {
+            const color1 = vec4(uniform('color1'));
+            const color2 = vec4(uniform('color2'));
+            const color3 = vec4(uniform('color3'));
+
+            const fragmentShader = fragment('main', () =>
+            {
+                return_(color1);
+            });
+
+            const wgsl = fragmentShader.toWGSL();
+            // 验证自动分配的 binding 是连续的
+            expect(wgsl).toMatch(/@binding\(0\).*color1/);
+        });
+
+        it('应该能够混合显式指定和自动分配的 binding', () =>
+        {
+            const color1 = vec4(uniform('color1', 0, 2)); // 显式指定 binding 2
+            const color2 = vec4(uniform('color2')); // 自动分配
+
+            const fragmentShader = fragment('main', () =>
+            {
+                return_(color1);
+            });
+
+            const wgsl = fragmentShader.toWGSL();
+            // 验证显式指定的 binding 被保留
+            expect(wgsl).toContain('@binding(2) @group(0) var<uniform> color1');
+            // 验证自动分配的 binding 从 0 开始（因为 2 已被占用）
+        });
+
+        it('应该支持 uniform(name, group) 形式（group 缺省为 0）', () =>
+        {
+            const uni = uniform('color', 0);
+            vec4(uni);
+            expect(uni.getEffectiveGroup()).toBe(0);
+        });
+    });
 });
 

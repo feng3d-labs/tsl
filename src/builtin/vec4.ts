@@ -1,5 +1,5 @@
 import { Attribute } from '../Attribute';
-import { IElement } from '../IElement';
+import { IElement, ShaderValue } from '../IElement';
 import { Uniform } from '../Uniform';
 import { Varying } from '../Varying';
 import { Builtin } from './builtin';
@@ -11,7 +11,7 @@ import { Vec3 } from './vec3';
 /**
  * Vec4 类型，表示 vec4 字面量值或 uniform/attribute 变量
  */
-export class Vec4 implements IElement
+export class Vec4 implements ShaderValue
 {
     readonly glslType = 'vec4';
     readonly wgslType = 'vec4<f32>';

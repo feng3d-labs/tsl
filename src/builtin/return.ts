@@ -1,4 +1,4 @@
-import { IType } from '../IElement';
+import { ShaderValue } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
 import { Struct } from '../struct';
 
@@ -7,7 +7,7 @@ import { Struct } from '../struct';
  * @param expr 返回值表达式
  * @returns 返回值表达式（原样返回，用于链式调用）
  */
-export function return_<T extends IType>(expr: T): void
+export function return_<T extends ShaderValue>(expr: T): void
 {
     const currentFunc = getCurrentFunc();
     if (currentFunc)

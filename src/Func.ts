@@ -1,7 +1,7 @@
 import { analyzeDependencies } from './analyzeDependencies';
 import { Attribute } from './Attribute';
 import { Builtin } from './builtin/builtin';
-import { IElement, IType } from './IElement';
+import { IElement, ShaderValue } from './IElement';
 import { Precision } from './Precision';
 import { Sampler } from './Sampler';
 import { IStatement } from './builtin/Statement';
@@ -169,8 +169,8 @@ export class Func
             // 如果有，自动创建结构体来包装这些变量
             if (!returnStruct)
             {
-                const builtinAssignments = new Map<Builtin, { target: IType; fieldName: string; value: IType }>();
-                const varyingAssignments = new Map<Varying, { target: IType; fieldName: string; value: IType }>();
+                const builtinAssignments = new Map<Builtin, { target: ShaderValue; fieldName: string; value: ShaderValue }>();
+                const varyingAssignments = new Map<Varying, { target: ShaderValue; fieldName: string; value: ShaderValue }>();
 
                 // 从 statements 中找出所有对 builtin 和 varying 的赋值
                 // 使用保存在 statement 中的原始信息
@@ -179,8 +179,8 @@ export class Func
                     const stmtAny = stmt as any;
                     if (stmtAny._assignTarget && stmtAny._assignValue)
                     {
-                        const target = stmtAny._assignTarget as IType;
-                        const value = stmtAny._assignValue as IType;
+                        const target = stmtAny._assignTarget as ShaderValue;
+                        const value = stmtAny._assignValue as ShaderValue;
 
                         // 检查 target 是否是 builtin 或 varying
                         if (target && typeof target === 'object' && 'dependencies' in target && Array.isArray(target.dependencies) && target.dependencies.length > 0)
@@ -252,8 +252,8 @@ export class Func
                         // 检查是否是 assign 语句（有保存的原始信息）
                         if (stmtAny._assignTarget && stmtAny._assignValue)
                         {
-                            const target = stmtAny._assignTarget as IType;
-                            const value = stmtAny._assignValue as IType;
+                            const target = stmtAny._assignTarget as ShaderValue;
+                            const value = stmtAny._assignValue as ShaderValue;
 
                             // 检查 target 是否是 builtin 或 varying
                             if (target && typeof target === 'object' && 'dependencies' in target && Array.isArray(target.dependencies) && target.dependencies.length > 0)

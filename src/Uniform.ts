@@ -1,4 +1,4 @@
-import { IElement, IType } from './IElement';
+import { IElement, ShaderValue } from './IElement';
 
 /**
  * Uniform 类
@@ -8,7 +8,7 @@ export class Uniform implements IElement
     dependencies: IElement[];
 
     readonly name: string;
-    value?: IType;
+    value?: ShaderValue;
     readonly binding?: number;
     readonly group?: number;
     private _autoBinding?: number; // 自动分配的 binding

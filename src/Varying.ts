@@ -1,4 +1,4 @@
-import { IElement, IType } from './IElement';
+import { IElement, ShaderValue } from './IElement';
 
 /**
  * Varying 类，表示在 vertex 和 fragment shader 之间传递的变量
@@ -7,7 +7,7 @@ export class Varying implements IElement
 {
     dependencies: IElement[] = [];
     readonly name: string;
-    value?: IType;
+    value?: ShaderValue;
     readonly location?: number;
     private _autoLocation?: number; // 自动分配的 location
 

@@ -1,12 +1,12 @@
 import { Attribute } from '../Attribute';
-import { IElement, IType } from '../IElement';
+import { IElement, ShaderValue } from '../IElement';
 import { Uniform } from '../Uniform';
 import { Float } from './float';
 
 /**
  * UVec2 类，用于表示 uvec2 字面量值或 uniform/attribute 变量
  */
-export class Uvec2 implements IType
+export class Uvec2 implements ShaderValue
 {
     readonly glslType = 'uvec2';
     readonly wgslType = 'vec2<u32>';
@@ -102,5 +102,4 @@ export function uvec2(...args: any[]): Uvec2
 
     throw new Error('uvec2: invalid arguments');
 }
-
 

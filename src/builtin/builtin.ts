@@ -1,4 +1,4 @@
-import { IElement, IType } from '../IElement';
+import { IElement, ShaderValue } from '../IElement';
 
 /**
  * Builtin 类，表示内置变量（如 position）
@@ -7,7 +7,7 @@ export class Builtin implements IElement
 {
     readonly builtinName: string; // WGSL 中内置的固定名称（如 "position" 或 "gl_Position"）
     readonly varName: string; // 用户自定义的变量名称（如 "position_vec4"）
-    value: IType;
+    value: ShaderValue;
     dependencies: IElement[] = [];
 
     constructor(builtinName: 'position' | 'gl_Position', varName: string)

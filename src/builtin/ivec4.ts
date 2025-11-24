@@ -1,12 +1,12 @@
 import { Attribute } from '../Attribute';
-import { IElement, IType } from '../IElement';
+import { IElement, ShaderValue } from '../IElement';
 import { Uniform } from '../Uniform';
 import { Float } from './float';
 
 /**
  * IVec4 类，用于表示 ivec4 字面量值或 uniform/attribute 变量
  */
-export class IVec4 implements IType
+export class IVec4 implements ShaderValue
 {
     readonly glslType = 'ivec4';
     readonly wgslType = 'vec4<i32>';

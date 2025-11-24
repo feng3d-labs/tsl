@@ -1,12 +1,12 @@
 import { Attribute } from '../Attribute';
-import { IElement, IType } from '../IElement';
+import { IElement, ShaderValue } from '../IElement';
 import { Uniform } from '../Uniform';
 import { Float } from './float';
 
 /**
  * Uvec3 类，用于表示 uvec3 字面量值或 uniform/attribute 变量
  */
-export class Uvec3 implements IType
+export class Uvec3 implements ShaderValue
 {
     readonly glslType = 'uvec3';
     readonly wgslType = 'vec3<u32>';

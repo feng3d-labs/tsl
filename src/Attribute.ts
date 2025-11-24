@@ -1,4 +1,4 @@
-import { IElement, IType } from './IElement';
+import { IElement, ShaderValue } from './IElement';
 
 /**
  * Attribute 类
@@ -7,7 +7,7 @@ export class Attribute implements IElement
 {
     dependencies: IElement[];
     readonly name: string;
-    value?: IType;
+    value?: ShaderValue;
     readonly location?: number;
     private _autoLocation?: number; // 自动分配的 location
 

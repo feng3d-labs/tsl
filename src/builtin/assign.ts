@@ -1,4 +1,4 @@
-import { IType } from '../IElement';
+import { ShaderValue } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
 import { Builtin } from './builtin';
 
@@ -7,7 +7,7 @@ import { Builtin } from './builtin';
  * @param target 目标变量（Builtin 实例）
  * @param value 要赋值的表达式
  */
-export function assign(target: IType, value: IType): void
+export function assign(target: ShaderValue, value: ShaderValue): void
 {
     const currentFunc = getCurrentFunc();
     if (currentFunc)

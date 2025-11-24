@@ -1,12 +1,12 @@
 import { Attribute } from '../Attribute';
-import { IElement, IType } from '../IElement';
+import { IElement, ShaderValue } from '../IElement';
 import { Uniform } from '../Uniform';
 import { Vec4 } from './vec4';
 
 /**
  * Mat4 类，用于表示 mat4 字面量值或 uniform/attribute 变量
  */
-export class Mat4 implements IType
+export class Mat4 implements ShaderValue
 {
     readonly glslType = 'mat4';
     readonly wgslType = 'mat4x4<f32>';

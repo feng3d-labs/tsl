@@ -1,5 +1,5 @@
 import { Attribute } from '../Attribute';
-import { IElement } from '../IElement';
+import { IElement, ShaderValue } from '../IElement';
 import { Uniform } from '../Uniform';
 import { Varying } from '../Varying';
 import { Float } from './float';
@@ -8,7 +8,7 @@ import { formatNumber } from './formatNumber';
 /**
  * Vec2 类，用于表示 vec2 字面量值或 uniform/attribute 变量
  */
-export class Vec2 implements IElement
+export class Vec2 implements ShaderValue
 {
     readonly glslType = 'vec2';
     readonly wgslType = 'vec2<f32>';

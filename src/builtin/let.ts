@@ -1,4 +1,4 @@
-import { IType } from '../IElement';
+import { ShaderValue } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
 
 /**
@@ -7,10 +7,10 @@ import { getCurrentFunc } from '../currentFunc';
  * @param expr 表达式
  * @returns 设置了变量名的表达式实例
  */
-export function let_<T extends IType>(name: string, expr: T): T
+export function let_<T extends ShaderValue>(name: string, expr: T): T
 {
     const cls = expr.constructor;
-    const result: IType = new (cls as any)();
+    const result: ShaderValue = new (cls as any)();
 
     result.toGLSL = (type: 'vertex' | 'fragment') => `${name}`;
     result.toWGSL = (type: 'vertex' | 'fragment') => `${name}`;

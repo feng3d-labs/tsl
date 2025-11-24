@@ -1,10 +1,10 @@
 import { Attribute } from '../Attribute';
-import { IElement, IType } from '../IElement';
+import { IElement, ShaderValue } from '../IElement';
 import { Uniform } from '../Uniform';
 import { Varying } from '../Varying';
 import { formatNumber } from './formatNumber';
 
-export class Vec3 implements IType
+export class Vec3 implements ShaderValue
 {
     readonly glslType = 'vec3';
     readonly wgslType = 'vec3<f32>';

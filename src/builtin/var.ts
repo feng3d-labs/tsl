@@ -1,4 +1,4 @@
-import { IElement, IType } from '../IElement';
+import { IElement, ShaderValue } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
 import { Fragment } from '../Fragment';
 import { Struct } from '../struct';
@@ -12,7 +12,7 @@ import { Builtin } from './builtin';
  * @returns 设置了变量名的表达式实例
  */
 export function var_<T extends { [key: string]: IElement }>(name: string, struct: Struct<T>): IElement & T;
-export function var_<T extends IType>(name: string, expr: T): T;
+export function var_<T extends ShaderValue>(name: string, expr: T): T;
 export function var_(...args: any[]): any
 {
     if (args[1] instanceof Struct)
@@ -20,10 +20,10 @@ export function var_(...args: any[]): any
         return var_struct(args[0] as string, args[1] as Struct<any>);
     }
     const name = args[0] as string;
-    const expr = args[1] as IType;
+    const expr = args[1] as ShaderValue;
 
     const cls = expr.constructor;
-    const result: IType = new (cls as any)();
+    const result: ShaderValue = new (cls as any)();
 
     result.toGLSL = (type: 'vertex' | 'fragment') => `${name}`;
     result.toWGSL = (type: 'vertex' | 'fragment') => `${name}`;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Varying, varying } from '../src/Varying';
-import { vec2 } from '../src/builtin/vec2';
-import { vec4 } from '../src/builtin/vec4';
+import { vec2 } from '../src/builtin/types/vec2';
+import { vec4 } from '../src/builtin/types/vec4';
 import { vertex } from '../src/Vertex';
 import { fragment } from '../src/Fragment';
 import { return_ } from '../src/index';

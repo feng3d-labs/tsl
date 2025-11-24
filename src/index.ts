@@ -13,19 +13,19 @@ export { return_ } from './builtin/return';
 export { texture2D } from './builtin/texture2D';
 export { var_ } from './builtin/var';
 // 导出向量类型
-export { Vec2 } from './builtin/vec2';
-export { Vec4 } from './builtin/vec4';
+export { Vec2 } from './builtin/types/vec2';
+export { Vec4 } from './builtin/types/vec4';
 // 导出向量构造函数
-export { ivec2 } from './builtin/ivec2';
-export { ivec3 } from './builtin/ivec3';
-export { ivec4 } from './builtin/ivec4';
-export { mat4 } from './builtin/mat4';
-export { uvec2 } from './builtin/uvec2';
-export { uvec3 } from './builtin/uvec3';
-export { uvec4 } from './builtin/uvec4';
-export { vec2 } from './builtin/vec2';
-export { vec3 } from './builtin/vec3';
-export { vec4 } from './builtin/vec4';
+export { ivec2 } from './builtin/types/ivec2';
+export { ivec3 } from './builtin/types/ivec3';
+export { ivec4 } from './builtin/types/ivec4';
+export { mat4 } from './builtin/types/mat4';
+export { uvec2 } from './builtin/types/uvec2';
+export { uvec3 } from './builtin/types/uvec3';
+export { uvec4 } from './builtin/types/uvec4';
+export { vec2 } from './builtin/types/vec2';
+export { vec3 } from './builtin/types/vec3';
+export { vec4 } from './builtin/types/vec4';
 export * from './struct';
 export * from './Vertex';
 

@@ -3,9 +3,9 @@ import { var_ } from '../src';
 import { attribute } from '../src/Attribute';
 import { uniform } from '../src/Uniform';
 import { builtin } from '../src/builtin/builtin';
-import { mat4 } from '../src/builtin/mat4';
-import { vec3 } from '../src/builtin/vec3';
-import { vec4 } from '../src/builtin/vec4';
+import { mat4 } from '../src/builtin/types/mat4';
+import { vec3 } from '../src/builtin/types/vec3';
+import { vec4 } from '../src/builtin/types/vec4';
 import { Struct, struct } from '../src/struct';
 import { varying } from '../src/Varying';
 

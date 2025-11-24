@@ -1,4 +1,4 @@
-import { IElement, ShaderValue } from '../IElement';
+import { IElement, ShaderValue } from '../../IElement';
 
 export class Float implements ShaderValue
 {

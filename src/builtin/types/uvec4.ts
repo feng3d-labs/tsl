@@ -1,15 +1,15 @@
-import { Attribute } from '../Attribute';
-import { IElement, ShaderValue } from '../IElement';
-import { Uniform } from '../Uniform';
+import { Attribute } from '../../Attribute';
+import { IElement, ShaderValue } from '../../IElement';
+import { Uniform } from '../../Uniform';
 import { Float } from './float';
 
 /**
- * IVec3 类，用于表示 ivec3 字面量值或 uniform/attribute 变量
+ * Uvec4 类，用于表示 uvec4 字面量值或 uniform/attribute 变量
  */
-export class IVec3 implements ShaderValue
+export class Uvec4 implements ShaderValue
 {
-    readonly glslType = 'ivec3';
-    readonly wgslType = 'vec3<i32>';
+    readonly glslType = 'uvec4';
+    readonly wgslType = 'vec4<u32>';
 
     dependencies: IElement[];
     toGLSL: (type: 'vertex' | 'fragment') => string;
@@ -17,7 +17,7 @@ export class IVec3 implements ShaderValue
 
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
-    constructor(x: number, y: number, z: number);
+    constructor(x: number, y: number, z: number, w: number);
     constructor(...args: (number | Uniform | Attribute)[])
     {
         if (args.length === 1)
@@ -27,8 +27,8 @@ export class IVec3 implements ShaderValue
             {
                 const uniform = args[0] as Uniform;
 
-                this.toGLSL = (type: 'vertex' | 'fragment') => uniform.name;
-                this.toWGSL = (type: 'vertex' | 'fragment') => uniform.name;
+                this.toGLSL = () => uniform.name;
+                this.toWGSL = () => uniform.name;
                 this.dependencies = [uniform];
 
                 uniform.value = this;
@@ -37,29 +37,30 @@ export class IVec3 implements ShaderValue
             {
                 const attribute = args[0] as Attribute;
 
-                this.toGLSL = (type: 'vertex' | 'fragment') => attribute.name;
-                this.toWGSL = (type: 'vertex' | 'fragment') => attribute.name;
+                this.toGLSL = () => attribute.name;
+                this.toWGSL = () => attribute.name;
                 this.dependencies = [attribute];
 
                 attribute.value = this;
             }
             else
             {
-                throw new Error('IVec3 constructor: invalid argument');
+                throw new Error('Uvec4 constructor: invalid argument');
             }
         }
-        else if (args.length === 3 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number')
+        else if (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number' && typeof args[3] === 'number')
         {
             const x = args[0] as number;
             const y = args[1] as number;
             const z = args[2] as number;
-            this.toGLSL = (type: 'vertex' | 'fragment') => `ivec3(${x}, ${y}, ${z})`;
-            this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<i32>(${x}, ${y}, ${z})`;
+            const w = args[3] as number;
+            this.toGLSL = () => `uvec4(${x}, ${y}, ${z}, ${w})`;
+            this.toWGSL = () => `vec4<u32>(${x}, ${y}, ${z}, ${w})`;
             this.dependencies = [];
         }
         else
         {
-            throw new Error('IVec3 constructor: invalid arguments');
+            throw new Error('Uvec4 constructor: invalid arguments');
         }
     }
 
@@ -101,18 +102,33 @@ export class IVec3 implements ShaderValue
 
         return float;
     }
+
+    /**
+     * 获取 w 分量
+     */
+    get w(): Float
+    {
+        const float = new Float();
+        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.w`;
+        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.w`;
+        float.dependencies = [this];
+
+        return float;
+    }
 }
 
 /**
- * ivec3 构造函数
+ * uvec4 构造函数
  */
-export function ivec3(uniform: Uniform): IVec3;
-export function ivec3(attribute: Attribute): IVec3;
-export function ivec3(x: number, y: number, z: number): IVec3;
-export function ivec3(...args: any[]): IVec3
+export function uvec4(uniform: Uniform): Uvec4;
+export function uvec4(attribute: Attribute): Uvec4;
+export function uvec4(x: number, y: number, z: number, w: number): Uvec4;
+export function uvec4(...args: any[]): Uvec4
 {
-    if (args.length === 1) return new IVec3(args[0] as any);
-    if (args.length === 3) return new IVec3(args[0] as any, args[1] as any, args[2] as any);
+    if (args.length === 1) return new Uvec4(args[0] as any);
+    if (args.length === 4) return new Uvec4(args[0] as any, args[1] as any, args[2] as any, args[3] as any);
 
-    throw new Error('ivec3: invalid arguments');
+    throw new Error('uvec4: invalid arguments');
 }
+
+

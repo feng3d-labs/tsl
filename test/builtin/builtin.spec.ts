@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { builtin } from '../../src/builtin/builtin';
-import { vec4 } from '../../src/builtin/vec4';
+import { vec4 } from '../../src/builtin/types/vec4';
 
 describe('Builtin', () =>
 {

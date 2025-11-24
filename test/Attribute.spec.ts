@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Attribute, attribute } from '../src/Attribute';
-import { vec2 } from '../src/builtin/vec2';
-import { vec4 } from '../src/builtin/vec4';
+import { vec2 } from '../src/builtin/types/vec2';
+import { vec4 } from '../src/builtin/types/vec4';
 import { return_ } from '../src/index';
 import { vertex } from '../src/Vertex';
 

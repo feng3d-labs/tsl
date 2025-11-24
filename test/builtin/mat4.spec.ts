@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Attribute } from '../../src/Attribute';
-import { mat4, Mat4 } from '../../src/builtin/mat4';
-import { vec4, Vec4 } from '../../src/builtin/vec4';
+import { mat4, Mat4 } from '../../src/builtin/types/mat4';
+import { vec4, Vec4 } from '../../src/builtin/types/vec4';
 import { Uniform } from '../../src/Uniform';
 
 describe('Mat4', () =>

@@ -1,10 +1,10 @@
-import { Attribute } from '../Attribute';
-import { IElement, ShaderValue } from '../IElement';
-import { Uniform } from '../Uniform';
-import { Varying } from '../Varying';
-import { Builtin } from './builtin';
+import { Attribute } from '../../Attribute';
+import { IElement, ShaderValue } from '../../IElement';
+import { Uniform } from '../../Uniform';
+import { Varying } from '../../Varying';
+import { Builtin } from '../builtin';
 import { Float } from './float';
-import { formatNumber } from './formatNumber';
+import { formatNumber } from '../formatNumber';
 import { Vec2 } from './vec2';
 import { Vec3 } from './vec3';
 

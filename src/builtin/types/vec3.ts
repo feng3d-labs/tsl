@@ -1,8 +1,8 @@
-import { Attribute } from '../Attribute';
-import { IElement, ShaderValue } from '../IElement';
-import { Uniform } from '../Uniform';
-import { Varying } from '../Varying';
-import { formatNumber } from './formatNumber';
+import { Attribute } from '../../Attribute';
+import { IElement, ShaderValue } from '../../IElement';
+import { Uniform } from '../../Uniform';
+import { Varying } from '../../Varying';
+import { formatNumber } from '../formatNumber';
 
 export class Vec3 implements ShaderValue
 {

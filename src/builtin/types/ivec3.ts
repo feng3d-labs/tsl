@@ -1,15 +1,15 @@
-import { Attribute } from '../Attribute';
-import { IElement, ShaderValue } from '../IElement';
-import { Uniform } from '../Uniform';
+import { Attribute } from '../../Attribute';
+import { IElement, ShaderValue } from '../../IElement';
+import { Uniform } from '../../Uniform';
 import { Float } from './float';
 
 /**
- * IVec4 类，用于表示 ivec4 字面量值或 uniform/attribute 变量
+ * IVec3 类，用于表示 ivec3 字面量值或 uniform/attribute 变量
  */
-export class IVec4 implements ShaderValue
+export class IVec3 implements ShaderValue
 {
-    readonly glslType = 'ivec4';
-    readonly wgslType = 'vec4<i32>';
+    readonly glslType = 'ivec3';
+    readonly wgslType = 'vec3<i32>';
 
     dependencies: IElement[];
     toGLSL: (type: 'vertex' | 'fragment') => string;
@@ -17,7 +17,7 @@ export class IVec4 implements ShaderValue
 
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
-    constructor(x: number, y: number, z: number, w: number);
+    constructor(x: number, y: number, z: number);
     constructor(...args: (number | Uniform | Attribute)[])
     {
         if (args.length === 1)
@@ -45,22 +45,21 @@ export class IVec4 implements ShaderValue
             }
             else
             {
-                throw new Error('IVec4 constructor: invalid argument');
+                throw new Error('IVec3 constructor: invalid argument');
             }
         }
-        else if (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number' && typeof args[3] === 'number')
+        else if (args.length === 3 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number')
         {
             const x = args[0] as number;
             const y = args[1] as number;
             const z = args[2] as number;
-            const w = args[3] as number;
-            this.toGLSL = (type: 'vertex' | 'fragment') => `ivec4(${x}, ${y}, ${z}, ${w})`;
-            this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<i32>(${x}, ${y}, ${z}, ${w})`;
+            this.toGLSL = (type: 'vertex' | 'fragment') => `ivec3(${x}, ${y}, ${z})`;
+            this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<i32>(${x}, ${y}, ${z})`;
             this.dependencies = [];
         }
         else
         {
-            throw new Error('IVec4 constructor: invalid arguments');
+            throw new Error('IVec3 constructor: invalid arguments');
         }
     }
 
@@ -102,33 +101,18 @@ export class IVec4 implements ShaderValue
 
         return float;
     }
-
-    /**
-     * 获取 w 分量
-     */
-    get w(): Float
-    {
-        const float = new Float();
-        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.w`;
-        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.w`;
-        float.dependencies = [this];
-
-        return float;
-    }
 }
 
 /**
- * ivec4 构造函数
+ * ivec3 构造函数
  */
-export function ivec4(uniform: Uniform): IVec4;
-export function ivec4(attribute: Attribute): IVec4;
-export function ivec4(x: number, y: number, z: number, w: number): IVec4;
-export function ivec4(...args: any[]): IVec4
+export function ivec3(uniform: Uniform): IVec3;
+export function ivec3(attribute: Attribute): IVec3;
+export function ivec3(x: number, y: number, z: number): IVec3;
+export function ivec3(...args: any[]): IVec3
 {
-    if (args.length === 1) return new IVec4(args[0] as any);
-    if (args.length === 4) return new IVec4(args[0] as any, args[1] as any, args[2] as any, args[3] as any);
+    if (args.length === 1) return new IVec3(args[0] as any);
+    if (args.length === 3) return new IVec3(args[0] as any, args[1] as any, args[2] as any);
 
-    throw new Error('ivec4: invalid arguments');
+    throw new Error('ivec3: invalid arguments');
 }
-
-

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Precision, precision } from '../src/Precision';
 import { fragment } from '../src/Fragment';
-import { vec4 } from '../src/builtin/vec4';
+import { vec4 } from '../src/builtin/types/vec4';
 import { uniform } from '../src/Uniform';
 
 describe('Precision', () =>

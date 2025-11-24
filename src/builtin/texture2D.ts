@@ -1,7 +1,7 @@
 import { IElement, ShaderValue } from '../IElement';
 import { Sampler } from '../Sampler';
-import { Vec2 } from './vec2';
-import { Vec4 } from './vec4';
+import { Vec2 } from './types/vec2';
+import { Vec4 } from './types/vec4';
 
 /**
  * texture2D 函数，用于采样纹理

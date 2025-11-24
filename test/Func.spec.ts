@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Func, func } from '../src/Func';
 import { return_ } from '../src/index';
-import { vec4 } from '../src/builtin/vec4';
+import { vec4 } from '../src/builtin/types/vec4';
 
 describe('Func', () =>
 {

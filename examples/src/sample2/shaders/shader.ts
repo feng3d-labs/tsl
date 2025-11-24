@@ -4,8 +4,8 @@ import { let_, return_, attribute, fragment, mat4, uniform, vec2, vec4, vertex }
 const aVertexPosition = vec2(attribute("aVertexPosition", 0));
 
 // Vertex shader 的 uniforms
-const uModelViewMatrix = mat4(uniform("uModelViewMatrix", 0, 0));
-const uProjectionMatrix = mat4(uniform("uProjectionMatrix", 0, 1));
+const uModelViewMatrix = mat4(uniform("uModelViewMatrix", 0));
+const uProjectionMatrix = mat4(uniform("uProjectionMatrix", 0));
 
 // Vertex shader 入口函数
 export const vertexShader = vertex("main", () =>

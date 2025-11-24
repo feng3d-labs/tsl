@@ -40,8 +40,8 @@ export const vertexShader = vertex("main", () =>
 // Fragment shader 入口函数
 export const fragmentShader = fragment("main", () =>
 {
-    // sampler 的 binding 会自动分配，因为 vertex shader 的 uniform 已经占用了 0, 1, 2
-    const uSampler = sampler("uSampler", 0);
+    // sampler 的 binding 会自动分配，因为 vertex shader 的 uniform 已经占用了 0, 1, 2（group 缺省时使用默认值 0）
+    const uSampler = sampler("uSampler");
 
     const texelColor = var_("texelColor", texture2D(uSampler, vTextureCoord));
     // TODO: 应用光照效果（需要访问 vec4 的 rgb 和 a 属性）

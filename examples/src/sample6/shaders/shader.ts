@@ -4,9 +4,9 @@ import { assign, attribute, builtin, fragment, mat4, return_, sampler, texture2D
 const aVertexPosition = vec3(attribute("aVertexPosition", 0));
 const aTextureCoord = vec2(attribute("aTextureCoord", 1));
 
-// Vertex shader 的 uniforms
-const uModelViewMatrix = mat4(uniform("uModelViewMatrix", 0));
-const uProjectionMatrix = mat4(uniform("uProjectionMatrix", 0));
+// Vertex shader 的 uniforms（group 缺省时使用默认值 0）
+const uModelViewMatrix = mat4(uniform("uModelViewMatrix"));
+const uProjectionMatrix = mat4(uniform("uProjectionMatrix"));
 
 const vPosition = vec4(builtin("position", "position_vec4"));
 const vTextureCoord = vec2(varying("vTextureCoord", 0));
@@ -20,7 +20,8 @@ export const vertexShader = vertex("main", () =>
     assign(vTextureCoord, aTextureCoord);
 });
 
-const uSampler = sampler("uSampler", 0);
+// sampler（group 缺省时使用默认值 0）
+const uSampler = sampler("uSampler");
 
 // Fragment shader 入口函数
 export const fragmentShader = fragment("main", () =>

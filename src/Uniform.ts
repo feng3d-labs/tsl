@@ -51,6 +51,14 @@ export class Uniform implements IElement
     }
 
     /**
+     * 获取实际使用的 group（缺省时使用默认值 0）
+     */
+    getEffectiveGroup(): number
+    {
+        return this.group ?? 0;
+    }
+
+    /**
      * 转换为 WGSL 代码
      */
     toWGSL(type: 'vertex' | 'fragment'): string
@@ -61,8 +69,9 @@ export class Uniform implements IElement
         }
         const wgslType = this.value.wgslType;
         const effectiveBinding = this.getEffectiveBinding();
+        const effectiveGroup = this.getEffectiveGroup();
         const binding = effectiveBinding !== undefined ? `@binding(${effectiveBinding})` : '';
-        const group = this.group !== undefined ? `@group(${this.group})` : '';
+        const group = `@group(${effectiveGroup})`;
         const annotations = [binding, group].filter(Boolean).join(' ');
         const prefix = annotations ? `${annotations} ` : '';
 

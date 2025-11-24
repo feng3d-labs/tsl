@@ -4,9 +4,9 @@ import { assign, attribute, builtin, fragment, mat4, return_, uniform, var_, var
 const aVertexPosition = vec2(attribute("aVertexPosition", 0));
 const aVertexColor = vec4(attribute("aVertexColor", 1));
 
-// Vertex shader 的 uniforms
-const uModelViewMatrix = mat4(uniform("uModelViewMatrix", 0));
-const uProjectionMatrix = mat4(uniform("uProjectionMatrix", 0));
+// Vertex shader 的 uniforms（group 缺省时使用默认值 0）
+const uModelViewMatrix = mat4(uniform("uModelViewMatrix"));
+const uProjectionMatrix = mat4(uniform("uProjectionMatrix"));
 
 const vPosition = vec4(builtin("position", "position_vec4"));
 const vColor = vec4(varying("vColor", 0));

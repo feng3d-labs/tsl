@@ -143,7 +143,7 @@ export class Vertex extends Func
         {
             if (uniform.binding !== undefined)
             {
-                getUsedBindings(uniform.group ?? 0).add(uniform.binding);
+                getUsedBindings(uniform.getEffectiveGroup()).add(uniform.binding);
             }
         }
 
@@ -152,8 +152,8 @@ export class Vertex extends Func
         {
             if (sampler.binding !== undefined)
             {
-                const group = sampler.group ?? 0;
-                const usedBindings = getUsedBindings(group);
+                const effectiveGroup = sampler.getEffectiveGroup();
+                const usedBindings = getUsedBindings(effectiveGroup);
                 usedBindings.add(sampler.binding);
                 usedBindings.add(sampler.binding + 1);
             }
@@ -164,8 +164,8 @@ export class Vertex extends Func
         {
             if (uniform.binding === undefined)
             {
-                const group = uniform.group ?? 0;
-                const usedBindings = getUsedBindings(group);
+                const effectiveGroup = uniform.getEffectiveGroup();
+                const usedBindings = getUsedBindings(effectiveGroup);
 
                 // 找到下一个未使用的 binding
                 let nextBinding = 0;
@@ -185,8 +185,8 @@ export class Vertex extends Func
         {
             if (sampler.binding === undefined)
             {
-                const group = sampler.group ?? 0;
-                const usedBindings = getUsedBindings(group);
+                const effectiveGroup = sampler.getEffectiveGroup();
+                const usedBindings = getUsedBindings(effectiveGroup);
 
                 // 找到下一个未使用的 binding（需要连续两个 binding）
                 let nextBinding = 0;

@@ -36,6 +36,14 @@ export class Sampler implements IElement
     }
 
     /**
+     * 获取实际使用的 group（缺省时使用默认值 0）
+     */
+    getEffectiveGroup(): number
+    {
+        return this.group ?? 0;
+    }
+
+    /**
      * 转换为 GLSL 代码
      */
     toGLSL(type: 'vertex' | 'fragment'): string
@@ -50,11 +58,11 @@ export class Sampler implements IElement
     toWGSL(type: 'vertex' | 'fragment'): string
     {
         const effectiveBinding = this.getEffectiveBinding();
-        const group = this.group !== undefined ? this.group : 0;
+        const effectiveGroup = this.getEffectiveGroup();
         // 在 WGSL 中，texture 和 sampler 需要分别声明
         // texture 在 binding，sampler 在 binding+1
-        const textureBinding = `@binding(${effectiveBinding}) @group(${group})`;
-        const samplerBinding = `@binding(${effectiveBinding + 1}) @group(${group})`;
+        const textureBinding = `@binding(${effectiveBinding}) @group(${effectiveGroup})`;
+        const samplerBinding = `@binding(${effectiveBinding + 1}) @group(${effectiveGroup})`;
 
         return `${textureBinding} var ${this.name}_texture: texture_2d<f32>;\n${samplerBinding} var ${this.name}: sampler;`;
     }

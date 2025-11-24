@@ -170,7 +170,7 @@ export class Fragment extends Func
                 const effectiveBinding = uniform.getEffectiveBinding();
                 if (effectiveBinding !== undefined)
                 {
-                    getUsedBindings(uniform.group ?? 0).add(effectiveBinding);
+                    getUsedBindings(uniform.getEffectiveGroup()).add(effectiveBinding);
                 }
             }
 
@@ -178,8 +178,8 @@ export class Fragment extends Func
             for (const sampler of vertexDependencies.samplers)
             {
                 const effectiveBinding = sampler.getEffectiveBinding();
-                const group = sampler.group ?? 0;
-                const usedBindings = getUsedBindings(group);
+                const effectiveGroup = sampler.getEffectiveGroup();
+                const usedBindings = getUsedBindings(effectiveGroup);
                 usedBindings.add(effectiveBinding);
                 usedBindings.add(effectiveBinding + 1);
             }
@@ -190,7 +190,7 @@ export class Fragment extends Func
         {
             if (uniform.binding !== undefined)
             {
-                getUsedBindings(uniform.group ?? 0).add(uniform.binding);
+                getUsedBindings(uniform.getEffectiveGroup()).add(uniform.binding);
             }
         }
 
@@ -199,8 +199,8 @@ export class Fragment extends Func
         {
             if (sampler.binding !== undefined)
             {
-                const group = sampler.group ?? 0;
-                const usedBindings = getUsedBindings(group);
+                const effectiveGroup = sampler.getEffectiveGroup();
+                const usedBindings = getUsedBindings(effectiveGroup);
                 usedBindings.add(sampler.binding);
                 usedBindings.add(sampler.binding + 1);
             }
@@ -211,8 +211,8 @@ export class Fragment extends Func
         {
             if (uniform.binding === undefined)
             {
-                const group = uniform.group ?? 0;
-                const usedBindings = getUsedBindings(group);
+                const effectiveGroup = uniform.getEffectiveGroup();
+                const usedBindings = getUsedBindings(effectiveGroup);
 
                 // 找到下一个未使用的 binding
                 let nextBinding = 0;
@@ -232,8 +232,8 @@ export class Fragment extends Func
         {
             if (sampler.binding === undefined)
             {
-                const group = sampler.group ?? 0;
-                const usedBindings = getUsedBindings(group);
+                const effectiveGroup = sampler.getEffectiveGroup();
+                const usedBindings = getUsedBindings(effectiveGroup);
 
                 // 找到下一个未使用的 binding（需要连续两个 binding）
                 let nextBinding = 0;

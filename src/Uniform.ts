@@ -11,12 +11,29 @@ export class Uniform implements IElement
     value?: IType;
     readonly binding?: number;
     readonly group?: number;
+    private _autoBinding?: number; // 自动分配的 binding
 
     constructor(name: string, group?: number, binding?: number)
     {
         this.name = name;
         this.group = group;
         this.binding = binding;
+    }
+
+    /**
+     * 设置自动分配的 binding（内部使用）
+     */
+    setAutoBinding(binding: number): void
+    {
+        this._autoBinding = binding;
+    }
+
+    /**
+     * 获取实际使用的 binding（优先使用显式指定的，否则使用自动分配的）
+     */
+    getEffectiveBinding(): number | undefined
+    {
+        return this.binding !== undefined ? this.binding : this._autoBinding;
     }
 
     /**
@@ -43,7 +60,8 @@ export class Uniform implements IElement
             throw new Error(`Uniform '${this.name}' 没有设置 value，无法生成 WGSL。`);
         }
         const wgslType = this.value.wgslType;
-        const binding = this.binding !== undefined ? `@binding(${this.binding})` : '';
+        const effectiveBinding = this.getEffectiveBinding();
+        const binding = effectiveBinding !== undefined ? `@binding(${effectiveBinding})` : '';
         const group = this.group !== undefined ? `@group(${this.group})` : '';
         const annotations = [binding, group].filter(Boolean).join(' ');
         const prefix = annotations ? `${annotations} ` : '';

@@ -1,4 +1,5 @@
 import { Func } from './Func';
+import { Uniform } from './Uniform';
 
 /**
  * Fragment 类，继承自 Func
@@ -93,6 +94,9 @@ export class Fragment extends Func
         // 从函数的 dependencies 中分析获取 uniforms 和 structs（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
 
+        // 自动分配 binding（对于 binding 缺省的 uniform）
+        this.allocateBindings(dependencies.uniforms, dependencies.samplers);
+
         // 生成结构体定义（只包含实际使用的）
         for (const struct of dependencies.structs)
         {
@@ -124,6 +128,66 @@ export class Fragment extends Func
         lines.push(...funcCode.split('\n'));
 
         return lines.join('\n') + '\n';
+    }
+
+    /**
+     * 自动分配 binding 值
+     * @param uniforms uniform 集合
+     * @param samplers sampler 集合
+     */
+    private allocateBindings(uniforms: Set<Uniform>, samplers: Set<any>): void
+    {
+        // 按 group 分组，计算每个 group 下已使用的 binding
+        const usedBindingsByGroup = new Map<number, Set<number>>();
+
+        // 收集已显式指定的 binding
+        for (const uniform of uniforms)
+        {
+            if (uniform.binding !== undefined)
+            {
+                const group = uniform.group ?? 0;
+                if (!usedBindingsByGroup.has(group))
+                {
+                    usedBindingsByGroup.set(group, new Set());
+                }
+                usedBindingsByGroup.get(group)!.add(uniform.binding);
+            }
+        }
+
+        // 收集 sampler 占用的 binding（sampler 占用两个 binding：texture 和 sampler）
+        for (const sampler of samplers)
+        {
+            const group = sampler.group ?? 0;
+            const binding = sampler.binding ?? 0;
+            if (!usedBindingsByGroup.has(group))
+            {
+                usedBindingsByGroup.set(group, new Set());
+            }
+            usedBindingsByGroup.get(group)!.add(binding);
+            usedBindingsByGroup.get(group)!.add(binding + 1);
+        }
+
+        // 为 binding 缺省的 uniform 自动分配 binding
+        for (const uniform of uniforms)
+        {
+            if (uniform.binding === undefined)
+            {
+                const group = uniform.group ?? 0;
+                const usedBindings = usedBindingsByGroup.get(group) ?? new Set();
+
+                // 找到下一个未使用的 binding
+                let nextBinding = 0;
+                while (usedBindings.has(nextBinding))
+                {
+                    nextBinding++;
+                }
+
+                // 分配 binding
+                uniform.setAutoBinding(nextBinding);
+                usedBindings.add(nextBinding);
+                usedBindingsByGroup.set(group, usedBindings);
+            }
+        }
     }
 }
 

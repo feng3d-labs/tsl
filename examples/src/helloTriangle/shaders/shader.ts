@@ -4,7 +4,7 @@ import { attribute, fragment, precision, return_, uniform, vec2, vec4, vertex } 
 const aposition = vec2(attribute("position", 0));
 
 // Fragment shader 的 uniform
-const color = vec4(uniform("color", 0, 0));
+const color = vec4(uniform("color", 0));
 
 // Vertex shader 入口函数
 export const vertexShader = vertex("main", () =>

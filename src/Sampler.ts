@@ -11,11 +11,11 @@ export class Sampler implements IElement
     readonly binding?: number;
     readonly group?: number;
 
-    constructor(name: string, binding?: number, group?: number)
+    constructor(name: string, group?: number, binding?: number)
     {
         this.name = name;
-        this.binding = binding;
         this.group = group;
+        this.binding = binding;
     }
 
     /**
@@ -46,12 +46,12 @@ export class Sampler implements IElement
 /**
  * 定义 sampler 变量
  * @param name 变量名
- * @param binding WGSL 绑定位置（可选）
  * @param group WGSL 绑定组（可选）
+ * @param binding WGSL 绑定位置（可选）
  * @returns Sampler 实例
  */
-export function sampler(name: string, binding?: number, group?: number): Sampler
+export function sampler(name: string, group?: number, binding?: number): Sampler
 {
-    return new Sampler(name, binding, group);
+    return new Sampler(name, group, binding);
 }
 

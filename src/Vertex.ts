@@ -160,7 +160,7 @@ export class Vertex extends Func
             {
                 const group = uniform.group ?? 0;
                 const usedBindings = usedBindingsByGroup.get(group) ?? new Set();
-                
+
                 // 找到下一个未使用的 binding
                 let nextBinding = 0;
                 while (usedBindings.has(nextBinding))

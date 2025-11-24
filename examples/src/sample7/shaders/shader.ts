@@ -41,7 +41,7 @@ export const vertexShader = vertex("main", () =>
 export const fragmentShader = fragment("main", () =>
 {
     // sampler 的 binding 从 3 开始，因为 vertex shader 的 uniform 已经占用了 0, 1, 2
-    const uSampler = sampler("uSampler", 3, 0);
+    const uSampler = sampler("uSampler", 0, 3);
 
     const texelColor = var_("texelColor", texture2D(uSampler, vTextureCoord));
     // TODO: 应用光照效果（需要访问 vec4 的 rgb 和 a 属性）

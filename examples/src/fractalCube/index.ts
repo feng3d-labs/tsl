@@ -1,5 +1,5 @@
 import { reactive } from "@feng3d/reactivity";
-import { CanvasRenderPassDescriptor, RenderObject, Sampler, Submit, Texture } from "@feng3d/render-api";
+import { RenderObject, RenderPassDescriptor, Sampler, Submit, Texture } from "@feng3d/render-api";
 import { WebGL } from "@feng3d/webgl";
 import { WebGPU } from "@feng3d/webgpu";
 import { mat4 } from "gl-matrix";
@@ -21,14 +21,6 @@ async function main()
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
-    const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = {
-        clearColorValue: [0.5, 0.5, 0.5, 1.0],
-        loadColorOp: 'clear',
-        depthClearValue: 1.0,
-        depthLoadOp: 'clear',
-        depthStoreOp: 'store',
-    };
-
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 使用 WebGPU 首选画布格式，提升渲染性能，也可以指定纹理默认格式 'rgba8unorm'。下面拷贝纹理要求画布与纹理格式相同。
@@ -39,8 +31,7 @@ async function main()
     canvas.width = canvas.clientWidth * devicePixelRatio;
     canvas.height = canvas.clientHeight * devicePixelRatio;
     const webgpu = await new WebGPU(
-        { canvasId: 'webgpu', configuration: { format: presentationFormat } },
-        canvasRenderPassDescriptor
+        { canvasId: 'webgpu', configuration: { format: presentationFormat } }
     ).init();
 
     // 初始化 WebGL
@@ -48,8 +39,7 @@ async function main()
     webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
     webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
     const webgl = new WebGL(
-        { canvasId: 'webgl', webGLcontextId: 'webgl2' },
-        canvasRenderPassDescriptor
+        { canvasId: 'webgl', webGLcontextId: 'webgl2' }
     );
 
     // Here's where we call the routine that builds all the
@@ -89,11 +79,24 @@ async function main()
         bindingResources: { uSampler: texture },
     };
 
+    const renderPassDescriptor: RenderPassDescriptor = {
+        colorAttachments: [{
+            clearValue: [0.5, 0.5, 0.5, 1.0],
+            loadOp: 'clear',
+        }],
+        depthStencilAttachment: {
+            depthClearValue: 1.0,
+            depthLoadOp: 'clear',
+            depthStoreOp: 'store',
+        },
+    };
+
     const submit: Submit = {
         commandEncoders: [{
             passEncoders: [
                 // 绘制
                 {
+                    descriptor: renderPassDescriptor,
                     renderPassObjects: [renderObject],
                 },
                 // 从画布中拷贝到纹理。

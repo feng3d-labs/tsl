@@ -1,4 +1,4 @@
-import { CanvasRenderPassDescriptor, Submit } from "@feng3d/render-api";
+import { RenderPassDescriptor, Submit } from "@feng3d/render-api";
 import { WebGL } from "@feng3d/webgl";
 import { WebGPU } from "@feng3d/webgpu";
 import { mat4 } from "gl-matrix";
@@ -18,14 +18,6 @@ document.addEventListener('DOMContentLoaded', async () =>
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL();
 
-    const canvasRenderPassDescriptor: CanvasRenderPassDescriptor = {
-        clearColorValue: [0, 0, 0, 1],
-        loadColorOp: 'clear',
-        depthClearValue: 1.0,
-        depthLoadOp: 'clear',
-        depthStoreOp: 'store',
-    };
-
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
@@ -33,8 +25,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
     webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
     const webgpu = await new WebGPU(
-        { canvasId: 'webgpu' },
-        canvasRenderPassDescriptor
+        { canvasId: 'webgpu' }
     ).init();
 
     // 初始化 WebGL
@@ -42,8 +33,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
     webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
     const webgl = new WebGL(
-        { canvasId: 'webgl', webGLcontextId: 'webgl2' },
-        canvasRenderPassDescriptor
+        { canvasId: 'webgl', webGLcontextId: 'webgl2' }
     );
 
     // 创建投影矩阵和模型视图矩阵
@@ -55,6 +45,17 @@ document.addEventListener('DOMContentLoaded', async () =>
             {
                 passEncoders: [
                     {
+                        descriptor: {
+                            colorAttachments: [{
+                                clearValue: [0, 0, 0, 1],
+                                loadOp: 'clear',
+                            }],
+                            depthStencilAttachment: {
+                                depthClearValue: 1.0,
+                                depthLoadOp: 'clear',
+                                depthStoreOp: 'store',
+                            },
+                        },
                         renderPassObjects: [
                             {
                                 pipeline: {

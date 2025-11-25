@@ -8,7 +8,7 @@ import { formatNumber } from './formatNumber';
  * @param b 第二个值
  * @returns 较大的值
  */
-export function max(a: Float | number, b: Float | number): Float
+export function max<T extends Float>(a: T | number, b: T | number): T
 {
     const result = new Float();
 
@@ -16,6 +16,6 @@ export function max(a: Float | number, b: Float | number): Float
     result.toWGSL = (type: 'vertex' | 'fragment') => `max(${typeof a === 'number' ? formatNumber(a) : a.toWGSL(type)}, ${typeof b === 'number' ? formatNumber(b) : b.toWGSL(type)})`;
     result.dependencies = typeof a === 'number' ? (typeof b === 'number' ? [] : [b]) : (typeof b === 'number' ? [a] : [a, b]);
 
-    return result;
+    return result as T;
 }
 

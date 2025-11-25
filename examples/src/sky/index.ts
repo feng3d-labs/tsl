@@ -50,14 +50,10 @@ async function main()
 
     // 默认使用导入的 GLSL 和 WGSL 文件进行渲染
     // 如果需要使用 TSL 生成的代码，可以取消下面的注释
-    // const vertexGlslGenerated = vertexShader.toGLSL();
-    // const fragmentGlslGenerated = fragmentShader.toGLSL();
-    // const vertexWgslGenerated = vertexShader.toWGSL();
-    // const fragmentWgslGenerated = fragmentShader.toWGSL(vertexShader);
-    // const vertexGlsl = vertexGlslGenerated;
-    // const fragmentGlsl = fragmentGlslGenerated;
-    // const vertexWgsl = vertexWgslGenerated;
-    // const fragmentWgsl = fragmentWgslGenerated;
+    const vertexGlsl = vertexShader.toGLSL();
+    const fragmentGlsl = fragmentShader.toGLSL();
+    const vertexWgsl = vertexShader.toWGSL();
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     // 初始化缓冲区
     const buffers = initBuffers();

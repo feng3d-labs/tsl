@@ -1,4 +1,4 @@
-import { acos, assign, atan, attribute, builtin, clamp, cos, dot, exp, fragment, mat4, max, mix, normalize, pow, return_, smoothstep, step, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { acos, assign, atan, attribute, builtin, clamp, cos, dot, exp, float, fragment, mat4, max, mix, normalize, pow, return_, smoothstep, step, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes
 const position = vec3(attribute('position'));
@@ -19,10 +19,10 @@ const vPosition = vec4(builtin('position', 'position_vec4'));
 // Varyings
 const vWorldPosition = vec3(varying('vWorldPosition'));
 const vSunDirection = vec3(varying('vSunDirection'));
-const vSunfade = varying('vSunfade');
+const vSunfade = float(varying('vSunfade'));
 const vBetaR = vec3(varying('vBetaR'));
 const vBetaM = vec3(varying('vBetaM'));
-const vSunE = varying('vSunE');
+const vSunE = float(varying('vSunE'));
 
 // Constants
 const e = 2.71828182845904523536028747135266249775724709369995957;

@@ -28,7 +28,7 @@ export class Vec4 implements ShaderValue
     constructor(vec4: Vec4);
     constructor(xy: Vec2, z: number, w: number);
     constructor(xyz: Vec3, w: number | Float);
-    constructor(x: number, y: number, z: number, w: number);
+    constructor(x: number | Float, y: number | Float, z: number | Float, w: number | Float);
     constructor(...args: (number | Uniform | Attribute | Builtin | Varying | Vec2 | Vec3 | Float | Vec4)[])
     {
         if (args.length === 0) return;
@@ -119,17 +119,17 @@ export class Vec4 implements ShaderValue
                 this.dependencies = [xyz, w];
             }
         }
-        else if (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number' && typeof args[3] === 'number')
+        else if (args.length === 4)
         {
-            // 从字面量值创建
-            const x = args[0] as number;
-            const y = args[1] as number;
-            const z = args[2] as number;
-            const w = args[3] as number;
+            // 处理 vec4(x: number | Float, y: number | Float, z: number | Float, w: number | Float) 的情况
+            const x = args[0] as number | Float;
+            const y = args[1] as number | Float;
+            const z = args[2] as number | Float;
+            const w = args[3] as number | Float;
 
-            this.toGLSL = (type: 'vertex' | 'fragment') => `vec4(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)}, ${formatNumber(w)})`;
-            this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)}, ${formatNumber(w)})`;
-            this.dependencies = [];
+            this.toGLSL = (type: 'vertex' | 'fragment') => `vec4(${typeof x === 'number' ? formatNumber(x) : x.toGLSL(type)}, ${typeof y === 'number' ? formatNumber(y) : y.toGLSL(type)}, ${typeof z === 'number' ? formatNumber(z) : z.toGLSL(type)}, ${typeof w === 'number' ? formatNumber(w) : w.toGLSL(type)})`;
+            this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${typeof x === 'number' ? formatNumber(x) : x.toWGSL(type)}, ${typeof y === 'number' ? formatNumber(y) : y.toWGSL(type)}, ${typeof z === 'number' ? formatNumber(z) : z.toWGSL(type)}, ${typeof w === 'number' ? formatNumber(w) : w.toWGSL(type)})`;
+            this.dependencies = [x, y, z, w].filter((arg): arg is Float => arg instanceof Float);
         }
         else
         {
@@ -337,7 +337,7 @@ export function vec4(builtin: Builtin): Vec4;
 export function vec4(varying: Varying): Vec4;
 export function vec4(xy: Vec2, z: number, w: number): Vec4;
 export function vec4(xyz: Vec3, w: number | Float): Vec4;
-export function vec4(x: number, y: number, z: number, w: number): Vec4;
+export function vec4(x: number | Float, y: number | Float, z: number | Float, w: number | Float): Vec4;
 export function vec4(...args: any[]): Vec4
 {
     if (args.length === 1) return new Vec4(args[0] as any);

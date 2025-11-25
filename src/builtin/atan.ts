@@ -6,6 +6,9 @@ import { formatNumber } from './formatNumber';
 /**
  * atan 函数，计算反正切
  */
+export function atan(a: Vec2): Vec2;
+export function atan(a: Float | number, b: Float | number): Float;
+export function atan(a: Float | number): Float;
 export function atan(a: Float | Vec2 | number, b?: Float | number): Float | Vec2
 {
     if (a instanceof Vec2)

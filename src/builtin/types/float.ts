@@ -124,8 +124,42 @@ export class Float implements ShaderValue
     /**
      * 减法运算
      */
-    subtract(other: Float): Float
+    subtract(other: Float): Float;
+    subtract(other: Vec3): Vec3;
+    subtract(other: Vec4): Vec4;
+    subtract(other: Vec2): Vec2;
+    subtract(other: Float | Vec2 | Vec3 | Vec4): Float | Vec2 | Vec3 | Vec4
     {
+        if (other instanceof Vec3)
+        {
+            const result = new Vec3();
+
+            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} - ${other.toGLSL(type)}`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} - ${other.toWGSL(type)}`;
+            result.dependencies = [this, other];
+
+            return result;
+        }
+        if (other instanceof Vec4)
+        {
+            const result = new Vec4();
+
+            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} - ${other.toGLSL(type)}`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} - ${other.toWGSL(type)}`;
+            result.dependencies = [this, other];
+
+            return result;
+        }
+        if (other instanceof Vec2)
+        {
+            const result = new Vec2(0, 0);
+
+            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} - ${other.toGLSL(type)}`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} - ${other.toWGSL(type)}`;
+            result.dependencies = [this, other];
+
+            return result;
+        }
         const result = new Float();
 
         result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} - ${other.toGLSL(type)}`;

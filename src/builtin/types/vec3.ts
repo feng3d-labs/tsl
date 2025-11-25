@@ -17,8 +17,9 @@ export class Vec3 implements ShaderValue
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(varying: Varying);
+    constructor(value: Float | number);
     constructor(x: number, y: number, z: number);
-    constructor(...args: (number | Uniform | Attribute | Varying)[])
+    constructor(...args: (number | Uniform | Attribute | Varying | Float)[])
     {
         if (args.length === 0) return;
         if (args.length === 1 && args[0] instanceof Uniform)
@@ -44,6 +45,22 @@ export class Vec3 implements ShaderValue
             this.toGLSL = (type: 'vertex' | 'fragment') => varying.name;
             this.toWGSL = (type: 'vertex' | 'fragment') => varying.name;
             varying.value = this;
+        }
+        else if (args.length === 1 && (typeof args[0] === 'number' || args[0] instanceof Float))
+        {
+            const value = args[0] as number | Float;
+            if (typeof value === 'number')
+            {
+                this.toGLSL = (type: 'vertex' | 'fragment') => `vec3(${formatNumber(value)})`;
+                this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<f32>(${formatNumber(value)})`;
+                this.dependencies = [];
+            }
+            else
+            {
+                this.toGLSL = (type: 'vertex' | 'fragment') => `vec3(${value.toGLSL(type)})`;
+                this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<f32>(${value.toWGSL(type)})`;
+                this.dependencies = [value];
+            }
         }
         else if (args.length === 3 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number')
         {
@@ -174,8 +191,9 @@ export function vec3(): Vec3;
 export function vec3(uniform: Uniform): Vec3;
 export function vec3(attribute: Attribute): Vec3;
 export function vec3(varying: Varying): Vec3;
+export function vec3(value: Float | number): Vec3;
 export function vec3(x: number, y: number, z: number): Vec3;
-export function vec3(...args: (number | Uniform | Attribute | Varying)[]): Vec3
+export function vec3(...args: (number | Uniform | Attribute | Varying | Float)[]): Vec3
 {
     if (args.length === 0) return new Vec3();
 

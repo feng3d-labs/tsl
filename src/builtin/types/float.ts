@@ -58,53 +58,6 @@ export class Float implements ShaderValue
         }
     }
 
-    /**
-     * 浮点数加法
-     */
-    add(other: Float | number): Float
-    {
-        const result = new Float();
-        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} + ${typeof other === 'number' ? formatNumber(other) : other.toGLSL(type)}`;
-        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} + ${typeof other === 'number' ? formatNumber(other) : other.toWGSL(type)}`;
-        result.dependencies = typeof other === 'number' ? [this] : [this, other];
-        return result;
-    }
-
-    /**
-     * 浮点数减法
-     */
-    subtract(other: Float | number): Float
-    {
-        const result = new Float();
-        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} - ${typeof other === 'number' ? formatNumber(other) : other.toGLSL(type)}`;
-        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} - ${typeof other === 'number' ? formatNumber(other) : other.toWGSL(type)}`;
-        result.dependencies = typeof other === 'number' ? [this] : [this, other];
-        return result;
-    }
-
-    /**
-     * 浮点数乘法
-     */
-    multiply(other: Float | number): Float
-    {
-        const result = new Float();
-        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${typeof other === 'number' ? formatNumber(other) : other.toGLSL(type)}`;
-        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${typeof other === 'number' ? formatNumber(other) : other.toWGSL(type)}`;
-        result.dependencies = typeof other === 'number' ? [this] : [this, other];
-        return result;
-    }
-
-    /**
-     * 浮点数除法
-     */
-    divide(other: Float | number): Float
-    {
-        const result = new Float();
-        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} / ${typeof other === 'number' ? formatNumber(other) : other.toGLSL(type)}`;
-        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} / ${typeof other === 'number' ? formatNumber(other) : other.toWGSL(type)}`;
-        result.dependencies = typeof other === 'number' ? [this] : [this, other];
-        return result;
-    }
 }
 
 /**

@@ -1,4 +1,4 @@
-import { acos, assign, atan, attribute, builtin, clamp, cos, dot, exp, float, fragment, mat4, max, mix, normalize, pow, return_, smoothstep, step, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { acos, add, assign, atan, attribute, builtin, clamp, cos, divide, dot, exp, float, fragment, mat4, max, mix, multiply, normalize, pow, return_, smoothstep, step, subtract, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes
 const position = vec3(attribute('position'));
@@ -36,9 +36,9 @@ const EE = 1000.0;
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>
 {
-    const worldPosition = var_('worldPosition', modelMatrix.multiply(vec4(position, 1.0)));
+    const worldPosition = var_('worldPosition', multiply(modelMatrix, vec4(position, 1.0)));
     assign(vWorldPosition, worldPosition.xyz); // worldPosition.xyz 返回 Vec3
-    assign(vPosition, projectionMatrix.multiply(modelViewMatrix).multiply(vec4(position, 1.0)));
+    assign(vPosition, multiply(multiply(projectionMatrix, modelViewMatrix), vec4(position, 1.0)));
     // gl_Position.z = gl_Position.w (设置 z 为 w，使天空盒始终在远平面)
     const posZ = var_('posZ', vPosition.w);
     assign(vPosition, vec4(vPosition.x, vPosition.y, posZ, vPosition.w));
@@ -57,13 +57,13 @@ export const vertexShader = vertex('main', () =>
     assign(vSunfade, sunfade);
 
     const rayleighCoefficient = var_('rayleighCoefficient', rayleigh - (1.0 * (1.0 - sunfade)));
-    const betaR = var_('betaR', totalRayleigh.multiply(rayleighCoefficient));
+    const betaR = var_('betaR', multiply(totalRayleigh, rayleighCoefficient));
     assign(vBetaR, betaR);
 
     // totalMie: 0.434 * (0.2 * T) * 10E-18 * MieConst
     const c = var_('c', (0.2 * turbidity) * 10E-18);
     const totalMieValue = var_('totalMieValue', 0.434 * c * MieConst);
-    const betaM = var_('betaM', totalMieValue.multiply(mieCoefficient));
+    const betaM = var_('betaM', multiply(totalMieValue, mieCoefficient));
     assign(vBetaM, betaM);
 });
 
@@ -83,42 +83,42 @@ const ONE_OVER_FOURPI = 0.07957747154594767;
 // Fragment shader 入口函数
 export const fragmentShader = fragment('main', () =>
 {
-    const direction = var_('direction', normalize(vWorldPosition.subtract(cameraPosition)));
+    const direction = var_('direction', normalize(subtract(vWorldPosition, cameraPosition)));
     const zenithAngle = var_('zenithAngle', acos(max(dot(upFrag, direction), 0.0)));
     const inverse = var_('inverse', 1.0 / (cos(zenithAngle) + 0.15 * pow(93.885 - ((zenithAngle * 180.0) / piFrag), -1.253)));
     const sR = var_('sR', rayleighZenithLength * inverse);
     const sM = var_('sM', mieZenithLength * inverse);
-    const Fex = var_('Fex', exp((vBetaR.multiply(sR).add(vBetaM.multiply(sM))).multiply(-1.0)));
+    const Fex = var_('Fex', exp(multiply(add(multiply(vBetaR, sR), multiply(vBetaM, sM)), -1.0))));
     const cosTheta = var_('cosTheta', dot(direction, vSunDirection));
     
     // rayleighPhase: THREE_OVER_SIXTEENPI * (1.0 + pow(cosTheta * 0.5 + 0.5, 2.0))
     const rPhase = var_('rPhase', THREE_OVER_SIXTEENPI * (1.0 + pow(cosTheta * 0.5 + 0.5, 2.0)));
-    const betaRTheta = var_('betaRTheta', vBetaR.multiply(rPhase));
+    const betaRTheta = var_('betaRTheta', multiply(vBetaR, rPhase));
     
     // hgPhase: ONE_OVER_FOURPI * ((1.0 - g2) / pow(1.0 - 2.0 * g * cosTheta + g2, 1.5))
     const g2 = var_('g2', pow(mieDirectionalG, 2.0));
     const hgDenom = var_('hgDenom', pow(1.0 - 2.0 * mieDirectionalG * cosTheta + g2, 1.5));
     const mPhase = var_('mPhase', ONE_OVER_FOURPI * ((1.0 - g2) / hgDenom));
-    const betaMTheta = var_('betaMTheta', vBetaM.multiply(mPhase));
+    const betaMTheta = var_('betaMTheta', multiply(vBetaM, mPhase));
     
-    const betaSum = var_('betaSum', vBetaR.add(vBetaM));
-    const betaThetaSum = var_('betaThetaSum', betaRTheta.add(betaMTheta));
-    const betaRatio = var_('betaRatio', betaThetaSum.divide(betaSum));
-    const Lin = var_('Lin', pow(vSunE * betaRatio.multiply(1.0 - Fex), vec3(1.5)));
+    const betaSum = var_('betaSum', add(vBetaR, vBetaM));
+    const betaThetaSum = var_('betaThetaSum', add(betaRTheta, betaMTheta));
+    const betaRatio = var_('betaRatio', divide(betaThetaSum, betaSum));
+    const Lin = var_('Lin', pow(vSunE * multiply(betaRatio, 1.0 - Fex), vec3(1.5)));
     
-    const FexPow = var_('FexPow', pow(vSunE * betaRatio.multiply(Fex), vec3(1.0 / 2.0)));
+    const FexPow = var_('FexPow', pow(vSunE * multiply(betaRatio, Fex), vec3(1.0 / 2.0)));
     const upDotSun = var_('upDotSun', dot(upFrag, vSunDirection));
     const mixFactor = var_('mixFactor', clamp(pow(1.0 - upDotSun, 5.0), 0.0, 1.0));
-    const LinMixed = var_('LinMixed', Lin.multiply(mix(vec3(1.0), FexPow, mixFactor)));
+    const LinMixed = var_('LinMixed', multiply(Lin, mix(vec3(1.0), FexPow, mixFactor)));
     
     const theta = var_('theta', acos(direction.y));
     const phi = var_('phi', atan(direction.z, direction.x));
-    const uv = var_('uv', vec2(phi, theta).divide(vec2(2.0 * piFrag, piFrag)).add(vec2(0.5, 0.0)));
+    const uv = var_('uv', add(divide(vec2(phi, theta), vec2(2.0 * piFrag, piFrag)), vec2(0.5, 0.0)));
     
-    const L0 = var_('L0', vec3(0.1).multiply(Fex));
+    const L0 = var_('L0', multiply(vec3(0.1), Fex));
     const sundisk = var_('sundisk', smoothstep(sunAngularDiameterCos, sunAngularDiameterCos + 0.00002, cosTheta));
-    const L0WithSun = var_('L0WithSun', L0.add((vSunE * 19000.0 * Fex).multiply(sundisk)));
-    const texColor = var_('texColor', (LinMixed.add(L0WithSun)).multiply(0.04).add(vec3(0.0, 0.0003, 0.00075)));
+    const L0WithSun = var_('L0WithSun', add(L0, multiply(vSunE * 19000.0 * Fex, sundisk)));
+    const texColor = var_('texColor', add(multiply(add(LinMixed, L0WithSun), 0.04), vec3(0.0, 0.0003, 0.00075)));
     const retColor = var_('retColor', pow(texColor, vec3(1.0 / (1.2 + (1.2 * vSunfade)))));
     
     // sRGBTransferOETF - 简化版本，直接返回颜色

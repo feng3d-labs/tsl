@@ -61,78 +61,6 @@ export class Vec3 implements ShaderValue
     }
 
     /**
-     * 向量乘法（分量相乘或标量乘法）
-     */
-    multiply(other: Vec3 | Float | number): Vec3
-    {
-        const result = new Vec3();
-        if (other instanceof Vec3)
-        {
-            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${other.toGLSL(type)}`;
-            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${other.toWGSL(type)}`;
-            result.dependencies = [this, other];
-        }
-        else
-        {
-            const otherStr = typeof other === 'number' ? other.toString() : other.toGLSL('vertex');
-            const otherWgsl = typeof other === 'number' ? other.toString() : other.toWGSL('vertex');
-            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${typeof other === 'number' ? other : other.toGLSL(type)}`;
-            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${typeof other === 'number' ? other : other.toWGSL(type)}`;
-            result.dependencies = typeof other === 'number' ? [this] : [this, other];
-        }
-
-        return result;
-    }
-
-    /**
-     * 向量加法
-     */
-    add(other: Vec3): Vec3
-    {
-        const result = new Vec3();
-        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} + ${other.toGLSL(type)}`;
-        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} + ${other.toWGSL(type)}`;
-        result.dependencies = [this, other];
-
-        return result;
-    }
-
-    /**
-     * 向量减法
-     */
-    subtract(other: Vec3): Vec3
-    {
-        const result = new Vec3();
-        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} - ${other.toGLSL(type)}`;
-        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} - ${other.toWGSL(type)}`;
-        result.dependencies = [this, other];
-
-        return result;
-    }
-
-    /**
-     * 向量除法（分量除法或标量除法）
-     */
-    divide(other: Vec3 | Float | number): Vec3
-    {
-        const result = new Vec3();
-        if (other instanceof Vec3)
-        {
-            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} / ${other.toGLSL(type)}`;
-            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} / ${other.toWGSL(type)}`;
-            result.dependencies = [this, other];
-        }
-        else
-        {
-            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} / ${typeof other === 'number' ? other : other.toGLSL(type)}`;
-            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} / ${typeof other === 'number' ? other : other.toWGSL(type)}`;
-            result.dependencies = typeof other === 'number' ? [this] : [this, other];
-        }
-
-        return result;
-    }
-
-    /**
      * 获取 x 分量
      */
     get x(): Float
@@ -141,6 +69,7 @@ export class Vec3 implements ShaderValue
         float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.x`;
         float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.x`;
         float.dependencies = [this];
+
         return float;
     }
 
@@ -153,6 +82,7 @@ export class Vec3 implements ShaderValue
         float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.y`;
         float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.y`;
         float.dependencies = [this];
+
         return float;
     }
 
@@ -165,6 +95,7 @@ export class Vec3 implements ShaderValue
         float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.z`;
         float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.z`;
         float.dependencies = [this];
+
         return float;
     }
 }

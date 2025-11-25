@@ -98,6 +98,72 @@ export class Vec3 implements ShaderValue
 
         return float;
     }
+
+    /**
+     * 乘法运算
+     */
+    multiply(other: Vec3 | Float | number): Vec3
+    {
+        const result = new Vec3();
+        if (other instanceof Vec3)
+        {
+            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${other.toGLSL(type)}`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${other.toWGSL(type)}`;
+            result.dependencies = [this, other];
+        }
+        else
+        {
+            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${typeof other === 'number' ? other : other.toGLSL(type)}`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${typeof other === 'number' ? other : other.toWGSL(type)}`;
+            result.dependencies = typeof other === 'number' ? [this] : [this, other];
+        }
+        return result;
+    }
+
+    /**
+     * 加法运算
+     */
+    add(other: Vec3): Vec3
+    {
+        const result = new Vec3();
+        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} + ${other.toGLSL(type)}`;
+        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} + ${other.toWGSL(type)}`;
+        result.dependencies = [this, other];
+        return result;
+    }
+
+    /**
+     * 减法运算
+     */
+    subtract(other: Vec3): Vec3
+    {
+        const result = new Vec3();
+        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} - ${other.toGLSL(type)}`;
+        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} - ${other.toWGSL(type)}`;
+        result.dependencies = [this, other];
+        return result;
+    }
+
+    /**
+     * 除法运算
+     */
+    divide(other: Vec3 | Float | number): Vec3
+    {
+        const result = new Vec3();
+        if (other instanceof Vec3)
+        {
+            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} / ${other.toGLSL(type)}`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} / ${other.toWGSL(type)}`;
+            result.dependencies = [this, other];
+        }
+        else
+        {
+            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} / ${typeof other === 'number' ? other : other.toGLSL(type)}`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} / ${typeof other === 'number' ? other : other.toWGSL(type)}`;
+            result.dependencies = typeof other === 'number' ? [this] : [this, other];
+        }
+        return result;
+    }
 }
 
 /**

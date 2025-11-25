@@ -1,4 +1,4 @@
-import { add, assign, attribute, builtin, fragment, mat4, multiply, return_, sampler, texture2D, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { assign, attribute, builtin, float, fragment, mat4, return_, sampler, texture2D, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes（location 缺省时自动分配）
 const aVertexPosition = vec3(attribute("aVertexPosition"));
@@ -18,10 +18,9 @@ export const vertexShader = vertex("main", () =>
 {
     const position = var_("position", vec4(aVertexPosition, 1.0));
 
-    assign(vPosition, multiply(multiply(uProjectionMatrix, uModelViewMatrix), position));
+    assign(vPosition, uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
     assign(vTextureCoord, aTextureCoord);
-    // v_fragPosition = 0.5 * (aVertexPosition + vec4(1.0, 1.0, 1.0, 1.0))
-    const fragPos = var_("fragPos", multiply(add(vec4(aVertexPosition, 1.0), vec4(1.0, 1.0, 1.0, 1.0)), 0.5));
+    const fragPos = var_("fragPos", float(0.5).multiply(vec4(aVertexPosition, 1.0).add(vec4(1.0, 1.0, 1.0, 1.0))));
     assign(vFragPosition, fragPos);
 });
 
@@ -31,9 +30,7 @@ export const fragmentShader = fragment("main", () =>
     // sampler 的 binding 会自动分配
     const uSampler = sampler("uSampler");
 
-    const texelColor = var_("texelColor", texture2D(uSampler, vTextureCoord));
-    // color = texture2D(uSampler, vTextureCoord) * v_fragPosition
-    const color = var_("color", multiply(texelColor, vFragPosition));
+    const color = var_("color", texture2D(uSampler, vTextureCoord).multiply(vFragPosition));
     return_(color);
 });
 

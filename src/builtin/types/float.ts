@@ -3,6 +3,9 @@ import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../Uniform';
 import { Varying } from '../../Varying';
 import { formatNumber } from '../formatNumber';
+import { Vec2 } from './vec2';
+import { Vec3 } from './vec3';
+import { Vec4 } from './vec4';
 
 export class Float implements ShaderValue
 {
@@ -56,6 +59,94 @@ export class Float implements ShaderValue
         {
             throw new Error('Invalid arguments for Float');
         }
+    }
+
+    /**
+     * 乘法运算
+     */
+    multiply(other: Float | number): Float;
+    multiply(other: Vec3): Vec3;
+    multiply(other: Vec4): Vec4;
+    multiply(other: Vec2): Vec2;
+    multiply(other: Float | number | Vec2 | Vec3 | Vec4): Float | Vec2 | Vec3 | Vec4
+    {
+        if (other instanceof Vec3)
+        {
+            const result = new Vec3();
+
+            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${other.toGLSL(type)}`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${other.toWGSL(type)}`;
+            result.dependencies = [this, other];
+
+            return result;
+        }
+        if (other instanceof Vec4)
+        {
+            const result = new Vec4();
+
+            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${other.toGLSL(type)}`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${other.toWGSL(type)}`;
+            result.dependencies = [this, other];
+
+            return result;
+        }
+        if (other instanceof Vec2)
+        {
+            const result = new Vec2(0, 0);
+
+            result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${other.toGLSL(type)}`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${other.toWGSL(type)}`;
+            result.dependencies = [this, other];
+
+            return result;
+        }
+        const result = new Float();
+        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${typeof other === 'number' ? formatNumber(other) : other.toGLSL(type)}`;
+        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${typeof other === 'number' ? formatNumber(other) : other.toWGSL(type)}`;
+        result.dependencies = typeof other === 'number' ? [this] : [this, other];
+        return result;
+    }
+
+    /**
+     * 加法运算
+     */
+    add(other: Float): Float
+    {
+        const result = new Float();
+
+        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} + ${other.toGLSL(type)}`;
+        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} + ${other.toWGSL(type)}`;
+        result.dependencies = [this, other];
+
+        return result;
+    }
+
+    /**
+     * 减法运算
+     */
+    subtract(other: Float): Float
+    {
+        const result = new Float();
+
+        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} - ${other.toGLSL(type)}`;
+        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} - ${other.toWGSL(type)}`;
+        result.dependencies = [this, other];
+
+        return result;
+    }
+
+    /**
+     * 除法运算
+     */
+    divide(other: Float | number): Float
+    {
+        const result = new Float();
+
+        result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} / ${typeof other === 'number' ? formatNumber(other) : other.toGLSL(type)}`;
+        result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} / ${typeof other === 'number' ? formatNumber(other) : other.toWGSL(type)}`;
+        result.dependencies = typeof other === 'number' ? [this] : [this, other];
+
+        return result;
     }
 
 }

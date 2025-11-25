@@ -7,23 +7,43 @@ import { formatNumber } from './formatNumber';
 /**
  * pow 函数，计算幂
  */
-export function pow<T extends Float | Vec3 | Vec4>(a: T | number, b: Float | number): T
+export function pow<T extends Float | Vec3 | Vec4>(a: T | number, b: T extends Vec3 ? (Vec3 | Float | number) : (T extends Vec4 ? (Vec4 | Float | number) : (Float | number))): T
 {
     if (a instanceof Vec3)
     {
         const result = new Vec3();
-        result.toGLSL = (type: 'vertex' | 'fragment') => `pow(${a.toGLSL(type)}, ${typeof b === 'number' ? formatNumber(b) : b.toGLSL(type)})`;
-        result.toWGSL = (type: 'vertex' | 'fragment') => `pow(${a.toWGSL(type)}, ${typeof b === 'number' ? formatNumber(b) : b.toWGSL(type)})`;
-        result.dependencies = typeof b === 'number' ? [a] : [a, b];
+        const other = b as Vec3 | Float | number;
+        if (other instanceof Vec3)
+        {
+            result.toGLSL = (type: 'vertex' | 'fragment') => `pow(${a.toGLSL(type)}, ${other.toGLSL(type)})`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `pow(${a.toWGSL(type)}, ${other.toWGSL(type)})`;
+            result.dependencies = [a, other];
+        }
+        else
+        {
+            result.toGLSL = (type: 'vertex' | 'fragment') => `pow(${a.toGLSL(type)}, ${typeof other === 'number' ? formatNumber(other) : other.toGLSL(type)})`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `pow(${a.toWGSL(type)}, ${typeof other === 'number' ? formatNumber(other) : other.toWGSL(type)})`;
+            result.dependencies = typeof other === 'number' ? [a] : [a, other];
+        }
 
         return result as T;
     }
     if (a instanceof Vec4)
     {
         const result = new Vec4();
-        result.toGLSL = (type: 'vertex' | 'fragment') => `pow(${a.toGLSL(type)}, ${typeof b === 'number' ? formatNumber(b) : b.toGLSL(type)})`;
-        result.toWGSL = (type: 'vertex' | 'fragment') => `pow(${a.toWGSL(type)}, ${typeof b === 'number' ? formatNumber(b) : b.toWGSL(type)})`;
-        result.dependencies = typeof b === 'number' ? [a] : [a, b];
+        const other = b as Vec4 | Float | number;
+        if (other instanceof Vec4)
+        {
+            result.toGLSL = (type: 'vertex' | 'fragment') => `pow(${a.toGLSL(type)}, ${other.toGLSL(type)})`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `pow(${a.toWGSL(type)}, ${other.toWGSL(type)})`;
+            result.dependencies = [a, other];
+        }
+        else
+        {
+            result.toGLSL = (type: 'vertex' | 'fragment') => `pow(${a.toGLSL(type)}, ${typeof other === 'number' ? formatNumber(other) : other.toGLSL(type)})`;
+            result.toWGSL = (type: 'vertex' | 'fragment') => `pow(${a.toWGSL(type)}, ${typeof other === 'number' ? formatNumber(other) : other.toWGSL(type)})`;
+            result.dependencies = typeof other === 'number' ? [a] : [a, other];
+        }
 
         return result as T;
     }

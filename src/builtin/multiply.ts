@@ -10,8 +10,11 @@ import { formatNumber } from './formatNumber';
  * 乘法函数
  */
 export function multiply(a: Mat4, b: Vec4): Vec4;
-export function multiply<T extends Float | Vec2 | Vec3 | Vec4>(a: T, b: T | number): T;
-export function multiply<T extends Float | Vec2 | Vec3 | Vec4 | Mat4>(a: T, b: T extends Mat4 ? Vec4 : (T | number)): T extends Mat4 ? Vec4 : T
+export function multiply(a: Vec3, b: Vec3 | Float | number): Vec3;
+export function multiply(a: Vec4, b: Vec4 | Float | number): Vec4;
+export function multiply(a: Vec2, b: Vec2 | Float | number): Vec2;
+export function multiply(a: Float, b: Float | number): Float;
+export function multiply(a: any, b: any): any
 {
     if (a instanceof Mat4)
     {
@@ -62,7 +65,7 @@ export function multiply<T extends Float | Vec2 | Vec3 | Vec4 | Mat4>(a: T, b: T
             result.dependencies = typeof other === 'number' ? [a] : [a, other];
         }
 
-        return result as T;
+        return result;
     }
     if (a instanceof Vec3)
     {
@@ -81,7 +84,7 @@ export function multiply<T extends Float | Vec2 | Vec3 | Vec4 | Mat4>(a: T, b: T
             result.dependencies = typeof other === 'number' ? [a] : [a, other];
         }
 
-        return result as T;
+        return result;
     }
     if (a instanceof Vec2)
     {
@@ -100,7 +103,7 @@ export function multiply<T extends Float | Vec2 | Vec3 | Vec4 | Mat4>(a: T, b: T
             result.dependencies = typeof other === 'number' ? [a] : [a, other];
         }
 
-        return result as T;
+        return result;
     }
     // Float
     const result = new Float();
@@ -109,6 +112,6 @@ export function multiply<T extends Float | Vec2 | Vec3 | Vec4 | Mat4>(a: T, b: T
     result.toWGSL = (type: 'vertex' | 'fragment') => `${a.toWGSL(type)} * ${typeof other === 'number' ? formatNumber(other) : other.toWGSL(type)}`;
     result.dependencies = typeof other === 'number' ? [a] : [a, other];
 
-    return result as T;
+    return result;
 }
 

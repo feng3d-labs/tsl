@@ -20,8 +20,8 @@ export class Vec2 implements ShaderValue
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(varying: Varying);
-    constructor(x: number, y: number);
-    constructor(...args: (number | Uniform | Attribute | Varying)[])
+    constructor(x: number | Float, y: number | Float);
+    constructor(...args: (number | Uniform | Attribute | Varying | Float)[])
     {
         if (args.length === 1)
         {
@@ -61,13 +61,22 @@ export class Vec2 implements ShaderValue
                 throw new Error('Vec2 constructor: invalid argument');
             }
         }
-        else if (args.length === 2 && typeof args[0] === 'number' && typeof args[1] === 'number')
+        else if (args.length === 2)
         {
-            const x = args[0] as number;
-            const y = args[1] as number;
-            this.toGLSL = (type: 'vertex' | 'fragment') => `vec2(${formatNumber(x)}, ${formatNumber(y)})`;
-            this.toWGSL = (type: 'vertex' | 'fragment') => `vec2<f32>(${formatNumber(x)}, ${formatNumber(y)})`;
-            this.dependencies = [];
+            const x = args[0] as number | Float;
+            const y = args[1] as number | Float;
+            if (x instanceof Float || y instanceof Float)
+            {
+                this.toGLSL = (type: 'vertex' | 'fragment') => `vec2(${typeof x === 'number' ? formatNumber(x) : x.toGLSL(type)}, ${typeof y === 'number' ? formatNumber(y) : y.toGLSL(type)})`;
+                this.toWGSL = (type: 'vertex' | 'fragment') => `vec2<f32>(${typeof x === 'number' ? formatNumber(x) : x.toWGSL(type)}, ${typeof y === 'number' ? formatNumber(y) : y.toWGSL(type)})`;
+                this.dependencies = [x, y].filter((arg): arg is Float => arg instanceof Float);
+            }
+            else
+            {
+                this.toGLSL = (type: 'vertex' | 'fragment') => `vec2(${formatNumber(x as number)}, ${formatNumber(y as number)})`;
+                this.toWGSL = (type: 'vertex' | 'fragment') => `vec2<f32>(${formatNumber(x as number)}, ${formatNumber(y as number)})`;
+                this.dependencies = [];
+            }
         }
         else
         {
@@ -109,7 +118,7 @@ export class Vec2 implements ShaderValue
 export function vec2(uniform: Uniform): Vec2;
 export function vec2(attribute: Attribute): Vec2;
 export function vec2(varying: Varying): Vec2;
-export function vec2(x: number, y: number): Vec2;
+export function vec2(x: number | Float, y: number | Float): Vec2;
 export function vec2(...args: any[]): Vec2
 {
     if (args.length === 1) return new Vec2(args[0] as any);

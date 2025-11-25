@@ -1,7 +1,9 @@
 {
+	"test": [
+	],
 	"Basic Graphics": [
 		"helloTriangle",
-		""
+		"fractalCube"
 	],
 	"webgl-examples": [
 		"sample2",
@@ -9,6 +11,6 @@
 		"sample6",
 		"sample7",
 		"sample8",
-		"fractalCube"
+		"sky"
 	]
 }

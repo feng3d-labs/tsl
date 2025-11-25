@@ -8,11 +8,21 @@ export * from './Varying';
 // 导出 builtin 类型和工具函数
 export * from './builtin/assign';
 export * from './builtin/builtin';
+export { acos } from './builtin/acos';
+export { atan } from './builtin/atan';
+export { clamp } from './builtin/clamp';
+export { cos } from './builtin/cos';
 export { dot } from './builtin/dot';
+export { exp } from './builtin/exp';
 export { let_ } from './builtin/let';
 export { max } from './builtin/max';
+export { mix } from './builtin/mix';
 export { normalize } from './builtin/normalize';
+export { pow } from './builtin/pow';
 export { return_ } from './builtin/return';
+export { sin } from './builtin/sin';
+export { smoothstep } from './builtin/smoothstep';
+export { step } from './builtin/step';
 export { texture2D } from './builtin/texture2D';
 export { var_ } from './builtin/var';
 // 导出向量类型

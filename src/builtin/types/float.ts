@@ -23,7 +23,11 @@ export class Float implements ShaderValue
     constructor(value: number);
     constructor(...args: (number | Uniform | Attribute | Varying)[])
     {
-        if (args.length === 0) return;
+        if (args.length === 0)
+        {
+            // 无参数构造函数，用于 var_ 函数创建新实例
+            return;
+        }
         if (args.length === 1 && args[0] instanceof Uniform)
         {
             const uniform = args[0] as Uniform;

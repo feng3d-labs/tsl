@@ -23,6 +23,11 @@ export class Vec2 implements ShaderValue
     constructor(x: number | Float, y: number | Float);
     constructor(...args: (number | Uniform | Attribute | Varying | Float)[])
     {
+        if (args.length === 0)
+        {
+            // 无参数构造函数，用于 var_ 函数创建新实例
+            return;
+        }
         if (args.length === 1)
         {
             // 处理 uniform、attribute 或 varying

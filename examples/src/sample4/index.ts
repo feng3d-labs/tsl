@@ -1,4 +1,4 @@
-import { RenderPassDescriptor, Submit } from '@feng3d/render-api';
+import { RenderPass, RenderPassDescriptor, Submit } from '@feng3d/render-api';
 import { reactive } from '@feng3d/reactivity';
 import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         },
     };
 
-    const renderPass = {
+    const renderPass: RenderPass = {
         descriptor: {
             colorAttachments: [{
                 clearValue: [0, 0, 0, 1],

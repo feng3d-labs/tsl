@@ -408,6 +408,7 @@ export function vec4(uniform: Uniform): Vec4;
 export function vec4(attribute: Attribute): Vec4;
 export function vec4(builtin: Builtin): Vec4;
 export function vec4(varying: Varying): Vec4;
+export function vec4(value: number | Float): Vec4;
 export function vec4(xy: Vec2, z: number, w: number): Vec4;
 export function vec4(xyz: Vec3, w: number | Float): Vec4;
 export function vec4(x: number | Float, y: number | Float, z: number | Float, w: number | Float): Vec4;

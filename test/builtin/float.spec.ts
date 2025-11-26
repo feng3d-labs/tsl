@@ -6,6 +6,8 @@ import { Varying } from '../../src/Varying';
 import { exp } from '../../src/builtin/exp';
 import { max } from '../../src/builtin/max';
 import { vec3 } from '../../src/builtin/types/vec3';
+import { varyingStruct } from '../../src/varyingStruct';
+import { varying } from '../../src/Varying';
 
 describe('Float', () =>
 {
@@ -53,8 +55,10 @@ describe('Float', () =>
     {
         it('应该返回 Float 实例', () =>
         {
-            const varying = new Varying('vValue', 0);
-            const result = float(varying);
+            const struct = varyingStruct('TestStruct', {
+                vValue: float(varying(0)),
+            });
+            const result = struct.vValue;
             expect(result).toBeInstanceOf(Float);
             expect(result.toGLSL('vertex')).toBe('vValue');
             expect(result.toWGSL('vertex')).toBe('vValue');

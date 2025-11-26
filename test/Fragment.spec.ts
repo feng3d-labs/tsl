@@ -9,6 +9,7 @@ import { attribute } from '../src/Attribute';
 import { builtin } from '../src/builtin/builtin';
 import { assign } from '../src/builtin/assign';
 import { var_ } from '../src/builtin/var';
+import { varyingStruct } from '../src/varyingStruct';
 
 describe('Fragment', () =>
 {
@@ -64,12 +65,14 @@ describe('Fragment', () =>
     {
         it('应该能够自动分配 varying 的 location', () =>
         {
-            const vColor = vec4(varying('vColor'));
-            const vTexCoord = vec2(varying('vTexCoord'));
+            const v = varyingStruct('VertexOutput', {
+                vColor: vec4(varying()),
+                vTexCoord: vec2(varying()),
+            });
 
             const frag = fragment('main', () =>
             {
-                return_(vColor);
+                return_(v.vColor);
             });
 
             const wgsl = frag.toWGSL();
@@ -80,18 +83,20 @@ describe('Fragment', () =>
         it('应该能够与 vertex shader 的 varying location 保持一致', () =>
         {
             const aPos = vec2(attribute('aPos'));
-            const vColor = vec4(varying('vColor'));
-            const vPosition = vec4(builtin('position', 'position_vec4'));
+            const v = varyingStruct('VertexOutput', {
+                position: vec4(builtin('position')),
+                vColor: vec4(varying()),
+            });
 
             const vert = vertex('main', () =>
             {
-                assign(vPosition, vec4(aPos, 0.0, 1.0));
-                assign(vColor, vec4(1.0, 0.0, 0.0, 1.0)); // 实际使用 varying
+                assign(v.position, vec4(aPos, 0.0, 1.0));
+                assign(v.vColor, vec4(1.0, 0.0, 0.0, 1.0)); // 实际使用 varying
             });
 
             const frag = fragment('main', () =>
             {
-                return_(vColor);
+                return_(v.vColor);
             });
 
             const vertexWgsl = vert.toWGSL();
@@ -108,12 +113,14 @@ describe('Fragment', () =>
 
         it('应该能够混合显式指定和自动分配的 varying location', () =>
         {
-            const vColor = vec4(varying('vColor', 1)); // 显式指定 location 1
-            const vTexCoord = vec2(varying('vTexCoord')); // 自动分配
+            const v = varyingStruct('VertexOutput', {
+                vColor: vec4(varying(1)), // 显式指定 location 1
+                vTexCoord: vec2(varying()), // 自动分配
+            });
 
             const frag = fragment('main', () =>
             {
-                return_(vColor);
+                return_(v.vColor);
             });
 
             const wgsl = frag.toWGSL();

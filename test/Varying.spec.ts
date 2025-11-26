@@ -8,6 +8,7 @@ import { return_ } from '../src/index';
 import { assign } from '../src/builtin/assign';
 import { builtin } from '../src/builtin/builtin';
 import { var_ } from '../src/builtin/var';
+import { varyingStruct } from '../src/varyingStruct';
 
 describe('Varying', () =>
 {
@@ -15,29 +16,35 @@ describe('Varying', () =>
     {
         it('应该能够创建 Varying 实例', () =>
         {
-            const v = new Varying('vColor', 0);
-            expect(v.name).toBe('vColor');
+            const v = new Varying(0);
+            expect(v.name).toBeUndefined();
             expect(v.location).toBe(0);
         });
 
-        it('应该在没有设置 value 时抛出错误', () =>
+        it('应该在没有设置 name 时抛出错误', () =>
         {
-            const v = new Varying('vColor', 0);
-            expect(() => v.toGLSL('vertex')).toThrow(/没有设置 value/);
+            const v = new Varying(0);
+            expect(() => v.toGLSL('vertex')).toThrow(/没有设置 name/);
         });
 
-        it('应该能够设置 value 并生成 GLSL', () =>
+        it('应该在 varyingStruct 中设置 name 并生成 GLSL', () =>
         {
-            const v = new Varying('vColor', 0);
-            v.value = vec4(varying('vColor', 0));
+            const struct = varyingStruct('TestStruct', {
+                vColor: vec4(varying(0)),
+            });
+            const v = struct.fields.vColor.dependencies[0] as Varying;
+            expect(v.name).toBe('vColor');
             expect(v.toGLSL('vertex')).toBe('varying vec4 vColor;');
             expect(v.toGLSL('fragment')).toBe('varying vec4 vColor;');
         });
 
-        it('应该能够生成 WGSL', () =>
+        it('应该在 varyingStruct 中设置 name 并生成 WGSL', () =>
         {
-            const v = new Varying('vColor', 0);
-            v.value = vec4(varying('vColor', 0));
+            const struct = varyingStruct('TestStruct', {
+                vColor: vec4(varying(0)),
+            });
+            const v = struct.fields.vColor.dependencies[0] as Varying;
+            expect(v.name).toBe('vColor');
             expect(v.toWGSL('vertex')).toBe('@location(0) vColor: vec4<f32>');
         });
     });
@@ -46,18 +53,28 @@ describe('Varying', () =>
     {
         it('应该能够创建 varying', () =>
         {
-            const v = varying('vColor', 0);
+            const v = varying(0);
             expect(v).toBeInstanceOf(Varying);
+            expect(v.name).toBeUndefined();
+            expect(v.location).toBe(0);
+        });
+
+        it('应该在 varyingStruct 中设置 name', () =>
+        {
+            const struct = varyingStruct('TestStruct', {
+                vColor: vec4(varying(0)),
+            });
+            const v = struct.fields.vColor.dependencies[0] as Varying;
             expect(v.name).toBe('vColor');
             expect(v.location).toBe(0);
         });
 
         it('应该支持 vec4(varying(...)) 形式', () =>
         {
-            const vColor = vec4(varying('vColor', 0));
-            expect(vColor).toBeDefined();
-            expect(vColor.toGLSL('vertex')).toBe('vColor');
-            expect(vColor.toWGSL('vertex')).toBe('vColor');
+            const struct = varyingStruct('VertexOutput', {
+                vColor: vec4(varying(0)),
+            });
+            const vColor = struct.fields.vColor;
 
             const vertexShader = vertex('main', () =>
             {
@@ -74,14 +91,16 @@ describe('Varying', () =>
     {
         it('应该支持 location 缺省时的自动分配', () =>
         {
-            const vColor = vec4(varying('vColor'));
-            const vTexCoord = vec2(varying('vTexCoord'));
-            const vPosition = vec4(builtin('position', 'position_vec4'));
+            const v = varyingStruct('VertexOutput', {
+                position: vec4(builtin('position')),
+                vColor: vec4(varying()),
+                vTexCoord: vec2(varying()),
+            });
 
             const vertexShader = vertex('main', () =>
             {
-                assign(vPosition, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(vColor, vec4(1.0, 0.0, 0.0, 1.0));
+                assign(v.position, vec4(1.0, 0.0, 0.0, 1.0));
+                assign(v.vColor, vec4(1.0, 0.0, 0.0, 1.0));
             });
 
             const wgsl = vertexShader.toWGSL();
@@ -91,16 +110,17 @@ describe('Varying', () =>
 
         it('应该能够自动分配多个 varying 的 location', () =>
         {
-            const vColor = vec4(varying('vColor'));
-            const vTexCoord = vec2(varying('vTexCoord'));
-            const vNormal = vec4(varying('vNormal'));
-            const vPosition = vec4(builtin('position', 'position_vec4'));
+            const v = varyingStruct('VertexOutput', {
+                position: vec4(builtin('position')),
+                vColor: vec4(varying()),
+                vTexCoord: vec2(varying()),
+            });
 
             const vertexShader = vertex('main', () =>
             {
-                assign(vPosition, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(vColor, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(vTexCoord, vec2(0.0, 0.0));
+                assign(v.position, vec4(1.0, 0.0, 0.0, 1.0));
+                assign(v.vColor, vec4(1.0, 0.0, 0.0, 1.0));
+                assign(v.vTexCoord, vec2(0.0, 0.0));
             });
 
             const wgsl = vertexShader.toWGSL();
@@ -111,15 +131,17 @@ describe('Varying', () =>
 
         it('应该能够混合显式指定和自动分配的 location', () =>
         {
-            const vColor = vec4(varying('vColor', 2)); // 显式指定 location 2
-            const vTexCoord = vec2(varying('vTexCoord')); // 自动分配
-            const vPosition = vec4(builtin('position', 'position_vec4'));
+            const v = varyingStruct('VertexOutput', {
+                position: vec4(builtin('position')),
+                vColor: vec4(varying(2)), // 显式指定 location 2
+                vTexCoord: vec2(varying()), // 自动分配
+            });
 
             const vertexShader = vertex('main', () =>
             {
-                assign(vPosition, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(vColor, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(vTexCoord, vec2(0.0, 0.0));
+                assign(v.position, vec4(1.0, 0.0, 0.0, 1.0));
+                assign(v.vColor, vec4(1.0, 0.0, 0.0, 1.0));
+                assign(v.vTexCoord, vec2(0.0, 0.0));
             });
 
             const wgsl = vertexShader.toWGSL();
@@ -131,24 +153,23 @@ describe('Varying', () =>
 
         it('应该能够获取有效的 location', () =>
         {
-            const v1 = varying('vColor');
-            v1.value = vec4(v1);
-            expect(v1.getEffectiveLocation()).toBe(0); // 默认值
+            const v1 = varying();
+            const v2 = varying(1);
 
-            const v2 = varying('vTexCoord', 1);
-            v2.value = vec2(v2);
-            expect(v2.getEffectiveLocation()).toBe(1); // 显式指定
+            const struct = varyingStruct('VertexOutput', {
+                position: vec4(builtin('position')),
+                vColor: vec4(v1),
+                vTexCoord: vec2(v2),
+            });
 
-            // 在 vertex shader 中自动分配后
-            const vColor = vec4(v1);
-            const vPosition = vec4(builtin('position', 'position_vec4'));
             const vertexShader = vertex('main', () =>
             {
-                assign(vPosition, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(vColor, vec4(1.0, 0.0, 0.0, 1.0));
+                assign(struct.position, vec4(1.0, 0.0, 0.0, 1.0));
+                assign(struct.vColor, vec4(1.0, 0.0, 0.0, 1.0));
             });
             vertexShader.toWGSL(); // 触发自动分配
             expect(v1.getEffectiveLocation()).toBe(0); // 自动分配的值
+            expect(v2.getEffectiveLocation()).toBe(1); // 显式指定
         });
     });
 });

@@ -237,14 +237,12 @@ export class Func
                     // 添加 builtin 字段
                     for (const builtin of builtinSet)
                     {
-                        // 如果没有 name，使用默认名称（这种情况不应该发生，因为 builtin 应该在 varyingStruct 中初始化）
-                        // 但为了兼容自动生成结构体的逻辑，我们使用 builtinName 作为字段名
-                        const fieldName = builtin.name || builtin.builtinName;
-                        // 设置 name（如果还没有设置）
+                        // builtin 必须在 varyingStruct 中初始化，所以 name 应该已经设置
                         if (!builtin.name)
                         {
-                            builtin.setName(fieldName);
+                            throw new Error(`Builtin '${builtin.builtinName}' 没有设置 name，必须在 varyingStruct 中初始化。`);
                         }
+                        const fieldName = builtin.name;
                         // 使用 builtin.value（Vec4）作为结构体字段
                         structFields[fieldName] = builtin.value!;
                         structFieldMap.set(builtin, fieldName);
@@ -253,14 +251,12 @@ export class Func
                     // 添加 varying 字段
                     for (const varying of varyingSet)
                     {
-                        // 如果没有 name，使用默认名称（这种情况不应该发生，因为 varying 应该在 varyingStruct 中初始化）
-                        // 但为了兼容自动生成结构体的逻辑，我们使用 location 作为字段名的一部分
-                        const fieldName = varying.name || `varying_${varying.getEffectiveLocation()}`;
-                        // 设置 name（如果还没有设置）
+                        // varying 必须在 varyingStruct 中初始化，所以 name 应该已经设置
                         if (!varying.name)
                         {
-                            varying.setName(fieldName);
+                            throw new Error(`Varying 没有设置 name，必须在 varyingStruct 中初始化。`);
                         }
+                        const fieldName = varying.name;
                         // 使用 varying.value 作为结构体字段
                         structFields[fieldName] = varying.value!;
                         structFieldMap.set(varying, fieldName);

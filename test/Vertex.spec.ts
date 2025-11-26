@@ -8,6 +8,7 @@ import { vec4 } from '../src/builtin/types/vec4';
 import { varying } from '../src/Varying';
 import { Vertex, vertex } from '../src/Vertex';
 import { return_ } from '../src/index';
+import { varyingStruct } from '../src/varyingStruct';
 
 describe('Vertex', () =>
 {
@@ -59,19 +60,21 @@ describe('Vertex', () =>
         });
     });
 
-    describe('不使用结构体的写法', () =>
+    describe('使用 varyingStruct 的写法', () =>
     {
         it('应该能够生成包含 varying 声明的 GLSL 代码', () =>
         {
             const aVertexColor = vec4(attribute('aVertexColor', 0));
-            const vColor = vec4(varying('vColor', 0));
-            const vPosition = vec4(builtin('position', 'position_vec4'));
+            const v = varyingStruct('VertexOutput', {
+                position: vec4(builtin('position')),
+                vColor: vec4(varying(0)),
+            });
 
             const vert = vertex('main', () =>
             {
                 const position = var_('position', vec4(1.0, 0.0, 0.0, 1.0));
-                assign(vPosition, position);
-                assign(vColor, aVertexColor);
+                assign(v.position, position);
+                assign(v.vColor, aVertexColor);
             });
 
             const glsl = vert.toGLSL();
@@ -100,14 +103,16 @@ describe('Vertex', () =>
 
         it('应该能够自动分配 varying 的 location', () =>
         {
-            const vColor = vec4(varying('vColor'));
-            const vTexCoord = vec2(varying('vTexCoord'));
-            const vPosition = vec4(builtin('position', 'position_vec4'));
+            const v = varyingStruct('VertexOutput', {
+                position: vec4(builtin('position')),
+                vColor: vec4(varying()),
+                vTexCoord: vec2(varying()),
+            });
 
             const vert = vertex('main', () =>
             {
-                assign(vPosition, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(vColor, vec4(1.0, 0.0, 0.0, 1.0));
+                assign(v.position, vec4(1.0, 0.0, 0.0, 1.0));
+                assign(v.vColor, vec4(1.0, 0.0, 0.0, 1.0));
             });
 
             const wgsl = vert.toWGSL();
@@ -119,14 +124,16 @@ describe('Vertex', () =>
         {
             const aPos = vec2(attribute('aPos', 2)); // 显式指定 location 2
             const aColor = vec4(attribute('aColor')); // 自动分配
-            const vColor = vec4(varying('vColor', 1)); // 显式指定 location 1
-            const vTexCoord = vec2(varying('vTexCoord')); // 自动分配
-            const vPosition = vec4(builtin('position', 'position_vec4'));
+            const v = varyingStruct('VertexOutput', {
+                position: vec4(builtin('position')),
+                vColor: vec4(varying(1)), // 显式指定 location 1
+                vTexCoord: vec2(varying()), // 自动分配
+            });
 
             const vert = vertex('main', () =>
             {
-                assign(vPosition, vec4(aPos, 0.0, 1.0));
-                assign(vColor, aColor);
+                assign(v.position, vec4(aPos, 0.0, 1.0));
+                assign(v.vColor, aColor);
             });
 
             const wgsl = vert.toWGSL();
@@ -135,17 +142,19 @@ describe('Vertex', () =>
             expect(wgsl).toContain('@location(1) vColor: vec4<f32>');
         });
 
-        it('应该使用 builtin.varName 作为结构体字段名', () =>
+        it('应该使用结构体字段名作为变量名', () =>
         {
-            const gl_Position = vec4(builtin('position', 'position_vec4'));
+            const v = varyingStruct('VertexOutput', {
+                position_vec4: vec4(builtin('position')),
+            });
 
             const vert = vertex('main', () =>
             {
-                assign(gl_Position.z, gl_Position.w);
+                assign(v.position_vec4.z, v.position_vec4.w);
             });
 
             const wgsl = vert.toWGSL();
-            // 验证结构体字段名使用 varName (position_vec4) 而不是硬编码的 'position'
+            // 验证结构体字段名使用字段名 (position_vec4)
             expect(wgsl).toContain('@builtin(position) position_vec4: vec4<f32>');
             expect(wgsl).toContain('output.position_vec4.z = output.position_vec4.w');
         });

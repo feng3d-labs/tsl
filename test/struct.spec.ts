@@ -272,7 +272,7 @@ describe('VaryingStruct', () =>
             const output = var_('output', VertexOutput);
 
             const glsl = output.color.toGLSL('vertex');
-            expect(glsl).toBe('vColor');
+            expect(glsl).toBe('color');
         });
     });
 });

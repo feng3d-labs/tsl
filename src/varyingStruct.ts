@@ -55,6 +55,9 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             {
                 dep.setName(fieldName);
             }
+
+            // 将字段添加到实例上，使其可以直接访问
+            (this as any)[fieldName] = value;
         }
 
         this.toGLSL = (type: 'vertex' | 'fragment') => ``;
@@ -115,7 +118,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
  * 仅支持 Builtin 和 Varying 成员
  * @param structName 结构体名称
  * @param fields 结构体字段，每个字段必须是 Builtin 或 Varying 的包装类型（如 vec4(builtin(...)) 或 vec4(varying(...))）
- * @returns VaryingStruct 实例
+ * @returns VaryingStruct 实例，可以直接访问字段
  */
 export function varyingStruct<T extends { [key: string]: IElement }>(structName: string, fields: T): VaryingStruct<T> & T
 {

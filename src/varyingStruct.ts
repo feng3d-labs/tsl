@@ -31,7 +31,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
 
     constructor(public readonly structName: string, public readonly fields: T)
     {
-        // 验证所有字段都必须是 builtin 或 varying 类型
+        // 验证所有字段都必须是 builtin 或 varying 类型，并设置变量名
         for (const [fieldName, value] of Object.entries(this.fields))
         {
             if (!value.dependencies || value.dependencies.length === 0)
@@ -44,6 +44,16 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             if (!(dep instanceof Builtin) && !(dep instanceof Varying))
             {
                 throw new Error(`结构体 '${this.structName}' 的字段 '${fieldName}' 必须是 builtin 或 varying 类型，当前类型不支持。`);
+            }
+
+            // 设置变量名为结构体字段名
+            if (dep instanceof Builtin)
+            {
+                dep.setName(fieldName);
+            }
+            else if (dep instanceof Varying)
+            {
+                dep.setName(fieldName);
             }
         }
 
@@ -107,9 +117,9 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
  * @param fields 结构体字段，每个字段必须是 Builtin 或 Varying 的包装类型（如 vec4(builtin(...)) 或 vec4(varying(...))）
  * @returns VaryingStruct 实例
  */
-export function varyingStruct<T extends { [key: string]: IElement }>(structName: string, fields: T): VaryingStruct<T>
+export function varyingStruct<T extends { [key: string]: IElement }>(structName: string, fields: T): VaryingStruct<T> & T
 {
-    return new VaryingStruct(structName, fields);
+    return new VaryingStruct(structName, fields) as VaryingStruct<T> & T;
 }
 
 /**

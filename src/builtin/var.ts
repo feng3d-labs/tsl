@@ -94,9 +94,8 @@ function var_struct<T extends { [key: string]: Builtin | Varying }>(varName: str
             // 其他情况使用原始的 toGLSL
             return originalToGLSL(type);
         };
-        // 对于 WGSL，使用 varName（Builtin.name 或 Varying.name）而不是字段名
-        // 这样 output.position.x 会生成 output.position1.x（如果 name 是 position1）
-        const fieldVarName = dep instanceof Builtin ? dep.name : (dep instanceof Varying ? dep.name : key);
+        // 对于 WGSL，使用变量名（Builtin.name 或 Varying.name，即结构体字段名）
+        const fieldVarName = dep instanceof Builtin ? dep.name! : (dep instanceof Varying ? dep.name! : key);
         value.toWGSL = (type: 'vertex' | 'fragment') => `${varName}.${fieldVarName}`;
         value.dependencies = [result];
 

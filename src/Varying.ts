@@ -2,19 +2,28 @@ import { IElement, ShaderValue } from './IElement';
 
 /**
  * Varying 类，表示在 vertex 和 fragment shader 之间传递的变量
+ * 只能在 varyingStruct 中使用，变量名从结构体字段名获取
  */
 export class Varying implements IElement
 {
     dependencies: IElement[] = [];
-    readonly name: string;
+    name?: string; // 变量名称（从结构体字段名获取，在 varyingStruct 中设置）
     value?: ShaderValue;
     readonly location?: number;
     private _autoLocation?: number; // 自动分配的 location
 
-    constructor(name: string, location?: number)
+    constructor(location?: number)
+    {
+        this.location = location;
+    }
+
+    /**
+     * 设置变量名（由 varyingStruct 调用）
+     * @internal
+     */
+    setName(name: string): void
     {
         this.name = name;
-        this.location = location;
     }
 
     /**
@@ -38,6 +47,10 @@ export class Varying implements IElement
      */
     toGLSL(type: 'vertex' | 'fragment'): string
     {
+        if (!this.name)
+        {
+            throw new Error(`Varying 没有设置 name，必须在 varyingStruct 中使用。`);
+        }
         if (!this.value)
         {
             throw new Error(`Varying '${this.name}' 没有设置 value，无法生成 GLSL。`);
@@ -52,6 +65,10 @@ export class Varying implements IElement
      */
     toWGSL(type: 'vertex' | 'fragment'): string
     {
+        if (!this.name)
+        {
+            throw new Error(`Varying 没有设置 name，必须在 varyingStruct 中使用。`);
+        }
         if (!this.value)
         {
             throw new Error(`Varying '${this.name}' 没有设置 value，无法生成 WGSL。`);
@@ -66,13 +83,13 @@ export class Varying implements IElement
 
 /**
  * 定义 varying 变量
+ * 只能在 varyingStruct 中使用，变量名从结构体字段名获取
  * 类型通过 vec2()、vec3()、vec4() 等函数自动推断
- * @param name 变量名
  * @param location WGSL location（可选）
  * @returns Varying 实例
  */
-export function varying(name: string, location?: number): Varying
+export function varying(location?: number): Varying
 {
-    return new Varying(name, location);
+    return new Varying(location);
 }
 

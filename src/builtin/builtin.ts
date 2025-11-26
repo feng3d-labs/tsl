@@ -2,17 +2,26 @@ import { IElement, ShaderValue } from '../IElement';
 
 /**
  * Builtin 类，表示内置变量（如 position）
+ * 只能在 varyingStruct 中使用，变量名从结构体字段名获取
  */
 export class Builtin implements IElement
 {
     readonly builtinName: string; // WGSL 中内置的固定名称（如 "position" 或 "gl_Position"）
-    readonly name: string; // 用户自定义的变量名称（如 "position_vec4"）
+    name?: string; // 变量名称（从结构体字段名获取，在 varyingStruct 中设置）
     value: ShaderValue;
     dependencies: IElement[] = [];
 
-    constructor(builtinName: 'position' | 'gl_Position', name: string)
+    constructor(builtinName: 'position' | 'gl_Position')
     {
         this.builtinName = builtinName;
+    }
+
+    /**
+     * 设置变量名（由 varyingStruct 调用）
+     * @internal
+     */
+    setName(name: string): void
+    {
         this.name = name;
     }
 
@@ -53,6 +62,10 @@ export class Builtin implements IElement
         {
             throw new Error(`Builtin '${this.builtinName}' 的 value 没有设置 wgslType，无法生成 WGSL。`);
         }
+        if (!this.name)
+        {
+            throw new Error(`Builtin '${this.builtinName}' 没有设置 name，必须在 varyingStruct 中使用。`);
+        }
 
         return `@builtin(${this.wgslBuiltinName}) ${this.name}: ${wgslType}`;
     }
@@ -60,12 +73,12 @@ export class Builtin implements IElement
 
 /**
  * 创建内置变量引用
+ * 只能在 varyingStruct 中使用，变量名从结构体字段名获取
  * @param builtinName WGSL 中内置的固定名称（如 'position' 或 'gl_Position'，两者等价）
- * @param varName 用户自定义的变量名称（如 'position_vec4'）
  * @returns Builtin 实例
  */
-export function builtin(builtinName: 'position' | 'gl_Position', varName: string): Builtin
+export function builtin(builtinName: 'position' | 'gl_Position'): Builtin
 {
-    return new Builtin(builtinName, varName);
+    return new Builtin(builtinName);
 }
 

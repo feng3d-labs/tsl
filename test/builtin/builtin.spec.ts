@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { builtin } from '../../src/builtin/builtin';
 import { vec4 } from '../../src/builtin/types/vec4';
+import { varyingStruct } from '../../src/varyingStruct';
 
 describe('Builtin', () =>
 {
@@ -8,27 +9,30 @@ describe('Builtin', () =>
     {
         it('应该能够创建 Builtin 实例', () =>
         {
-            const b = builtin('position', 'position_vec4');
+            const b = builtin('position');
             expect(b.builtinName).toBe('position');
-            expect(b.name).toBe('position_vec4');
+            expect(b.name).toBeUndefined();
         });
 
-        it('应该正确存储 builtinName 和 varName', () =>
+        it('应该在 varyingStruct 中设置 name', () =>
         {
-            const b = builtin('position', 'myPosition');
+            const struct = varyingStruct('TestStruct', {
+                position: vec4(builtin('position')),
+            });
+            const b = struct.fields.position.dependencies[0] as any;
             expect(b.builtinName).toBe('position');
-            expect(b.name).toBe('myPosition');
+            expect(b.name).toBe('position');
         });
 
         it('应该初始化 dependencies 为空数组', () =>
         {
-            const b = builtin('position', 'position_vec4');
+            const b = builtin('position');
             expect(b.dependencies).toEqual([]);
         });
 
         it('应该初始化 value 为 undefined', () =>
         {
-            const b = builtin('position', 'position_vec4');
+            const b = builtin('position');
             expect(b.value).toBeUndefined();
         });
     });
@@ -37,13 +41,16 @@ describe('Builtin', () =>
     {
         it('应该在没有设置 value 时抛出错误', () =>
         {
-            const b = builtin('position', 'position_vec4');
+            const b = builtin('position');
             expect(() => b.toGLSL()).toThrow(/没有设置 value/);
         });
 
         it('应该在设置 value 后返回 gl_Position', () =>
         {
-            const v = vec4(builtin('position', 'position_vec4'));
+            const struct = varyingStruct('TestStruct', {
+                position: vec4(builtin('position')),
+            });
+            const v = struct.fields.position;
             expect(v.toGLSL('vertex')).toBe('gl_Position');
         });
     });
@@ -52,32 +59,27 @@ describe('Builtin', () =>
     {
         it('应该在没有设置 value 时抛出错误', () =>
         {
-            const b = builtin('position', 'position_vec4');
+            const b = builtin('position');
             expect(() => b.toWGSL()).toThrow(/没有设置 wgslType/);
         });
 
-        it('应该在没有设置 value.wgslType 时抛出错误', () =>
+        it('应该在没有设置 name 时抛出错误', () =>
         {
-            const b = builtin('position', 'position_vec4');
-            // 设置一个没有 wgslType 的 value
-            b.value = {} as any;
-            expect(() => b.toWGSL()).toThrow(/没有设置 wgslType/);
+            const b = builtin('position');
+            const v = vec4(1.0, 2.0, 3.0, 4.0);
+            b.value = v;
+            expect(() => b.toWGSL()).toThrow(/没有设置 name/);
         });
 
         it('应该返回正确格式的 WGSL 代码', () =>
         {
-            const b = builtin('position', 'position_vec4');
+            const struct = varyingStruct('TestStruct', {
+                position: vec4(builtin('position')),
+            });
+            const b = struct.fields.position.dependencies[0] as any;
             const v = vec4(1.0, 2.0, 3.0, 4.0);
             b.value = v;
-            expect(b.toWGSL()).toBe('@builtin(position) position_vec4: vec4<f32>');
-        });
-
-        it('应该返回不同变量名的 WGSL 代码', () =>
-        {
-            const b = builtin('position', 'myPosition');
-            const v = vec4(1.0, 2.0, 3.0, 4.0);
-            b.value = v;
-            expect(b.toWGSL()).toBe('@builtin(position) myPosition: vec4<f32>');
+            expect(b.toWGSL()).toBe('@builtin(position) position: vec4<f32>');
         });
     });
 
@@ -85,7 +87,7 @@ describe('Builtin', () =>
     {
         it('应该能够设置 value', () =>
         {
-            const b = builtin('position', 'position_vec4');
+            const b = builtin('position');
             const v = vec4(1.0, 2.0, 3.0, 4.0);
             b.value = v;
             expect(b.value).toBe(v);
@@ -97,73 +99,84 @@ describe('builtin() 函数', () =>
 {
     it('应该能够创建 Builtin 实例', () =>
     {
-        const result = builtin('position', 'position_vec4');
+        const result = builtin('position');
         expect(result.builtinName).toBe('position');
-        expect(result.name).toBe('position_vec4');
+        expect(result.name).toBeUndefined();
     });
 
-    it('应该正确设置 builtinName 和 varName', () =>
+    it('应该在 varyingStruct 中设置 name', () =>
     {
-        const result = builtin('position', 'myPosition');
-        expect(result.builtinName).toBe('position');
-        expect(result.name).toBe('myPosition');
+        const struct = varyingStruct('TestStruct', {
+            position: vec4(builtin('position')),
+        });
+        const b = struct.fields.position.dependencies[0] as any;
+        expect(b.builtinName).toBe('position');
+        expect(b.name).toBe('position');
     });
 
     it('应该能够生成正确的 GLSL 代码', () =>
     {
-        const result = vec4(builtin('position', 'position_vec4'));
-        expect(result.toGLSL('vertex')).toBe('gl_Position');
+        const struct = varyingStruct('TestStruct', {
+            position: vec4(builtin('position')),
+        });
+        const v = struct.fields.position;
+        expect(v.toGLSL('vertex')).toBe('gl_Position');
     });
 
     it('应该能够生成正确的 WGSL 代码', () =>
     {
-        const result = builtin('position', 'position_vec4');
+        const struct = varyingStruct('TestStruct', {
+            position: vec4(builtin('position')),
+        });
+        const b = struct.fields.position.dependencies[0] as any;
         const v = vec4(1.0, 2.0, 3.0, 4.0);
-        result.value = v;
-        expect(result.toWGSL()).toBe('@builtin(position) position_vec4: vec4<f32>');
-    });
-
-    it('应该支持不同的内置变量名称', () =>
-    {
-        const result1 = builtin('position', 'pos');
-        const result2 = builtin('position', 'outputPos');
-        expect(result1.name).toBe('pos');
-        expect(result2.name).toBe('outputPos');
-        expect(result1.builtinName).toBe('position');
-        expect(result2.builtinName).toBe('position');
+        b.value = v;
+        expect(b.toWGSL()).toBe('@builtin(position) position: vec4<f32>');
     });
 
     describe('gl_Position 与 position 等价', () =>
     {
         it('应该能够创建 gl_Position builtin', () =>
         {
-            const b = builtin('gl_Position', 'position_vec4');
+            const b = builtin('gl_Position');
             expect(b.builtinName).toBe('gl_Position');
             expect(b.isPosition).toBe(true);
         });
 
         it('gl_Position 和 position 应该生成相同的 GLSL 代码', () =>
         {
-            const v1 = vec4(builtin('position', 'position_vec4'));
-            const v2 = vec4(builtin('gl_Position', 'position_vec4'));
+            const struct1 = varyingStruct('TestStruct1', {
+                position: vec4(builtin('position')),
+            });
+            const struct2 = varyingStruct('TestStruct2', {
+                position: vec4(builtin('gl_Position')),
+            });
+            const v1 = struct1.fields.position;
+            const v2 = struct2.fields.position;
             expect(v1.toGLSL('vertex')).toBe('gl_Position');
             expect(v2.toGLSL('vertex')).toBe('gl_Position');
         });
 
         it('gl_Position 和 position 应该生成相同的 WGSL 代码', () =>
         {
-            const b1 = builtin('position', 'position_vec4');
-            const b2 = builtin('gl_Position', 'position_vec4');
+            const struct1 = varyingStruct('TestStruct1', {
+                position: vec4(builtin('position')),
+            });
+            const struct2 = varyingStruct('TestStruct2', {
+                position: vec4(builtin('gl_Position')),
+            });
+            const b1 = struct1.fields.position.dependencies[0] as any;
+            const b2 = struct2.fields.position.dependencies[0] as any;
             const v = vec4(1.0, 2.0, 3.0, 4.0);
             b1.value = v;
             b2.value = v;
-            expect(b1.toWGSL()).toBe('@builtin(position) position_vec4: vec4<f32>');
-            expect(b2.toWGSL()).toBe('@builtin(position) position_vec4: vec4<f32>');
+            expect(b1.toWGSL()).toBe('@builtin(position) position: vec4<f32>');
+            expect(b2.toWGSL()).toBe('@builtin(position) position: vec4<f32>');
         });
 
         it('gl_Position 应该正确映射为 WGSL 的 position', () =>
         {
-            const b = builtin('gl_Position', 'position_vec4');
+            const b = builtin('gl_Position');
             expect(b.wgslBuiltinName).toBe('position');
         });
     });

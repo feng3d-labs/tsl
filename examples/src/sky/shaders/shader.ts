@@ -27,9 +27,9 @@ const vSunE = float(varying('vSunE'));
 // Vertex shader constants
 const totalRayleigh = var_('totalRayleigh', vec3(5.804542996261093E-6, 1.3562911419845635E-5, 3.0265902468824876E-5));
 const MieConst = var_('MieConst', vec3(1.8399918514433978E14, 2.7798023919660528E14, 4.0790479543861094E14));
-const cutoffAngle = var_('cutoffAngle', float(1.6110731556870734));
-const steepness = var_('steepness', float(1.5));
-const EE = var_('EE', float(1000.0));
+const cutoffAngle = var_('cutoffAngle', 1.6110731556870734);
+const steepness = var_('steepness', 1.5);
+const EE = var_('EE', 1000.0);
 
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>
@@ -61,12 +61,12 @@ const mieDirectionalG = float(uniform('mieDirectionalG'));
 const upFrag = vec3(uniform('up'));
 
 // Fragment shader constants
-const pi = var_('pi', float(3.141592653589793));
-const rayleighZenithLength = var_('rayleighZenithLength', float(8.4E3));
-const mieZenithLength = var_('mieZenithLength', float(1.25E3));
-const sunAngularDiameterCos = var_('sunAngularDiameterCos', float(0.9999566769464484));
-const THREE_OVER_SIXTEENPI = var_('THREE_OVER_SIXTEENPI', float(0.05968310365946075));
-const ONE_OVER_FOURPI = var_('ONE_OVER_FOURPI', float(0.07957747154594767));
+const pi = var_('pi', 3.141592653589793);
+const rayleighZenithLength = var_('rayleighZenithLength', 8.4E3);
+const mieZenithLength = var_('mieZenithLength', 1.25E3);
+const sunAngularDiameterCos = var_('sunAngularDiameterCos', 0.9999566769464484);
+const THREE_OVER_SIXTEENPI = var_('THREE_OVER_SIXTEENPI', 0.05968310365946075);
+const ONE_OVER_FOURPI = var_('ONE_OVER_FOURPI', 0.07957747154594767);
 
 // Fragment shader 入口函数
 export const fragmentShader = fragment('main', () =>

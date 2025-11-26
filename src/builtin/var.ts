@@ -4,15 +4,17 @@ import { Fragment } from '../Fragment';
 import { Struct } from '../struct';
 import { Varying } from '../Varying';
 import { Builtin } from './builtin';
+import { Float } from './types/float';
 
 /**
  * 创建一个带变量名的表达式（用于 WGSL 中的 var 语句）
  * @param name 变量名
- * @param expr 表达式
+ * @param expr 表达式或字面值
  * @returns 设置了变量名的表达式实例
  */
 export function var_<T extends { [key: string]: IElement }>(name: string, struct: Struct<T>): IElement & T;
 export function var_<T extends ShaderValue>(name: string, expr: T): T;
+export function var_(name: string, expr: number): Float;
 export function var_(...args: any[]): any
 {
     if (args[1] instanceof Struct)
@@ -20,7 +22,17 @@ export function var_(...args: any[]): any
         return var_struct(args[0] as string, args[1] as Struct<any>);
     }
     const name = args[0] as string;
-    const expr = args[1] as ShaderValue;
+    let expr: ShaderValue;
+
+    // 如果第二个参数是数字，自动转换为 Float
+    if (typeof args[1] === 'number')
+    {
+        expr = new Float(args[1]);
+    }
+    else
+    {
+        expr = args[1] as ShaderValue;
+    }
 
     const cls = expr.constructor;
     const result: ShaderValue = new (cls as any)();

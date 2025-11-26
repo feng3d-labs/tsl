@@ -2,7 +2,12 @@ import { Builtin } from './builtin/builtin';
 import { IElement } from './IElement';
 import { Varying } from './Varying';
 
-export class Struct<T extends { [key: string]: IElement }> implements IElement
+/**
+ * VaryingStruct 类
+ * 专门用于在顶点和片段着色器之间传递数据
+ * 仅支持 Builtin 和 Varying 成员
+ */
+export class VaryingStruct<T extends { [key: string]: IElement }> implements IElement
 {
     dependencies: IElement[];
     toGLSL: (type: 'vertex' | 'fragment') => string;
@@ -94,7 +99,22 @@ export class Struct<T extends { [key: string]: IElement }> implements IElement
     }
 }
 
-export function struct<T extends { [key: string]: IElement }>(structName: string, fields: T): Struct<T>
+/**
+ * 创建 VaryingStruct 实例
+ * 专门用于在顶点和片段着色器之间传递数据
+ * 仅支持 Builtin 和 Varying 成员
+ * @param structName 结构体名称
+ * @param fields 结构体字段，每个字段必须是 Builtin 或 Varying 的包装类型（如 vec4(builtin(...)) 或 vec4(varying(...))）
+ * @returns VaryingStruct 实例
+ */
+export function varyingStruct<T extends { [key: string]: IElement }>(structName: string, fields: T): VaryingStruct<T>
 {
-    return new Struct(structName, fields);
+    return new VaryingStruct(structName, fields);
 }
+
+/**
+ * @deprecated 请使用 varyingStruct 代替
+ * 为了向后兼容，保留 struct 作为 varyingStruct 的别名
+ */
+export const struct = varyingStruct;
+

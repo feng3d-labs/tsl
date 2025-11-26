@@ -41,6 +41,6 @@ export { float } from './builtin/types/float';
 export { vec2 } from './builtin/types/vec2';
 export { vec3 } from './builtin/types/vec3';
 export { vec4 } from './builtin/types/vec4';
-export * from './struct';
+export * from './varyingStruct';
 export * from './Vertex';
 

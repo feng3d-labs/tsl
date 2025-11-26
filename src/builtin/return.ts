@@ -1,6 +1,6 @@
 import { ShaderValue } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
-import { Struct } from '../struct';
+import { VaryingStruct } from '../varyingStruct';
 
 /**
  * 创建一个 return 语句（用于函数返回值）
@@ -12,8 +12,8 @@ export function return_<T extends ShaderValue>(expr: T): void
     const currentFunc = getCurrentFunc();
     if (currentFunc)
     {
-        // 检查是否是结构体变量（通过检查 dependencies 中是否包含 Struct 实例）
-        const isStructVar = expr.dependencies && expr.dependencies.some(dep => dep instanceof Struct);
+        // 检查是否是结构体变量（通过检查 dependencies 中是否包含 VaryingStruct 实例）
+        const isStructVar = expr.dependencies && expr.dependencies.some(dep => dep instanceof VaryingStruct);
 
         const stmt: any = {
             toGLSL: (type: 'vertex' | 'fragment') =>

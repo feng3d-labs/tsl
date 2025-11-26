@@ -10,14 +10,14 @@ describe('Builtin', () =>
         {
             const b = builtin('position', 'position_vec4');
             expect(b.builtinName).toBe('position');
-            expect(b.varName).toBe('position_vec4');
+            expect(b.name).toBe('position_vec4');
         });
 
         it('应该正确存储 builtinName 和 varName', () =>
         {
             const b = builtin('position', 'myPosition');
             expect(b.builtinName).toBe('position');
-            expect(b.varName).toBe('myPosition');
+            expect(b.name).toBe('myPosition');
         });
 
         it('应该初始化 dependencies 为空数组', () =>
@@ -99,14 +99,14 @@ describe('builtin() 函数', () =>
     {
         const result = builtin('position', 'position_vec4');
         expect(result.builtinName).toBe('position');
-        expect(result.varName).toBe('position_vec4');
+        expect(result.name).toBe('position_vec4');
     });
 
     it('应该正确设置 builtinName 和 varName', () =>
     {
         const result = builtin('position', 'myPosition');
         expect(result.builtinName).toBe('position');
-        expect(result.varName).toBe('myPosition');
+        expect(result.name).toBe('myPosition');
     });
 
     it('应该能够生成正确的 GLSL 代码', () =>
@@ -127,8 +127,8 @@ describe('builtin() 函数', () =>
     {
         const result1 = builtin('position', 'pos');
         const result2 = builtin('position', 'outputPos');
-        expect(result1.varName).toBe('pos');
-        expect(result2.varName).toBe('outputPos');
+        expect(result1.name).toBe('pos');
+        expect(result2.name).toBe('outputPos');
         expect(result1.builtinName).toBe('position');
         expect(result2.builtinName).toBe('position');
     });

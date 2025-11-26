@@ -64,7 +64,7 @@ export class Vec4 implements ShaderValue
 
                     throw new Error(`Builtin '${builtin.builtinName}' 不支持 GLSL，无法生成 GLSL 代码。`);
                 };
-                this.toWGSL = (type) => builtin.varName;
+                this.toWGSL = (type) => builtin.name;
                 this.dependencies = [builtin];
                 builtin.value = this;
             }

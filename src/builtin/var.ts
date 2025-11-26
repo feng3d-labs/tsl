@@ -1,7 +1,7 @@
 import { IElement, ShaderValue } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
 import { Fragment } from '../Fragment';
-import { Struct } from '../struct';
+import { VaryingStruct } from '../varyingStruct';
 import { Varying } from '../Varying';
 import { Builtin } from './builtin';
 import { Float } from './types/float';
@@ -12,14 +12,14 @@ import { Float } from './types/float';
  * @param expr 表达式或字面值
  * @returns 设置了变量名的表达式实例
  */
-export function var_<T extends { [key: string]: IElement }>(name: string, struct: Struct<T>): IElement & T;
+export function var_<T extends { [key: string]: IElement }>(name: string, struct: VaryingStruct<T>): IElement & T;
 export function var_<T extends ShaderValue>(name: string, expr: T): T;
 export function var_(name: string, expr: number): Float;
 export function var_(...args: any[]): any
 {
-    if (args[1] instanceof Struct)
+    if (args[1] instanceof VaryingStruct)
     {
-        return var_struct(args[0] as string, args[1] as Struct<any>);
+        return var_struct(args[0] as string, args[1] as VaryingStruct<any>);
     }
     const name = args[0] as string;
     let expr: ShaderValue;
@@ -63,7 +63,7 @@ export function var_(...args: any[]): any
     return result;
 }
 
-function var_struct<T extends { [key: string]: IElement }>(varName: string, struct: Struct<T>): IElement & T
+function var_struct<T extends { [key: string]: Builtin | Varying }>(varName: string, struct: VaryingStruct<T>): IElement & T
 {
     const result = {
         toGLSL: (type: 'vertex' | 'fragment') => ``,
@@ -73,10 +73,12 @@ function var_struct<T extends { [key: string]: IElement }>(varName: string, stru
 
     Object.entries(struct.fields).forEach(([key, value]) =>
     {
-        const cls = value.constructor as new () => IElement;
-        const instance = new cls();
         const dep = value.dependencies[0];
-        instance.toGLSL = (type: 'vertex' | 'fragment') =>
+        // 直接使用 value，重写其 toGLSL 和 toWGSL 方法
+        const originalToGLSL = value.toGLSL;
+        const originalToWGSL = value.toWGSL;
+
+        value.toGLSL = (type: 'vertex' | 'fragment') =>
         {
             // 对于 Varying，返回变量名而不是声明语句
             if (dep instanceof Varying)
@@ -89,13 +91,16 @@ function var_struct<T extends { [key: string]: IElement }>(varName: string, stru
                 return dep.toGLSL();
             }
 
-            // 其他情况使用依赖的 toGLSL
-            return dep.toGLSL(type);
+            // 其他情况使用原始的 toGLSL
+            return originalToGLSL(type);
         };
-        instance.toWGSL = (type: 'vertex' | 'fragment') => `${varName}.${key}`;
-        instance.dependencies = [result];
+        // 对于 WGSL，使用 varName（Builtin.name 或 Varying.name）而不是字段名
+        // 这样 output.position.x 会生成 output.position1.x（如果 name 是 position1）
+        const fieldVarName = dep instanceof Builtin ? dep.name : (dep instanceof Varying ? dep.name : key);
+        value.toWGSL = (type: 'vertex' | 'fragment') => `${varName}.${fieldVarName}`;
+        value.dependencies = [result];
 
-        (result as any)[key] = instance;
+        (result as any)[key] = value;
     });
 
     // 收集 var 语句或标记为输入参数

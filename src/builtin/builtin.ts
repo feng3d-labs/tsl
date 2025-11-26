@@ -6,14 +6,14 @@ import { IElement, ShaderValue } from '../IElement';
 export class Builtin implements IElement
 {
     readonly builtinName: string; // WGSL 中内置的固定名称（如 "position" 或 "gl_Position"）
-    readonly varName: string; // 用户自定义的变量名称（如 "position_vec4"）
+    readonly name: string; // 用户自定义的变量名称（如 "position_vec4"）
     value: ShaderValue;
     dependencies: IElement[] = [];
 
-    constructor(builtinName: 'position' | 'gl_Position', varName: string)
+    constructor(builtinName: 'position' | 'gl_Position', name: string)
     {
         this.builtinName = builtinName;
-        this.varName = varName;
+        this.name = name;
     }
 
     /**
@@ -54,7 +54,7 @@ export class Builtin implements IElement
             throw new Error(`Builtin '${this.builtinName}' 的 value 没有设置 wgslType，无法生成 WGSL。`);
         }
 
-        return `@builtin(${this.wgslBuiltinName}) ${this.varName}: ${wgslType}`;
+        return `@builtin(${this.wgslBuiltinName}) ${this.name}: ${wgslType}`;
     }
 }
 

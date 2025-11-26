@@ -169,6 +169,61 @@ export class Func
             // 如果有，自动创建结构体来包装这些变量
             if (!returnStruct)
             {
+                /**
+                 * 从 ShaderValue 中提取基础变量信息和成员访问
+                 * 用于识别是否来自同一个变量（Builtin 或 Varying）
+                 * @param value ShaderValue 实例
+                 * @returns { baseVar: Builtin | Varying; fieldName: string; memberAccess: string } | null
+                 */
+                const extractBaseVarInfo = (value: ShaderValue): { baseVar: Builtin | Varying; fieldName: string; memberAccess: string } | null =>
+                {
+                    if (!value || typeof value !== 'object' || !('dependencies' in value) || !Array.isArray(value.dependencies) || value.dependencies.length === 0)
+                    {
+                        return null;
+                    }
+
+                    const firstDep = value.dependencies[0];
+                    let baseVar: Builtin | Varying | null = null;
+                    let fieldName = '';
+                    let memberAccess = '';
+
+                    if (firstDep instanceof Builtin || firstDep instanceof Varying)
+                    {
+                        baseVar = firstDep;
+                        fieldName = firstDep instanceof Builtin ? firstDep.varName : firstDep.name;
+                        // 检查是否有成员访问（如 .z, .w）
+                        const valueWgsl = value.toWGSL(shaderType);
+                        const baseWgsl = firstDep instanceof Builtin ? firstDep.varName : firstDep.name;
+                        if (valueWgsl.startsWith(baseWgsl) && valueWgsl.length > baseWgsl.length)
+                        {
+                            memberAccess = valueWgsl.substring(baseWgsl.length);
+                        }
+
+                        return { baseVar, fieldName, memberAccess };
+                    }
+                    else if (firstDep && typeof firstDep === 'object' && 'dependencies' in firstDep && Array.isArray(firstDep.dependencies) && firstDep.dependencies.length > 0)
+                    {
+                        // 处理成员访问的情况（如 gl_Position.z）
+                        const secondDep = firstDep.dependencies[0];
+                        if (secondDep instanceof Builtin || secondDep instanceof Varying)
+                        {
+                            baseVar = secondDep;
+                            fieldName = secondDep instanceof Builtin ? secondDep.varName : secondDep.name;
+                            // 从 value.toWGSL 中提取成员访问
+                            const valueWgsl = value.toWGSL(shaderType);
+                            const baseWgsl = typeof firstDep.toWGSL === 'function' ? firstDep.toWGSL(shaderType) : '';
+                            if (valueWgsl.startsWith(baseWgsl) && valueWgsl.length > baseWgsl.length)
+                            {
+                                memberAccess = valueWgsl.substring(baseWgsl.length);
+                            }
+
+                            return { baseVar, fieldName, memberAccess };
+                        }
+                    }
+
+                    return null;
+                };
+
                 const builtinAssignments = new Map<Builtin, { target: ShaderValue; fieldName: string; value: ShaderValue }>();
                 const varyingAssignments = new Map<Varying, { target: ShaderValue; fieldName: string; value: ShaderValue }>();
 
@@ -182,24 +237,23 @@ export class Func
                         const target = stmtAny._assignTarget as ShaderValue;
                         const value = stmtAny._assignValue as ShaderValue;
 
-                        // 检查 target 是否是 builtin 或 varying
-                        if (target && typeof target === 'object' && 'dependencies' in target && Array.isArray(target.dependencies) && target.dependencies.length > 0)
+                        // 使用 extractBaseVarInfo 提取基础变量信息（支持成员访问）
+                        const targetInfo = extractBaseVarInfo(target);
+                        if (targetInfo)
                         {
-                            const firstDep = target.dependencies[0];
-                            if (firstDep instanceof Builtin)
+                            const { baseVar, fieldName } = targetInfo;
+                            if (baseVar instanceof Builtin)
                             {
-                                const fieldName = firstDep.isPosition ? 'position' : firstDep.varName;
-                                if (!builtinAssignments.has(firstDep))
+                                if (!builtinAssignments.has(baseVar))
                                 {
-                                    builtinAssignments.set(firstDep, { target, fieldName, value });
+                                    builtinAssignments.set(baseVar, { target, fieldName, value });
                                 }
                             }
-                            else if (firstDep instanceof Varying)
+                            else if (baseVar instanceof Varying)
                             {
-                                const fieldName = firstDep.name;
-                                if (!varyingAssignments.has(firstDep))
+                                if (!varyingAssignments.has(baseVar))
                                 {
-                                    varyingAssignments.set(firstDep, { target, fieldName, value });
+                                    varyingAssignments.set(baseVar, { target, fieldName, value });
                                 }
                             }
                         }
@@ -213,15 +267,17 @@ export class Func
                     const structFields: { [key: string]: IElement } = {};
 
                     // 添加 builtin 字段
-                    for (const [builtin, { target }] of builtinAssignments)
+                    for (const [builtin, { target, fieldName }] of builtinAssignments)
                     {
-                        structFields[builtin.isPosition ? 'position' : builtin.varName] = target;
+                        // 使用 builtin.value（Vec4）作为结构体字段，而不是 target（可能是 Float）
+                        structFields[fieldName] = builtin.value || target;
                     }
 
                     // 添加 varying 字段
                     for (const [varying, { target }] of varyingAssignments)
                     {
-                        structFields[varying.name] = target;
+                        // 使用 varying.value 作为结构体字段，而不是 target
+                        structFields[varying.name] = varying.value || target;
                     }
 
                     // 创建结构体
@@ -255,31 +311,29 @@ export class Func
                             const target = stmtAny._assignTarget as ShaderValue;
                             const value = stmtAny._assignValue as ShaderValue;
 
-                            // 检查 target 是否是 builtin 或 varying
-                            if (target && typeof target === 'object' && 'dependencies' in target && Array.isArray(target.dependencies) && target.dependencies.length > 0)
+                            // 提取 target 的基础变量信息
+                            const targetInfo = extractBaseVarInfo(target);
+                            if (targetInfo)
                             {
-                                const firstDep = target.dependencies[0];
-                                let isBuiltinOrVaryingAssignment = false;
-                                let fieldName = '';
+                                const { baseVar: targetBaseVar, fieldName, memberAccess } = targetInfo;
+                                const isStructAssignment = (targetBaseVar instanceof Builtin && builtinAssignments.has(targetBaseVar)) ||
+                                    (targetBaseVar instanceof Varying && varyingAssignments.has(targetBaseVar));
 
-                                if (firstDep instanceof Builtin)
-                                {
-                                    fieldName = firstDep.isPosition ? 'position' : firstDep.varName;
-                                    isBuiltinOrVaryingAssignment = builtinAssignments.has(firstDep);
-                                }
-                                else if (firstDep instanceof Varying)
-                                {
-                                    fieldName = firstDep.name;
-                                    isBuiltinOrVaryingAssignment = varyingAssignments.has(firstDep);
-                                }
-
-                                if (isBuiltinOrVaryingAssignment)
+                                if (isStructAssignment)
                                 {
                                     // 转换为结构体字段赋值
-                                    const valueExpr = value.toWGSL(shaderType);
+                                    // 检查 value 是否也来自同一个变量
+                                    let valueExpr = value.toWGSL(shaderType);
+                                    const valueInfo = extractBaseVarInfo(value);
+                                    if (valueInfo && valueInfo.baseVar === targetBaseVar && valueInfo.fieldName === fieldName)
+                                    {
+                                        // value 也来自同一个变量，转换为结构体字段访问
+                                        valueExpr = `${structVarName}.${valueInfo.fieldName}${valueInfo.memberAccess}`;
+                                    }
+
                                     newStatements.push({
                                         toGLSL: stmt.toGLSL,
-                                        toWGSL: () => `${structVarName}.${fieldName} = ${valueExpr};`,
+                                        toWGSL: () => `${structVarName}.${fieldName}${memberAccess} = ${valueExpr};`,
                                     });
                                 }
                                 else

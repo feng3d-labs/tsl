@@ -52,8 +52,8 @@ async function main()
     // 如果需要使用 TSL 生成的代码，可以取消下面的注释
     const vertexGlsl = vertexShader.toGLSL();
     const fragmentGlsl = fragmentShader.toGLSL();
-    // const vertexWgsl = vertexShader.toWGSL();
-    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+    const vertexWgsl = vertexShader.toWGSL();
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     // 初始化缓冲区
     const buffers = initBuffers();
@@ -168,7 +168,7 @@ async function main()
         webgpu.submit(submit);
         webgl.submit(submit);
 
-        requestAnimationFrame(render);
+        // requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
 }

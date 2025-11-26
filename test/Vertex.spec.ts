@@ -134,6 +134,21 @@ describe('Vertex', () =>
             expect(wgsl).toContain('@location(2) aPos: vec2<f32>');
             expect(wgsl).toContain('@location(1) vColor: vec4<f32>');
         });
+
+        it('应该使用 builtin.varName 作为结构体字段名', () =>
+        {
+            const gl_Position = vec4(builtin('position', 'position_vec4'));
+
+            const vert = vertex('main', () =>
+            {
+                assign(gl_Position.z, gl_Position.w);
+            });
+
+            const wgsl = vert.toWGSL();
+            // 验证结构体字段名使用 varName (position_vec4) 而不是硬编码的 'position'
+            expect(wgsl).toContain('@builtin(position) position_vec4: vec4<f32>');
+            expect(wgsl).toContain('output.position_vec4.z = output.position_vec4.w');
+        });
     });
 });
 

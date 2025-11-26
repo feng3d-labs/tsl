@@ -4,19 +4,21 @@ import { Sampler } from './Sampler';
 import { Struct } from './struct';
 import { Uniform } from './Uniform';
 import { Varying } from './Varying';
+import { ShaderValue } from './IElement';
 
 /**
- * 分析函数依赖中使用的 attributes、uniforms、precision、structs 和 varyings
+ * 分析函数依赖中使用的 attributes、uniforms、precision、structs、varyings 和外部变量
  * @param dependencies 函数依赖数组
- * @returns 使用的 Attribute、Uniform、Precision、Struct 和 Varying 实例集合
+ * @returns 使用的 Attribute、Uniform、Precision、Struct、Varying、Sampler 和外部变量集合
  */
-export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying>; samplers: Set<Sampler> }
+export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; externalVars: Array<{ name: string; expr: ShaderValue }> }
 {
     const attributes = new Set<Attribute>();
     const uniforms = new Set<Uniform>();
     const structs = new Set<Struct<any>>();
     const varyings = new Set<Varying>();
     const samplers = new Set<Sampler>();
+    const externalVars = new Map<string, { name: string; expr: ShaderValue }>();
     let precision: Precision | undefined;
     const visited = new WeakSet();
 
@@ -114,6 +116,17 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
             return;
         }
 
+        // 如果是外部定义的var_变量，收集它
+        if (typeof value === 'object' && (value as any)._isExternalVar)
+        {
+            const varName = (value as any)._varName;
+            const varExpr = (value as any)._varExpr;
+            if (varName && varExpr && !externalVars.has(varName))
+            {
+                externalVars.set(varName, { name: varName, expr: varExpr });
+            }
+        }
+
         // 如果是 IElement 实例（Vec2, Vec4 等），分析其 dependencies
         if (typeof value === 'object' && 'dependencies' in value && Array.isArray(value.dependencies))
         {
@@ -130,6 +143,6 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
         analyzeValue(dep);
     }
 
-    return { attributes, uniforms, precision, structs, varyings, samplers };
+    return { attributes, uniforms, precision, structs, varyings, samplers, externalVars: Array.from(externalVars.values()) };
 }
 

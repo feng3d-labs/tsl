@@ -24,9 +24,7 @@ const vBetaR = vec3(varying('vBetaR'));
 const vBetaM = vec3(varying('vBetaM'));
 const vSunE = float(varying('vSunE'));
 
-// Constants
-const e = var_('e', float(2.71828182845904523536028747135266249775724709369995957));
-const pi = var_('pi', float(3.141592653589793238462643383279502884197169));
+// Vertex shader constants
 const totalRayleigh = var_('totalRayleigh', vec3(5.804542996261093E-6, 1.3562911419845635E-5, 3.0265902468824876E-5));
 const MieConst = var_('MieConst', vec3(1.8399918514433978E14, 2.7798023919660528E14, 4.0790479543861094E14));
 const cutoffAngle = var_('cutoffAngle', float(1.6110731556870734));
@@ -36,6 +34,7 @@ const EE = var_('EE', float(1000.0));
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>
 {
+
     const worldPosition = var_('worldPosition', modelMatrix.multiply(vec4(position, 1.0)));
     assign(vWorldPosition, worldPosition.xyz);
     assign(gl_Position, projectionMatrix.multiply(modelViewMatrix).multiply(vec4(position, 1.0)));
@@ -62,6 +61,7 @@ const mieDirectionalG = float(uniform('mieDirectionalG'));
 const upFrag = vec3(uniform('up'));
 
 // Fragment shader constants
+const pi = var_('pi', float(3.141592653589793238462643383279502884197169));
 const rayleighZenithLength = var_('rayleighZenithLength', float(8.4E3));
 const mieZenithLength = var_('mieZenithLength', float(1.25E3));
 const sunAngularDiameterCos = var_('sunAngularDiameterCos', float(0.999956676946448443553574619906976478926848692873900859324));

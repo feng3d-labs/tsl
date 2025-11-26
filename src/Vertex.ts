@@ -47,6 +47,13 @@ export class Vertex extends Func
             lines.push(varying.toGLSL('vertex'));
         }
 
+        // 生成外部定义的var_变量（作为全局const）
+        const externalVars = dependencies.externalVars;
+        for (const { name, expr } of externalVars)
+        {
+            lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL('vertex')};`);
+        }
+
         // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
         const funcCode = super.toGLSL('vertex');
         const funcLines = funcCode.split('\n').filter(line => line.trim() !== '');
@@ -110,6 +117,13 @@ export class Vertex extends Func
         for (const uniform of dependencies.uniforms)
         {
             lines.push(uniform.toWGSL('vertex'));
+        }
+
+        // 生成外部定义的var_变量（作为全局const）
+        const externalVars = dependencies.externalVars;
+        for (const { name, expr } of externalVars)
+        {
+            lines.push(`const ${name}: ${expr.wgslType} = ${expr.toWGSL('vertex')};`);
         }
 
         // 空行

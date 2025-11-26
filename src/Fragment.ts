@@ -60,6 +60,13 @@ export class Fragment extends Func
             lines.push(sampler.toGLSL('fragment'));
         }
 
+        // 生成外部定义的var_变量（作为全局const）
+        const externalVars = dependencies.externalVars;
+        for (const { name, expr } of externalVars)
+        {
+            lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL('fragment')};`);
+        }
+
         // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
         const funcCode = super.toGLSL('fragment');
         const funcLines = funcCode.split('\n').filter(line => line.trim() !== '');
@@ -131,6 +138,13 @@ export class Fragment extends Func
         {
             const samplerWgsl = sampler.toWGSL('fragment');
             lines.push(...samplerWgsl.split('\n'));
+        }
+
+        // 生成外部定义的var_变量（作为全局const）
+        const externalVars = dependencies.externalVars;
+        for (const { name, expr } of externalVars)
+        {
+            lines.push(`const ${name}: ${expr.wgslType} = ${expr.toWGSL('fragment')};`);
         }
 
         // 空行

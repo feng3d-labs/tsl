@@ -19,7 +19,7 @@ export class Func
     readonly body: () => any;
     statements: IStatement[] = [];
     dependencies: IElement[] = [];
-    private _analyzedDependencies?: { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying>; samplers: Set<Sampler> };
+    private _analyzedDependencies?: { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; externalVars: Array<{ name: string; expr: ShaderValue }> };
 
     constructor(name: string, body: () => any)
     {
@@ -55,7 +55,7 @@ export class Func
     /**
      * 获取分析后的依赖（只分析一次，后续使用缓存）
      */
-    public getAnalyzedDependencies(): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying>; samplers: Set<Sampler> }
+    public getAnalyzedDependencies(): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<Struct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; externalVars: Array<{ name: string; expr: ShaderValue }> }
     {
         if (!this._analyzedDependencies)
         {

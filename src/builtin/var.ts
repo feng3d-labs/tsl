@@ -40,6 +40,13 @@ export function var_(...args: any[]): any
         // 收集依赖
         currentFunc.dependencies.push(result);
     }
+    else
+    {
+        // 在函数外部定义，标记为外部变量并保存初始化信息
+        (result as any)._isExternalVar = true;
+        (result as any)._varName = name;
+        (result as any)._varExpr = expr;
+    }
 
     return result;
 }

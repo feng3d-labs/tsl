@@ -147,6 +147,18 @@ describe('Float', () =>
             expect(result2.toGLSL('vertex')).toBe('-(1.0 + 2.0)');
             expect(result2.toWGSL('vertex')).toBe('-(1.0 + 2.0)');
         });
+
+        it('应该正确处理科学计数法并优化同级乘法', () =>
+        {
+            const a = float(0.2);
+            const turbidity = float(new Uniform('turbidity', 0, 0));
+            const b = float(10E-18);
+            // 0.2 * turbidity * 1e-17 应该生成 0.2 * turbidity * 1e-17（同级乘法不需要括号）
+            const mul1 = a.multiply(turbidity);
+            const mul2 = mul1.multiply(b);
+            expect(mul2.toGLSL('vertex')).toBe('0.2 * turbidity * 1e-17');
+            expect(mul2.toWGSL('vertex')).toBe('0.2 * turbidity * 1e-17');
+        });
     });
 });
 

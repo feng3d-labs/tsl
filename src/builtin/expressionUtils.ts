@@ -5,6 +5,21 @@ import { ShaderValue } from '../IElement';
  */
 function hasOperator(expr: string): boolean
 {
+    // 首先检查是否是数字字面量（包括科学计数法）
+    // 科学计数法格式：1e-17, 1E-17, 1.5e+17 等
+    if (/^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(expr))
+    {
+        // 是科学计数法，不包含运算符
+        return false;
+    }
+
+    // 检查是否是普通数字字面量（包括负数）
+    if (/^-?\d+(\.\d+)?$/.test(expr))
+    {
+        // 是数字字面量，不包含运算符
+        return false;
+    }
+
     // 检查是否包含运算符（排除函数调用中的括号）
     // 简单检查：如果包含 +、-、*、/ 运算符
     return /[+\-*/]/.test(expr);

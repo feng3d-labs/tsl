@@ -116,11 +116,11 @@ describe('Float', () =>
             expect(mul.toGLSL('vertex')).toBe('(1.0 + 2.0) * 3.0');
             expect(mul.toWGSL('vertex')).toBe('(1.0 + 2.0) * 3.0');
 
-            // a + b * c 应该生成括号
+            // a + b * c 不需要括号（乘除优先级更高）
             const mul2 = b.multiply(c);
             const add2 = a.add(mul2);
-            expect(add2.toGLSL('vertex')).toBe('1.0 + (2.0 * 3.0)');
-            expect(add2.toWGSL('vertex')).toBe('1.0 + (2.0 * 3.0)');
+            expect(add2.toGLSL('vertex')).toBe('1.0 + 2.0 * 3.0');
+            expect(add2.toWGSL('vertex')).toBe('1.0 + 2.0 * 3.0');
 
             // a / (b + c) 应该生成括号
             const add3 = b.add(c);

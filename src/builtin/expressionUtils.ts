@@ -109,11 +109,7 @@ export function formatOperand(
     if (currentOp === '+')
     {
         // 加法：左结合，同级不需要括号
-        // 如果操作数是乘除表达式，需要括号（优先级更高）
-        if (operandTopOp === 'muldiv')
-        {
-            needsParens = true;
-        }
+        // 如果操作数是乘除表达式，不需要括号（乘除优先级更高，会自动先计算）
         // 如果操作数是加减表达式，不需要括号（同级，左结合）
     }
     else if (currentOp === '-')
@@ -121,18 +117,20 @@ export function formatOperand(
         // 减法：左结合
         // 左操作数：如果是加减表达式，不需要括号（同级，左结合）
         // 右操作数：如果是加减表达式，需要括号（因为 a - (b + c) ≠ a - b + c）
+        //           如果是乘除表达式，不需要括号（乘除优先级更高）
         if (isLeftOperand)
         {
-            // 左操作数：如果操作数是乘除表达式，需要括号
-            if (operandTopOp === 'muldiv')
-            {
-                needsParens = true;
-            }
+            // 左操作数：如果操作数是乘除表达式，不需要括号（乘除优先级更高）
+            // 如果操作数是加减表达式，不需要括号（同级，左结合）
         }
         else
         {
-            // 右操作数：如果操作数是任何表达式，都需要括号
-            needsParens = true;
+            // 右操作数：如果操作数是加减表达式，需要括号
+            if (operandTopOp === 'addsub')
+            {
+                needsParens = true;
+            }
+            // 如果操作数是乘除表达式，不需要括号（乘除优先级更高）
         }
     }
     else if (currentOp === '*')

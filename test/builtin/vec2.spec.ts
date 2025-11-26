@@ -238,11 +238,11 @@ describe('vec2', () =>
             expect(mul.toGLSL('vertex')).toBe('(vec2(1.0, 2.0) + vec2(3.0, 4.0)) * 2.0');
             expect(mul.toWGSL('vertex')).toBe('(vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0)) * 2.0');
 
-            // a + b * c 应该生成括号
+            // a + b * c 不需要括号（乘除优先级更高）
             const mul2 = b.multiply(c);
             const add2 = a.add(mul2);
-            expect(add2.toGLSL('vertex')).toBe('vec2(1.0, 2.0) + (vec2(3.0, 4.0) * 2.0)');
-            expect(add2.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) + (vec2<f32>(3.0, 4.0) * 2.0)');
+            expect(add2.toGLSL('vertex')).toBe('vec2(1.0, 2.0) + vec2(3.0, 4.0) * 2.0');
+            expect(add2.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0) * 2.0');
         });
     });
 });

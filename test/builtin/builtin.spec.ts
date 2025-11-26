@@ -16,7 +16,7 @@ describe('Builtin', () =>
 
         it('应该在 varyingStruct 中设置 name', () =>
         {
-            const struct = varyingStruct('TestStruct', {
+            const struct = varyingStruct({
                 position: vec4(builtin('position')),
             });
             const b = struct.fields.position.dependencies[0] as any;
@@ -47,7 +47,7 @@ describe('Builtin', () =>
 
         it('应该在设置 value 后返回 gl_Position', () =>
         {
-            const struct = varyingStruct('TestStruct', {
+            const struct = varyingStruct({
                 position: vec4(builtin('position')),
             });
             const v = struct.fields.position;
@@ -73,7 +73,7 @@ describe('Builtin', () =>
 
         it('应该返回正确格式的 WGSL 代码', () =>
         {
-            const struct = varyingStruct('TestStruct', {
+            const struct = varyingStruct({
                 position: vec4(builtin('position')),
             });
             const b = struct.fields.position.dependencies[0] as any;
@@ -106,7 +106,7 @@ describe('builtin() 函数', () =>
 
     it('应该在 varyingStruct 中设置 name', () =>
     {
-        const struct = varyingStruct('TestStruct', {
+        const struct = varyingStruct({
             position: vec4(builtin('position')),
         });
         const b = struct.fields.position.dependencies[0] as any;
@@ -116,7 +116,7 @@ describe('builtin() 函数', () =>
 
     it('应该能够生成正确的 GLSL 代码', () =>
     {
-        const struct = varyingStruct('TestStruct', {
+        const struct = varyingStruct({
             position: vec4(builtin('position')),
         });
         const v = struct.fields.position;
@@ -125,7 +125,7 @@ describe('builtin() 函数', () =>
 
     it('应该能够生成正确的 WGSL 代码', () =>
     {
-        const struct = varyingStruct('TestStruct', {
+        const struct = varyingStruct({
             position: vec4(builtin('position')),
         });
         const b = struct.fields.position.dependencies[0] as any;

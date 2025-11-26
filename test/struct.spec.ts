@@ -15,21 +15,21 @@ describe('VaryingStruct', () =>
     {
         it('应该能够创建 VaryingStruct 实例', () =>
         {
-            const VertexOutput = varyingStruct('VertexOutput', {
+            const VertexOutput = varyingStruct({
                 position: vec4(builtin('position')),
             });
 
             expect(VertexOutput).toBeInstanceOf(VaryingStruct);
-            expect(VertexOutput.structName).toBe('VertexOutput');
+            expect(VertexOutput.structName).toBe('VaryingStruct');
             expect(Object.keys(VertexOutput.fields)).toHaveLength(1);
         });
 
         it('应该能够处理空字段对象', () =>
         {
-            const EmptyStruct = varyingStruct('EmptyStruct', {});
+            const EmptyStruct = varyingStruct({});
 
             expect(EmptyStruct).toBeInstanceOf(VaryingStruct);
-            expect(EmptyStruct.structName).toBe('EmptyStruct');
+            expect(EmptyStruct.structName).toBe('VaryingStruct');
             expect(Object.keys(EmptyStruct.fields)).toHaveLength(0);
             expect(EmptyStruct.dependencies).toHaveLength(0);
         });
@@ -38,7 +38,7 @@ describe('VaryingStruct', () =>
         {
             expect(() =>
             {
-                varyingStruct('Material', {
+                varyingStruct({
                     position: vec3(attribute('position', 0)),
                 });
             }).toThrow('必须是 builtin 或 varying 类型');
@@ -48,7 +48,7 @@ describe('VaryingStruct', () =>
         {
             expect(() =>
             {
-                varyingStruct('Material', {
+                varyingStruct({
                     modelMatrix: mat4(uniform('modelMatrix', 0, 0)),
                 });
             }).toThrow('必须是 builtin 或 varying 类型');
@@ -59,31 +59,31 @@ describe('VaryingStruct', () =>
     {
         it('应该能够生成完整的 WGSL 结构体定义', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position: vec4(builtin('position')),
             });
 
             const wgsl = VertexOutput.toWGSL('vertex');
 
-            expect(wgsl).toBe('struct VertexOutput {\n    @builtin(position) position: vec4<f32>,\n}');
+            expect(wgsl).toBe('struct VaryingStruct {\n    @builtin(position) position: vec4<f32>,\n}');
         });
 
         it('应该能够生成正确的 WGSL 代码（字段名与 varName 不同）', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 pos: vec4(builtin('position')),
             });
 
             const wgsl = VertexOutput.toWGSL('vertex');
 
-            expect(wgsl).toContain('struct VertexOutput');
+            expect(wgsl).toContain('struct VaryingStruct');
             // 结构体字段使用结构体定义的字段名，而不是 builtin 的 varName
             expect(wgsl).toContain('@builtin(position) pos: vec4<f32>');
         });
 
         it('应该能够为 vertex 和 fragment 生成相同的 WGSL 代码', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position: vec4(builtin('position')),
             });
 
@@ -97,7 +97,7 @@ describe('VaryingStruct', () =>
         {
             const position = vec4(builtin('position'));
 
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position,
             });
 
@@ -110,7 +110,7 @@ describe('VaryingStruct', () =>
     {
         it('应该能够生成空的 GLSL 代码', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position: vec4(builtin('position')),
             });
 
@@ -126,11 +126,11 @@ describe('VaryingStruct', () =>
     {
         it('应该能够创建 VaryingStruct 变量实例', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position: vec4(builtin('position')),
             });
 
-            const output = var_('output', VertexOutput);
+            const output = var_(VertexOutput);
 
             expect(output.dependencies).toHaveLength(1);
             expect(output.dependencies[0]).toBe(VertexOutput);
@@ -138,15 +138,15 @@ describe('VaryingStruct', () =>
 
         it('应该能够使用不同的变量名', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position: vec4(builtin('position')),
             });
 
-            const output1 = var_('output1', VertexOutput);
-            const output2 = var_('output2', VertexOutput);
+            const output1 = var_(VertexOutput);
+            const output2 = var_(VertexOutput);
 
-            expect(output1.toWGSL('vertex')).toBe('output1');
-            expect(output2.toWGSL('vertex')).toBe('output2');
+            expect(output1.toWGSL('vertex')).toBe('v');
+            expect(output2.toWGSL('vertex')).toBe('v');
         });
     });
 
@@ -154,69 +154,69 @@ describe('VaryingStruct', () =>
     {
         it('应该能够生成正确的 WGSL 代码', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position: vec4(builtin('position')),
             });
 
-            const output = var_('output', VertexOutput);
+            const output = var_(VertexOutput);
 
             const vertexWgsl = output.toWGSL('vertex');
             const fragmentWgsl = output.toWGSL('fragment');
 
-            expect(vertexWgsl).toBe('output');
-            expect(fragmentWgsl).toBe('output');
+            expect(vertexWgsl).toBe('v');
+            expect(fragmentWgsl).toBe('v');
         });
 
         it('应该能够为结构体字段生成正确的 WGSL 代码', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position: vec4(builtin('position')),
             });
 
-            const output = var_('output', VertexOutput);
+            const output = var_(VertexOutput);
 
             const wgsl = output.position.toWGSL('vertex');
-            expect(wgsl).toBe('output.position');
+            expect(wgsl).toBe('v.position');
         });
 
         it('应该能够为结构体字段属性生成正确的 WGSL 代码', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position: vec4(builtin('position')),
             });
 
-            const output = var_('output', VertexOutput);
+            const output = var_(VertexOutput);
 
             const wgsl = output.position.x.toWGSL('vertex');
-            expect(wgsl).toBe('output.position.x');
+            expect(wgsl).toBe('v.position.x');
         });
 
         it('应该能够为结构体字段属性生成正确的 WGSL 代码', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position: vec4(builtin('position')),
             });
 
-            const output = var_('output', VertexOutput);
+            const output = var_(VertexOutput);
 
             const wgsl = output.position.x.toWGSL('vertex');
-            expect(wgsl).toBe('output.position.x');
+            expect(wgsl).toBe('v.position.x');
 
-            expect(output.position.xyz.toWGSL('vertex')).toBe('output.position.xyz');
+            expect(output.position.xyz.toWGSL('vertex')).toBe('v.position.xyz');
         });
 
         it('应该能够为结构体字段属性生成正确的 WGSL 代码', () =>
         {
             const position = vec4(builtin('position'));
 
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position,
             });
 
-            const output = var_('output', VertexOutput);
+            const output = var_(VertexOutput);
 
             const wgsl = position.x.toWGSL('vertex');
-            expect(wgsl).toBe('output.position.x');
+            expect(wgsl).toBe('v.position.x');
 
             expect(position.xyz.toWGSL('vertex')).toBe('output.position.xyz');
         });
@@ -226,11 +226,11 @@ describe('VaryingStruct', () =>
     {
         it('应该能够生成正确的 GLSL 代码', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position: vec4(builtin('position')),
             });
 
-            const output = var_('output', VertexOutput);
+            const output = var_(VertexOutput);
 
             const vertexGlsl = output.toGLSL('vertex');
             const fragmentGlsl = output.toGLSL('fragment');
@@ -241,11 +241,11 @@ describe('VaryingStruct', () =>
 
         it('应该能够为结构体字段生成正确的 GLSL 代码', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position: vec4(builtin('position')),
             });
 
-            const output = var_('output', VertexOutput);
+            const output = var_(VertexOutput);
 
             const glsl = output.position.toGLSL('vertex');
             expect(glsl).toBe('gl_Position');
@@ -253,11 +253,11 @@ describe('VaryingStruct', () =>
 
         it('应该能够为结构体字段属性生成正确的 GLSL 代码', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 position: vec4(builtin('position')),
             });
 
-            const output = var_('output', VertexOutput);
+            const output = var_(VertexOutput);
 
             const glsl = output.position.x.toGLSL('vertex');
             expect(glsl).toBe('gl_Position.x');
@@ -265,11 +265,11 @@ describe('VaryingStruct', () =>
 
         it('应该能够为 Varying 字段生成正确的 GLSL 代码', () =>
         {
-            const VertexOutput = struct('VertexOutput', {
+            const VertexOutput = struct({
                 color: vec4(varying(1)),
             });
 
-            const output = var_('output', VertexOutput);
+            const output = var_(VertexOutput);
 
             const glsl = output.color.toGLSL('vertex');
             expect(glsl).toBe('color');

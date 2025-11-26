@@ -65,7 +65,7 @@ describe('Vertex', () =>
         it('应该能够生成包含 varying 声明的 GLSL 代码', () =>
         {
             const aVertexColor = vec4(attribute('aVertexColor', 0));
-            const v = varyingStruct('VertexOutput', {
+            const v = varyingStruct({
                 position: vec4(builtin('position')),
                 vColor: vec4(varying(0)),
             });
@@ -103,7 +103,7 @@ describe('Vertex', () =>
 
         it('应该能够自动分配 varying 的 location', () =>
         {
-            const v = varyingStruct('VertexOutput', {
+            const v = varyingStruct({
                 position: vec4(builtin('position')),
                 vColor: vec4(varying()),
                 vTexCoord: vec2(varying()),
@@ -124,7 +124,7 @@ describe('Vertex', () =>
         {
             const aPos = vec2(attribute('aPos', 2)); // 显式指定 location 2
             const aColor = vec4(attribute('aColor')); // 自动分配
-            const v = varyingStruct('VertexOutput', {
+            const v = varyingStruct({
                 position: vec4(builtin('position')),
                 vColor: vec4(varying(1)), // 显式指定 location 1
                 vTexCoord: vec2(varying()), // 自动分配
@@ -144,7 +144,7 @@ describe('Vertex', () =>
 
         it('应该使用结构体字段名作为变量名', () =>
         {
-            const v = varyingStruct('VertexOutput', {
+            const v = varyingStruct({
                 position_vec4: vec4(builtin('position')),
             });
 

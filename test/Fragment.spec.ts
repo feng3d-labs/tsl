@@ -65,7 +65,7 @@ describe('Fragment', () =>
     {
         it('应该能够自动分配 varying 的 location', () =>
         {
-            const v = varyingStruct('VertexOutput', {
+            const v = varyingStruct({
                 vColor: vec4(varying()),
                 vTexCoord: vec2(varying()),
             });
@@ -83,7 +83,7 @@ describe('Fragment', () =>
         it('应该能够与 vertex shader 的 varying location 保持一致', () =>
         {
             const aPos = vec2(attribute('aPos'));
-            const v = varyingStruct('VertexOutput', {
+            const v = varyingStruct({
                 position: vec4(builtin('position')),
                 vColor: vec4(varying()),
             });
@@ -113,7 +113,7 @@ describe('Fragment', () =>
 
         it('应该能够混合显式指定和自动分配的 varying location', () =>
         {
-            const v = varyingStruct('VertexOutput', {
+            const v = varyingStruct({
                 vColor: vec4(varying(1)), // 显式指定 location 1
                 vTexCoord: vec2(varying()), // 自动分配
             });

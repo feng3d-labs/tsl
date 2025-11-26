@@ -55,7 +55,7 @@ describe('Float', () =>
     {
         it('应该返回 Float 实例', () =>
         {
-            const struct = varyingStruct('TestStruct', {
+            const struct = varyingStruct({
                 vValue: float(varying(0)),
             });
             const result = struct.vValue;

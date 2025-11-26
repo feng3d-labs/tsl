@@ -144,8 +144,8 @@ export class Func
                                 if (typeof dep.toWGSL === 'function')
                                 {
                                     const varName = dep.toWGSL(shaderType);
-                                    // 检查是否有对结构体字段的赋值
-                                    if (stmtWgsl.includes(`${varName}.`) || stmtWgsl.includes(`return ${varName}`))
+                                    // 检查是否有对结构体字段的赋值（变量名固定为 v）
+                                    if (stmtWgsl.includes(`v.`) || stmtWgsl.includes(`return v`))
                                     {
                                         returnStruct = subDep;
                                         break;
@@ -227,8 +227,7 @@ export class Func
                 // 如果有对 builtin 或 varying 的赋值，创建结构体
                 if (builtinSet.size > 0 || varyingSet.size > 0)
                 {
-                    const autoStructName = 'VertexOutput';
-                    const structVarName = 'output';
+                    const structVarName = 'v';
 
                     // 创建结构体字段
                     const structFields: { [key: string]: IElement } = {};
@@ -262,8 +261,8 @@ export class Func
                         structFieldMap.set(varying, fieldName);
                     }
 
-                    // 创建结构体
-                    returnStruct = new VaryingStruct(autoStructName, structFields);
+                    // 创建结构体（结构体名称固定为 VaryingStruct）
+                    returnStruct = new VaryingStruct(structFields);
 
                     // 创建结构体变量
                     const structVar = {
@@ -322,11 +321,11 @@ export class Func
                         }
                     }
 
-                    // 添加结构体变量声明语句
+                    // 添加结构体变量声明语句（变量名固定为 v，结构体名称固定为 VaryingStruct）
                     const newStatements: IStatement[] = [];
                     newStatements.push({
                         toGLSL: () => '',
-                        toWGSL: () => `var ${structVarName}: ${autoStructName};`,
+                        toWGSL: () => `var v: VaryingStruct;`,
                     });
 
                     // 保留所有原有语句（由于已经重写了 toWGSL 方法，赋值语句会自动使用正确的结构体字段访问）
@@ -338,7 +337,7 @@ export class Func
                     // 添加 return 语句
                     newStatements.push({
                         toGLSL: () => '',
-                        toWGSL: () => `return ${structVarName};`,
+                        toWGSL: () => `return v;`,
                     });
 
                     // 替换 statements
@@ -352,38 +351,42 @@ export class Func
                 }
             }
 
-            // 如果没有找到 return 语句，但存在结构体变量且有赋值操作，也认为返回结构体
-            // 需要在最后添加 return 语句
-            if (returnStruct && !this.statements.some(stmt => stmt.toWGSL(shaderType).includes('return')))
+            // 如果找到了结构体变量（通过 var_ 调用 varyingStruct），需要添加 var v: VaryingStruct; 声明
+            if (returnStruct)
             {
-                // 找到结构体变量名
-                for (const dep of this.dependencies)
+                // 检查是否已经添加了 var v: VaryingStruct; 声明
+                const hasVarDeclaration = this.statements.some(stmt => stmt.toWGSL(shaderType).includes('var v: VaryingStruct'));
+                if (!hasVarDeclaration)
                 {
-                    if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
+                    // 在函数体开头添加 var v: VaryingStruct; 声明
+                    const newStatements: IStatement[] = [];
+                    newStatements.push({
+                        toGLSL: () => '',
+                        toWGSL: () => `var v: VaryingStruct;`,
+                    });
+                    // 保留所有原有语句
+                    for (const stmt of this.statements)
                     {
-                        for (const subDep of dep.dependencies)
-                        {
-                            if (subDep instanceof VaryingStruct && subDep === returnStruct)
-                            {
-                                if (typeof dep.toWGSL === 'function')
-                                {
-                                    const varName = dep.toWGSL(shaderType);
-                                    // 添加 return 语句
-                                    this.statements.push({
-                                        toGLSL: () => '',
-                                        toWGSL: () => `return ${varName};`,
-                                    });
-                                }
-                                break;
-                            }
-                        }
+                        newStatements.push(stmt);
                     }
+                    this.statements = newStatements;
+                }
+
+                // 如果没有找到 return 语句，但存在结构体变量且有赋值操作，也认为返回结构体
+                // 需要在最后添加 return 语句
+                if (!this.statements.some(stmt => stmt.toWGSL(shaderType).includes('return')))
+                {
+                    // 添加 return 语句（变量名固定为 v）
+                    this.statements.push({
+                        toGLSL: () => '',
+                        toWGSL: () => `return v;`,
+                    });
                 }
             }
 
             const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
             // 如果返回结构体，使用结构体类型；否则使用默认的 vec4<f32>
-            const returnType = returnStruct ? returnStruct.structName : '@builtin(position) vec4<f32>';
+            const returnType = returnStruct ? 'VaryingStruct' : '@builtin(position) vec4<f32>';
             lines.push(`fn ${this.name}${paramStr} -> ${returnType} {`);
 
             this.statements.forEach(stmt =>
@@ -456,8 +459,8 @@ export class Func
             let paramStr = '()';
             if (inputStruct)
             {
-                // 使用结构体作为参数
-                paramStr = `(\n    ${inputStruct.varName}: ${inputStruct.struct.structName},\n)`;
+                // 使用结构体作为参数（变量名固定为 v，结构体名称固定为 VaryingStruct）
+                paramStr = `(\n    v: VaryingStruct,\n)`;
             }
             else if (varyingParams.length > 0)
             {

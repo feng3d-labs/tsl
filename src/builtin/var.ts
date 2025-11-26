@@ -17,9 +17,9 @@ export function var_<T extends ShaderValue>(name: string, expr: T): T;
 export function var_(name: string, expr: number): Float;
 export function var_(...args: any[]): any
 {
-    if (args[1] instanceof VaryingStruct)
+    if (args[0] instanceof VaryingStruct)
     {
-        return var_struct(args[0] as string, args[1] as VaryingStruct<any>);
+        return var_struct(args[0] as VaryingStruct<any>);
     }
     const name = args[0] as string;
     let expr: ShaderValue;
@@ -63,8 +63,9 @@ export function var_(...args: any[]): any
     return result;
 }
 
-function var_struct<T extends { [key: string]: Builtin | Varying }>(varName: string, struct: VaryingStruct<T>): IElement & T
+function var_struct<T extends { [key: string]: Builtin | Varying }>(struct: VaryingStruct<T>): IElement & T
 {
+    const varName = 'v';
     const result = {
         toGLSL: (type: 'vertex' | 'fragment') => ``,
         toWGSL: (type: 'vertex' | 'fragment') => `${varName}`,
@@ -111,16 +112,9 @@ function var_struct<T extends { [key: string]: Builtin | Varying }>(varName: str
         const isFragment = currentFunc instanceof Fragment;
         const hasVarying = struct.hasVarying();
 
-        // 只在 fragment shader 中，如果结构体包含 varying，才不生成 var 语句
-        // 在 vertex shader 中，始终生成 var 语句
-        if (!isFragment || !hasVarying)
-        {
-            currentFunc.statements.push({
-                // GLSL 中不需要输出结构体变量声明
-                toGLSL: (type: 'vertex' | 'fragment') => ``,
-                toWGSL: (type: 'vertex' | 'fragment') => `var ${varName}: ${struct.structName};`,
-            });
-        }
+        // 在 vertex shader 中，如果使用了结构体，会在函数体中添加 var v: VaryingStruct;
+        // 在 fragment shader 中，如果使用了结构体，会在函数参数中添加 v: VaryingStruct
+        // 这里不再生成 var 语句，由 Func.toWGSL 统一处理
         // 收集依赖（用于在 fragment shader 中生成函数参数）
         currentFunc.dependencies.push(result);
     }

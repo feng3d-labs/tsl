@@ -29,7 +29,7 @@ describe('Varying', () =>
 
         it('应该在 varyingStruct 中设置 name 并生成 GLSL', () =>
         {
-            const struct = varyingStruct('TestStruct', {
+            const struct = varyingStruct({
                 vColor: vec4(varying(0)),
             });
             const v = struct.fields.vColor.dependencies[0] as Varying;
@@ -40,7 +40,7 @@ describe('Varying', () =>
 
         it('应该在 varyingStruct 中设置 name 并生成 WGSL', () =>
         {
-            const struct = varyingStruct('TestStruct', {
+            const struct = varyingStruct({
                 vColor: vec4(varying(0)),
             });
             const v = struct.fields.vColor.dependencies[0] as Varying;
@@ -61,7 +61,7 @@ describe('Varying', () =>
 
         it('应该在 varyingStruct 中设置 name', () =>
         {
-            const struct = varyingStruct('TestStruct', {
+            const struct = varyingStruct({
                 vColor: vec4(varying(0)),
             });
             const v = struct.fields.vColor.dependencies[0] as Varying;
@@ -71,7 +71,7 @@ describe('Varying', () =>
 
         it('应该支持 vec4(varying(...)) 形式', () =>
         {
-            const struct = varyingStruct('VertexOutput', {
+            const struct = varyingStruct({
                 vColor: vec4(varying(0)),
             });
             const vColor = struct.fields.vColor;
@@ -156,7 +156,7 @@ describe('Varying', () =>
             const v1 = varying();
             const v2 = varying(1);
 
-            const struct = varyingStruct('VertexOutput', {
+            const struct = varyingStruct({
                 position: vec4(builtin('position')),
                 vColor: vec4(v1),
                 vTexCoord: vec2(v2),

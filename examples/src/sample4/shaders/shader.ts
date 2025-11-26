@@ -8,7 +8,7 @@ const aVertexColor = vec4(attribute('aVertexColor'));
 const uModelViewMatrix = mat4(uniform('uModelViewMatrix'));
 const uProjectionMatrix = mat4(uniform('uProjectionMatrix'));
 
-const v = varyingStruct('varyingOutput', {
+const v = varyingStruct({
     position_vec4: vec4(builtin('position')),
     vColor: vec4(varying()),
 });

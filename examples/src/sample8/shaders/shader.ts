@@ -11,7 +11,7 @@ const uProjectionMatrix = mat4(uniform('uProjectionMatrix', 0, 1));
 const uNormalMatrix = mat4(uniform('uNormalMatrix', 0, 2));
 
 // VaryingStruct 用于在顶点和片段着色器之间传递数据
-const v = varyingStruct('VertexOutput', {
+const v = varyingStruct({
     vPosition: vec4(builtin('position')),
     vTextureCoord: vec2(varying()),
     vLighting: vec3(varying()),

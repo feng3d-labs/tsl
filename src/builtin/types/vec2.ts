@@ -133,6 +133,7 @@ export class Vec2 implements ShaderValue
             result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${typeof other === 'number' ? other : other.toWGSL(type)}`;
             result.dependencies = typeof other === 'number' ? [this] : [this, other];
         }
+
         return result;
     }
 
@@ -145,6 +146,7 @@ export class Vec2 implements ShaderValue
         result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} + ${other.toGLSL(type)}`;
         result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} + ${other.toWGSL(type)}`;
         result.dependencies = [this, other];
+
         return result;
     }
 
@@ -157,6 +159,7 @@ export class Vec2 implements ShaderValue
         result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} - ${other.toGLSL(type)}`;
         result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} - ${other.toWGSL(type)}`;
         result.dependencies = [this, other];
+
         return result;
     }
 
@@ -178,6 +181,7 @@ export class Vec2 implements ShaderValue
             result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} / ${typeof other === 'number' ? other : other.toWGSL(type)}`;
             result.dependencies = typeof other === 'number' ? [this] : [this, other];
         }
+
         return result;
     }
 

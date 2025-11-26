@@ -117,4 +117,3 @@ export function uvec3(...args: any[]): Uvec3
     throw new Error('uvec3: invalid arguments');
 }
 
-

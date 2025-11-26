@@ -131,4 +131,3 @@ export function ivec4(...args: any[]): IVec4
     throw new Error('ivec4: invalid arguments');
 }
 
-

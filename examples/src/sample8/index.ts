@@ -1,10 +1,10 @@
-import { RenderObject, RenderPass, RenderPassDescriptor, Sampler, Submit, Texture } from "@feng3d/render-api";
-import { reactive } from "@feng3d/reactivity";
-import { WebGL } from "@feng3d/webgl";
-import { WebGPU } from "@feng3d/webgpu";
-import { mat4 } from "gl-matrix";
+import { RenderObject, RenderPass, RenderPassDescriptor, Sampler, Submit, Texture } from '@feng3d/render-api';
+import { reactive } from '@feng3d/reactivity';
+import { WebGL } from '@feng3d/webgl';
+import { WebGPU } from '@feng3d/webgpu';
+import { mat4 } from 'gl-matrix';
 
-import { vertexShader, fragmentShader } from "./shaders/shader";
+import { vertexShader, fragmentShader } from './shaders/shader';
 
 let cubeRotation = 0.0;
 // will set to true when video can be copied to texture
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
     webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
     const webgpu = await new WebGPU(
-        { canvasId: 'webgpu' }
+        { canvasId: 'webgpu' },
     ).init();
 
     // 初始化 WebGL
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
     webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
     const webgl = new WebGL(
-        { canvasId: 'webgl', webGLcontextId: 'webgl' }
+        { canvasId: 'webgl', webGLcontextId: 'webgl' },
     );
 
     // 初始化缓冲区
@@ -175,7 +175,7 @@ function setupVideo(url: string)
     }, true);
 
     video.src = url;
-    
+
     // 尝试播放，如果失败则等待用户交互
     video.play().catch((error) =>
     {

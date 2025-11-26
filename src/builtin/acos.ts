@@ -11,6 +11,7 @@ export function acos(a: Float | number): Float
     result.toGLSL = (type: 'vertex' | 'fragment') => `acos(${typeof a === 'number' ? formatNumber(a) : a.toGLSL(type)})`;
     result.toWGSL = (type: 'vertex' | 'fragment') => `acos(${typeof a === 'number' ? formatNumber(a) : a.toWGSL(type)})`;
     result.dependencies = typeof a === 'number' ? [] : [a];
+
     return result;
 }
 

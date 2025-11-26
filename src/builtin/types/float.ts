@@ -108,6 +108,7 @@ export class Float implements ShaderValue
         result.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${typeof other === 'number' ? formatNumber(other) : other.toGLSL(type)}`;
         result.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${typeof other === 'number' ? formatNumber(other) : other.toWGSL(type)}`;
         result.dependencies = typeof other === 'number' ? [this] : [this, other];
+
         return result;
     }
 

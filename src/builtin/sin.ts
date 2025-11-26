@@ -11,6 +11,7 @@ export function sin(a: Float | number): Float
     result.toGLSL = (type: 'vertex' | 'fragment') => `sin(${typeof a === 'number' ? formatNumber(a) : a.toGLSL(type)})`;
     result.toWGSL = (type: 'vertex' | 'fragment') => `sin(${typeof a === 'number' ? formatNumber(a) : a.toWGSL(type)})`;
     result.dependencies = typeof a === 'number' ? [] : [a];
+
     return result;
 }
 

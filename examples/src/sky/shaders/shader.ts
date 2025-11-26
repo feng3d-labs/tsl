@@ -61,10 +61,10 @@ const mieDirectionalG = float(uniform('mieDirectionalG'));
 const upFrag = vec3(uniform('up'));
 
 // Fragment shader constants
-const pi = var_('pi', float(3.141592653589793238462643383279502884197169));
+const pi = var_('pi', float(3.141592653589793));
 const rayleighZenithLength = var_('rayleighZenithLength', float(8.4E3));
 const mieZenithLength = var_('mieZenithLength', float(1.25E3));
-const sunAngularDiameterCos = var_('sunAngularDiameterCos', float(0.999956676946448443553574619906976478926848692873900859324));
+const sunAngularDiameterCos = var_('sunAngularDiameterCos', float(0.9999566769464484));
 const THREE_OVER_SIXTEENPI = var_('THREE_OVER_SIXTEENPI', float(0.05968310365946075));
 const ONE_OVER_FOURPI = var_('ONE_OVER_FOURPI', float(0.07957747154594767));
 

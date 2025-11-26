@@ -1,12 +1,12 @@
-import { RenderPassDescriptor, Submit } from "@feng3d/render-api";
-import { WebGL } from "@feng3d/webgl";
-import { WebGPU } from "@feng3d/webgpu";
+import { RenderPassDescriptor, Submit } from '@feng3d/render-api';
+import { WebGL } from '@feng3d/webgl';
+import { WebGPU } from '@feng3d/webgpu';
 
-import vertexGlsl from "./shaders/vertex.glsl";
-import vertexWgsl from "./shaders/vertex.wgsl";
-import fragmentGlsl from "./shaders/fragment.glsl";
-import fragmentWgsl from "./shaders/fragment.wgsl";
-import { fragmentShader, vertexShader } from "./shaders/shader";
+import vertexGlsl from './shaders/vertex.glsl';
+import vertexWgsl from './shaders/vertex.wgsl';
+import fragmentGlsl from './shaders/fragment.glsl';
+import fragmentWgsl from './shaders/fragment.wgsl';
+import { fragmentShader, vertexShader } from './shaders/shader';
 
 document.addEventListener('DOMContentLoaded', async () =>
 {

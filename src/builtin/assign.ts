@@ -32,11 +32,11 @@ export function assign<T extends ShaderValue>(target: T, value: T): void
                 }
             },
         };
-        
+
         // 保存原始信息，用于自动创建结构体
         stmt._assignTarget = target;
         stmt._assignValue = value;
-        
+
         currentFunc.statements.push(stmt);
         // 收集依赖（包括 target 和 value）
         currentFunc.dependencies.push(target);

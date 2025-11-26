@@ -1,14 +1,14 @@
-import { RenderPassDescriptor, Submit } from "@feng3d/render-api";
-import { WebGL } from "@feng3d/webgl";
-import { WebGPU } from "@feng3d/webgpu";
-import { mat4 } from "gl-matrix";
+import { RenderPassDescriptor, Submit } from '@feng3d/render-api';
+import { WebGL } from '@feng3d/webgl';
+import { WebGPU } from '@feng3d/webgpu';
+import { mat4 } from 'gl-matrix';
 
-import vertexGlsl from "./shaders/vertex.glsl";
-import fragmentGlsl from "./shaders/fragment.glsl";
-import vertexWgsl from "./shaders/vertex.wgsl";
-import fragmentWgsl from "./shaders/fragment.wgsl";
+import vertexGlsl from './shaders/vertex.glsl';
+import fragmentGlsl from './shaders/fragment.glsl';
+import vertexWgsl from './shaders/vertex.wgsl';
+import fragmentWgsl from './shaders/fragment.wgsl';
 
-import { vertexShader, fragmentShader } from "./shaders/shader";
+import { vertexShader, fragmentShader } from './shaders/shader';
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
     webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
     const webgpu = await new WebGPU(
-        { canvasId: 'webgpu' }
+        { canvasId: 'webgpu' },
     ).init();
 
     // 初始化 WebGL
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
     webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
     const webgl = new WebGL(
-        { canvasId: 'webgl', webGLcontextId: 'webgl2' }
+        { canvasId: 'webgl', webGLcontextId: 'webgl2' },
     );
 
     // 创建投影矩阵和模型视图矩阵
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () =>
                                     uProjectionMatrix: { value: projectionMatrix as Float32Array },
                                     uModelViewMatrix: { value: modelViewMatrix as Float32Array },
                                 },
-                            }
+                            },
                         ],
                     },
                 ],

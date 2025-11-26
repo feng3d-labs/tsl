@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Attribute } from '../../src/Attribute';
-import { Float } from '../../src/builtin/types/float';
+import { float, Float } from '../../src/builtin/types/float';
 import { vec2, Vec2 } from '../../src/builtin/types/vec2';
 import { Uniform } from '../../src/Uniform';
 
@@ -185,6 +185,64 @@ describe('vec2', () =>
         {
             // 混合参数会抛出错误
             expect(() => (vec2 as any)(1.0, 'y')).toThrow();
+        });
+    });
+
+    describe('运算', () =>
+    {
+        it('应该支持加法运算', () =>
+        {
+            const a = vec2(1.0, 2.0);
+            const b = vec2(3.0, 4.0);
+            const result = a.add(b);
+            expect(result.toGLSL('vertex')).toBe('vec2(1.0, 2.0) + vec2(3.0, 4.0)');
+            expect(result.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0)');
+        });
+
+        it('应该支持减法运算', () =>
+        {
+            const a = vec2(1.0, 2.0);
+            const b = vec2(3.0, 4.0);
+            const result = a.subtract(b);
+            expect(result.toGLSL('vertex')).toBe('vec2(1.0, 2.0) - vec2(3.0, 4.0)');
+            expect(result.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) - vec2<f32>(3.0, 4.0)');
+        });
+
+        it('应该支持乘法运算', () =>
+        {
+            const a = vec2(1.0, 2.0);
+            const b = float(2.0);
+            const result = a.multiply(b);
+            expect(result.toGLSL('vertex')).toBe('vec2(1.0, 2.0) * 2.0');
+            expect(result.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) * 2.0');
+        });
+
+        it('应该支持除法运算', () =>
+        {
+            const a = vec2(1.0, 2.0);
+            const b = float(2.0);
+            const result = a.divide(b);
+            expect(result.toGLSL('vertex')).toBe('vec2(1.0, 2.0) / 2.0');
+            expect(result.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) / 2.0');
+        });
+
+        it('运算时应该正确生成括号', () =>
+        {
+            const a = vec2(1.0, 2.0);
+            const b = vec2(3.0, 4.0);
+            const c = float(2.0);
+
+            // (a + b) * c 应该生成括号
+            const add = a.add(b);
+            const mul = add.multiply(c);
+            expect(mul.toGLSL('vertex')).toBe('(vec2(1.0, 2.0) + vec2(3.0, 4.0)) * 2.0');
+            expect(mul.toWGSL('vertex')).toBe('(vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0)) * 2.0');
+
+            // a + b * c 应该生成括号
+            const mul2 = b.multiply(c);
+            const add2 = a.add(mul2);
+            expect(add2.toGLSL('vertex')).toBe('vec2(1.0, 2.0) + (vec2(3.0, 4.0) * 2.0)');
+            expect(add2.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) + (vec2<f32>(3.0, 4.0) * 2.0)');
         });
     });
 });

@@ -395,31 +395,42 @@ export class Func
         {
             // Fragment shader
             // 检查是否有包含 varying 的结构体变量作为输入参数
+            // 函数中最多只会出现一个 VaryingStruct
             const dependencies = this.getAnalyzedDependencies();
             let inputStruct: { varName: string; struct: VaryingStruct<any> } | undefined;
 
-            for (const dep of this.dependencies)
+            // 查找第一个包含 varying 的结构体（函数中最多只有一个）
+            for (const struct of dependencies.structs)
             {
-                // 检查是否是结构体变量（结构体变量的 dependencies 包含 VaryingStruct）
-                if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
+                if (struct.hasVarying())
                 {
-                    for (const subDep of dep.dependencies)
+                    // 查找使用该结构体的变量名
+                    for (const dep of this.dependencies)
                     {
-                        if (subDep instanceof VaryingStruct && subDep.hasVarying())
+                        // 检查是否是结构体变量（结构体变量的 dependencies 包含 VaryingStruct）
+                        if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
                         {
-                            // 找到包含 varying 的结构体变量
-                            if (typeof dep.toWGSL === 'function')
+                            for (const subDep of dep.dependencies)
                             {
-                                const varName = dep.toWGSL(shaderType);
-                                inputStruct = { varName, struct: subDep };
+                                if (subDep === struct)
+                                {
+                                    // 找到使用该结构体的变量
+                                    if (typeof dep.toWGSL === 'function')
+                                    {
+                                        const varName = dep.toWGSL(shaderType);
+                                        inputStruct = { varName, struct };
+                                        break;
+                                    }
+                                }
+                            }
+                            if (inputStruct)
+                            {
                                 break;
                             }
                         }
                     }
-                    if (inputStruct)
-                    {
-                        break;
-                    }
+                    // 找到第一个包含 varying 的结构体后直接退出
+                    break;
                 }
             }
 
@@ -446,7 +457,7 @@ export class Func
             if (inputStruct)
             {
                 // 使用结构体作为参数
-                paramStr = `(\n    ${inputStruct.varName}: ${inputStruct.struct.structName}\n)`;
+                paramStr = `(\n    ${inputStruct.varName}: ${inputStruct.struct.structName},\n)`;
             }
             else if (varyingParams.length > 0)
             {

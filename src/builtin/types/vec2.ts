@@ -64,13 +64,20 @@ export class Vec2 implements ShaderValue
             }
             else
             {
-                throw new Error('Vec2 constructor: invalid argument');
+                throw new Error('Vec2 构造函数：无效的参数');
             }
         }
         else if (args.length === 2)
         {
-            const x = args[0] as number | Float;
-            const y = args[1] as number | Float;
+            const x = args[0];
+            const y = args[1];
+
+            // 验证参数类型：必须是 number 或 Float
+            if ((typeof x !== 'number' && !(x instanceof Float)) || (typeof y !== 'number' && !(y instanceof Float)))
+            {
+                throw new Error('Vec2 构造函数：无效的参数，期望 number 或 Float 类型');
+            }
+
             if (x instanceof Float || y instanceof Float)
             {
                 this.toGLSL = (type: 'vertex' | 'fragment') => `vec2(${typeof x === 'number' ? formatNumber(x) : x.toGLSL(type)}, ${typeof y === 'number' ? formatNumber(y) : y.toGLSL(type)})`;
@@ -86,7 +93,7 @@ export class Vec2 implements ShaderValue
         }
         else
         {
-            throw new Error('Vec2 constructor: invalid arguments');
+            throw new Error('Vec2 构造函数：无效的参数');
         }
     }
 
@@ -272,5 +279,5 @@ export function vec2(...args: any[]): Vec2
     if (args.length === 1) return new Vec2(args[0] as any);
     if (args.length === 2) return new Vec2(args[0] as any, args[1] as any);
 
-    throw new Error('vec2: invalid arguments');
+    throw new Error('vec2：无效的参数');
 }

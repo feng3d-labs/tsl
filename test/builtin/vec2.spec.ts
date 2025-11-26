@@ -178,13 +178,13 @@ describe('vec2', () =>
         it('应该处理字符串参数', () =>
         {
             // 字符串参数会抛出错误
-            expect(() => (vec2 as any)('x', 'y')).toThrow();
+            expect(() => (vec2 as any)('x', 'y')).toThrow('Vec2 构造函数：无效的参数');
         });
 
         it('应该处理混合参数', () =>
         {
             // 混合参数会抛出错误
-            expect(() => (vec2 as any)(1.0, 'y')).toThrow();
+            expect(() => (vec2 as any)(1.0, 'y')).toThrow('Vec2 构造函数：无效的参数');
         });
     });
 

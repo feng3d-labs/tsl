@@ -128,6 +128,25 @@ describe('Float', () =>
             expect(div.toGLSL('vertex')).toBe('1.0 / (2.0 + 3.0)');
             expect(div.toWGSL('vertex')).toBe('1.0 / (2.0 + 3.0)');
         });
+
+        it('应该优化 -1.0 * x 为 -x', () =>
+        {
+            const negOne = float(-1.0);
+            const x = float(2.0);
+
+            // -1.0 * x 应该优化为 -x
+            const result = negOne.multiply(x);
+            expect(result.toGLSL('vertex')).toBe('-2.0');
+            expect(result.toWGSL('vertex')).toBe('-2.0');
+
+            // -1.0 * (a + b) 应该优化为 -(a + b)
+            const a = float(1.0);
+            const b = float(2.0);
+            const add = a.add(b);
+            const result2 = negOne.multiply(add);
+            expect(result2.toGLSL('vertex')).toBe('-(1.0 + 2.0)');
+            expect(result2.toWGSL('vertex')).toBe('-(1.0 + 2.0)');
+        });
     });
 });
 

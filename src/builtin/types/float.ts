@@ -142,17 +142,36 @@ export class Float implements ShaderValue
             return result;
         }
         const result = new Float();
+
+        // 检查 this 是否是字面量 -1.0
+        const thisValue = this.toGLSL('vertex');
+        const isNegativeOne = thisValue === '-1.0' || thisValue === '-1';
+
         result.toGLSL = (type: 'vertex' | 'fragment') =>
         {
-            const left = formatOperand(this, '*', true, type, (t) => this.toGLSL(t));
             const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '*', false, type, (t) => other.toGLSL(t));
+
+            if (isNegativeOne)
+            {
+                // -1.0 * x 优化为 -x
+                return `-${right}`;
+            }
+
+            const left = formatOperand(this, '*', true, type, (t) => this.toGLSL(t));
 
             return `${left} * ${right}`;
         };
         result.toWGSL = (type: 'vertex' | 'fragment') =>
         {
-            const left = formatOperand(this, '*', true, type, (t) => this.toWGSL(t));
             const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '*', false, type, (t) => other.toWGSL(t));
+
+            if (isNegativeOne)
+            {
+                // -1.0 * x 优化为 -x
+                return `-${right}`;
+            }
+
+            const left = formatOperand(this, '*', true, type, (t) => this.toWGSL(t));
 
             return `${left} * ${right}`;
         };

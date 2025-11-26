@@ -20,6 +20,34 @@ function hasOperator(expr: string): boolean
         return false;
     }
 
+    // 检查是否是函数调用（如 max(...), exp(...)）
+    // 函数调用格式：identifier(...)，但必须是完整的表达式（没有其他运算符）
+    // 如果表达式以函数调用开头，但后面还有其他内容，则不是纯函数调用
+    const functionCallMatch = /^[a-zA-Z_][a-zA-Z0-9_]*\s*\(/.exec(expr);
+    if (functionCallMatch)
+    {
+        // 检查是否是完整的函数调用（从开头到结尾都是函数调用）
+        // 通过匹配括号来验证
+        let depth = 0;
+        let i = functionCallMatch[0].length - 1;
+        for (; i < expr.length; i++)
+        {
+            if (expr[i] === '(') depth++;
+            else if (expr[i] === ')') depth--;
+            if (depth === 0)
+            {
+                // 括号匹配完成
+                // 如果到达表达式末尾，说明是纯函数调用
+                if (i === expr.length - 1)
+                {
+                    return false;
+                }
+                // 如果还有后续内容，说明不是纯函数调用
+                break;
+            }
+        }
+    }
+
     // 检查是否包含运算符（排除函数调用中的括号）
     // 简单检查：如果包含 +、-、*、/ 运算符
     return /[+\-*/]/.test(expr);

@@ -3,6 +3,9 @@ import { Attribute } from '../../src/Attribute';
 import { float, Float } from '../../src/builtin/types/float';
 import { Uniform } from '../../src/Uniform';
 import { Varying } from '../../src/Varying';
+import { exp } from '../../src/builtin/exp';
+import { max } from '../../src/builtin/max';
+import { vec3 } from '../../src/builtin/types/vec3';
 
 describe('Float', () =>
 {
@@ -158,6 +161,58 @@ describe('Float', () =>
             const mul2 = mul1.multiply(b);
             expect(mul2.toGLSL('vertex')).toBe('0.2 * turbidity * 1e-17');
             expect(mul2.toWGSL('vertex')).toBe('0.2 * turbidity * 1e-17');
+        });
+
+        it('应该正确处理 -1.0 * (a - b) / c 优化为 -((a - b) / c)', () =>
+        {
+            const cutoffAngle = float(new Uniform('cutoffAngle', 0, 0));
+            const acosClamped = float(new Uniform('acosClamped', 0, 0));
+            const steepness = float(new Uniform('steepness', 0, 0));
+            // float(-1.0).multiply(cutoffAngle.subtract(acosClamped).divide(steepness))
+            // 应该生成 -((cutoffAngle - acosClamped) / steepness)
+            const sub = cutoffAngle.subtract(acosClamped);
+            const div = sub.divide(steepness);
+            const negMul = float(-1.0).multiply(div);
+            expect(negMul.toGLSL('vertex')).toBe('-((cutoffAngle - acosClamped) / steepness)');
+            expect(negMul.toWGSL('vertex')).toBe('-((cutoffAngle - acosClamped) / steepness)');
+        });
+
+        it('应该正确处理完整的复杂表达式', () =>
+        {
+            // 模拟 assign(vSunE, EE.multiply(max(0.0, float(1.0).subtract(exp(float(-1.0).multiply(cutoffAngle.subtract(acosClamped).divide(steepness)))))));
+            // 应该生成: EE * max(0.0, 1.0 - exp(-((cutoffAngle - acosClamped) / steepness)))
+            const EE = float(new Uniform('EE', 0, 0));
+            const cutoffAngle = float(new Uniform('cutoffAngle', 0, 0));
+            const acosClamped = float(new Uniform('acosClamped', 0, 0));
+            const steepness = float(new Uniform('steepness', 0, 0));
+
+            const sub = cutoffAngle.subtract(acosClamped);
+            const div = sub.divide(steepness);
+            const negMul = float(-1.0).multiply(div);
+            const expResult = exp(negMul);
+            const subtract = float(1.0).subtract(expResult);
+            const maxResult = max(0.0, subtract);
+            const final = EE.multiply(maxResult);
+
+            expect(final.toGLSL('vertex')).toBe('EE * max(0.0, 1.0 - exp(-((cutoffAngle - acosClamped) / steepness)))');
+            expect(final.toWGSL('vertex')).toBe('EE * max(0.0, 1.0 - exp(-((cutoffAngle - acosClamped) / steepness)))');
+        });
+
+        it('应该正确处理 float(-1.0).multiply(Vec3) 优化为 -Vec3', () =>
+        {
+            const vBetaR = vec3(new Uniform('vBetaR', 0, 0));
+            const sR = float(new Uniform('sR', 0, 0));
+            const vBetaM = vec3(new Uniform('vBetaM', 0, 0));
+            const sM = float(new Uniform('sM', 0, 0));
+
+            // float(-1.0).multiply(vBetaR.multiply(sR).add(vBetaM.multiply(sM)))
+            // 应该生成 -(vBetaR * sR + vBetaM * sM)
+            const mul1 = vBetaR.multiply(sR);
+            const mul2 = vBetaM.multiply(sM);
+            const add = mul1.add(mul2);
+            const negMul = float(-1.0).multiply(add);
+            expect(negMul.toGLSL('vertex')).toBe('-(vBetaR * sR + vBetaM * sM)');
+            expect(negMul.toWGSL('vertex')).toBe('-(vBetaR * sR + vBetaM * sM)');
         });
     });
 });

@@ -79,17 +79,57 @@ export class Float implements ShaderValue
         {
             const result = new Vec3();
 
+            // 检查 this 是否是字面量 -1.0
+            const thisValue = this.toGLSL('vertex');
+            const isNegativeOne = thisValue === '-1.0' || thisValue === '-1';
+
             result.toGLSL = (type: 'vertex' | 'fragment') =>
             {
+                const rightStr = other.toGLSL(type);
+                const hasOp = /[+\-*/]/.test(rightStr);
+                // 排除科学计数法
+                const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
+                const isNumber = /^-?\d+(\.\d+)?$/.test(rightStr);
+
+                if (isNegativeOne)
+                {
+                    // -1.0 * Vec3 优化为 -Vec3
+                    if (hasOp && !isScientificNotation && !isNumber)
+                    {
+                        // 复杂表达式需要括号
+                        return `-(${rightStr})`;
+                    }
+
+                    return `-${rightStr}`;
+                }
+
                 const left = formatOperand(this, '*', true, type, (t) => this.toGLSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => other.toGLSL(t));
+                const right = formatOperand(other, '*', false, type, (t) => rightStr);
 
                 return `${left} * ${right}`;
             };
             result.toWGSL = (type: 'vertex' | 'fragment') =>
             {
+                const rightStr = other.toWGSL(type);
+                const hasOp = /[+\-*/]/.test(rightStr);
+                // 排除科学计数法
+                const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
+                const isNumber = /^-?\d+(\.\d+)?$/.test(rightStr);
+
+                if (isNegativeOne)
+                {
+                    // -1.0 * Vec3 优化为 -Vec3
+                    if (hasOp && !isScientificNotation && !isNumber)
+                    {
+                        // 复杂表达式需要括号
+                        return `-(${rightStr})`;
+                    }
+
+                    return `-${rightStr}`;
+                }
+
                 const left = formatOperand(this, '*', true, type, (t) => this.toWGSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => other.toWGSL(t));
+                const right = formatOperand(other, '*', false, type, (t) => rightStr);
 
                 return `${left} * ${right}`;
             };
@@ -101,17 +141,57 @@ export class Float implements ShaderValue
         {
             const result = new Vec4();
 
+            // 检查 this 是否是字面量 -1.0
+            const thisValue = this.toGLSL('vertex');
+            const isNegativeOne = thisValue === '-1.0' || thisValue === '-1';
+
             result.toGLSL = (type: 'vertex' | 'fragment') =>
             {
+                const rightStr = other.toGLSL(type);
+                const hasOp = /[+\-*/]/.test(rightStr);
+                // 排除科学计数法
+                const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
+                const isNumber = /^-?\d+(\.\d+)?$/.test(rightStr);
+
+                if (isNegativeOne)
+                {
+                    // -1.0 * Vec4 优化为 -Vec4
+                    if (hasOp && !isScientificNotation && !isNumber)
+                    {
+                        // 复杂表达式需要括号
+                        return `-(${rightStr})`;
+                    }
+
+                    return `-${rightStr}`;
+                }
+
                 const left = formatOperand(this, '*', true, type, (t) => this.toGLSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => other.toGLSL(t));
+                const right = formatOperand(other, '*', false, type, (t) => rightStr);
 
                 return `${left} * ${right}`;
             };
             result.toWGSL = (type: 'vertex' | 'fragment') =>
             {
+                const rightStr = other.toWGSL(type);
+                const hasOp = /[+\-*/]/.test(rightStr);
+                // 排除科学计数法
+                const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
+                const isNumber = /^-?\d+(\.\d+)?$/.test(rightStr);
+
+                if (isNegativeOne)
+                {
+                    // -1.0 * Vec4 优化为 -Vec4
+                    if (hasOp && !isScientificNotation && !isNumber)
+                    {
+                        // 复杂表达式需要括号
+                        return `-(${rightStr})`;
+                    }
+
+                    return `-${rightStr}`;
+                }
+
                 const left = formatOperand(this, '*', true, type, (t) => this.toWGSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => other.toWGSL(t));
+                const right = formatOperand(other, '*', false, type, (t) => rightStr);
 
                 return `${left} * ${right}`;
             };
@@ -123,17 +203,57 @@ export class Float implements ShaderValue
         {
             const result = new Vec2(0, 0);
 
+            // 检查 this 是否是字面量 -1.0
+            const thisValue = this.toGLSL('vertex');
+            const isNegativeOne = thisValue === '-1.0' || thisValue === '-1';
+
             result.toGLSL = (type: 'vertex' | 'fragment') =>
             {
+                const rightStr = other.toGLSL(type);
+                const hasOp = /[+\-*/]/.test(rightStr);
+                // 排除科学计数法
+                const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
+                const isNumber = /^-?\d+(\.\d+)?$/.test(rightStr);
+
+                if (isNegativeOne)
+                {
+                    // -1.0 * Vec2 优化为 -Vec2
+                    if (hasOp && !isScientificNotation && !isNumber)
+                    {
+                        // 复杂表达式需要括号
+                        return `-(${rightStr})`;
+                    }
+
+                    return `-${rightStr}`;
+                }
+
                 const left = formatOperand(this, '*', true, type, (t) => this.toGLSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => other.toGLSL(t));
+                const right = formatOperand(other, '*', false, type, (t) => rightStr);
 
                 return `${left} * ${right}`;
             };
             result.toWGSL = (type: 'vertex' | 'fragment') =>
             {
+                const rightStr = other.toWGSL(type);
+                const hasOp = /[+\-*/]/.test(rightStr);
+                // 排除科学计数法
+                const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
+                const isNumber = /^-?\d+(\.\d+)?$/.test(rightStr);
+
+                if (isNegativeOne)
+                {
+                    // -1.0 * Vec2 优化为 -Vec2
+                    if (hasOp && !isScientificNotation && !isNumber)
+                    {
+                        // 复杂表达式需要括号
+                        return `-(${rightStr})`;
+                    }
+
+                    return `-${rightStr}`;
+                }
+
                 const left = formatOperand(this, '*', true, type, (t) => this.toWGSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => other.toWGSL(t));
+                const right = formatOperand(other, '*', false, type, (t) => rightStr);
 
                 return `${left} * ${right}`;
             };
@@ -149,28 +269,50 @@ export class Float implements ShaderValue
 
         result.toGLSL = (type: 'vertex' | 'fragment') =>
         {
-            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '*', false, type, (t) => other.toGLSL(t));
-
             if (isNegativeOne)
             {
                 // -1.0 * x 优化为 -x
-                return `-${right}`;
+                // 如果 x 是复杂表达式，需要添加括号
+                const rightStr = typeof other === 'number' ? formatNumber(other) : other.toGLSL(type);
+                const hasOp = /[+\-*/]/.test(rightStr);
+                // 排除科学计数法
+                const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
+                const isNumber = /^-?\d+(\.\d+)?$/.test(rightStr);
+                if (hasOp && !isScientificNotation && !isNumber)
+                {
+                    // 复杂表达式需要括号
+                    return `-(${rightStr})`;
+                }
+
+                return `-${rightStr}`;
             }
 
+            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '*', false, type, (t) => other.toGLSL(t));
             const left = formatOperand(this, '*', true, type, (t) => this.toGLSL(t));
 
             return `${left} * ${right}`;
         };
         result.toWGSL = (type: 'vertex' | 'fragment') =>
         {
-            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '*', false, type, (t) => other.toWGSL(t));
-
             if (isNegativeOne)
             {
                 // -1.0 * x 优化为 -x
-                return `-${right}`;
+                // 如果 x 是复杂表达式，需要添加括号
+                const rightStr = typeof other === 'number' ? formatNumber(other) : other.toWGSL(type);
+                const hasOp = /[+\-*/]/.test(rightStr);
+                // 排除科学计数法
+                const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
+                const isNumber = /^-?\d+(\.\d+)?$/.test(rightStr);
+                if (hasOp && !isScientificNotation && !isNumber)
+                {
+                    // 复杂表达式需要括号
+                    return `-(${rightStr})`;
+                }
+
+                return `-${rightStr}`;
             }
 
+            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '*', false, type, (t) => other.toWGSL(t));
             const left = formatOperand(this, '*', true, type, (t) => this.toWGSL(t));
 
             return `${left} * ${right}`;

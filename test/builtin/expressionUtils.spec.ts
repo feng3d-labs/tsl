@@ -178,12 +178,12 @@ describe('表达式括号生成', () =>
             const c = float(3.0);
             const d = float(4.0);
 
-            // a + b * c + d 应该生成 1.0 + (2.0 * 3.0) + 4.0
+            // a + b * c + d 应该生成 1.0 + (2.0 * 3.0) + 4.0（同级运算符不需要括号）
             const mul = b.multiply(c);
             const add1 = a.add(mul);
             const add2 = add1.add(d);
-            expect(add2.toGLSL('vertex')).toBe('(1.0 + (2.0 * 3.0)) + 4.0');
-            expect(add2.toWGSL('vertex')).toBe('(1.0 + (2.0 * 3.0)) + 4.0');
+            expect(add2.toGLSL('vertex')).toBe('1.0 + (2.0 * 3.0) + 4.0');
+            expect(add2.toWGSL('vertex')).toBe('1.0 + (2.0 * 3.0) + 4.0');
         });
 
         it('应该正确处理除法中的复杂表达式', () =>
@@ -199,6 +199,38 @@ describe('表达式括号生成', () =>
             const div = a.divide(add);
             expect(div.toGLSL('vertex')).toBe('1.0 / (2.0 + (3.0 * 4.0))');
             expect(div.toWGSL('vertex')).toBe('1.0 / (2.0 + (3.0 * 4.0))');
+        });
+
+        it('同级运算符应该省略括号', () =>
+        {
+            const a = float(1.0);
+            const b = float(2.0);
+            const c = float(3.0);
+
+            // a + b + c 应该生成 1.0 + 2.0 + 3.0（不需要括号）
+            const add1 = a.add(b);
+            const add2 = add1.add(c);
+            expect(add2.toGLSL('vertex')).toBe('1.0 + 2.0 + 3.0');
+            expect(add2.toWGSL('vertex')).toBe('1.0 + 2.0 + 3.0');
+
+            // a * b * c 应该生成 1.0 * 2.0 * 3.0（不需要括号）
+            const mul1 = a.multiply(b);
+            const mul2 = mul1.multiply(c);
+            expect(mul2.toGLSL('vertex')).toBe('1.0 * 2.0 * 3.0');
+            expect(mul2.toWGSL('vertex')).toBe('1.0 * 2.0 * 3.0');
+        });
+
+        it('减法右操作数需要括号', () =>
+        {
+            const a = float(1.0);
+            const b = float(2.0);
+            const c = float(3.0);
+
+            // a - (b + c) 应该生成 1.0 - (2.0 + 3.0)
+            const add = b.add(c);
+            const sub = a.subtract(add);
+            expect(sub.toGLSL('vertex')).toBe('1.0 - (2.0 + 3.0)');
+            expect(sub.toWGSL('vertex')).toBe('1.0 - (2.0 + 3.0)');
         });
     });
 });

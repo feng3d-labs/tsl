@@ -28,6 +28,42 @@ function hasMulDivOperator(expr: string): boolean
 }
 
 /**
+ * 检测表达式的顶层运算符类型
+ * 返回 'addsub' | 'muldiv' | null
+ */
+function getTopLevelOperator(expr: string): 'addsub' | 'muldiv' | null
+{
+    if (!hasOperator(expr))
+    {
+        return null;
+    }
+
+    // 简单检测：如果同时包含加减和乘除，根据优先级，顶层应该是加减
+    // 如果只有乘除，顶层是乘除
+    // 如果只有加减，顶层是加减
+    const hasAddSub = hasAddSubOperator(expr);
+    const hasMulDiv = hasMulDivOperator(expr);
+
+    if (hasAddSub && hasMulDiv)
+    {
+        // 同时包含加减和乘除，需要更精确的检测
+        // 由于乘除优先级更高，如果表达式包含乘除，顶层可能是加减（如果加减在外层）
+        // 这里使用简单规则：如果同时存在，假设顶层是加减（因为乘除会被括号包裹）
+        return 'addsub';
+    }
+    else if (hasAddSub)
+    {
+        return 'addsub';
+    }
+    else if (hasMulDiv)
+    {
+        return 'muldiv';
+    }
+
+    return null;
+}
+
+/**
  * 为表达式添加括号（如果需要）
  */
 function wrapWithParens(expr: string, needsParens: boolean): string
@@ -58,29 +94,73 @@ export function formatOperand(
 
     const operandStr = toCode(shaderType);
     const hasOp = hasOperator(operandStr);
+    if (!hasOp)
+    {
+        // 没有运算符，不需要括号
+        return operandStr;
+    }
+
+    const operandTopOp = getTopLevelOperator(operandStr);
     const hasAddSub = hasAddSubOperator(operandStr);
     const hasMulDiv = hasMulDivOperator(operandStr);
 
     let needsParens = false;
 
-    if (currentOp === '+' || currentOp === '-')
+    if (currentOp === '+')
     {
-        // 加减运算：如果操作数是乘除表达式，需要括号
-        if (hasMulDiv)
+        // 加法：左结合，同级不需要括号
+        // 如果操作数是乘除表达式，需要括号（优先级更高）
+        if (operandTopOp === 'muldiv')
         {
+            needsParens = true;
+        }
+        // 如果操作数是加减表达式，不需要括号（同级，左结合）
+    }
+    else if (currentOp === '-')
+    {
+        // 减法：左结合
+        // 左操作数：如果是加减表达式，不需要括号（同级，左结合）
+        // 右操作数：如果是加减表达式，需要括号（因为 a - (b + c) ≠ a - b + c）
+        if (isLeftOperand)
+        {
+            // 左操作数：如果操作数是乘除表达式，需要括号
+            if (operandTopOp === 'muldiv')
+            {
+                needsParens = true;
+            }
+        }
+        else
+        {
+            // 右操作数：如果操作数是任何表达式，都需要括号
             needsParens = true;
         }
     }
-    else if (currentOp === '*' || currentOp === '/')
+    else if (currentOp === '*')
     {
-        // 乘除运算：如果操作数是加减表达式，需要括号
-        if (hasAddSub)
+        // 乘法：左结合，同级不需要括号
+        // 如果操作数是加减表达式，需要括号（优先级更低）
+        if (operandTopOp === 'addsub')
         {
             needsParens = true;
         }
-        // 除法时，如果右操作数是任何表达式，需要括号
-        if (currentOp === '/' && !isLeftOperand && hasOp)
+        // 如果操作数是乘除表达式，不需要括号（同级，左结合）
+    }
+    else if (currentOp === '/')
+    {
+        // 除法：左结合
+        // 左操作数：如果是乘除表达式，不需要括号（同级，左结合）
+        // 右操作数：如果是任何表达式，都需要括号（因为 a / (b * c) ≠ a / b * c）
+        if (isLeftOperand)
         {
+            // 左操作数：如果操作数是加减表达式，需要括号
+            if (operandTopOp === 'addsub')
+            {
+                needsParens = true;
+            }
+        }
+        else
+        {
+            // 右操作数：如果操作数是任何表达式，都需要括号
             needsParens = true;
         }
     }

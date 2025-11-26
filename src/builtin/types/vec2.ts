@@ -86,8 +86,17 @@ export class Vec2 implements ShaderValue
             }
             else
             {
-                this.toGLSL = (type: 'vertex' | 'fragment') => `vec2(${formatNumber(x as number)}, ${formatNumber(y as number)})`;
-                this.toWGSL = (type: 'vertex' | 'fragment') => `vec2<f32>(${formatNumber(x as number)}, ${formatNumber(y as number)})`;
+                // 如果两个参数相同，使用单个参数形式
+                if (x === y)
+                {
+                    this.toGLSL = (type: 'vertex' | 'fragment') => `vec2(${formatNumber(x as number)})`;
+                    this.toWGSL = (type: 'vertex' | 'fragment') => `vec2<f32>(${formatNumber(x as number)})`;
+                }
+                else
+                {
+                    this.toGLSL = (type: 'vertex' | 'fragment') => `vec2(${formatNumber(x as number)}, ${formatNumber(y as number)})`;
+                    this.toWGSL = (type: 'vertex' | 'fragment') => `vec2<f32>(${formatNumber(x as number)}, ${formatNumber(y as number)})`;
+                }
                 this.dependencies = [];
             }
         }

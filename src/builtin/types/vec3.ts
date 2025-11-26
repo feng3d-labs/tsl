@@ -68,8 +68,18 @@ export class Vec3 implements ShaderValue
             const x = args[0] as number;
             const y = args[1] as number;
             const z = args[2] as number;
-            this.toGLSL = (type: 'vertex' | 'fragment') => `vec3(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
-            this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<f32>(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
+
+            // 如果三个参数相同，使用单个参数形式
+            if (x === y && y === z)
+            {
+                this.toGLSL = (type: 'vertex' | 'fragment') => `vec3(${formatNumber(x)})`;
+                this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<f32>(${formatNumber(x)})`;
+            }
+            else
+            {
+                this.toGLSL = (type: 'vertex' | 'fragment') => `vec3(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
+                this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<f32>(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
+            }
             this.dependencies = [];
         }
         else

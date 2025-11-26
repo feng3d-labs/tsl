@@ -20,7 +20,7 @@ export const vertexShader = vertex('main', () =>
 
     assign(vPosition, uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
     assign(vTextureCoord, aTextureCoord);
-    const fragPos = var_('fragPos', float(0.5).multiply(vec4(aVertexPosition, 1.0).add(vec4(1.0, 1.0, 1.0, 1.0))));
+    const fragPos = var_('fragPos', float(0.5).multiply(vec4(aVertexPosition, 1.0).add(vec4(1.0))));
     assign(vFragPosition, fragPos);
 });
 

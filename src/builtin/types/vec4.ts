@@ -85,6 +85,23 @@ export class Vec4 implements ShaderValue
                 this.toWGSL = vec4.toWGSL;
                 this.dependencies = vec4.dependencies;
             }
+            else if (typeof args[0] === 'number' || args[0] instanceof Float)
+            {
+                // 处理 vec4(value: number | Float) 的情况
+                const value = args[0] as number | Float;
+                if (typeof value === 'number')
+                {
+                    this.toGLSL = (type: 'vertex' | 'fragment') => `vec4(${formatNumber(value)})`;
+                    this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${formatNumber(value)})`;
+                    this.dependencies = [];
+                }
+                else
+                {
+                    this.toGLSL = (type: 'vertex' | 'fragment') => `vec4(${value.toGLSL(type)})`;
+                    this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${value.toWGSL(type)})`;
+                    this.dependencies = [value];
+                }
+            }
             else
             {
                 throw new Error('Vec4 constructor: invalid argument');
@@ -128,9 +145,19 @@ export class Vec4 implements ShaderValue
             const z = args[2] as number | Float;
             const w = args[3] as number | Float;
 
-            this.toGLSL = (type: 'vertex' | 'fragment') => `vec4(${typeof x === 'number' ? formatNumber(x) : x.toGLSL(type)}, ${typeof y === 'number' ? formatNumber(y) : y.toGLSL(type)}, ${typeof z === 'number' ? formatNumber(z) : z.toGLSL(type)}, ${typeof w === 'number' ? formatNumber(w) : w.toGLSL(type)})`;
-            this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${typeof x === 'number' ? formatNumber(x) : x.toWGSL(type)}, ${typeof y === 'number' ? formatNumber(y) : y.toWGSL(type)}, ${typeof z === 'number' ? formatNumber(z) : z.toWGSL(type)}, ${typeof w === 'number' ? formatNumber(w) : w.toWGSL(type)})`;
-            this.dependencies = [x, y, z, w].filter((arg): arg is Float => arg instanceof Float);
+            // 如果四个参数都是 number 且相同，使用单个参数形式
+            if (typeof x === 'number' && typeof y === 'number' && typeof z === 'number' && typeof w === 'number' && x === y && y === z && z === w)
+            {
+                this.toGLSL = (type: 'vertex' | 'fragment') => `vec4(${formatNumber(x)})`;
+                this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${formatNumber(x)})`;
+                this.dependencies = [];
+            }
+            else
+            {
+                this.toGLSL = (type: 'vertex' | 'fragment') => `vec4(${typeof x === 'number' ? formatNumber(x) : x.toGLSL(type)}, ${typeof y === 'number' ? formatNumber(y) : y.toGLSL(type)}, ${typeof z === 'number' ? formatNumber(z) : z.toGLSL(type)}, ${typeof w === 'number' ? formatNumber(w) : w.toGLSL(type)})`;
+                this.toWGSL = (type: 'vertex' | 'fragment') => `vec4<f32>(${typeof x === 'number' ? formatNumber(x) : x.toWGSL(type)}, ${typeof y === 'number' ? formatNumber(y) : y.toWGSL(type)}, ${typeof z === 'number' ? formatNumber(z) : z.toWGSL(type)}, ${typeof w === 'number' ? formatNumber(w) : w.toWGSL(type)})`;
+                this.dependencies = [x, y, z, w].filter((arg): arg is Float => arg instanceof Float);
+            }
         }
         else
         {

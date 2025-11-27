@@ -1,8 +1,15 @@
+#version 300 es
+
 precision highp float;
-varying vec2 vTextureCoord; varying vec4 vFragPosition;
+precision highp int;
+
 uniform sampler2D uSampler;
 
+in vec2 vTextureCoord;
+in vec4 vFragPosition;
+
+layout(location = 0) out vec4 color;
+
 void main() {
-    vec4 color = texture2D(uSampler, vTextureCoord) * vFragPosition;
-    gl_FragColor = color; return;
+    color = texture(uSampler, vTextureCoord) * vFragPosition;
 }

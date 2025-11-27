@@ -4,6 +4,10 @@ import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { mat4 } from 'gl-matrix';
 
+import vertexGlsl from './shaders/vertex.glsl';
+import fragmentGlsl from './shaders/fragment.glsl';
+import vertexWgsl from './shaders/vertex.wgsl';
+import fragmentWgsl from './shaders/fragment.wgsl';
 import { fragmentShader, vertexShader } from './shaders/shader';
 
 let cubeRotation = 0.0;
@@ -128,7 +132,7 @@ async function main()
         webgpu.submit(submit);
         webgl.submit(submit);
 
-        // requestAnimationFrame(render);
+        requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
 }

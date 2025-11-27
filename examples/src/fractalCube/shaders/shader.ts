@@ -32,7 +32,7 @@ export const fragmentShader = fragment('main', () =>
     // sampler 的 binding 会自动分配
     const uSampler = sampler('uSampler');
 
-    const color = var_('color', texture2D(uSampler, v.vTextureCoord).multiply(v.vFragPosition));
+    const color = var_('color1', texture2D(uSampler, v.vTextureCoord).multiply(v.vFragPosition));
     return_(color);
 });
 

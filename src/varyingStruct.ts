@@ -154,6 +154,17 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             // 修改字段的 toWGSL 方法，让它返回 'v.fieldName'
             value.toWGSL = (type: 'vertex' | 'fragment') => `${this.varName}.${fieldName}`;
 
+            // 在字段值上添加对 VaryingStruct 的引用，以便依赖分析能找到结构体
+            if (!value.dependencies)
+            {
+                value.dependencies = [];
+            }
+            // 如果 dependencies 中还没有 VaryingStruct，添加它
+            if (!value.dependencies.some(dep => dep === this))
+            {
+                value.dependencies.push(this);
+            }
+
             // 将字段添加到实例上，使其可以直接访问
             (this as any)[fieldName] = value;
         }

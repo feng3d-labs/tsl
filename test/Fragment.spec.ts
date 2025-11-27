@@ -124,6 +124,10 @@ describe('Fragment', () =>
             const wgsl = frag.toWGSL();
             expect(wgsl).toContain(v.toWGSLDefinition());
             expect(wgsl).toContain(v.toWGSLParam());
+
+            const glsl = frag.toGLSL();
+            expect(glsl).toContain(v.toGLSLDefinition());
+            expect(glsl).toContain('return vColor;');
         });
     });
 });

@@ -55,57 +55,13 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
 
     /**
      * 生成 WGSL 结构体定义
-     * @param type 着色器类型（vertex 或 fragment），可选。varying 字段始终包含 @location
+     * 自动为没有显式指定 location 的 varying 字段分配 location
      * @returns WGSL 结构体定义字符串
      */
     toWGSLDefinition(): string
     {
-        // 按照字段定义顺序收集所有 varying 字段，并分配 location
-        const usedLocations = new Set<number>();
-
-        // 第一遍：按照字段定义顺序遍历，记录已显式指定的 location
-        for (const [fieldName, value] of Object.entries(this.fields))
-        {
-            const dep = value.dependencies[0];
-            if (dep instanceof Varying && dep.location !== undefined)
-            {
-                usedLocations.add(dep.location);
-            }
-        }
-
-        // 第二遍：按照字段定义顺序，为没有 location 的 varying 自动分配 location
-        for (const [fieldName, value] of Object.entries(this.fields))
-        {
-            const dep = value.dependencies[0];
-            if (dep instanceof Varying && dep.location === undefined)
-            {
-                // 检查是否已经分配了自动 location（通过检查 _autoLocation 属性）
-                // 由于 _autoLocation 是私有的，我们通过 getEffectiveLocation 来判断
-                // 如果 getEffectiveLocation 返回的值不在 usedLocations 中，且不是 0，说明已经分配过了
-                const currentEffectiveLocation = dep.getEffectiveLocation();
-                // 如果 location 是 undefined，getEffectiveLocation 会返回 _autoLocation ?? 0
-                // 如果 _autoLocation 还没有设置，返回 0
-                // 如果 _autoLocation 已经设置，返回 _autoLocation
-                // 所以我们需要检查：如果 currentEffectiveLocation 在 usedLocations 中，说明已经分配过了
-                // 但如果 currentEffectiveLocation 是 0 且 0 不在 usedLocations 中，可能是默认值，需要分配
-                if (currentEffectiveLocation !== 0 && usedLocations.has(currentEffectiveLocation))
-                {
-                    // 已经分配过了，跳过
-                    continue;
-                }
-
-                // 找到下一个未使用的 location
-                let nextLocation = 0;
-                while (usedLocations.has(nextLocation))
-                {
-                    nextLocation++;
-                }
-
-                // 分配 location
-                dep.setAutoLocation(nextLocation);
-                usedLocations.add(nextLocation);
-            }
-        }
+        // 分配 location：按照字段定义顺序，为所有 varying 字段分配唯一的 location
+        this.allocateVaryingLocations();
 
         // 生成字段定义
         const fieldDefs = Object.entries(this.fields).map(([fieldName, value]) =>
@@ -155,6 +111,52 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
     }
 
     /**
+     * 为结构体中的 varying 字段分配 location
+     * 按照字段定义顺序，显式指定的 location 优先，未指定的自动分配
+     */
+    private allocateVaryingLocations(): void
+    {
+        const usedLocations = new Set<number>();
+
+        // 第一遍：记录所有显式指定的 location
+        for (const [fieldName, value] of Object.entries(this.fields))
+        {
+            const dep = value.dependencies[0];
+            if (dep instanceof Varying && dep.location !== undefined)
+            {
+                usedLocations.add(dep.location);
+            }
+        }
+
+        // 第二遍：为没有 location 的 varying 自动分配 location
+        for (const [fieldName, value] of Object.entries(this.fields))
+        {
+            const dep = value.dependencies[0];
+            if (dep instanceof Varying && dep.location === undefined)
+            {
+                // 检查是否已经分配了自动 location
+                const currentEffectiveLocation = dep.getEffectiveLocation();
+                // 如果当前有效 location 不是 0 且已在 usedLocations 中，说明已经分配过，跳过
+                if (currentEffectiveLocation !== 0 && usedLocations.has(currentEffectiveLocation))
+                {
+                    continue;
+                }
+
+                // 找到下一个未使用的 location
+                let nextLocation = 0;
+                while (usedLocations.has(nextLocation))
+                {
+                    nextLocation++;
+                }
+
+                // 分配 location
+                dep.setAutoLocation(nextLocation);
+                usedLocations.add(nextLocation);
+            }
+        }
+    }
+
+    /**
      * 生成顶点着色器中的变量声明语句
      * @returns WGSL 变量声明语句，例如: 'var v: VaryingStruct;'
      */
@@ -174,77 +176,99 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
 
     constructor(public readonly fields: T)
     {
-        // 验证所有字段都必须是 builtin 或 varying 类型，并设置变量名
+        // 初始化所有字段
         for (const [fieldName, value] of Object.entries(this.fields))
         {
-            if (!value.dependencies || value.dependencies.length === 0)
-            {
-                throw new Error(`结构体 'VaryingStruct' 的字段 '${fieldName}' 没有依赖项，无法生成 WGSL 代码。`);
-            }
-
-            const dep = value.dependencies[0];
-
-            if (!(dep instanceof Builtin) && !(dep instanceof Varying))
-            {
-                throw new Error(`结构体 'VaryingStruct' 的字段 '${fieldName}' 必须是 builtin 或 varying 类型，当前类型不支持。`);
-            }
-
-            // 设置变量名为结构体字段名
-            if (dep instanceof Builtin)
-            {
-                dep.setName(fieldName);
-            }
-            else if (dep instanceof Varying)
-            {
-                dep.setName(fieldName);
-            }
-
-            // 修改字段的 toWGSL 方法，让它返回 'v.fieldName'
-            value.toWGSL = (type: 'vertex' | 'fragment') => `${this.varName}.${fieldName}`;
-
-            // 修改字段的 toGLSL 方法
-            // 对于 Builtin（如 position），使用 Builtin 的 toGLSL 方法（返回 gl_Position）
-            // 对于 Varying，返回字段名（GLSL 中直接使用字段名，不需要结构体前缀）
-            if (dep instanceof Builtin)
-            {
-                // Builtin 的 toGLSL 方法会返回正确的 GLSL 名称（如 gl_Position）
-                const originalToGLSL = value.toGLSL;
-
-                value.toGLSL = (type: 'vertex' | 'fragment') =>
-                {
-                    // 如果原始 toGLSL 方法存在且能正常工作，使用它
-                    if (originalToGLSL && typeof originalToGLSL === 'function')
-                    {
-                        try
-                        {
-                            return originalToGLSL(type);
-                        }
-                        catch
-                        {
-                            // 如果失败，回退到使用 Builtin 的 toGLSL
-                        }
-                    }
-
-                    // 直接使用 Builtin 的 toGLSL 方法
-                    return dep.toGLSL();
-                };
-            }
-            else
-            {
-                // 对于 Varying，返回字段名
-                value.toGLSL = (type: 'vertex' | 'fragment') => fieldName;
-            }
-
-            // 在字段值上添加对 VaryingStruct 的引用，以便依赖分析能找到结构体
-            (value as any)._varyingStruct = this;
-
-            // 将字段添加到实例上，使其可以直接访问
-            (this as any)[fieldName] = value;
+            this.initializeField(fieldName, value);
         }
 
+        // 设置结构体自身的转换方法
         this.toGLSL = (type: 'vertex' | 'fragment') => ``;
         this.toWGSL = (type: 'vertex' | 'fragment') => this.varName;
         this.dependencies = Object.values(this.fields);
+    }
+
+    /**
+     * 初始化结构体字段
+     * @param fieldName 字段名
+     * @param value 字段值
+     */
+    private initializeField(fieldName: string, value: IElement): void
+    {
+        // 验证字段有依赖项
+        if (!value.dependencies || value.dependencies.length === 0)
+        {
+            throw new Error(`结构体 'VaryingStruct' 的字段 '${fieldName}' 没有依赖项，无法生成 WGSL 代码。`);
+        }
+
+        const dep = value.dependencies[0];
+
+        // 验证字段类型
+        if (!(dep instanceof Builtin) && !(dep instanceof Varying))
+        {
+            throw new Error(`结构体 'VaryingStruct' 的字段 '${fieldName}' 必须是 builtin 或 varying 类型，当前类型不支持。`);
+        }
+
+        // 设置变量名为结构体字段名
+        if (dep instanceof Builtin)
+        {
+            dep.setName(fieldName);
+        }
+        else if (dep instanceof Varying)
+        {
+            dep.setName(fieldName);
+        }
+
+        // 设置字段的 toWGSL 方法：返回 'v.fieldName'
+        value.toWGSL = (type: 'vertex' | 'fragment') => `${this.varName}.${fieldName}`;
+
+        // 设置字段的 toGLSL 方法
+        this.setupFieldToGLSL(fieldName, value, dep);
+
+        // 在字段值上添加对 VaryingStruct 的引用，以便依赖分析能找到结构体
+        (value as any)._varyingStruct = this;
+
+        // 将字段添加到实例上，使其可以直接访问
+        (this as any)[fieldName] = value;
+    }
+
+    /**
+     * 设置字段的 toGLSL 方法
+     * @param fieldName 字段名
+     * @param value 字段值
+     * @param dep 字段的依赖（Builtin 或 Varying）
+     */
+    private setupFieldToGLSL(fieldName: string, value: IElement, dep: Builtin | Varying): void
+    {
+        if (dep instanceof Builtin)
+        {
+            // Builtin 字段：使用 Builtin 的 toGLSL 方法（返回 gl_Position 等）
+            const originalToGLSL = value.toGLSL;
+
+            value.toGLSL = (type: 'vertex' | 'fragment') =>
+            {
+                // 尝试使用原始 toGLSL 方法
+                if (originalToGLSL && typeof originalToGLSL === 'function')
+                {
+                    try
+                    {
+                        return originalToGLSL(type);
+                    }
+                    catch
+                    {
+                        // 如果失败，回退到使用 Builtin 的 toGLSL
+                    }
+                }
+
+                // 直接使用 Builtin 的 toGLSL 方法
+                return dep.toGLSL();
+            };
+        }
+        else
+        {
+            // Varying 字段：返回字段名（GLSL 中直接使用字段名，不需要结构体前缀）
+            value.toGLSL = (type: 'vertex' | 'fragment') => fieldName;
+        }
     }
 }
 

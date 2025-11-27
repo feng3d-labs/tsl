@@ -2,15 +2,26 @@ import { IElement, ShaderValue } from './IElement';
 
 /**
  * Varying 类，表示在 vertex 和 fragment shader 之间传递的变量
- * 只能在 varyingStruct 中使用，变量名从结构体字段名获取
+ *
+ * 只能在 varyingStruct 中使用：
+ * - 变量名由 varyingStruct 根据字段名自动设置
+ * - location 可以显式指定，也可以由 varyingStruct 自动分配
  */
 export class Varying implements IElement
 {
     dependencies: IElement[] = [];
-    name?: string; // 变量名称（从结构体字段名获取，在 varyingStruct 中设置）
+
+    /** 变量名称（由 varyingStruct 根据字段名设置） */
+    name?: string;
+
+    /** 值类型（由 vec2/vec3/vec4 等函数设置） */
     value?: ShaderValue;
+
+    /** 显式指定的 location */
     readonly location?: number;
-    private _autoLocation?: number; // 自动分配的 location
+
+    /** 自动分配的 location（由 varyingStruct 设置） */
+    private _autoLocation?: number;
 
     constructor(location?: number)
     {

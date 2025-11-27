@@ -91,7 +91,7 @@ describe('Varying', () =>
     {
         it('应该支持 location 缺省时的自动分配', () =>
         {
-            const v = varyingStruct('VertexOutput', {
+            const v = varyingStruct({
                 position: vec4(builtin('position')),
                 vColor: vec4(varying()),
                 vTexCoord: vec2(varying()),
@@ -110,7 +110,7 @@ describe('Varying', () =>
 
         it('应该能够自动分配多个 varying 的 location', () =>
         {
-            const v = varyingStruct('VertexOutput', {
+            const v = varyingStruct({
                 position: vec4(builtin('position')),
                 vColor: vec4(varying()),
                 vTexCoord: vec2(varying()),
@@ -131,7 +131,7 @@ describe('Varying', () =>
 
         it('应该能够混合显式指定和自动分配的 location', () =>
         {
-            const v = varyingStruct('VertexOutput', {
+            const v = varyingStruct({
                 position: vec4(builtin('position')),
                 vColor: vec4(varying(2)), // 显式指定 location 2
                 vTexCoord: vec2(varying()), // 自动分配

@@ -61,7 +61,9 @@ describe('Float', () =>
             const result = struct.vValue;
             expect(result).toBeInstanceOf(Float);
             expect(result.toGLSL('vertex')).toBe('vValue');
-            expect(result.toWGSL('vertex')).toBe('vValue');
+            expect(result.toWGSL('vertex')).toBe('v.vValue');
+            expect(result.toGLSL('fragment')).toBe('vValue');
+            expect(result.toWGSL('fragment')).toBe('v.vValue');
         });
     });
 

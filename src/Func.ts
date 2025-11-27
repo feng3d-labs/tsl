@@ -351,7 +351,7 @@ export class Func
                 }
             }
 
-            // 如果找到了结构体变量（通过 var_ 调用 varyingStruct），需要添加 var v: VaryingStruct; 声明
+            // 如果找到了结构体变量（直接使用 varyingStruct），需要添加 var v: VaryingStruct; 声明
             if (returnStruct)
             {
                 // 检查是否已经添加了 var v: VaryingStruct; 声明

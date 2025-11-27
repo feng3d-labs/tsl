@@ -145,10 +145,10 @@ describe('builtin() 函数', () =>
 
         it('gl_Position 和 position 应该生成相同的 GLSL 代码', () =>
         {
-            const struct1 = varyingStruct('TestStruct1', {
+            const struct1 = varyingStruct({
                 position: vec4(builtin('position')),
             });
-            const struct2 = varyingStruct('TestStruct2', {
+            const struct2 = varyingStruct({
                 position: vec4(builtin('gl_Position')),
             });
             const v1 = struct1.fields.position;
@@ -159,10 +159,10 @@ describe('builtin() 函数', () =>
 
         it('gl_Position 和 position 应该生成相同的 WGSL 代码', () =>
         {
-            const struct1 = varyingStruct('TestStruct1', {
+            const struct1 = varyingStruct({
                 position: vec4(builtin('position')),
             });
-            const struct2 = varyingStruct('TestStruct2', {
+            const struct2 = varyingStruct({
                 position: vec4(builtin('gl_Position')),
             });
             const b1 = struct1.fields.position.dependencies[0] as any;

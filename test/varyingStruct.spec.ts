@@ -177,14 +177,14 @@ describe('VaryingStruct', () =>
             });
 
             expect(v.toWGSLDefinition()).toBe('struct VaryingStruct {\n    @builtin(position) position: vec4<f32>,\n}');
-            expect(v.toWGSLVertexVarStatement()).toBe('var v: VaryingStruct;');
+            expect(v.toWGSLVarStatement()).toBe('var v: VaryingStruct;');
             expect(v.toWGSL('vertex')).toBe('v');
             expect(position.toWGSL('vertex')).toBe('v.position');
             expect(position.x.toWGSL('vertex')).toBe('v.position.x');
             expect(position.xyz.toWGSL('vertex')).toBe('v.position.xyz');
 
             expect(v.toWGSLDefinition()).toBe('struct VaryingStruct {\n    @builtin(position) position: vec4<f32>,\n}');
-            expect(v.toWGSLFragmentParam()).toBe('v: VaryingStruct');
+            expect(v.toWGSLParam()).toBe('v: VaryingStruct');
             expect(v.toWGSL('fragment')).toBe('v');
             expect(position.toWGSL('fragment')).toBe('v.position');
             expect(position.x.toWGSL('fragment')).toBe('v.position.x');

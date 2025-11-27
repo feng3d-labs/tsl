@@ -86,7 +86,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
      * 生成顶点着色器中的变量声明语句
      * @returns WGSL 变量声明语句，例如: 'var v: VaryingStruct;'
      */
-    toWGSLVertexVarStatement(): string
+    toWGSLVarStatement(): string
     {
         return `var ${this.varName}: ${this.structName};`;
     }
@@ -95,7 +95,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
      * 生成片段着色器中的函数参数
      * @returns WGSL 函数参数，例如: 'v: VaryingStruct'
      */
-    toWGSLFragmentParam(): string
+    toWGSLParam(): string
     {
         return `${this.varName}: ${this.structName}`;
     }

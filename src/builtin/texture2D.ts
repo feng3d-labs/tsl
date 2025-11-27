@@ -1,5 +1,4 @@
-import { getBuildParam } from '../buildParam';
-import { IElement, ShaderValue } from '../IElement';
+import { getBuildParam } from '../buildShader';
 import { Sampler } from '../Sampler';
 import { Vec2 } from './types/vec2';
 import { Vec4 } from './types/vec4';
@@ -13,7 +12,8 @@ import { Vec4 } from './types/vec4';
 export function texture2D(sampler: Sampler, coord: Vec2): Vec4
 {
     const result = new Vec4();
-    result.toGLSL = () => {
+    result.toGLSL = () =>
+    {
         const buildParam = getBuildParam();
         const version = buildParam.version;
         // 在 WebGL 2.0 中，必须使用 texture 而不是 texture2D

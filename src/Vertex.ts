@@ -1,5 +1,5 @@
 import { Attribute } from './Attribute';
-import { clearBuildParam, setBuildParam } from './buildParam';
+import { buildShader } from './buildShader';
 import { Func } from './Func';
 import { Sampler } from './Sampler';
 import { Uniform } from './Uniform';
@@ -20,122 +20,120 @@ export class Vertex extends Func
      */
     toGLSL(version: 1 | 2 = 1): string
     {
-        const buildParam = { language: 'glsl', stage: 'vertex', version: version } as const;
-        setBuildParam(buildParam);
-
-        const lines: string[] = [];
-
-        // 添加版本声明（WebGL 2.0）
-        if (version === 2)
+        return buildShader({ language: 'glsl', stage: 'vertex', version: version }, () =>
         {
-            lines.push('#version 300 es');
-            lines.push('');
-            lines.push('precision highp float;');
-            lines.push('precision highp int;');
-            lines.push('');
-        }
+            const lines: string[] = [];
 
-        // 先执行 body 收集依赖（通过调用父类的 toGLSL 来触发，它会执行 body 并填充 dependencies）
-        // 这里只为了收集依赖，不生成完整代码
-        super.toGLSL();
-
-        // 从函数的 dependencies 中分析获取 attributes、uniforms、varyings 和 samplers（使用缓存）
-        const dependencies = this.getAnalyzedDependencies();
-
-        // 自动分配 location（对于 location 缺省的 attribute）
-        this.allocateLocations(dependencies.attributes);
-
-        // 生成 attributes（只包含实际使用的）
-        for (const attr of dependencies.attributes)
-        {
-            lines.push(attr.toGLSL());
-        }
-
-        // 生成 uniforms（只包含实际使用的）
-        for (const uniform of dependencies.uniforms)
-        {
-            lines.push(uniform.toGLSL());
-        }
-
-        // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
-        for (const struct of dependencies.structs)
-        {
-            const structVaryingDecl = struct.toGLSLDefinition('vertex');
-            if (structVaryingDecl)
+            // 添加版本声明（WebGL 2.0）
+            if (version === 2)
             {
-                lines.push(structVaryingDecl);
+                lines.push('#version 300 es');
+                lines.push('');
+                lines.push('precision highp float;');
+                lines.push('precision highp int;');
+                lines.push('');
             }
-        }
 
-        // 生成其他 varyings（不在结构体中的，在 vertex shader 中作为输出）
-        for (const varying of dependencies.varyings)
-        {
-            // 检查这个 varying 是否已经在结构体中声明了
-            let inStruct = false;
+            // 先执行 body 收集依赖（通过调用父类的 toGLSL 来触发，它会执行 body 并填充 dependencies）
+            // 这里只为了收集依赖，不生成完整代码
+            super.toGLSL();
+
+            // 从函数的 dependencies 中分析获取 attributes、uniforms、varyings 和 samplers（使用缓存）
+            const dependencies = this.getAnalyzedDependencies();
+
+            // 自动分配 location（对于 location 缺省的 attribute）
+            this.allocateLocations(dependencies.attributes);
+
+            // 生成 attributes（只包含实际使用的）
+            for (const attr of dependencies.attributes)
+            {
+                lines.push(attr.toGLSL());
+            }
+
+            // 生成 uniforms（只包含实际使用的）
+            for (const uniform of dependencies.uniforms)
+            {
+                lines.push(uniform.toGLSL());
+            }
+
+            // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
             for (const struct of dependencies.structs)
             {
-                for (const fieldValue of Object.values(struct.fields))
+                const structVaryingDecl = struct.toGLSLDefinition('vertex');
+                if (structVaryingDecl)
                 {
-                    if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
-                    {
-                        for (const dep of fieldValue.dependencies)
-                        {
-                            if (dep === varying)
-                            {
-                                inStruct = true;
-                                break;
-                            }
-                        }
-                        if (inStruct) break;
-                    }
+                    lines.push(structVaryingDecl);
                 }
-                if (inStruct) break;
             }
-            // 如果不在结构体中，才单独声明
-            if (!inStruct)
+
+            // 生成其他 varyings（不在结构体中的，在 vertex shader 中作为输出）
+            for (const varying of dependencies.varyings)
             {
-                lines.push(varying.toGLSL());
+                // 检查这个 varying 是否已经在结构体中声明了
+                let inStruct = false;
+                for (const struct of dependencies.structs)
+                {
+                    for (const fieldValue of Object.values(struct.fields))
+                    {
+                        if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
+                        {
+                            for (const dep of fieldValue.dependencies)
+                            {
+                                if (dep === varying)
+                                {
+                                    inStruct = true;
+                                    break;
+                                }
+                            }
+                            if (inStruct) break;
+                        }
+                    }
+                    if (inStruct) break;
+                }
+                // 如果不在结构体中，才单独声明
+                if (!inStruct)
+                {
+                    lines.push(varying.toGLSL());
+                }
             }
-        }
 
-        // 生成外部定义的var_变量（作为全局const）
-        const externalVars = dependencies.externalVars;
-        for (const { name, expr } of externalVars)
-        {
-            lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL()};`);
-        }
-
-        // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-        const funcCode = super.toGLSL();
-        const funcLines = funcCode.split('\n').filter(line => line.trim() !== '');
-
-        // 如果有声明和函数代码，在它们之间添加一个空行
-        if (lines.length > 0 && funcLines.length > 0)
-        {
-            lines.push('');
-        }
-
-        lines.push(...funcLines);
-
-        // 移除末尾的空行，但保留其他空行（用于分隔）
-        const result: string[] = [];
-        for (let i = 0; i < lines.length; i++)
-        {
-            const line = lines[i];
-            const isLast = i === lines.length - 1;
-            // 如果是最后一行且为空，跳过
-            if (isLast && line.trim() === '')
+            // 生成外部定义的var_变量（作为全局const）
+            const externalVars = dependencies.externalVars;
+            for (const { name, expr } of externalVars)
             {
-                continue;
+                lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL()};`);
             }
-            result.push(line);
-        }
 
-        const resultStr = result.join('\n');
+            // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
+            const funcCode = super.toGLSL();
+            const funcLines = funcCode.split('\n').filter(line => line.trim() !== '');
 
-        clearBuildParam();
+            // 如果有声明和函数代码，在它们之间添加一个空行
+            if (lines.length > 0 && funcLines.length > 0)
+            {
+                lines.push('');
+            }
 
-        return resultStr;
+            lines.push(...funcLines);
+
+            // 移除末尾的空行，但保留其他空行（用于分隔）
+            const result: string[] = [];
+            for (let i = 0; i < lines.length; i++)
+            {
+                const line = lines[i];
+                const isLast = i === lines.length - 1;
+                // 如果是最后一行且为空，跳过
+                if (isLast && line.trim() === '')
+                {
+                    continue;
+                }
+                result.push(line);
+            }
+
+            const resultStr = result.join('\n');
+
+            return resultStr;
+        });
     }
 
     /**
@@ -144,58 +142,56 @@ export class Vertex extends Func
      */
     toWGSL(): string
     {
-        const buildParam = { language: 'wgsl', stage: 'vertex', version: 1 } as const;
-        setBuildParam(buildParam);
-
-        const lines: string[] = [];
-
-        // 先执行 body 收集依赖（通过调用父类的 toWGSL 来触发，它会执行 body 并填充 dependencies）
-        // 这里只为了收集依赖，不生成完整代码
-        super.toWGSL();
-
-        // 从函数的 dependencies 中分析获取 attributes、uniforms 和 structs（使用缓存）
-        const dependencies = this.getAnalyzedDependencies();
-
-        // 自动分配 location（对于 location 缺省的 attribute）
-        this.allocateLocations(dependencies.attributes);
-
-        // 自动分配 binding（对于 binding 缺省的 uniform）
-        this.allocateBindings(dependencies.uniforms, new Set());
-
-        // 生成结构体定义（包含所有字段，location 分配在 toWGSLDefinition 中完成）
-        for (const struct of dependencies.structs)
+        return buildShader({ language: 'wgsl', stage: 'vertex', version: 1 }, () =>
         {
-            lines.push(struct.toWGSLDefinition());
-        }
+            const lines: string[] = [];
 
-        // 生成 uniforms（只包含实际使用的）
-        for (const uniform of dependencies.uniforms)
-        {
-            lines.push(uniform.toWGSL());
-        }
+            // 先执行 body 收集依赖（通过调用父类的 toWGSL 来触发，它会执行 body 并填充 dependencies）
+            // 这里只为了收集依赖，不生成完整代码
+            super.toWGSL();
 
-        // 生成外部定义的var_变量（作为全局const）
-        const externalVars = dependencies.externalVars;
-        for (const { name, expr } of externalVars)
-        {
-            lines.push(`const ${name}: ${expr.wgslType} = ${expr.toWGSL()};`);
-        }
+            // 从函数的 dependencies 中分析获取 attributes、uniforms 和 structs（使用缓存）
+            const dependencies = this.getAnalyzedDependencies();
 
-        // 空行
-        if (lines.length > 0)
-        {
-            lines.push('');
-        }
+            // 自动分配 location（对于 location 缺省的 attribute）
+            this.allocateLocations(dependencies.attributes);
 
-        // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-        const funcCode = super.toWGSL();
-        lines.push(...funcCode.split('\n'));
+            // 自动分配 binding（对于 binding 缺省的 uniform）
+            this.allocateBindings(dependencies.uniforms, new Set());
 
-        const resultStr = lines.join('\n') + '\n';
+            // 生成结构体定义（包含所有字段，location 分配在 toWGSLDefinition 中完成）
+            for (const struct of dependencies.structs)
+            {
+                lines.push(struct.toWGSLDefinition());
+            }
 
-        clearBuildParam();
+            // 生成 uniforms（只包含实际使用的）
+            for (const uniform of dependencies.uniforms)
+            {
+                lines.push(uniform.toWGSL());
+            }
 
-        return resultStr;
+            // 生成外部定义的var_变量（作为全局const）
+            const externalVars = dependencies.externalVars;
+            for (const { name, expr } of externalVars)
+            {
+                lines.push(`const ${name}: ${expr.wgslType} = ${expr.toWGSL()};`);
+            }
+
+            // 空行
+            if (lines.length > 0)
+            {
+                lines.push('');
+            }
+
+            // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
+            const funcCode = super.toWGSL();
+            lines.push(...funcCode.split('\n'));
+
+            const resultStr = lines.join('\n') + '\n';
+
+            return resultStr;
+        });
     }
 
     /**

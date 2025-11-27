@@ -1,6 +1,6 @@
 import { analyzeDependencies } from './analyzeDependencies';
 import { Attribute } from './Attribute';
-import { getBuildParam } from './buildParam';
+import { getBuildParam } from './buildShader';
 import { IStatement } from './builtin/Statement';
 import { setCurrentFunc } from './currentFunc';
 import { IElement, ShaderValue } from './IElement';

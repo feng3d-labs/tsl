@@ -1,4 +1,4 @@
-import { clearBuildParam, setBuildParam } from './buildParam';
+import { buildShader } from './buildShader';
 import { Func } from './Func';
 import { Precision } from './Precision';
 import { Sampler } from './Sampler';
@@ -21,141 +21,140 @@ export class Fragment extends Func
      */
     toGLSL(version: 1 | 2 = 1): string
     {
-        const buildParam = { language: 'glsl', stage: 'fragment', version: version } as const;
-        setBuildParam(buildParam);
-
-        const lines: string[] = [];
-
-        // 添加版本声明（WebGL 2.0）
-        if (version === 2)
+        return buildShader({ language: 'glsl', stage: 'fragment', version: version }, () =>
         {
-            lines.push('#version 300 es');
-            lines.push('');
-        }
+            const lines: string[] = [];
 
-        // 先执行 body 收集依赖（通过调用父类的 toGLSL 来触发，它会执行 body 并填充 dependencies）
-        // 这里只为了收集依赖，不生成完整代码
-        super.toGLSL();
-
-        // 从函数的 dependencies 中分析获取 uniforms、precision、varyings 和 samplers（使用缓存）
-        const dependencies = this.getAnalyzedDependencies();
-
-        // Fragment shader 需要 precision 声明（从函数依赖中获取，如果没有则默认使用 highp）
-        if (dependencies.precision)
-        {
-            lines.push(dependencies.precision.toGLSL());
-        }
-        else
-        {
-            // 如果没有指定 precision，默认使用 highp
-            const defaultPrecision = new Precision('highp');
-            lines.push(defaultPrecision.toGLSL());
-        }
-
-        // WebGL 2.0 需要额外的 precision 声明
-        if (version === 2)
-        {
-            lines.push('precision highp int;');
-        }
-
-        // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
-        for (const struct of dependencies.structs)
-        {
-            const structVaryingDecl = struct.toGLSLDefinition('fragment');
-            if (structVaryingDecl)
+            // 添加版本声明（WebGL 2.0）
+            if (version === 2)
             {
-                lines.push(structVaryingDecl);
+                lines.push('#version 300 es');
+                lines.push('');
             }
-        }
 
-        // 生成其他 varyings（不在结构体中的）
-        for (const varying of dependencies.varyings)
-        {
-            // 检查这个 varying 是否已经在结构体中声明了
-            let inStruct = false;
+            // 先执行 body 收集依赖（通过调用父类的 toGLSL 来触发，它会执行 body 并填充 dependencies）
+            // 这里只为了收集依赖，不生成完整代码
+            super.toGLSL();
+
+            // 从函数的 dependencies 中分析获取 uniforms、precision、varyings 和 samplers（使用缓存）
+            const dependencies = this.getAnalyzedDependencies();
+
+            // Fragment shader 需要 precision 声明（从函数依赖中获取，如果没有则默认使用 highp）
+            if (dependencies.precision)
+            {
+                lines.push(dependencies.precision.toGLSL());
+            }
+            else
+            {
+                // 如果没有指定 precision，默认使用 highp
+                const defaultPrecision = new Precision('highp');
+                lines.push(defaultPrecision.toGLSL());
+            }
+
+            // WebGL 2.0 需要额外的 precision 声明
+            if (version === 2)
+            {
+                lines.push('precision highp int;');
+            }
+
+            // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
             for (const struct of dependencies.structs)
             {
-                for (const fieldValue of Object.values(struct.fields))
+                const structVaryingDecl = struct.toGLSLDefinition('fragment');
+                if (structVaryingDecl)
                 {
-                    if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
-                    {
-                        for (const dep of fieldValue.dependencies)
-                        {
-                            if (dep === varying)
-                            {
-                                inStruct = true;
-                                break;
-                            }
-                        }
-                        if (inStruct) break;
-                    }
+                    lines.push(structVaryingDecl);
                 }
-                if (inStruct) break;
             }
-            // 如果不在结构体中，才单独声明
-            if (!inStruct)
+
+            // 生成其他 varyings（不在结构体中的）
+            for (const varying of dependencies.varyings)
             {
-                lines.push(varying.toGLSL());
+                // 检查这个 varying 是否已经在结构体中声明了
+                let inStruct = false;
+                for (const struct of dependencies.structs)
+                {
+                    for (const fieldValue of Object.values(struct.fields))
+                    {
+                        if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
+                        {
+                            for (const dep of fieldValue.dependencies)
+                            {
+                                if (dep === varying)
+                                {
+                                    inStruct = true;
+                                    break;
+                                }
+                            }
+                            if (inStruct) break;
+                        }
+                    }
+                    if (inStruct) break;
+                }
+                // 如果不在结构体中，才单独声明
+                if (!inStruct)
+                {
+                    lines.push(varying.toGLSL());
+                }
             }
-        }
 
-        // 生成 uniforms（只包含实际使用的）
-        for (const uniform of dependencies.uniforms)
-        {
-            lines.push(uniform.toGLSL());
-        }
-
-        // 生成 samplers（只包含实际使用的）
-        for (const sampler of dependencies.samplers)
-        {
-            lines.push(sampler.toGLSL());
-        }
-
-        // WebGL 2.0 需要声明输出变量
-        if (version === 2)
-        {
-            lines.push('');
-            lines.push('layout(location = 0) out vec4 color;');
-        }
-
-        // 生成外部定义的var_变量（作为全局const）
-        const externalVars = dependencies.externalVars;
-        for (const { name, expr } of externalVars)
-        {
-            lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL()};`);
-        }
-
-        // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-        const funcCode = super.toGLSL();
-        const funcLines = funcCode.split('\n').filter(line => line.trim() !== '');
-
-        // 如果有声明和函数代码，在它们之间添加一个空行
-        if (lines.length > 0 && funcLines.length > 0)
-        {
-            lines.push('');
-        }
-
-        lines.push(...funcLines);
-
-        // 移除末尾的空行，但保留其他空行（用于分隔）
-        const result: string[] = [];
-        for (let i = 0; i < lines.length; i++)
-        {
-            const line = lines[i];
-            const isLast = i === lines.length - 1;
-            // 如果是最后一行且为空，跳过
-            if (isLast && line.trim() === '')
+            // 生成 uniforms（只包含实际使用的）
+            for (const uniform of dependencies.uniforms)
             {
-                continue;
+                lines.push(uniform.toGLSL());
             }
-            result.push(line);
-        }
 
-        const resultStr = result.join('\n');
+            // 生成 samplers（只包含实际使用的）
+            for (const sampler of dependencies.samplers)
+            {
+                lines.push(sampler.toGLSL());
+            }
 
-        clearBuildParam();
+            // WebGL 2.0 需要声明输出变量
+            if (version === 2)
+            {
+                lines.push('');
+                lines.push('layout(location = 0) out vec4 color;');
+            }
 
-        return resultStr;
+            // 生成外部定义的var_变量（作为全局const）
+            const externalVars = dependencies.externalVars;
+            for (const { name, expr } of externalVars)
+            {
+                lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL()};`);
+            }
+
+            // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
+            const funcCode = super.toGLSL();
+            const funcLines = funcCode.split('\n').filter(line => line.trim() !== '');
+
+            // 如果有声明和函数代码，在它们之间添加一个空行
+            if (lines.length > 0 && funcLines.length > 0)
+            {
+                lines.push('');
+            }
+
+            lines.push(...funcLines);
+
+            // 移除末尾的空行，但保留其他空行（用于分隔）
+            const result: string[] = [];
+            for (let i = 0; i < lines.length; i++)
+            {
+                const line = lines[i];
+                const isLast = i === lines.length - 1;
+                // 如果是最后一行且为空，跳过
+                if (isLast && line.trim() === '')
+                {
+                    continue;
+                }
+                result.push(line);
+            }
+
+            const resultStr = result.join('\n');
+
+            return resultStr;
+        });
+
     }
 
     /**
@@ -165,63 +164,62 @@ export class Fragment extends Func
      */
     toWGSL(vertexShader?: Vertex): string
     {
-        const buildParam = { language: 'wgsl', stage: 'fragment', version: 1 } as const;
-        setBuildParam(buildParam);
-
-        const lines: string[] = [];
-
-        // 先执行 body 收集依赖（通过调用父类的 toWGSL 来触发，它会执行 body 并填充 dependencies）
-        // 这里只为了收集依赖，不生成完整代码
-        super.toWGSL();
-
-        // 从函数的 dependencies 中分析获取 uniforms 和 structs（使用缓存）
-        const dependencies = this.getAnalyzedDependencies();
-
-        // 自动分配 binding（对于 binding 缺省的 uniform），考虑顶点着色器的 binding
-        this.allocateBindings(dependencies.uniforms, dependencies.samplers, vertexShader);
-
-        // 生成结构体定义（包含所有字段，即使未使用）
-        for (const struct of dependencies.structs)
+        return buildShader({ language: 'wgsl', stage: 'fragment', version: 1 }, () =>
         {
-            lines.push(struct.toWGSLDefinition());
-        }
 
-        // 生成 uniforms（只包含实际使用的）
-        for (const uniform of dependencies.uniforms)
-        {
-            lines.push(uniform.toWGSL());
-        }
+            const lines: string[] = [];
 
-        // 生成 samplers（只包含实际使用的）
-        // 在 WGSL 中，sampler.toWGSL() 返回多行（texture 和 sampler 声明）
-        for (const sampler of dependencies.samplers)
-        {
-            const samplerWgsl = sampler.toWGSL();
-            lines.push(...samplerWgsl.split('\n'));
-        }
+            // 先执行 body 收集依赖（通过调用父类的 toWGSL 来触发，它会执行 body 并填充 dependencies）
+            // 这里只为了收集依赖，不生成完整代码
+            super.toWGSL();
 
-        // 生成外部定义的var_变量（作为全局const）
-        const externalVars = dependencies.externalVars;
-        for (const { name, expr } of externalVars)
-        {
-            lines.push(`const ${name}: ${expr.wgslType} = ${expr.toWGSL()};`);
-        }
+            // 从函数的 dependencies 中分析获取 uniforms 和 structs（使用缓存）
+            const dependencies = this.getAnalyzedDependencies();
 
-        // 空行
-        if (lines.length > 0)
-        {
-            lines.push('');
-        }
+            // 自动分配 binding（对于 binding 缺省的 uniform），考虑顶点着色器的 binding
+            this.allocateBindings(dependencies.uniforms, dependencies.samplers, vertexShader);
 
-        // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-        const funcCode = super.toWGSL();
-        lines.push(...funcCode.split('\n'));
+            // 生成结构体定义（包含所有字段，即使未使用）
+            for (const struct of dependencies.structs)
+            {
+                lines.push(struct.toWGSLDefinition());
+            }
 
-        const resultStr = lines.join('\n') + '\n';
+            // 生成 uniforms（只包含实际使用的）
+            for (const uniform of dependencies.uniforms)
+            {
+                lines.push(uniform.toWGSL());
+            }
 
-        clearBuildParam();
+            // 生成 samplers（只包含实际使用的）
+            // 在 WGSL 中，sampler.toWGSL() 返回多行（texture 和 sampler 声明）
+            for (const sampler of dependencies.samplers)
+            {
+                const samplerWgsl = sampler.toWGSL();
+                lines.push(...samplerWgsl.split('\n'));
+            }
 
-        return resultStr;
+            // 生成外部定义的var_变量（作为全局const）
+            const externalVars = dependencies.externalVars;
+            for (const { name, expr } of externalVars)
+            {
+                lines.push(`const ${name}: ${expr.wgslType} = ${expr.toWGSL()};`);
+            }
+
+            // 空行
+            if (lines.length > 0)
+            {
+                lines.push('');
+            }
+
+            // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
+            const funcCode = super.toWGSL();
+            lines.push(...funcCode.split('\n'));
+
+            const resultStr = lines.join('\n') + '\n';
+
+            return resultStr;
+        });
     }
 
     /**

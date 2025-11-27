@@ -1,5 +1,5 @@
 import { ShaderValue } from '../IElement';
-import { getBuildParam } from '../buildParam';
+import { getBuildParam } from '../buildShader';
 import { getCurrentFunc } from '../currentFunc';
 import { Builtin } from './builtin';
 

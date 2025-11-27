@@ -1,4 +1,4 @@
-import { getBuildParam } from './buildParam';
+import { getBuildParam } from './buildShader';
 import { Builtin } from './builtin/builtin';
 import { IElement } from './IElement';
 import { Varying } from './Varying';

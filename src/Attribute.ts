@@ -1,4 +1,4 @@
-import { getBuildParam } from './buildParam';
+import { getBuildParam } from './buildShader';
 import { IElement, ShaderValue } from './IElement';
 
 /**

@@ -1,4 +1,4 @@
-import { getBuildParam } from '../buildParam';
+import { getBuildParam } from '../buildShader';
 import { ShaderValue } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
 import { VaryingStruct } from '../varyingStruct';

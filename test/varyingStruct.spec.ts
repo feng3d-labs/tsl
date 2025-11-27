@@ -230,30 +230,36 @@ describe('VaryingStruct', () =>
                 color: vec4(varying(1)),
                 color2: vec4(varying()),
                 color3: vec4(varying(2)),
+                color4: vec4(varying()),
+
             });
 
             // GLSL
             expect(v.color.toGLSL('vertex')).toBe('color');
             expect(v.color2.toGLSL('vertex')).toBe('color2');
             expect(v.color3.toGLSL('vertex')).toBe('color3');
+            expect(v.color4.toGLSL('vertex')).toBe('color4');
 
             expect(v.color.toGLSL('fragment')).toBe('color');
             expect(v.color2.toGLSL('fragment')).toBe('color2');
             expect(v.color3.toGLSL('fragment')).toBe('color3');
+            expect(v.color4.toGLSL('fragment')).toBe('color4');
 
             expect(v.toGLSL('vertex')).toBe('');
             expect(v.toGLSL('fragment')).toBe('');
 
-            expect(v.toGLSLDefinition()).toBe('varying vec4 color; varying vec4 color2; varying vec4 color3;');
+            expect(v.toGLSLDefinition()).toBe('varying vec4 color; varying vec4 color2; varying vec4 color3; varying vec4 color4;');
 
             // WGSL
             expect(v.color.toWGSL('vertex')).toBe('v.color');
             expect(v.color2.toWGSL('vertex')).toBe('v.color2');
             expect(v.color3.toWGSL('vertex')).toBe('v.color3');
+            expect(v.color4.toWGSL('vertex')).toBe('v.color4');
 
             expect(v.color.toWGSL('fragment')).toBe('v.color');
             expect(v.color2.toWGSL('fragment')).toBe('v.color2');
             expect(v.color3.toWGSL('fragment')).toBe('v.color3');
+            expect(v.color4.toWGSL('fragment')).toBe('v.color4');
 
             expect(v.toWGSL('vertex')).toBe('v');
             expect(v.toWGSL('fragment')).toBe('v');
@@ -261,7 +267,7 @@ describe('VaryingStruct', () =>
             expect(v.toWGSLVarStatement()).toBe('var v: VaryingStruct;');
             expect(v.toWGSLParam()).toBe('v: VaryingStruct');
 
-            expect(v.toWGSLDefinition()).toBe('struct VaryingStruct {\n    @location(1) color: vec4<f32>,\n    @location(0) color2: vec4<f32>,\n    @location(2) color3: vec4<f32>,\n}');
+            expect(v.toWGSLDefinition()).toBe('struct VaryingStruct {\n    @location(1) color: vec4<f32>,\n    @location(0) color2: vec4<f32>,\n    @location(2) color3: vec4<f32>,\n    @location(3) color4: vec4<f32>,\n}');
         });
     });
 });

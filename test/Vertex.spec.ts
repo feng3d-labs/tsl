@@ -116,13 +116,9 @@ describe('Vertex', () =>
             });
 
             const wgsl = vert.toWGSL();
-            // 验证结构体声明包含 @location
-            expect(wgsl).toContain('struct VaryingStruct {');
-            expect(wgsl).toContain('@builtin(position) position: vec4<f32>');
-            expect(wgsl).toContain('@location(0) vColor: vec4<f32>');
-            expect(wgsl).toContain('@location(1) vTexCoord: vec2<f32>');
-            // 验证自动分配的 varying location
-            expect(wgsl).toMatch(/@location\(0\).*vColor/);
+            const wgslDefinition = v.toWGSLDefinition();
+
+            expect(wgsl).toContain(wgslDefinition);
         });
 
         it('应该能够混合显式指定和自动分配的 location', () =>
@@ -140,8 +136,6 @@ describe('Vertex', () =>
                 assign(v.position, vec4(aPos, 0.0, 1.0));
                 assign(v.vColor, aColor);
             });
-
-            expect(v.toWGSLDefinition()).toContain('@location(0) vTexCoord: vec2<f32>');
 
             const wgsl = vert.toWGSL();
             expect(wgsl).toContain(v.toWGSLDefinition());

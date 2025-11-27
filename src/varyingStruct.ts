@@ -60,34 +60,37 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
      */
     toWGSLDefinition(): string
     {
-        // 首先收集所有 varying 字段，并分配 location
-        const varyings: Varying[] = [];
+        // 按照字段定义顺序收集所有 varying 字段，并分配 location
         const usedLocations = new Set<number>();
 
-        // 第一遍：收集所有 varying，并记录已显式指定的 location
+        // 第一遍：按照字段定义顺序遍历，记录已显式指定的 location
         for (const [fieldName, value] of Object.entries(this.fields))
         {
             const dep = value.dependencies[0];
-            if (dep instanceof Varying)
+            if (dep instanceof Varying && dep.location !== undefined)
             {
-                varyings.push(dep);
-                if (dep.location !== undefined)
-                {
-                    usedLocations.add(dep.location);
-                }
+                usedLocations.add(dep.location);
             }
         }
 
-        // 第二遍：为没有 location 的 varying 自动分配 location（按照字段定义顺序）
-        for (const varying of varyings)
+        // 第二遍：按照字段定义顺序，为没有 location 的 varying 自动分配 location
+        for (const [fieldName, value] of Object.entries(this.fields))
         {
-            if (varying.location === undefined)
+            const dep = value.dependencies[0];
+            if (dep instanceof Varying && dep.location === undefined)
             {
-                // 检查是否已经分配了自动 location
-                const currentEffectiveLocation = varying.getEffectiveLocation();
-                // 如果 getEffectiveLocation 返回的值已经在 usedLocations 中，说明已经分配过了，跳过
-                if (usedLocations.has(currentEffectiveLocation))
+                // 检查是否已经分配了自动 location（通过检查 _autoLocation 属性）
+                // 由于 _autoLocation 是私有的，我们通过 getEffectiveLocation 来判断
+                // 如果 getEffectiveLocation 返回的值不在 usedLocations 中，且不是 0，说明已经分配过了
+                const currentEffectiveLocation = dep.getEffectiveLocation();
+                // 如果 location 是 undefined，getEffectiveLocation 会返回 _autoLocation ?? 0
+                // 如果 _autoLocation 还没有设置，返回 0
+                // 如果 _autoLocation 已经设置，返回 _autoLocation
+                // 所以我们需要检查：如果 currentEffectiveLocation 在 usedLocations 中，说明已经分配过了
+                // 但如果 currentEffectiveLocation 是 0 且 0 不在 usedLocations 中，可能是默认值，需要分配
+                if (currentEffectiveLocation !== 0 && usedLocations.has(currentEffectiveLocation))
                 {
+                    // 已经分配过了，跳过
                     continue;
                 }
 
@@ -99,7 +102,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
                 }
 
                 // 分配 location
-                varying.setAutoLocation(nextLocation);
+                dep.setAutoLocation(nextLocation);
                 usedLocations.add(nextLocation);
             }
         }

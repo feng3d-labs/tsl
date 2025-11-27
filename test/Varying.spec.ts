@@ -124,9 +124,9 @@ describe('Varying', () =>
             });
 
             const wgsl = vertexShader.toWGSL();
-            // 验证自动分配的 location 是连续的
-            expect(wgsl).toMatch(/@location\(0\).*vColor/);
-            expect(wgsl).toMatch(/@location\(1\).*vTexCoord/);
+            expect(wgsl).toContain(v.toWGSLDefinition());
+            expect(wgsl).toContain('@location(0) vColor: vec4<f32>');
+            expect(wgsl).toContain('@location(1) vTexCoord: vec2<f32>');
         });
 
         it('应该能够混合显式指定和自动分配的 location', () =>

@@ -127,7 +127,7 @@ describe('VaryingStruct', () =>
             });
 
             const vertexGlsl = v.toGLSL();
-            const fragmentGlsl = v.toGLSL('fragment');
+            const fragmentGlsl = v.toGLSL();
 
             expect(vertexGlsl).toBe('');
             expect(fragmentGlsl).toBe('');
@@ -240,15 +240,15 @@ describe('VaryingStruct', () =>
             expect(v.color3.toGLSL()).toBe('color3');
             expect(v.color4.toGLSL()).toBe('color4');
 
-            expect(v.color.toGLSL('fragment')).toBe('color');
-            expect(v.color2.toGLSL('fragment')).toBe('color2');
-            expect(v.color3.toGLSL('fragment')).toBe('color3');
-            expect(v.color4.toGLSL('fragment')).toBe('color4');
+            expect(v.color.toGLSL()).toBe('color');
+            expect(v.color2.toGLSL()).toBe('color2');
+            expect(v.color3.toGLSL()).toBe('color3');
+            expect(v.color4.toGLSL()).toBe('color4');
 
             expect(v.toGLSL()).toBe('');
-            expect(v.toGLSL('fragment')).toBe('');
+            expect(v.toGLSL()).toBe('');
 
-            expect(v.toGLSLDefinition()).toBe('varying vec4 color; varying vec4 color2; varying vec4 color3; varying vec4 color4;');
+            expect(v.toGLSLDefinition()).toBe('varying vec4 color;\nvarying vec4 color2;\nvarying vec4 color3;\nvarying vec4 color4;');
 
             // WGSL
             expect(v.color.toWGSL()).toBe('v.color');

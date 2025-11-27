@@ -35,7 +35,7 @@ describe('Varying', () =>
             const v = struct.fields.vColor.dependencies[0] as Varying;
             expect(v.name).toBe('vColor');
             expect(v.toGLSL()).toBe('varying vec4 vColor;');
-            expect(v.toGLSL('fragment')).toBe('varying vec4 vColor;');
+            expect(v.toGLSL()).toBe('varying vec4 vColor;');
         });
 
         it('应该在 varyingStruct 中设置 name 并生成 WGSL', () =>

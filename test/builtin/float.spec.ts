@@ -62,7 +62,7 @@ describe('Float', () =>
             expect(result).toBeInstanceOf(Float);
             expect(result.toGLSL()).toBe('vValue');
             expect(result.toWGSL()).toBe('v.vValue');
-            expect(result.toGLSL('fragment')).toBe('vValue');
+            expect(result.toGLSL()).toBe('vValue');
             expect(result.toWGSL()).toBe('v.vValue');
         });
     });

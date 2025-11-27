@@ -17,13 +17,13 @@ describe('Precision', () =>
         it('应该能够生成 GLSL 代码', () =>
         {
             const prec = new Precision('highp');
-            expect(prec.toGLSL('fragment')).toBe('precision highp float;');
+            expect(prec.toGLSL()).toBe('precision highp float;');
 
             const precLow = new Precision('lowp');
-            expect(precLow.toGLSL('fragment')).toBe('precision lowp float;');
+            expect(precLow.toGLSL()).toBe('precision lowp float;');
 
             const precMedium = new Precision('mediump');
-            expect(precMedium.toGLSL('fragment')).toBe('precision mediump float;');
+            expect(precMedium.toGLSL()).toBe('precision mediump float;');
         });
 
         it('应该能够生成 WGSL 代码（返回空字符串）', () =>

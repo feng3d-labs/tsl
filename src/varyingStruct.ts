@@ -1,3 +1,4 @@
+import { getBuildParam } from './buildParam';
 import { Builtin } from './builtin/builtin';
 import { IElement } from './IElement';
 import { Varying } from './Varying';
@@ -34,15 +35,16 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
     /**
      * 生成 GLSL varying 声明
      * @param type 着色器类型（vertex 或 fragment）
-     * @param version GLSL 版本（1 = WebGL 1.0, 2 = WebGL 2.0，默认 1）
      * @returns GLSL varying 声明字符串，例如: 'varying vec4 color; varying vec4 color2;'
      */
-    toGLSLDefinition(type: 'vertex' | 'fragment' = 'fragment', version: 1 | 2 = 1): string
+    toGLSLDefinition(type: 'vertex' | 'fragment' = 'fragment'): string
     {
         // 分配 location：按照字段定义顺序，为所有 varying 字段分配唯一的 location
         this.allocateVaryingLocations();
 
         const varyingDeclarations: string[] = [];
+        const buildParam = getBuildParam();
+        const version = buildParam?.version ?? 1;
 
         for (const [fieldName, value] of Object.entries(this.fields))
         {
@@ -281,7 +283,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
         else
         {
             // Varying 字段：返回字段名（GLSL 中直接使用字段名，不需要结构体前缀）
-            value.toGLSL = (type: 'vertex' | 'fragment', version?: 1 | 2) => fieldName;
+            value.toGLSL = (type: 'vertex' | 'fragment') => fieldName;
         }
     }
 }

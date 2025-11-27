@@ -1,7 +1,7 @@
 export interface IElement
 {
     dependencies: IElement[]
-    toGLSL(type: 'vertex' | 'fragment', version?: 1 | 2): string;
+    toGLSL(type: 'vertex' | 'fragment'): string;
     toWGSL(type: 'vertex' | 'fragment'): string;
 }
 

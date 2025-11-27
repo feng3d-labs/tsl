@@ -1,3 +1,4 @@
+import { getBuildParam, setBuildParam } from './buildParam';
 import { Func } from './Func';
 import { Precision } from './Precision';
 import { Sampler } from './Sampler';
@@ -24,10 +25,14 @@ export class Fragment extends Func
      */
     toGLSL(shaderType?: 'vertex' | 'fragment', version: 1 | 2 = 1): string
     {
+        setBuildParam({ shaderType: 'glsl', type: 'fragment', version });
+        const buildParam = getBuildParam();
+        const actualVersion = buildParam?.version ?? 1;
+
         const lines: string[] = [];
 
         // 添加版本声明（WebGL 2.0）
-        if (version === 2)
+        if (actualVersion === 2)
         {
             lines.push('#version 300 es');
             lines.push('');
@@ -35,7 +40,7 @@ export class Fragment extends Func
 
         // 先执行 body 收集依赖（通过调用父类的 toGLSL 来触发，它会执行 body 并填充 dependencies）
         // 这里只为了收集依赖，不生成完整代码
-        super.toGLSL('fragment', version);
+        super.toGLSL('fragment');
 
         // 从函数的 dependencies 中分析获取 uniforms、precision、varyings 和 samplers（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
@@ -43,17 +48,17 @@ export class Fragment extends Func
         // Fragment shader 需要 precision 声明（从函数依赖中获取，如果没有则默认使用 highp）
         if (dependencies.precision)
         {
-            lines.push(dependencies.precision.toGLSL('fragment', version));
+            lines.push(dependencies.precision.toGLSL('fragment'));
         }
         else
         {
             // 如果没有指定 precision，默认使用 highp
             const defaultPrecision = new Precision('highp');
-            lines.push(defaultPrecision.toGLSL('fragment', version));
+            lines.push(defaultPrecision.toGLSL('fragment'));
         }
 
         // WebGL 2.0 需要额外的 precision 声明
-        if (version === 2)
+        if (actualVersion === 2)
         {
             lines.push('precision highp int;');
         }
@@ -61,7 +66,7 @@ export class Fragment extends Func
         // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
         for (const struct of dependencies.structs)
         {
-            const structVaryingDecl = struct.toGLSLDefinition('fragment', version);
+            const structVaryingDecl = struct.toGLSLDefinition('fragment');
             if (structVaryingDecl)
             {
                 lines.push(structVaryingDecl);
@@ -95,24 +100,24 @@ export class Fragment extends Func
             // 如果不在结构体中，才单独声明
             if (!inStruct)
             {
-                lines.push(varying.toGLSL('fragment', version));
+                lines.push(varying.toGLSL('fragment'));
             }
         }
 
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)
         {
-            lines.push(uniform.toGLSL('fragment', version));
+            lines.push(uniform.toGLSL('fragment'));
         }
 
         // 生成 samplers（只包含实际使用的）
         for (const sampler of dependencies.samplers)
         {
-            lines.push(sampler.toGLSL('fragment', version));
+            lines.push(sampler.toGLSL('fragment'));
         }
 
         // WebGL 2.0 需要声明输出变量
-        if (version === 2)
+        if (actualVersion === 2)
         {
             lines.push('');
             lines.push('layout(location = 0) out vec4 color;');
@@ -122,11 +127,11 @@ export class Fragment extends Func
         const externalVars = dependencies.externalVars;
         for (const { name, expr } of externalVars)
         {
-            lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL('fragment', version)};`);
+            lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL('fragment')};`);
         }
 
         // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-        const funcCode = super.toGLSL('fragment', version);
+        const funcCode = super.toGLSL('fragment');
         const funcLines = funcCode.split('\n').filter(line => line.trim() !== '');
 
         // 如果有声明和函数代码，在它们之间添加一个空行

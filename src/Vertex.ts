@@ -1,9 +1,8 @@
-import { Func } from './Func';
-import { Uniform } from './Uniform';
-import { Sampler } from './Sampler';
 import { Attribute } from './Attribute';
-import { Varying } from './Varying';
-import { VaryingStruct } from './varyingStruct';
+import { getBuildParam, setBuildParam } from './buildParam';
+import { Func } from './Func';
+import { Sampler } from './Sampler';
+import { Uniform } from './Uniform';
 
 /**
  * Vertex 类，继承自 Func
@@ -23,10 +22,14 @@ export class Vertex extends Func
      */
     toGLSL(shaderType: 'vertex' | 'fragment' = 'vertex', version: 1 | 2 = 1): string
     {
+        setBuildParam({ shaderType: 'glsl', type: 'vertex', version });
+        const buildParam = getBuildParam();
+        const actualVersion = buildParam?.version ?? 1;
+
         const lines: string[] = [];
 
         // 添加版本声明（WebGL 2.0）
-        if (version === 2)
+        if (actualVersion === 2)
         {
             lines.push('#version 300 es');
             lines.push('');
@@ -37,7 +40,7 @@ export class Vertex extends Func
 
         // 先执行 body 收集依赖（通过调用父类的 toGLSL 来触发，它会执行 body 并填充 dependencies）
         // 这里只为了收集依赖，不生成完整代码
-        super.toGLSL('vertex', version);
+        super.toGLSL('vertex');
 
         // 从函数的 dependencies 中分析获取 attributes、uniforms、varyings 和 samplers（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
@@ -48,19 +51,19 @@ export class Vertex extends Func
         // 生成 attributes（只包含实际使用的）
         for (const attr of dependencies.attributes)
         {
-            lines.push(attr.toGLSL('vertex', version));
+            lines.push(attr.toGLSL('vertex'));
         }
 
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)
         {
-            lines.push(uniform.toGLSL('vertex', version));
+            lines.push(uniform.toGLSL('vertex'));
         }
 
         // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
         for (const struct of dependencies.structs)
         {
-            const structVaryingDecl = struct.toGLSLDefinition('vertex', version);
+            const structVaryingDecl = struct.toGLSLDefinition('vertex');
             if (structVaryingDecl)
             {
                 lines.push(structVaryingDecl);
@@ -94,7 +97,7 @@ export class Vertex extends Func
             // 如果不在结构体中，才单独声明
             if (!inStruct)
             {
-                lines.push(varying.toGLSL('vertex', version));
+                lines.push(varying.toGLSL('vertex'));
             }
         }
 
@@ -102,11 +105,11 @@ export class Vertex extends Func
         const externalVars = dependencies.externalVars;
         for (const { name, expr } of externalVars)
         {
-            lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL('vertex', version)};`);
+            lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL('vertex')};`);
         }
 
         // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-        const funcCode = super.toGLSL('vertex', version);
+        const funcCode = super.toGLSL('vertex');
         const funcLines = funcCode.split('\n').filter(line => line.trim() !== '');
 
         // 如果有声明和函数代码，在它们之间添加一个空行
@@ -130,6 +133,8 @@ export class Vertex extends Func
             }
             result.push(line);
         }
+
+        setBuildParam(null);
 
         return result.join('\n');
     }

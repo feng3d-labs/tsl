@@ -28,7 +28,7 @@ export function var_(...args: any[]): any
     const cls = expr.constructor;
     const result: ShaderValue = new (cls as any)();
 
-    result.toGLSL = (type: 'vertex' | 'fragment', version?: 1 | 2) => `${name}`;
+    result.toGLSL = (type: 'vertex' | 'fragment') => `${name}`;
     result.toWGSL = (type: 'vertex' | 'fragment') => `${name}`;
     result.dependencies = [expr];
 
@@ -37,7 +37,7 @@ export function var_(...args: any[]): any
     if (currentFunc)
     {
         currentFunc.statements.push({
-            toGLSL: (type: 'vertex' | 'fragment', version?: 1 | 2) => `${expr.glslType} ${name} = ${expr.toGLSL(type, version)};`,
+            toGLSL: (type: 'vertex' | 'fragment') => `${expr.glslType} ${name} = ${expr.toGLSL(type)};`,
             toWGSL: (type: 'vertex' | 'fragment') => `var ${name} = ${expr.toWGSL(type)};`,
         });
         // 收集依赖

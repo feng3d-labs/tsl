@@ -134,7 +134,7 @@ async function main()
 
         requestAnimationFrame(render);
     }
-    requestAnimationFrame(render);
+    // requestAnimationFrame(render);
 }
 
 //

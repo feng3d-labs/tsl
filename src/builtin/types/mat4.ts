@@ -12,7 +12,7 @@ export class Mat4 implements ShaderValue
     readonly wgslType = 'mat4x4<f32>';
 
     dependencies: IElement[];
-    toGLSL: (type: 'vertex' | 'fragment', version?: 1 | 2) => string;
+    toGLSL: (type: 'vertex' | 'fragment') => string;
     toWGSL: (type: 'vertex' | 'fragment') => string;
 
     constructor();

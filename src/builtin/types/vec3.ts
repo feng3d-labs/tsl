@@ -11,7 +11,7 @@ export class Vec3 implements ShaderValue
     readonly glslType = 'vec3';
     readonly wgslType = 'vec3<f32>';
     dependencies: IElement[];
-    toGLSL: (type: 'vertex' | 'fragment', version?: 1 | 2) => string;
+    toGLSL: (type: 'vertex' | 'fragment') => string;
     toWGSL: (type: 'vertex' | 'fragment') => string;
 
     constructor();

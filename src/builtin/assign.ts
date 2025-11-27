@@ -13,9 +13,9 @@ export function assign<T extends ShaderValue>(target: T, value: T): void
     if (currentFunc)
     {
         const stmt: any = {
-            toGLSL: (type: 'vertex' | 'fragment', version?: 1 | 2) =>
+            toGLSL: (type: 'vertex' | 'fragment') =>
             {
-                return `${target.toGLSL(type, version)} = ${value.toGLSL(type, version)};`;
+                return `${target.toGLSL(type)} = ${value.toGLSL(type)};`;
             },
             toWGSL: (type: 'vertex' | 'fragment') =>
             {

@@ -1,3 +1,4 @@
+import { getBuildParam } from './buildParam';
 import { IElement, ShaderValue } from './IElement';
 
 /**
@@ -56,9 +57,8 @@ export class Varying implements IElement
     /**
      * 转换为 GLSL 代码
      * @param type 着色器类型
-     * @param version GLSL 版本（1 = WebGL 1.0, 2 = WebGL 2.0，默认 1）
      */
-    toGLSL(type: 'vertex' | 'fragment', version: 1 | 2 = 1): string
+    toGLSL(type: 'vertex' | 'fragment'): string
     {
         if (!this.name)
         {
@@ -69,7 +69,8 @@ export class Varying implements IElement
             throw new Error(`Varying '${this.name}' 没有设置 value，无法生成 GLSL。`);
         }
         const glslType = this.value.glslType;
-        const effectiveLocation = this.getEffectiveLocation();
+        const buildParam = getBuildParam();
+        const version = buildParam?.version ?? 1;
 
         if (version === 2)
         {

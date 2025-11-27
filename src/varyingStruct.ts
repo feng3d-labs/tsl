@@ -60,6 +60,51 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
      */
     toWGSLDefinition(): string
     {
+        // 首先收集所有 varying 字段，并分配 location
+        const varyings: Varying[] = [];
+        const usedLocations = new Set<number>();
+
+        // 第一遍：收集所有 varying，并记录已显式指定的 location
+        for (const [fieldName, value] of Object.entries(this.fields))
+        {
+            const dep = value.dependencies[0];
+            if (dep instanceof Varying)
+            {
+                varyings.push(dep);
+                if (dep.location !== undefined)
+                {
+                    usedLocations.add(dep.location);
+                }
+            }
+        }
+
+        // 第二遍：为没有 location 的 varying 自动分配 location（按照字段定义顺序）
+        for (const varying of varyings)
+        {
+            if (varying.location === undefined)
+            {
+                // 检查是否已经分配了自动 location
+                const currentEffectiveLocation = varying.getEffectiveLocation();
+                // 如果 getEffectiveLocation 返回的值已经在 usedLocations 中，说明已经分配过了，跳过
+                if (usedLocations.has(currentEffectiveLocation))
+                {
+                    continue;
+                }
+
+                // 找到下一个未使用的 location
+                let nextLocation = 0;
+                while (usedLocations.has(nextLocation))
+                {
+                    nextLocation++;
+                }
+
+                // 分配 location
+                varying.setAutoLocation(nextLocation);
+                usedLocations.add(nextLocation);
+            }
+        }
+
+        // 生成字段定义
         const fieldDefs = Object.entries(this.fields).map(([fieldName, value]) =>
         {
             const dep = value.dependencies[0];

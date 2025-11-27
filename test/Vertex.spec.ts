@@ -141,13 +141,12 @@ describe('Vertex', () =>
                 assign(v.vColor, aColor);
             });
 
+            expect(v.toWGSLDefinition()).toContain('@location(0) vTexCoord: vec2<f32>');
+
             const wgsl = vert.toWGSL();
-            // 验证结构体声明包含 @location
-            expect(wgsl).toContain('struct VaryingStruct {');
+            expect(wgsl).toContain(v.toWGSLDefinition());
             expect(wgsl).toContain('@builtin(position) position: vec4<f32>');
             expect(wgsl).toContain('@location(1) vColor: vec4<f32>');
-            expect(wgsl).toContain('@location(0) vTexCoord: vec2<f32>');
-            // 验证显式指定的 location 被保留
             expect(wgsl).toContain('@location(2) aPos: vec2<f32>');
         });
 

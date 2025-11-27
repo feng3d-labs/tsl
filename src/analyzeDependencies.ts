@@ -127,6 +127,13 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
             }
         }
 
+        // 检查是否是 VaryingStruct 的字段值（通过 _varyingStruct 属性）
+        if (typeof value === 'object' && (value as any)._varyingStruct instanceof VaryingStruct)
+        {
+            const struct = (value as any)._varyingStruct;
+            structs.add(struct);
+        }
+
         // 如果是 IElement 实例（Vec2, Vec4 等），分析其 dependencies
         if (typeof value === 'object' && 'dependencies' in value && Array.isArray(value.dependencies))
         {

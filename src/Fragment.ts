@@ -43,10 +43,45 @@ export class Fragment extends Func
             lines.push(defaultPrecision.toGLSL('fragment'));
         }
 
-        // 生成 varyings（只包含实际使用的，在 fragment shader 中作为输入）
+        // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
+        for (const struct of dependencies.structs)
+        {
+            const structVaryingDecl = struct.toGLSLDefinition();
+            if (structVaryingDecl)
+            {
+                lines.push(structVaryingDecl);
+            }
+        }
+
+        // 生成其他 varyings（不在结构体中的）
         for (const varying of dependencies.varyings)
         {
-            lines.push(varying.toGLSL('fragment'));
+            // 检查这个 varying 是否已经在结构体中声明了
+            let inStruct = false;
+            for (const struct of dependencies.structs)
+            {
+                for (const fieldValue of Object.values(struct.fields))
+                {
+                    if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
+                    {
+                        for (const dep of fieldValue.dependencies)
+                        {
+                            if (dep === varying)
+                            {
+                                inStruct = true;
+                                break;
+                            }
+                        }
+                        if (inStruct) break;
+                    }
+                }
+                if (inStruct) break;
+            }
+            // 如果不在结构体中，才单独声明
+            if (!inStruct)
+            {
+                lines.push(varying.toGLSL('fragment'));
+            }
         }
 
         // 生成 uniforms（只包含实际使用的）

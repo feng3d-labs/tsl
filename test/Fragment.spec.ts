@@ -127,7 +127,7 @@ describe('Fragment', () =>
 
             const glsl = frag.toGLSL();
             expect(glsl).toContain(v.toGLSLDefinition());
-            expect(glsl).toContain('return vColor;');
+            expect(glsl).toContain('gl_FragColor = vColor;');
         });
     });
 });

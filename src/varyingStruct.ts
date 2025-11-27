@@ -154,16 +154,41 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             // 修改字段的 toWGSL 方法，让它返回 'v.fieldName'
             value.toWGSL = (type: 'vertex' | 'fragment') => `${this.varName}.${fieldName}`;
 
+            // 修改字段的 toGLSL 方法
+            // 对于 Builtin（如 position），使用 Builtin 的 toGLSL 方法（返回 gl_Position）
+            // 对于 Varying，返回字段名（GLSL 中直接使用字段名，不需要结构体前缀）
+            if (dep instanceof Builtin)
+            {
+                // Builtin 的 toGLSL 方法会返回正确的 GLSL 名称（如 gl_Position）
+                const originalToGLSL = value.toGLSL;
+
+                value.toGLSL = (type: 'vertex' | 'fragment') =>
+                {
+                    // 如果原始 toGLSL 方法存在且能正常工作，使用它
+                    if (originalToGLSL && typeof originalToGLSL === 'function')
+                    {
+                        try
+                        {
+                            return originalToGLSL(type);
+                        }
+                        catch
+                        {
+                            // 如果失败，回退到使用 Builtin 的 toGLSL
+                        }
+                    }
+
+                    // 直接使用 Builtin 的 toGLSL 方法
+                    return dep.toGLSL();
+                };
+            }
+            else
+            {
+                // 对于 Varying，返回字段名
+                value.toGLSL = (type: 'vertex' | 'fragment') => fieldName;
+            }
+
             // 在字段值上添加对 VaryingStruct 的引用，以便依赖分析能找到结构体
-            if (!value.dependencies)
-            {
-                value.dependencies = [];
-            }
-            // 如果 dependencies 中还没有 VaryingStruct，添加它
-            if (!value.dependencies.some(dep => dep === this))
-            {
-                value.dependencies.push(this);
-            }
+            (value as any)._varyingStruct = this;
 
             // 将字段添加到实例上，使其可以直接访问
             (this as any)[fieldName] = value;

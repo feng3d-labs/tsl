@@ -421,6 +421,14 @@ export class Func
                                 break;
                             }
                         }
+                        // 检查是否是结构体字段值（通过 _varyingStruct 属性）
+                        else if (dep && typeof dep === 'object' && (dep as any)._varyingStruct === struct)
+                        {
+                            // 找到使用该结构体的字段值，使用结构体的变量名
+                            const varName = struct.toWGSL(shaderType);
+                            inputStruct = { varName, struct };
+                            break;
+                        }
                         // 检查是否是结构体变量（结构体变量的 dependencies 包含 VaryingStruct）
                         else if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
                         {

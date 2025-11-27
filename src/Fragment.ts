@@ -216,6 +216,8 @@ export class Fragment extends Func
         };
 
         // 如果提供了顶点着色器，先收集顶点着色器中已使用的 binding
+        // 同时建立 uniform 名称到 binding 的映射，以便 fragment shader 中同名的 uniform 使用相同的 binding
+        const vertexUniformBindingMap = new Map<string, { binding: number; group: number }>();
         if (vertexShader)
         {
             // 确保顶点着色器的依赖已收集
@@ -228,7 +230,10 @@ export class Fragment extends Func
                 const effectiveBinding = uniform.getEffectiveBinding();
                 if (effectiveBinding !== undefined)
                 {
-                    getUsedBindings(uniform.getEffectiveGroup()).add(effectiveBinding);
+                    const effectiveGroup = uniform.getEffectiveGroup();
+                    getUsedBindings(effectiveGroup).add(effectiveBinding);
+                    // 建立名称到 binding 的映射
+                    vertexUniformBindingMap.set(uniform.name, { binding: effectiveBinding, group: effectiveGroup });
                 }
             }
 
@@ -272,16 +277,27 @@ export class Fragment extends Func
                 const effectiveGroup = uniform.getEffectiveGroup();
                 const usedBindings = getUsedBindings(effectiveGroup);
 
-                // 找到下一个未使用的 binding
-                let nextBinding = 0;
-                while (usedBindings.has(nextBinding))
+                // 检查顶点着色器中是否有同名的 uniform，如果有，使用相同的 binding
+                const vertexBinding = vertexUniformBindingMap.get(uniform.name);
+                if (vertexBinding && vertexBinding.group === effectiveGroup)
                 {
-                    nextBinding++;
+                    // 使用顶点着色器中的 binding
+                    uniform.setAutoBinding(vertexBinding.binding);
+                    usedBindings.add(vertexBinding.binding);
                 }
+                else
+                {
+                    // 找到下一个未使用的 binding
+                    let nextBinding = 0;
+                    while (usedBindings.has(nextBinding))
+                    {
+                        nextBinding++;
+                    }
 
-                // 分配 binding
-                uniform.setAutoBinding(nextBinding);
-                usedBindings.add(nextBinding);
+                    // 分配 binding
+                    uniform.setAutoBinding(nextBinding);
+                    usedBindings.add(nextBinding);
+                }
             }
         }
 

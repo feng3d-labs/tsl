@@ -45,8 +45,10 @@ export class Sampler implements IElement
 
     /**
      * 转换为 GLSL 代码
+     * @param type 着色器类型
+     * @param version GLSL 版本（1 = WebGL 1.0, 2 = WebGL 2.0，默认 1）
      */
-    toGLSL(type: 'vertex' | 'fragment'): string
+    toGLSL(type: 'vertex' | 'fragment', version?: 1 | 2): string
     {
         return `uniform sampler2D ${this.name};`;
     }

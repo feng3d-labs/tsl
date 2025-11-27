@@ -55,8 +55,10 @@ export class Varying implements IElement
 
     /**
      * 转换为 GLSL 代码
+     * @param type 着色器类型
+     * @param version GLSL 版本（1 = WebGL 1.0, 2 = WebGL 2.0，默认 1）
      */
-    toGLSL(type: 'vertex' | 'fragment'): string
+    toGLSL(type: 'vertex' | 'fragment', version: 1 | 2 = 1): string
     {
         if (!this.name)
         {
@@ -67,8 +69,19 @@ export class Varying implements IElement
             throw new Error(`Varying '${this.name}' 没有设置 value，无法生成 GLSL。`);
         }
         const glslType = this.value.glslType;
+        const effectiveLocation = this.getEffectiveLocation();
 
-        return `varying ${glslType} ${this.name};`;
+        if (version === 2)
+        {
+            // WebGL 2.0 中，varyings（顶点到片段的变量）不需要 layout(location)
+            // 只需要使用 out（vertex shader）或 in（fragment shader）
+            const inOut = type === 'vertex' ? 'out' : 'in';
+            return `${inOut} ${glslType} ${this.name};`;
+        }
+        else
+        {
+            return `varying ${glslType} ${this.name};`;
+        }
     }
 
     /**

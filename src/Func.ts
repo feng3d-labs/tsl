@@ -70,8 +70,9 @@ export class Func
     /**
      * 转换为 GLSL 代码
      * @param shaderType 着色器类型（vertex 或 fragment）
+     * @param version GLSL 版本（1 = WebGL 1.0, 2 = WebGL 2.0，默认 1）
      */
-    toGLSL(shaderType: 'vertex' | 'fragment'): string
+    toGLSL(shaderType: 'vertex' | 'fragment', version: 1 | 2 = 1): string
     {
         // 执行函数体收集语句和依赖（如果尚未收集）
         this.executeBodyIfNeeded();
@@ -83,7 +84,7 @@ export class Func
 
         this.statements.forEach(stmt =>
         {
-            const glsl = stmt.toGLSL(shaderType);
+            const glsl = stmt.toGLSL(shaderType, version);
             // 过滤掉空语句
             if (glsl.trim() !== '')
             {
@@ -209,8 +210,8 @@ export class Func
                 {
                     // 添加 return 语句（变量名固定为 v）
                     this.statements.push({
-                        toGLSL: () => '',
-                        toWGSL: () => `return v;`,
+                        toGLSL: (type: 'vertex' | 'fragment', version?: 1 | 2) => '',
+                        toWGSL: (type: 'vertex' | 'fragment') => `return v;`,
                     });
                 }
             }

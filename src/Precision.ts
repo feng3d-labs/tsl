@@ -14,7 +14,7 @@ export class Precision implements IElement
         this.value = value;
     }
 
-    toGLSL(type: 'vertex' | 'fragment'): string
+    toGLSL(type: 'vertex' | 'fragment', version?: 1 | 2): string
     {
         return `precision ${this.value} float;`;
     }

@@ -16,7 +16,7 @@ export function return_<T extends ShaderValue>(expr: T): void
         const isStructVar = expr.dependencies && expr.dependencies.some(dep => dep instanceof VaryingStruct);
 
         const stmt: any = {
-            toGLSL: (type: 'vertex' | 'fragment') =>
+            toGLSL: (type: 'vertex' | 'fragment', version: 1 | 2 = 1) =>
             {
                 // 如果是结构体变量，在 GLSL 中只生成 return;（输出已通过 assign 设置）
                 if (isStructVar)
@@ -26,14 +26,22 @@ export function return_<T extends ShaderValue>(expr: T): void
 
                 if (type === 'vertex')
                 {
-                    return `gl_Position = ${expr.toGLSL(type)}; return;`;
+                    return `gl_Position = ${expr.toGLSL(type, version)}; return;`;
                 }
                 else if (type === 'fragment')
                 {
-                    return `gl_FragColor = ${expr.toGLSL(type)}; return;`;
+                    if (version === 2)
+                    {
+                        // WebGL 2.0 使用 layout(location = 0) out vec4 color;
+                        return `color = ${expr.toGLSL(type, version)}; return;`;
+                    }
+                    else
+                    {
+                        return `gl_FragColor = ${expr.toGLSL(type, version)}; return;`;
+                    }
                 }
 
-                return `return ${expr.toGLSL(type)};`;
+                return `return ${expr.toGLSL(type, version)};`;
             },
             toWGSL: (type: 'vertex' | 'fragment') => `return ${expr.toWGSL(type)};`,
         };

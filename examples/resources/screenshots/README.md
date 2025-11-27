@@ -23,5 +23,10 @@
 - `helloTriangle.png` - Hello Triangle 示例
 - `sample2.png` - Sample2 示例（旋转的紫色正方形）
 - `sample4.png` - Sample4 示例（旋转的彩色正方形）
-- `sample6.png` - Sample6 示例（旋转的纹理立方体）- **待添加**
+- `sample6.png` - Sample6 示例（旋转的纹理立方体）
+- `sample7.png` - Sample7 示例
+- `sample8.png` - Sample8 示例
+- `sky.png` - Sky 示例
+- `fractalCube.png` - Fractal Cube 示例
+- `fbo_rtt_texture_array.png` - FBO RTT Texture Array 示例 - **待添加**
 

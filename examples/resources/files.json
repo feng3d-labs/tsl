@@ -12,5 +12,8 @@
 		"sample6",
 		"sample7",
 		"sample8"
+	],
+	"WebGL2Samples": [
+		"fbo_rtt_texture_array"
 	]
 }

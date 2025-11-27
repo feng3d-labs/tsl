@@ -1,19 +1,19 @@
 let buildParam: { language: 'glsl' | 'wgsl', stage: 'vertex' | 'fragment', version: 1 | 2 };
 
-export function buildShader(param: { language: 'glsl' | 'wgsl', stage: 'vertex' | 'fragment', version: 1 | 2 }, callback: () => string)
+export function buildShader<T>(param: { language: 'glsl' | 'wgsl', stage: 'vertex' | 'fragment', version: 1 | 2 }, callback: () => T): T
 {
     const previousBuildParam = buildParam;
 
     buildParam = param;
 
-    let result: string;
+    let result: T;
 
     try
     {
         result = callback();
     } catch (error)
     {
-        result = '';
+        result = undefined as unknown as T;
         console.error('Error in buildParam', error);
     }
 

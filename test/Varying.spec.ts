@@ -9,6 +9,7 @@ import { assign } from '../src/builtin/assign';
 import { builtin } from '../src/builtin/builtin';
 import { var_ } from '../src/builtin/var';
 import { varyingStruct } from '../src/varyingStruct';
+import { buildShader } from '../src/buildShader';
 
 describe('Varying', () =>
 {
@@ -29,13 +30,16 @@ describe('Varying', () =>
 
         it('应该在 varyingStruct 中设置 name 并生成 GLSL', () =>
         {
-            const struct = varyingStruct({
-                vColor: vec4(varying(0)),
+            buildShader({ language: 'glsl', stage: 'vertex', version: 1 }, () =>
+            {
+                const struct = varyingStruct({
+                    vColor: vec4(varying(0)),
+                });
+                const v = struct.fields.vColor.dependencies[0] as Varying;
+                expect(v.name).toBe('vColor');
+                expect(v.toGLSL()).toBe('varying vec4 vColor;');
+                expect(v.toGLSL()).toBe('varying vec4 vColor;');
             });
-            const v = struct.fields.vColor.dependencies[0] as Varying;
-            expect(v.name).toBe('vColor');
-            expect(v.toGLSL()).toBe('varying vec4 vColor;');
-            expect(v.toGLSL()).toBe('varying vec4 vColor;');
         });
 
         it('应该在 varyingStruct 中设置 name 并生成 WGSL', () =>

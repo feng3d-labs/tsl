@@ -110,7 +110,7 @@ export class Vertex extends Func
         // 生成结构体定义（只包含实际使用的）
         for (const struct of dependencies.structs)
         {
-            lines.push(struct.toWGSLDefinition());
+            lines.push(struct.toWGSLDefinition('vertex'));
         }
 
         // 生成 uniforms（只包含实际使用的）

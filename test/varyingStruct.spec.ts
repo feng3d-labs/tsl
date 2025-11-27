@@ -223,6 +223,48 @@ describe('VaryingStruct', () =>
             const glsl = v.color.toGLSL('vertex');
             expect(glsl).toBe('color');
         });
+
+        it('应该能够为 varyingStruct 字段生成正确的 GLSL 代码', () =>
+        {
+            const v = varyingStruct({
+                color: vec4(varying(1)),
+                color2: vec4(varying()),
+                color3: vec4(varying(2)),
+            });
+
+            // GLSL
+            expect(v.color.toGLSL('vertex')).toBe('color');
+            expect(v.color2.toGLSL('vertex')).toBe('color2');
+            expect(v.color3.toGLSL('vertex')).toBe('color3');
+
+            expect(v.color.toGLSL('fragment')).toBe('color');
+            expect(v.color2.toGLSL('fragment')).toBe('color2');
+            expect(v.color3.toGLSL('fragment')).toBe('color3');
+
+            expect(v.toGLSL('vertex')).toBe('');
+            expect(v.toGLSL('fragment')).toBe('');
+
+            expect(v.toGLSLDefinition('vertex')).toBe('varying vec4 color; varying vec4 color2; varying vec4 color3;');
+            expect(v.toGLSLDefinition('fragment')).toBe('varying vec4 color; varying vec4 color2; varying vec4 color3;');
+
+            // WGSL
+            expect(v.color.toWGSL('vertex')).toBe('v.color');
+            expect(v.color2.toWGSL('vertex')).toBe('v.color2');
+            expect(v.color3.toWGSL('vertex')).toBe('v.color3');
+
+            expect(v.color.toWGSL('fragment')).toBe('v.color');
+            expect(v.color2.toWGSL('fragment')).toBe('v.color2');
+            expect(v.color3.toWGSL('fragment')).toBe('v.color3');
+
+            expect(v.toWGSL('vertex')).toBe('v');
+            expect(v.toWGSL('fragment')).toBe('v');
+
+            expect(v.toWGSLVarStatement()).toBe('var v: VaryingStruct;');
+            expect(v.toWGSLParam()).toBe('v: VaryingStruct');
+
+            expect(v.toWGSLDefinition('vertex')).toBe('struct VaryingStruct {\n    color: vec4<f32>,\n    color2: vec4<f32>,\n    color3: vec4<f32>,\n}');
+            expect(v.toWGSLDefinition('fragment')).toBe('struct VaryingStruct {\n    @location(1) color: vec4<f32>,\n    @location(0) color2: vec4<f32>,\n    @location(2) color3: vec4<f32>,\n}');
+        });
     });
 });
 

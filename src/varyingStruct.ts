@@ -32,9 +32,33 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
     }
 
     /**
-     * 生成 WGSL 结构体定义
+     * 生成 GLSL varying 声明
+     * @param type 着色器类型（vertex 或 fragment）
+     * @returns GLSL varying 声明字符串，例如: 'varying vec4 color; varying vec4 color2;'
      */
-    toWGSLDefinition(): string
+    toGLSLDefinition(type: 'vertex' | 'fragment'): string
+    {
+        const varyingDeclarations: string[] = [];
+
+        for (const [fieldName, value] of Object.entries(this.fields))
+        {
+            const dep = value.dependencies[0];
+            if (dep instanceof Varying && dep.value)
+            {
+                const glslType = dep.value.glslType;
+                varyingDeclarations.push(`varying ${glslType} ${fieldName}`);
+            }
+        }
+
+        return varyingDeclarations.length > 0 ? `${varyingDeclarations.join('; ')};` : '';
+    }
+
+    /**
+     * 生成 WGSL 结构体定义
+     * @param type 着色器类型（vertex 或 fragment），可选。对于 vertex，varying 字段不包含 @location；对于 fragment，varying 字段包含 @location
+     * @returns WGSL 结构体定义字符串
+     */
+    toWGSLDefinition(type?: 'vertex' | 'fragment'): string
     {
         const fieldDefs = Object.entries(this.fields).map(([fieldName, value]) =>
         {
@@ -55,17 +79,26 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             }
             else if (dep instanceof Varying)
             {
-                // Varying.toWGSL() 返回格式: @location(1) vColor: vec4<f32>
-                // 直接使用，但替换字段名
-                const varyingWgsl = dep.toWGSL('vertex');
-                // 提取 @location(...) 部分和类型
-                const locationMatch = varyingWgsl.match(/@location\([^)]+\)/);
-                const locationPart = locationMatch ? locationMatch[0] : '@location(0)';
-                // 提取类型部分（在冒号之后）
-                const typeMatch = varyingWgsl.match(/:\s*([^;]+)/);
-                const typePart = typeMatch ? typeMatch[1].trim() : dep.value?.wgslType || '';
+                if (!dep.value)
+                {
+                    throw new Error(`Varying '${fieldName}' 没有设置 value，无法生成 WGSL。`);
+                }
+                const wgslType = dep.value.wgslType;
 
-                return `${locationPart} ${fieldName}: ${typePart}`;
+                // 对于 vertex，不包含 @location；对于 fragment，包含 @location
+                if (type === 'vertex')
+                {
+                    return `${fieldName}: ${wgslType}`;
+                }
+                else
+                {
+                    // fragment 或未指定类型时，使用 @location
+
+                    const effectiveLocation = dep.getEffectiveLocation();
+                    const location = `@location(${effectiveLocation})`;
+
+                    return `${location} ${fieldName}: ${wgslType}`;
+                }
             }
             else
             {

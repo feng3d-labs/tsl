@@ -126,9 +126,3 @@ export function varyingStruct<T extends { [key: string]: IElement }>(fields: T):
     return new VaryingStruct(fields) as VaryingStruct<T> & T;
 }
 
-/**
- * @deprecated 请使用 varyingStruct 代替
- * 为了向后兼容，保留 struct 作为 varyingStruct 的别名
- */
-export const struct = varyingStruct;
-

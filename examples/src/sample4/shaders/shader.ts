@@ -1,4 +1,4 @@
-import { assign, attribute, builtin, fragment, mat4, return_, struct, uniform, var_, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { assign, attribute, builtin, fragment, mat4, return_, uniform, var_, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes（location 缺省时自动分配）
 const aVertexPosition = vec2(attribute('aVertexPosition'));

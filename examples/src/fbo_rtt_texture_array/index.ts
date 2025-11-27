@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     };
 
     // 渲染
-    // webgpu.submit(submit);
+    webgpu.submit(submit);
     webgl.submit(submit);
 
     // 清理资源

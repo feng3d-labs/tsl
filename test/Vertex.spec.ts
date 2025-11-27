@@ -156,7 +156,7 @@ describe('Vertex', () =>
             const wgsl = vert.toWGSL();
             // 验证结构体字段名使用字段名 (position_vec4)
             expect(wgsl).toContain('@builtin(position) position_vec4: vec4<f32>');
-            expect(wgsl).toContain('output.position_vec4.z = output.position_vec4.w');
+            expect(wgsl).toContain('v.position_vec4.z = v.position_vec4.w');
         });
     });
 });

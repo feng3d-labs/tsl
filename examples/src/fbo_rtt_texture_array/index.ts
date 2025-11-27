@@ -15,20 +15,20 @@ import multipleOutputFragmentWgsl from './shaders/fragment-multiple-output.wgsl'
 // 导入 TSL 生成的着色器（用于参考和未来扩展）
 import { layerVertexShader, layerFragmentShader, multipleOutputVertexShader, multipleOutputFragmentShader } from './shaders/shader';
 
-// 生成 TSL 着色器代码（用于参考）
-// 注意：当前 TSL 不支持多个输出和纹理数组，所以使用手动编写的 GLSL/WGSL
-// const layerVertexGlslTsl = layerVertexShader.toGLSL();
-// const layerFragmentGlslTsl = layerFragmentShader.toGLSL();
-// const layerVertexWgslTsl = layerVertexShader.toWGSL();
-// const layerFragmentWgslTsl = layerFragmentShader.toWGSL(layerVertexShader);
-
-// const multipleOutputVertexGlslTsl = multipleOutputVertexShader.toGLSL();
-// const multipleOutputFragmentGlslTsl = multipleOutputFragmentShader.toGLSL();
-// const multipleOutputVertexWgslTsl = multipleOutputVertexShader.toWGSL();
-// const multipleOutputFragmentWgslTsl = multipleOutputFragmentShader.toWGSL(multipleOutputVertexShader);
-
 document.addEventListener('DOMContentLoaded', async () =>
 {
+    // 生成 TSL 着色器代码（用于参考）
+    // 注意：当前 TSL 不支持多个输出和纹理数组，所以使用手动编写的 GLSL/WGSL
+    // const layerVertexGlsl = layerVertexShader.toGLSL();
+    // const layerFragmentGlsl = layerFragmentShader.toGLSL();
+    // const layerVertexWgsl = layerVertexShader.toWGSL();
+    // const layerFragmentWgsl = layerFragmentShader.toWGSL(layerVertexShader);
+
+    // const multipleOutputVertexGlsl = multipleOutputVertexShader.toGLSL();
+    // const multipleOutputFragmentGlsl = multipleOutputFragmentShader.toGLSL();
+    // const multipleOutputVertexWgsl = multipleOutputVertexShader.toWGSL();
+    // const multipleOutputFragmentWgsl = multipleOutputFragmentShader.toWGSL(multipleOutputVertexShader);
+
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU

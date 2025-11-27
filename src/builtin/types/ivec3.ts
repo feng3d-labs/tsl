@@ -12,8 +12,8 @@ export class IVec3 implements ShaderValue
     readonly wgslType = 'vec3<i32>';
 
     dependencies: IElement[];
-    toGLSL: (type: 'vertex' | 'fragment') => string;
-    toWGSL: (type: 'vertex' | 'fragment') => string;
+    toGLSL: () => string;
+    toWGSL: () => string;
 
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
@@ -27,8 +27,8 @@ export class IVec3 implements ShaderValue
             {
                 const uniform = args[0] as Uniform;
 
-                this.toGLSL = (type: 'vertex' | 'fragment') => uniform.name;
-                this.toWGSL = (type: 'vertex' | 'fragment') => uniform.name;
+                this.toGLSL = () => uniform.name;
+                this.toWGSL = () => uniform.name;
                 this.dependencies = [uniform];
 
                 uniform.value = this;
@@ -37,8 +37,8 @@ export class IVec3 implements ShaderValue
             {
                 const attribute = args[0] as Attribute;
 
-                this.toGLSL = (type: 'vertex' | 'fragment') => attribute.name;
-                this.toWGSL = (type: 'vertex' | 'fragment') => attribute.name;
+                this.toGLSL = () => attribute.name;
+                this.toWGSL = () => attribute.name;
                 this.dependencies = [attribute];
 
                 attribute.value = this;
@@ -53,8 +53,8 @@ export class IVec3 implements ShaderValue
             const x = args[0] as number;
             const y = args[1] as number;
             const z = args[2] as number;
-            this.toGLSL = (type: 'vertex' | 'fragment') => `ivec3(${x}, ${y}, ${z})`;
-            this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<i32>(${x}, ${y}, ${z})`;
+            this.toGLSL = () => `ivec3(${x}, ${y}, ${z})`;
+            this.toWGSL = () => `vec3<i32>(${x}, ${y}, ${z})`;
             this.dependencies = [];
         }
         else
@@ -69,8 +69,8 @@ export class IVec3 implements ShaderValue
     get x(): Float
     {
         const float = new Float();
-        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.x`;
-        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.x`;
+        float.toGLSL = () => `${this.toGLSL()}.x`;
+        float.toWGSL = () => `${this.toWGSL()}.x`;
         float.dependencies = [this];
 
         return float;
@@ -82,8 +82,8 @@ export class IVec3 implements ShaderValue
     get y(): Float
     {
         const float = new Float();
-        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.y`;
-        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.y`;
+        float.toGLSL = () => `${this.toGLSL()}.y`;
+        float.toWGSL = () => `${this.toWGSL()}.y`;
         float.dependencies = [this];
 
         return float;
@@ -95,8 +95,8 @@ export class IVec3 implements ShaderValue
     get z(): Float
     {
         const float = new Float();
-        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.z`;
-        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.z`;
+        float.toGLSL = () => `${this.toGLSL()}.z`;
+        float.toWGSL = () => `${this.toWGSL()}.z`;
         float.dependencies = [this];
 
         return float;

@@ -22,8 +22,8 @@ describe('Float', () =>
         it('应该正确存储值', () =>
         {
             const f = float(1.5);
-            expect(f.toGLSL('vertex')).toBe('1.5');
-            expect(f.toWGSL('vertex')).toBe('1.5');
+            expect(f.toGLSL()).toBe('1.5');
+            expect(f.toWGSL()).toBe('1.5');
         });
     });
 
@@ -34,8 +34,8 @@ describe('Float', () =>
             const uniform = new Uniform('uValue', 0, 0);
             const result = float(uniform);
             expect(result).toBeInstanceOf(Float);
-            expect(result.toGLSL('vertex')).toBe('uValue');
-            expect(result.toWGSL('vertex')).toBe('uValue');
+            expect(result.toGLSL()).toBe('uValue');
+            expect(result.toWGSL()).toBe('uValue');
         });
     });
 
@@ -46,8 +46,8 @@ describe('Float', () =>
             const attribute = new Attribute('aValue', 0);
             const result = float(attribute);
             expect(result).toBeInstanceOf(Float);
-            expect(result.toGLSL('vertex')).toBe('aValue');
-            expect(result.toWGSL('vertex')).toBe('aValue');
+            expect(result.toGLSL()).toBe('aValue');
+            expect(result.toWGSL()).toBe('aValue');
         });
     });
 
@@ -60,10 +60,10 @@ describe('Float', () =>
             });
             const result = struct.vValue;
             expect(result).toBeInstanceOf(Float);
-            expect(result.toGLSL('vertex')).toBe('vValue');
-            expect(result.toWGSL('vertex')).toBe('v.vValue');
+            expect(result.toGLSL()).toBe('vValue');
+            expect(result.toWGSL()).toBe('v.vValue');
             expect(result.toGLSL('fragment')).toBe('vValue');
-            expect(result.toWGSL('fragment')).toBe('v.vValue');
+            expect(result.toWGSL()).toBe('v.vValue');
         });
     });
 
@@ -74,8 +74,8 @@ describe('Float', () =>
             const a = float(1.0);
             const b = float(2.0);
             const result = a.add(b);
-            expect(result.toGLSL('vertex')).toBe('1.0 + 2.0');
-            expect(result.toWGSL('vertex')).toBe('1.0 + 2.0');
+            expect(result.toGLSL()).toBe('1.0 + 2.0');
+            expect(result.toWGSL()).toBe('1.0 + 2.0');
         });
 
         it('应该支持减法运算', () =>
@@ -83,8 +83,8 @@ describe('Float', () =>
             const a = float(1.0);
             const b = float(2.0);
             const result = a.subtract(b);
-            expect(result.toGLSL('vertex')).toBe('1.0 - 2.0');
-            expect(result.toWGSL('vertex')).toBe('1.0 - 2.0');
+            expect(result.toGLSL()).toBe('1.0 - 2.0');
+            expect(result.toWGSL()).toBe('1.0 - 2.0');
         });
 
         it('应该支持乘法运算', () =>
@@ -92,8 +92,8 @@ describe('Float', () =>
             const a = float(1.0);
             const b = float(2.0);
             const result = a.multiply(b);
-            expect(result.toGLSL('vertex')).toBe('1.0 * 2.0');
-            expect(result.toWGSL('vertex')).toBe('1.0 * 2.0');
+            expect(result.toGLSL()).toBe('1.0 * 2.0');
+            expect(result.toWGSL()).toBe('1.0 * 2.0');
         });
 
         it('应该支持除法运算', () =>
@@ -101,16 +101,16 @@ describe('Float', () =>
             const a = float(1.0);
             const b = float(2.0);
             const result = a.divide(b);
-            expect(result.toGLSL('vertex')).toBe('1.0 / 2.0');
-            expect(result.toWGSL('vertex')).toBe('1.0 / 2.0');
+            expect(result.toGLSL()).toBe('1.0 / 2.0');
+            expect(result.toWGSL()).toBe('1.0 / 2.0');
         });
 
         it('应该支持数字字面量运算', () =>
         {
             const a = float(1.0);
             const result = a.multiply(2.0);
-            expect(result.toGLSL('vertex')).toBe('1.0 * 2.0');
-            expect(result.toWGSL('vertex')).toBe('1.0 * 2.0');
+            expect(result.toGLSL()).toBe('1.0 * 2.0');
+            expect(result.toWGSL()).toBe('1.0 * 2.0');
         });
 
         it('运算时应该正确生成括号', () =>
@@ -122,20 +122,20 @@ describe('Float', () =>
             // (a + b) * c 应该生成括号
             const add = a.add(b);
             const mul = add.multiply(c);
-            expect(mul.toGLSL('vertex')).toBe('(1.0 + 2.0) * 3.0');
-            expect(mul.toWGSL('vertex')).toBe('(1.0 + 2.0) * 3.0');
+            expect(mul.toGLSL()).toBe('(1.0 + 2.0) * 3.0');
+            expect(mul.toWGSL()).toBe('(1.0 + 2.0) * 3.0');
 
             // a + b * c 不需要括号（乘除优先级更高）
             const mul2 = b.multiply(c);
             const add2 = a.add(mul2);
-            expect(add2.toGLSL('vertex')).toBe('1.0 + 2.0 * 3.0');
-            expect(add2.toWGSL('vertex')).toBe('1.0 + 2.0 * 3.0');
+            expect(add2.toGLSL()).toBe('1.0 + 2.0 * 3.0');
+            expect(add2.toWGSL()).toBe('1.0 + 2.0 * 3.0');
 
             // a / (b + c) 应该生成括号
             const add3 = b.add(c);
             const div = a.divide(add3);
-            expect(div.toGLSL('vertex')).toBe('1.0 / (2.0 + 3.0)');
-            expect(div.toWGSL('vertex')).toBe('1.0 / (2.0 + 3.0)');
+            expect(div.toGLSL()).toBe('1.0 / (2.0 + 3.0)');
+            expect(div.toWGSL()).toBe('1.0 / (2.0 + 3.0)');
         });
 
         it('应该优化 -1.0 * x 为 -x', () =>
@@ -145,16 +145,16 @@ describe('Float', () =>
 
             // -1.0 * x 应该优化为 -x
             const result = negOne.multiply(x);
-            expect(result.toGLSL('vertex')).toBe('-2.0');
-            expect(result.toWGSL('vertex')).toBe('-2.0');
+            expect(result.toGLSL()).toBe('-2.0');
+            expect(result.toWGSL()).toBe('-2.0');
 
             // -1.0 * (a + b) 应该优化为 -(a + b)
             const a = float(1.0);
             const b = float(2.0);
             const add = a.add(b);
             const result2 = negOne.multiply(add);
-            expect(result2.toGLSL('vertex')).toBe('-(1.0 + 2.0)');
-            expect(result2.toWGSL('vertex')).toBe('-(1.0 + 2.0)');
+            expect(result2.toGLSL()).toBe('-(1.0 + 2.0)');
+            expect(result2.toWGSL()).toBe('-(1.0 + 2.0)');
         });
 
         it('应该正确处理科学计数法并优化同级乘法', () =>
@@ -165,8 +165,8 @@ describe('Float', () =>
             // 0.2 * turbidity * 1e-17 应该生成 0.2 * turbidity * 1e-17（同级乘法不需要括号）
             const mul1 = a.multiply(turbidity);
             const mul2 = mul1.multiply(b);
-            expect(mul2.toGLSL('vertex')).toBe('0.2 * turbidity * 1e-17');
-            expect(mul2.toWGSL('vertex')).toBe('0.2 * turbidity * 1e-17');
+            expect(mul2.toGLSL()).toBe('0.2 * turbidity * 1e-17');
+            expect(mul2.toWGSL()).toBe('0.2 * turbidity * 1e-17');
         });
 
         it('应该正确处理 -1.0 * (a - b) / c 优化为 -((a - b) / c)', () =>
@@ -179,8 +179,8 @@ describe('Float', () =>
             const sub = cutoffAngle.subtract(acosClamped);
             const div = sub.divide(steepness);
             const negMul = float(-1.0).multiply(div);
-            expect(negMul.toGLSL('vertex')).toBe('-((cutoffAngle - acosClamped) / steepness)');
-            expect(negMul.toWGSL('vertex')).toBe('-((cutoffAngle - acosClamped) / steepness)');
+            expect(negMul.toGLSL()).toBe('-((cutoffAngle - acosClamped) / steepness)');
+            expect(negMul.toWGSL()).toBe('-((cutoffAngle - acosClamped) / steepness)');
         });
 
         it('应该正确处理完整的复杂表达式', () =>
@@ -200,8 +200,8 @@ describe('Float', () =>
             const maxResult = max(0.0, subtract);
             const final = EE.multiply(maxResult);
 
-            expect(final.toGLSL('vertex')).toBe('EE * max(0.0, 1.0 - exp(-((cutoffAngle - acosClamped) / steepness)))');
-            expect(final.toWGSL('vertex')).toBe('EE * max(0.0, 1.0 - exp(-((cutoffAngle - acosClamped) / steepness)))');
+            expect(final.toGLSL()).toBe('EE * max(0.0, 1.0 - exp(-((cutoffAngle - acosClamped) / steepness)))');
+            expect(final.toWGSL()).toBe('EE * max(0.0, 1.0 - exp(-((cutoffAngle - acosClamped) / steepness)))');
         });
 
         it('应该正确处理 float(-1.0).multiply(Vec3) 优化为 -Vec3', () =>
@@ -217,8 +217,8 @@ describe('Float', () =>
             const mul2 = vBetaM.multiply(sM);
             const add = mul1.add(mul2);
             const negMul = float(-1.0).multiply(add);
-            expect(negMul.toGLSL('vertex')).toBe('-(vBetaR * sR + vBetaM * sM)');
-            expect(negMul.toWGSL('vertex')).toBe('-(vBetaR * sR + vBetaM * sM)');
+            expect(negMul.toGLSL()).toBe('-(vBetaR * sR + vBetaM * sM)');
+            expect(negMul.toWGSL()).toBe('-(vBetaR * sR + vBetaM * sM)');
         });
     });
 });

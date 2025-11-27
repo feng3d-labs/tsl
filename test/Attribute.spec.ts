@@ -19,21 +19,21 @@ describe('Attribute', () =>
         it('应该在没有设置 value 时抛出错误', () =>
         {
             const attr = new Attribute('position', 0);
-            expect(() => attr.toGLSL('vertex')).toThrow(/没有设置 value/);
+            expect(() => attr.toGLSL()).toThrow(/没有设置 value/);
         });
 
         it('应该能够设置 value 并生成 GLSL', () =>
         {
             const attr = new Attribute('position', 0);
             attr.value = vec2(attribute('position', 0));
-            expect(attr.toGLSL('vertex')).toBe('attribute vec2 position;');
+            expect(attr.toGLSL()).toBe('attribute vec2 position;');
         });
 
         it('应该能够生成 WGSL', () =>
         {
             const attr = new Attribute('position', 0);
             attr.value = vec2(attribute('position', 0));
-            expect(attr.toWGSL('vertex')).toBe('@location(0) position: vec2<f32>');
+            expect(attr.toWGSL()).toBe('@location(0) position: vec2<f32>');
         });
     });
 
@@ -51,8 +51,8 @@ describe('Attribute', () =>
         {
             const position = vec2(attribute('position', 0));
             expect(position).toBeDefined();
-            expect(position.toGLSL('vertex')).toBe('position');
-            expect(position.toWGSL('vertex')).toBe('position');
+            expect(position.toGLSL()).toBe('position');
+            expect(position.toWGSL()).toBe('position');
 
             const vertexShader = vertex('main', () =>
             {

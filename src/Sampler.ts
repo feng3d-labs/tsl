@@ -45,9 +45,8 @@ export class Sampler implements IElement
 
     /**
      * 转换为 GLSL 代码
-     * @param type 着色器类型
      */
-    toGLSL(type: 'vertex' | 'fragment'): string
+    toGLSL(): string
     {
         return `uniform sampler2D ${this.name};`;
     }
@@ -56,7 +55,7 @@ export class Sampler implements IElement
      * 转换为 WGSL 代码
      * 在 WGSL 中，texture 和 sampler 是分离的，需要分别声明
      */
-    toWGSL(type: 'vertex' | 'fragment'): string
+    toWGSL(): string
     {
         const effectiveBinding = this.getEffectiveBinding();
         const effectiveGroup = this.getEffectiveGroup();

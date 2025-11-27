@@ -1,14 +1,14 @@
 import { analyzeDependencies } from './analyzeDependencies';
 import { Attribute } from './Attribute';
-import { Builtin } from './builtin/builtin';
+import { getBuildParam } from './buildParam';
+import { IStatement } from './builtin/Statement';
+import { setCurrentFunc } from './currentFunc';
 import { IElement, ShaderValue } from './IElement';
 import { Precision } from './Precision';
 import { Sampler } from './Sampler';
-import { IStatement } from './builtin/Statement';
-import { VaryingStruct } from './varyingStruct';
 import { Uniform } from './Uniform';
 import { Varying } from './Varying';
-import { setCurrentFunc } from './currentFunc';
+import { VaryingStruct } from './varyingStruct';
 
 /**
  * Func 类
@@ -69,9 +69,8 @@ export class Func
 
     /**
      * 转换为 GLSL 代码
-     * @param shaderType 着色器类型（vertex 或 fragment）
      */
-    toGLSL(shaderType: 'vertex' | 'fragment'): string
+    toGLSL(): string
     {
         // 执行函数体收集语句和依赖（如果尚未收集）
         this.executeBodyIfNeeded();
@@ -83,7 +82,7 @@ export class Func
 
         this.statements.forEach(stmt =>
         {
-            const glsl = stmt.toGLSL(shaderType);
+            const glsl = stmt.toGLSL();
             // 过滤掉空语句
             if (glsl.trim() !== '')
             {
@@ -98,14 +97,16 @@ export class Func
 
     /**
      * 转换为 WGSL 代码
-     * @param shaderType 着色器类型（vertex 或 fragment）
      */
-    toWGSL(shaderType: 'vertex' | 'fragment'): string
+    toWGSL(): string
     {
         // 执行函数体收集语句和依赖（如果尚未收集）
         this.executeBodyIfNeeded();
 
         const lines: string[] = [];
+
+        const buildParam = getBuildParam();
+        const shaderType = buildParam.stage;
 
         // 生成函数签名
         const stage = shaderType === 'vertex' ? '@vertex' : '@fragment';
@@ -119,7 +120,7 @@ export class Func
 
             for (const attr of dependencies.attributes)
             {
-                params.push(attr.toWGSL('vertex'));
+                params.push(attr.toWGSL());
             }
 
             // 检查是否返回结构体（直接使用收集到的结构体，不重新构建）
@@ -186,7 +187,7 @@ export class Func
             if (returnStruct)
             {
                 // 检查是否已经添加了 var v: VaryingStruct; 声明
-                const hasVarDeclaration = this.statements.some(stmt => stmt.toWGSL(shaderType).includes('var v: VaryingStruct'));
+                const hasVarDeclaration = this.statements.some(stmt => stmt.toWGSL().includes('var v: VaryingStruct'));
                 if (!hasVarDeclaration)
                 {
                     // 在函数体开头添加 var v: VaryingStruct; 声明
@@ -205,12 +206,12 @@ export class Func
 
                 // 如果没有找到 return 语句，但存在结构体变量且有赋值操作，也认为返回结构体
                 // 需要在最后添加 return 语句
-                if (!this.statements.some(stmt => stmt.toWGSL(shaderType).includes('return')))
+                if (!this.statements.some(stmt => stmt.toWGSL().includes('return')))
                 {
                     // 添加 return 语句（变量名固定为 v）
                     this.statements.push({
-                        toGLSL: (type: 'vertex' | 'fragment') => '',
-                        toWGSL: (type: 'vertex' | 'fragment') => `return v;`,
+                        toGLSL: () => '',
+                        toWGSL: () => `return v;`,
                     });
                 }
             }
@@ -222,7 +223,7 @@ export class Func
 
             this.statements.forEach(stmt =>
             {
-                lines.push(`    ${stmt.toWGSL(shaderType)}`);
+                lines.push(`    ${stmt.toWGSL()}`);
             });
         }
         else
@@ -249,7 +250,7 @@ export class Func
                                 // 找到直接使用的结构体变量
                                 if (typeof dep.toWGSL === 'function')
                                 {
-                                    const varName = dep.toWGSL(shaderType);
+                                    const varName = dep.toWGSL();
 
                                     inputStruct = { varName, struct };
 
@@ -260,7 +261,7 @@ export class Func
                             else if (dep && typeof dep === 'object' && (dep as any)._varyingStruct === struct)
                             {
                                 // 找到使用该结构体的字段值，使用结构体的变量名
-                                const varName = struct.toWGSL(shaderType);
+                                const varName = struct.toWGSL();
 
                                 inputStruct = { varName, struct };
 
@@ -275,7 +276,7 @@ export class Func
                                     // 找到使用该结构体的变量
                                     if (typeof dep.toWGSL === 'function')
                                     {
-                                        const varName = dep.toWGSL(shaderType);
+                                        const varName = dep.toWGSL();
 
                                         inputStruct = { varName, struct };
 
@@ -317,7 +318,7 @@ export class Func
 
             this.statements.forEach(stmt =>
             {
-                lines.push(`    ${stmt.toWGSL(shaderType)}`);
+                lines.push(`    ${stmt.toWGSL()}`);
             });
         }
 

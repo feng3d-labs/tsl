@@ -11,8 +11,8 @@ import { Vec3 } from './types/vec3';
 export function dot(a: Vec3, b: Vec3): Float
 {
     const result = new Float();
-    result.toGLSL = (type: 'vertex' | 'fragment') => `dot(${a.toGLSL(type)}, ${b.toGLSL(type)})`;
-    result.toWGSL = (type: 'vertex' | 'fragment') => `dot(${a.toWGSL(type)}, ${b.toWGSL(type)})`;
+    result.toGLSL = () => `dot(${a.toGLSL()}, ${b.toGLSL()})`;
+    result.toWGSL = () => `dot(${a.toWGSL()}, ${b.toWGSL()})`;
     result.dependencies = [a, b];
 
     return result;

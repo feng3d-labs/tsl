@@ -2,17 +2,17 @@ import { Attribute } from '../../Attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../Uniform';
 import { Varying } from '../../Varying';
+import { formatOperand } from '../expressionUtils';
 import { formatNumber } from '../formatNumber';
 import { Float } from './float';
-import { formatOperand } from '../expressionUtils';
 
 export class Vec3 implements ShaderValue
 {
     readonly glslType = 'vec3';
     readonly wgslType = 'vec3<f32>';
     dependencies: IElement[];
-    toGLSL: (type: 'vertex' | 'fragment') => string;
-    toWGSL: (type: 'vertex' | 'fragment') => string;
+    toGLSL: () => string;
+    toWGSL: () => string;
 
     constructor();
     constructor(uniform: Uniform);
@@ -27,24 +27,24 @@ export class Vec3 implements ShaderValue
         {
             const uniform = args[0] as Uniform;
             this.dependencies = [uniform];
-            this.toGLSL = (type: 'vertex' | 'fragment') => uniform.name;
-            this.toWGSL = (type: 'vertex' | 'fragment') => uniform.name;
+            this.toGLSL = () => uniform.name;
+            this.toWGSL = () => uniform.name;
             uniform.value = this;
         }
         else if (args.length === 1 && args[0] instanceof Attribute)
         {
             const attribute = args[0] as Attribute;
             this.dependencies = [attribute];
-            this.toGLSL = (type: 'vertex' | 'fragment') => attribute.name;
-            this.toWGSL = (type: 'vertex' | 'fragment') => attribute.name;
+            this.toGLSL = () => attribute.name;
+            this.toWGSL = () => attribute.name;
             attribute.value = this;
         }
         else if (args.length === 1 && args[0] instanceof Varying)
         {
             const varying = args[0] as Varying;
             this.dependencies = [varying];
-            this.toGLSL = (type: 'vertex' | 'fragment') => varying.name;
-            this.toWGSL = (type: 'vertex' | 'fragment') => varying.name;
+            this.toGLSL = () => varying.name;
+            this.toWGSL = () => varying.name;
             varying.value = this;
         }
         else if (args.length === 1 && (typeof args[0] === 'number' || args[0] instanceof Float))
@@ -52,14 +52,14 @@ export class Vec3 implements ShaderValue
             const value = args[0] as number | Float;
             if (typeof value === 'number')
             {
-                this.toGLSL = (type: 'vertex' | 'fragment') => `vec3(${formatNumber(value)})`;
-                this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<f32>(${formatNumber(value)})`;
+                this.toGLSL = () => `vec3(${formatNumber(value)})`;
+                this.toWGSL = () => `vec3<f32>(${formatNumber(value)})`;
                 this.dependencies = [];
             }
             else
             {
-                this.toGLSL = (type: 'vertex' | 'fragment') => `vec3(${value.toGLSL(type)})`;
-                this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<f32>(${value.toWGSL(type)})`;
+                this.toGLSL = () => `vec3(${value.toGLSL()})`;
+                this.toWGSL = () => `vec3<f32>(${value.toWGSL()})`;
                 this.dependencies = [value];
             }
         }
@@ -72,13 +72,13 @@ export class Vec3 implements ShaderValue
             // 如果三个参数相同，使用单个参数形式
             if (x === y && y === z)
             {
-                this.toGLSL = (type: 'vertex' | 'fragment') => `vec3(${formatNumber(x)})`;
-                this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<f32>(${formatNumber(x)})`;
+                this.toGLSL = () => `vec3(${formatNumber(x)})`;
+                this.toWGSL = () => `vec3<f32>(${formatNumber(x)})`;
             }
             else
             {
-                this.toGLSL = (type: 'vertex' | 'fragment') => `vec3(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
-                this.toWGSL = (type: 'vertex' | 'fragment') => `vec3<f32>(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
+                this.toGLSL = () => `vec3(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
+                this.toWGSL = () => `vec3<f32>(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
             }
             this.dependencies = [];
         }
@@ -94,8 +94,8 @@ export class Vec3 implements ShaderValue
     get x(): Float
     {
         const float = new Float();
-        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.x`;
-        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.x`;
+        float.toGLSL = () => `${this.toGLSL()}.x`;
+        float.toWGSL = () => `${this.toWGSL()}.x`;
         float.dependencies = [this];
 
         return float;
@@ -107,8 +107,8 @@ export class Vec3 implements ShaderValue
     get y(): Float
     {
         const float = new Float();
-        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.y`;
-        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.y`;
+        float.toGLSL = () => `${this.toGLSL()}.y`;
+        float.toWGSL = () => `${this.toWGSL()}.y`;
         float.dependencies = [this];
 
         return float;
@@ -120,8 +120,8 @@ export class Vec3 implements ShaderValue
     get z(): Float
     {
         const float = new Float();
-        float.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)}.z`;
-        float.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)}.z`;
+        float.toGLSL = () => `${this.toGLSL()}.z`;
+        float.toWGSL = () => `${this.toWGSL()}.z`;
         float.dependencies = [this];
 
         return float;
@@ -135,17 +135,17 @@ export class Vec3 implements ShaderValue
         const result = new Vec3();
         if (other instanceof Vec3)
         {
-            result.toGLSL = (type: 'vertex' | 'fragment') =>
+            result.toGLSL = () =>
             {
-                const left = formatOperand(this, '*', true, type, (t) => this.toGLSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => other.toGLSL(t));
+                const left = formatOperand(this, '*', true, () => this.toGLSL());
+                const right = formatOperand(other, '*', false, () => other.toGLSL());
 
                 return `${left} * ${right}`;
             };
-            result.toWGSL = (type: 'vertex' | 'fragment') =>
+            result.toWGSL = () =>
             {
-                const left = formatOperand(this, '*', true, type, (t) => this.toWGSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => other.toWGSL(t));
+                const left = formatOperand(this, '*', true, () => this.toWGSL());
+                const right = formatOperand(other, '*', false, () => other.toWGSL());
 
                 return `${left} * ${right}`;
             };
@@ -153,17 +153,17 @@ export class Vec3 implements ShaderValue
         }
         else
         {
-            result.toGLSL = (type: 'vertex' | 'fragment') =>
+            result.toGLSL = () =>
             {
-                const left = formatOperand(this, '*', true, type, (t) => this.toGLSL(t));
-                const right = typeof other === 'number' ? other.toString() : formatOperand(other, '*', false, type, (t) => other.toGLSL(t));
+                const left = formatOperand(this, '*', true, () => this.toGLSL());
+                const right = typeof other === 'number' ? other.toString() : formatOperand(other, '*', false, () => other.toGLSL());
 
                 return `${left} * ${right}`;
             };
-            result.toWGSL = (type: 'vertex' | 'fragment') =>
+            result.toWGSL = () =>
             {
-                const left = formatOperand(this, '*', true, type, (t) => this.toWGSL(t));
-                const right = typeof other === 'number' ? other.toString() : formatOperand(other, '*', false, type, (t) => other.toWGSL(t));
+                const left = formatOperand(this, '*', true, () => this.toWGSL());
+                const right = typeof other === 'number' ? other.toString() : formatOperand(other, '*', false, () => other.toWGSL());
 
                 return `${left} * ${right}`;
             };
@@ -179,17 +179,17 @@ export class Vec3 implements ShaderValue
     add(other: Vec3): Vec3
     {
         const result = new Vec3();
-        result.toGLSL = (type: 'vertex' | 'fragment') =>
+        result.toGLSL = () =>
         {
-            const left = formatOperand(this, '+', true, type, (t) => this.toGLSL(t));
-            const right = formatOperand(other, '+', false, type, (t) => other.toGLSL(t));
+            const left = formatOperand(this, '+', true, () => this.toGLSL());
+            const right = formatOperand(other, '+', false, () => other.toGLSL());
 
             return `${left} + ${right}`;
         };
-        result.toWGSL = (type: 'vertex' | 'fragment') =>
+        result.toWGSL = () =>
         {
-            const left = formatOperand(this, '+', true, type, (t) => this.toWGSL(t));
-            const right = formatOperand(other, '+', false, type, (t) => other.toWGSL(t));
+            const left = formatOperand(this, '+', true, () => this.toWGSL());
+            const right = formatOperand(other, '+', false, () => other.toWGSL());
 
             return `${left} + ${right}`;
         };
@@ -204,17 +204,17 @@ export class Vec3 implements ShaderValue
     subtract(other: Vec3): Vec3
     {
         const result = new Vec3();
-        result.toGLSL = (type: 'vertex' | 'fragment') =>
+        result.toGLSL = () =>
         {
-            const left = formatOperand(this, '-', true, type, (t) => this.toGLSL(t));
-            const right = formatOperand(other, '-', false, type, (t) => other.toGLSL(t));
+            const left = formatOperand(this, '-', true, () => this.toGLSL());
+            const right = formatOperand(other, '-', false, () => other.toGLSL());
 
             return `${left} - ${right}`;
         };
-        result.toWGSL = (type: 'vertex' | 'fragment') =>
+        result.toWGSL = () =>
         {
-            const left = formatOperand(this, '-', true, type, (t) => this.toWGSL(t));
-            const right = formatOperand(other, '-', false, type, (t) => other.toWGSL(t));
+            const left = formatOperand(this, '-', true, () => this.toWGSL());
+            const right = formatOperand(other, '-', false, () => other.toWGSL());
 
             return `${left} - ${right}`;
         };
@@ -231,17 +231,17 @@ export class Vec3 implements ShaderValue
         const result = new Vec3();
         if (other instanceof Vec3)
         {
-            result.toGLSL = (type: 'vertex' | 'fragment') =>
+            result.toGLSL = () =>
             {
-                const left = formatOperand(this, '/', true, type, (t) => this.toGLSL(t));
-                const right = formatOperand(other, '/', false, type, (t) => other.toGLSL(t));
+                const left = formatOperand(this, '/', true, () => this.toGLSL());
+                const right = formatOperand(other, '/', false, () => other.toGLSL());
 
                 return `${left} / ${right}`;
             };
-            result.toWGSL = (type: 'vertex' | 'fragment') =>
+            result.toWGSL = () =>
             {
-                const left = formatOperand(this, '/', true, type, (t) => this.toWGSL(t));
-                const right = formatOperand(other, '/', false, type, (t) => other.toWGSL(t));
+                const left = formatOperand(this, '/', true, () => this.toWGSL());
+                const right = formatOperand(other, '/', false, () => other.toWGSL());
 
                 return `${left} / ${right}`;
             };
@@ -249,17 +249,17 @@ export class Vec3 implements ShaderValue
         }
         else
         {
-            result.toGLSL = (type: 'vertex' | 'fragment') =>
+            result.toGLSL = () =>
             {
-                const left = formatOperand(this, '/', true, type, (t) => this.toGLSL(t));
-                const right = typeof other === 'number' ? other.toString() : formatOperand(other, '/', false, type, (t) => other.toGLSL(t));
+                const left = formatOperand(this, '/', true, () => this.toGLSL());
+                const right = typeof other === 'number' ? other.toString() : formatOperand(other, '/', false, () => other.toGLSL());
 
                 return `${left} / ${right}`;
             };
-            result.toWGSL = (type: 'vertex' | 'fragment') =>
+            result.toWGSL = () =>
             {
-                const left = formatOperand(this, '/', true, type, (t) => this.toWGSL(t));
-                const right = typeof other === 'number' ? other.toString() : formatOperand(other, '/', false, type, (t) => other.toWGSL(t));
+                const left = formatOperand(this, '/', true, () => this.toWGSL());
+                const right = typeof other === 'number' ? other.toString() : formatOperand(other, '/', false, () => other.toWGSL());
 
                 return `${left} / ${right}`;
             };

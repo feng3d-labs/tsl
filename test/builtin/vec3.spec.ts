@@ -35,8 +35,8 @@ describe('vec3', () =>
         {
             const uniform = new Uniform('uPosition', 0, 0);
             const result = vec3(uniform);
-            expect(result.toGLSL('vertex')).toBe('uPosition');
-            expect(result.toWGSL('vertex')).toBe('uPosition');
+            expect(result.toGLSL()).toBe('uPosition');
+            expect(result.toWGSL()).toBe('uPosition');
         });
 
         it('应该设置正确的 dependencies', () =>
@@ -67,8 +67,8 @@ describe('vec3', () =>
         {
             const attribute = new Attribute('aPosition', 0);
             const result = vec3(attribute);
-            expect(result.toGLSL('vertex')).toBe('aPosition');
-            expect(result.toWGSL('vertex')).toBe('aPosition');
+            expect(result.toGLSL()).toBe('aPosition');
+            expect(result.toWGSL()).toBe('aPosition');
         });
 
         it('应该设置正确的 dependencies', () =>
@@ -90,13 +90,13 @@ describe('vec3', () =>
         it('应该正确设置 toGLSL 方法', () =>
         {
             const result = vec3(1.0, 2.0, 3.0);
-            expect(result.toGLSL('vertex')).toBe('vec3(1.0, 2.0, 3.0)');
+            expect(result.toGLSL()).toBe('vec3(1.0, 2.0, 3.0)');
         });
 
         it('应该正确设置 toWGSL 方法', () =>
         {
             const result = vec3(1.0, 2.0, 3.0);
-            expect(result.toWGSL('vertex')).toBe('vec3<f32>(1.0, 2.0, 3.0)');
+            expect(result.toWGSL()).toBe('vec3<f32>(1.0, 2.0, 3.0)');
         });
 
         it('应该设置空的 dependencies', () =>
@@ -148,8 +148,8 @@ describe('vec3', () =>
             const a = vec3(1.0, 2.0, 3.0);
             const b = vec3(4.0, 5.0, 6.0);
             const result = a.add(b);
-            expect(result.toGLSL('vertex')).toBe('vec3(1.0, 2.0, 3.0) + vec3(4.0, 5.0, 6.0)');
-            expect(result.toWGSL('vertex')).toBe('vec3<f32>(1.0, 2.0, 3.0) + vec3<f32>(4.0, 5.0, 6.0)');
+            expect(result.toGLSL()).toBe('vec3(1.0, 2.0, 3.0) + vec3(4.0, 5.0, 6.0)');
+            expect(result.toWGSL()).toBe('vec3<f32>(1.0, 2.0, 3.0) + vec3<f32>(4.0, 5.0, 6.0)');
         });
 
         it('应该支持减法运算', () =>
@@ -157,8 +157,8 @@ describe('vec3', () =>
             const a = vec3(1.0, 2.0, 3.0);
             const b = vec3(4.0, 5.0, 6.0);
             const result = a.subtract(b);
-            expect(result.toGLSL('vertex')).toBe('vec3(1.0, 2.0, 3.0) - vec3(4.0, 5.0, 6.0)');
-            expect(result.toWGSL('vertex')).toBe('vec3<f32>(1.0, 2.0, 3.0) - vec3<f32>(4.0, 5.0, 6.0)');
+            expect(result.toGLSL()).toBe('vec3(1.0, 2.0, 3.0) - vec3(4.0, 5.0, 6.0)');
+            expect(result.toWGSL()).toBe('vec3<f32>(1.0, 2.0, 3.0) - vec3<f32>(4.0, 5.0, 6.0)');
         });
 
         it('应该支持乘法运算', () =>
@@ -166,8 +166,8 @@ describe('vec3', () =>
             const a = vec3(1.0, 2.0, 3.0);
             const b = float(2.0);
             const result = a.multiply(b);
-            expect(result.toGLSL('vertex')).toBe('vec3(1.0, 2.0, 3.0) * 2.0');
-            expect(result.toWGSL('vertex')).toBe('vec3<f32>(1.0, 2.0, 3.0) * 2.0');
+            expect(result.toGLSL()).toBe('vec3(1.0, 2.0, 3.0) * 2.0');
+            expect(result.toWGSL()).toBe('vec3<f32>(1.0, 2.0, 3.0) * 2.0');
         });
 
         it('应该支持除法运算', () =>
@@ -175,8 +175,8 @@ describe('vec3', () =>
             const a = vec3(1.0, 2.0, 3.0);
             const b = float(2.0);
             const result = a.divide(b);
-            expect(result.toGLSL('vertex')).toBe('vec3(1.0, 2.0, 3.0) / 2.0');
-            expect(result.toWGSL('vertex')).toBe('vec3<f32>(1.0, 2.0, 3.0) / 2.0');
+            expect(result.toGLSL()).toBe('vec3(1.0, 2.0, 3.0) / 2.0');
+            expect(result.toWGSL()).toBe('vec3<f32>(1.0, 2.0, 3.0) / 2.0');
         });
 
         it('运算时应该正确生成括号', () =>
@@ -188,14 +188,14 @@ describe('vec3', () =>
             // (a + b) * c 应该生成括号
             const add = a.add(b);
             const mul = add.multiply(c);
-            expect(mul.toGLSL('vertex')).toBe('(vec3(1.0, 2.0, 3.0) + vec3(4.0, 5.0, 6.0)) * 2.0');
-            expect(mul.toWGSL('vertex')).toBe('(vec3<f32>(1.0, 2.0, 3.0) + vec3<f32>(4.0, 5.0, 6.0)) * 2.0');
+            expect(mul.toGLSL()).toBe('(vec3(1.0, 2.0, 3.0) + vec3(4.0, 5.0, 6.0)) * 2.0');
+            expect(mul.toWGSL()).toBe('(vec3<f32>(1.0, 2.0, 3.0) + vec3<f32>(4.0, 5.0, 6.0)) * 2.0');
 
             // a + b * c 不需要括号（乘除优先级更高）
             const mul2 = b.multiply(c);
             const add2 = a.add(mul2);
-            expect(add2.toGLSL('vertex')).toBe('vec3(1.0, 2.0, 3.0) + vec3(4.0, 5.0, 6.0) * 2.0');
-            expect(add2.toWGSL('vertex')).toBe('vec3<f32>(1.0, 2.0, 3.0) + vec3<f32>(4.0, 5.0, 6.0) * 2.0');
+            expect(add2.toGLSL()).toBe('vec3(1.0, 2.0, 3.0) + vec3(4.0, 5.0, 6.0) * 2.0');
+            expect(add2.toWGSL()).toBe('vec3<f32>(1.0, 2.0, 3.0) + vec3<f32>(4.0, 5.0, 6.0) * 2.0');
         });
     });
 });

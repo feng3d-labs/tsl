@@ -119,15 +119,13 @@ function wrapWithParens(expr: string, needsParens: boolean): string
  * @param operand 操作数
  * @param currentOp 当前运算符 ('+', '-', '*', '/')
  * @param isLeftOperand 是否是左操作数
- * @param shaderType 着色器类型
  * @param toCode 转换为代码的函数
  */
 export function formatOperand(
     operand: ShaderValue | number,
     currentOp: '+' | '-' | '*' | '/',
     isLeftOperand: boolean,
-    shaderType: 'vertex' | 'fragment',
-    toCode: (type: 'vertex' | 'fragment') => string,
+    toCode: () => string,
 ): string
 {
     if (typeof operand === 'number')
@@ -135,7 +133,7 @@ export function formatOperand(
         return operand.toString();
     }
 
-    const operandStr = toCode(shaderType);
+    const operandStr = toCode();
     const hasOp = hasOperator(operandStr);
     if (!hasOp)
     {

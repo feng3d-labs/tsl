@@ -12,8 +12,8 @@ export function clamp<T extends Float | Vec3 | Vec4>(a: T | number, min: T | num
     if (a instanceof Vec3)
     {
         const result = new Vec3();
-        result.toGLSL = (type: 'vertex' | 'fragment') => `clamp(${a.toGLSL(type)}, ${typeof min === 'number' ? formatNumber(min) : min.toGLSL(type)}, ${typeof max === 'number' ? formatNumber(max) : max.toGLSL(type)})`;
-        result.toWGSL = (type: 'vertex' | 'fragment') => `clamp(${a.toWGSL(type)}, ${typeof min === 'number' ? formatNumber(min) : min.toWGSL(type)}, ${typeof max === 'number' ? formatNumber(max) : max.toWGSL(type)})`;
+        result.toGLSL = () => `clamp(${a.toGLSL()}, ${typeof min === 'number' ? formatNumber(min) : min.toGLSL()}, ${typeof max === 'number' ? formatNumber(max) : max.toGLSL()})`;
+        result.toWGSL = () => `clamp(${a.toWGSL()}, ${typeof min === 'number' ? formatNumber(min) : min.toWGSL()}, ${typeof max === 'number' ? formatNumber(max) : max.toWGSL()})`;
         result.dependencies = typeof min === 'number' ? (typeof max === 'number' ? [a] : [a, max]) : (typeof max === 'number' ? [a, min] : [a, min, max]);
 
         return result as T;
@@ -21,15 +21,15 @@ export function clamp<T extends Float | Vec3 | Vec4>(a: T | number, min: T | num
     if (a instanceof Vec4)
     {
         const result = new Vec4();
-        result.toGLSL = (type: 'vertex' | 'fragment') => `clamp(${a.toGLSL(type)}, ${typeof min === 'number' ? formatNumber(min) : min.toGLSL(type)}, ${typeof max === 'number' ? formatNumber(max) : max.toGLSL(type)})`;
-        result.toWGSL = (type: 'vertex' | 'fragment') => `clamp(${a.toWGSL(type)}, ${typeof min === 'number' ? formatNumber(min) : min.toWGSL(type)}, ${typeof max === 'number' ? formatNumber(max) : max.toWGSL(type)})`;
+        result.toGLSL = () => `clamp(${a.toGLSL()}, ${typeof min === 'number' ? formatNumber(min) : min.toGLSL()}, ${typeof max === 'number' ? formatNumber(max) : max.toGLSL()})`;
+        result.toWGSL = () => `clamp(${a.toWGSL()}, ${typeof min === 'number' ? formatNumber(min) : min.toWGSL()}, ${typeof max === 'number' ? formatNumber(max) : max.toWGSL()})`;
         result.dependencies = typeof min === 'number' ? (typeof max === 'number' ? [a] : [a, max]) : (typeof max === 'number' ? [a, min] : [a, min, max]);
 
         return result as T;
     }
     const result = new Float();
-    result.toGLSL = (type: 'vertex' | 'fragment') => `clamp(${typeof a === 'number' ? formatNumber(a) : a.toGLSL(type)}, ${typeof min === 'number' ? formatNumber(min) : min.toGLSL(type)}, ${typeof max === 'number' ? formatNumber(max) : max.toGLSL(type)})`;
-    result.toWGSL = (type: 'vertex' | 'fragment') => `clamp(${typeof a === 'number' ? formatNumber(a) : a.toWGSL(type)}, ${typeof min === 'number' ? formatNumber(min) : min.toWGSL(type)}, ${typeof max === 'number' ? formatNumber(max) : max.toWGSL(type)})`;
+    result.toGLSL = () => `clamp(${typeof a === 'number' ? formatNumber(a) : a.toGLSL()}, ${typeof min === 'number' ? formatNumber(min) : min.toGLSL()}, ${typeof max === 'number' ? formatNumber(max) : max.toGLSL()})`;
+    result.toWGSL = () => `clamp(${typeof a === 'number' ? formatNumber(a) : a.toWGSL()}, ${typeof min === 'number' ? formatNumber(min) : min.toWGSL()}, ${typeof max === 'number' ? formatNumber(max) : max.toWGSL()})`;
     result.dependencies = typeof a === 'number' ? (typeof min === 'number' ? (typeof max === 'number' ? [] : [max]) : (typeof max === 'number' ? [min] : [min, max])) : (typeof min === 'number' ? (typeof max === 'number' ? [a] : [a, max]) : (typeof max === 'number' ? [a, min] : [a, min, max]));
 
     return result as T;

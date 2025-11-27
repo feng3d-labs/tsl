@@ -8,8 +8,8 @@ import { formatNumber } from './formatNumber';
 export function sin(a: Float | number): Float
 {
     const result = new Float();
-    result.toGLSL = (type: 'vertex' | 'fragment') => `sin(${typeof a === 'number' ? formatNumber(a) : a.toGLSL(type)})`;
-    result.toWGSL = (type: 'vertex' | 'fragment') => `sin(${typeof a === 'number' ? formatNumber(a) : a.toWGSL(type)})`;
+    result.toGLSL = () => `sin(${typeof a === 'number' ? formatNumber(a) : a.toGLSL()})`;
+    result.toWGSL = () => `sin(${typeof a === 'number' ? formatNumber(a) : a.toWGSL()})`;
     result.dependencies = typeof a === 'number' ? [] : [a];
 
     return result;

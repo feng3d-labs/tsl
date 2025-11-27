@@ -11,8 +11,8 @@ import { Varying } from './Varying';
 export class VaryingStruct<T extends { [key: string]: IElement }> implements IElement
 {
     dependencies: IElement[];
-    toGLSL: (type: 'vertex' | 'fragment') => string;
-    toWGSL: (type: 'vertex' | 'fragment') => string;
+    toGLSL: () => string;
+    toWGSL: () => string;
     readonly structName = 'VaryingStruct';
     private readonly varName = 'v';
 
@@ -199,8 +199,8 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
         }
 
         // 设置结构体自身的转换方法
-        this.toGLSL = (type: 'vertex' | 'fragment') => ``;
-        this.toWGSL = (type: 'vertex' | 'fragment') => this.varName;
+        this.toGLSL = () => ``;
+        this.toWGSL = () => this.varName;
         this.dependencies = Object.values(this.fields);
     }
 
@@ -236,7 +236,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
         }
 
         // 设置字段的 toWGSL 方法：返回 'v.fieldName'
-        value.toWGSL = (type: 'vertex' | 'fragment') => `${this.varName}.${fieldName}`;
+        value.toWGSL = () => `${this.varName}.${fieldName}`;
 
         // 设置字段的 toGLSL 方法
         this.setupFieldToGLSL(fieldName, value, dep);
@@ -261,14 +261,14 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             // Builtin 字段：使用 Builtin 的 toGLSL 方法（返回 gl_Position 等）
             const originalToGLSL = value.toGLSL;
 
-            value.toGLSL = (type: 'vertex' | 'fragment') =>
+            value.toGLSL = () =>
             {
                 // 尝试使用原始 toGLSL 方法
                 if (originalToGLSL && typeof originalToGLSL === 'function')
                 {
                     try
                     {
-                        return originalToGLSL(type);
+                        return originalToGLSL();
                     }
                     catch
                     {
@@ -283,7 +283,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
         else
         {
             // Varying 字段：返回字段名（GLSL 中直接使用字段名，不需要结构体前缀）
-            value.toGLSL = (type: 'vertex' | 'fragment') => fieldName;
+            value.toGLSL = () => fieldName;
         }
     }
 }

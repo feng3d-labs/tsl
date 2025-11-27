@@ -2,8 +2,8 @@ import { Attribute } from '../../Attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../Uniform';
 import { Varying } from '../../Varying';
-import { formatNumber } from '../formatNumber';
 import { formatOperand } from '../expressionUtils';
+import { formatNumber } from '../formatNumber';
 import { Vec2 } from './vec2';
 import { Vec3 } from './vec3';
 import { Vec4 } from './vec4';
@@ -13,8 +13,8 @@ export class Float implements ShaderValue
     readonly glslType = 'float';
     readonly wgslType = 'f32';
 
-    toGLSL: (type: 'vertex' | 'fragment') => string;
-    toWGSL: (type: 'vertex' | 'fragment') => string;
+    toGLSL: () => string;
+    toWGSL: () => string;
     dependencies: IElement[];
 
     constructor();
@@ -33,24 +33,24 @@ export class Float implements ShaderValue
         {
             const uniform = args[0] as Uniform;
             this.dependencies = [uniform];
-            this.toGLSL = (type: 'vertex' | 'fragment') => uniform.name;
-            this.toWGSL = (type: 'vertex' | 'fragment') => uniform.name;
+            this.toGLSL = () => uniform.name;
+            this.toWGSL = () => uniform.name;
             uniform.value = this;
         }
         else if (args.length === 1 && args[0] instanceof Attribute)
         {
             const attribute = args[0] as Attribute;
             this.dependencies = [attribute];
-            this.toGLSL = (type: 'vertex' | 'fragment') => attribute.name;
-            this.toWGSL = (type: 'vertex' | 'fragment') => attribute.name;
+            this.toGLSL = () => attribute.name;
+            this.toWGSL = () => attribute.name;
             attribute.value = this;
         }
         else if (args.length === 1 && args[0] instanceof Varying)
         {
             const varying = args[0] as Varying;
             this.dependencies = [varying];
-            this.toGLSL = (type: 'vertex' | 'fragment') => varying.name;
-            this.toWGSL = (type: 'vertex' | 'fragment') => varying.name;
+            this.toGLSL = () => varying.name;
+            this.toWGSL = () => varying.name;
             varying.value = this;
         }
         else if (args.length === 1 && typeof args[0] === 'number')
@@ -80,12 +80,12 @@ export class Float implements ShaderValue
             const result = new Vec3();
 
             // 检查 this 是否是字面量 -1.0
-            const thisValue = this.toGLSL('vertex');
+            const thisValue = this.toGLSL();
             const isNegativeOne = thisValue === '-1.0' || thisValue === '-1';
 
-            result.toGLSL = (type: 'vertex' | 'fragment') =>
+            result.toGLSL = () =>
             {
-                const rightStr = other.toGLSL(type);
+                const rightStr = other.toGLSL();
                 const hasOp = /[+\-*/]/.test(rightStr);
                 // 排除科学计数法
                 const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
@@ -103,14 +103,14 @@ export class Float implements ShaderValue
                     return `-${rightStr}`;
                 }
 
-                const left = formatOperand(this, '*', true, type, (t) => this.toGLSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => rightStr);
+                const left = formatOperand(this, '*', true, () => this.toGLSL());
+                const right = formatOperand(other, '*', false, () => rightStr);
 
                 return `${left} * ${right}`;
             };
-            result.toWGSL = (type: 'vertex' | 'fragment') =>
+            result.toWGSL = () =>
             {
-                const rightStr = other.toWGSL(type);
+                const rightStr = other.toWGSL();
                 const hasOp = /[+\-*/]/.test(rightStr);
                 // 排除科学计数法
                 const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
@@ -128,8 +128,8 @@ export class Float implements ShaderValue
                     return `-${rightStr}`;
                 }
 
-                const left = formatOperand(this, '*', true, type, (t) => this.toWGSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => rightStr);
+                const left = formatOperand(this, '*', true, () => this.toWGSL());
+                const right = formatOperand(other, '*', false, () => rightStr);
 
                 return `${left} * ${right}`;
             };
@@ -142,12 +142,12 @@ export class Float implements ShaderValue
             const result = new Vec4();
 
             // 检查 this 是否是字面量 -1.0
-            const thisValue = this.toGLSL('vertex');
+            const thisValue = this.toGLSL();
             const isNegativeOne = thisValue === '-1.0' || thisValue === '-1';
 
-            result.toGLSL = (type: 'vertex' | 'fragment') =>
+            result.toGLSL = () =>
             {
-                const rightStr = other.toGLSL(type);
+                const rightStr = other.toGLSL();
                 const hasOp = /[+\-*/]/.test(rightStr);
                 // 排除科学计数法
                 const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
@@ -165,14 +165,14 @@ export class Float implements ShaderValue
                     return `-${rightStr}`;
                 }
 
-                const left = formatOperand(this, '*', true, type, (t) => this.toGLSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => rightStr);
+                const left = formatOperand(this, '*', true, () => this.toGLSL());
+                const right = formatOperand(other, '*', false, () => rightStr);
 
                 return `${left} * ${right}`;
             };
-            result.toWGSL = (type: 'vertex' | 'fragment') =>
+            result.toWGSL = () =>
             {
-                const rightStr = other.toWGSL(type);
+                const rightStr = other.toWGSL();
                 const hasOp = /[+\-*/]/.test(rightStr);
                 // 排除科学计数法
                 const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
@@ -190,8 +190,8 @@ export class Float implements ShaderValue
                     return `-${rightStr}`;
                 }
 
-                const left = formatOperand(this, '*', true, type, (t) => this.toWGSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => rightStr);
+                const left = formatOperand(this, '*', true, () => this.toWGSL());
+                const right = formatOperand(other, '*', false, () => rightStr);
 
                 return `${left} * ${right}`;
             };
@@ -204,12 +204,12 @@ export class Float implements ShaderValue
             const result = new Vec2(0, 0);
 
             // 检查 this 是否是字面量 -1.0
-            const thisValue = this.toGLSL('vertex');
+            const thisValue = this.toGLSL();
             const isNegativeOne = thisValue === '-1.0' || thisValue === '-1';
 
-            result.toGLSL = (type: 'vertex' | 'fragment') =>
+            result.toGLSL = () =>
             {
-                const rightStr = other.toGLSL(type);
+                const rightStr = other.toGLSL();
                 const hasOp = /[+\-*/]/.test(rightStr);
                 // 排除科学计数法
                 const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
@@ -227,14 +227,14 @@ export class Float implements ShaderValue
                     return `-${rightStr}`;
                 }
 
-                const left = formatOperand(this, '*', true, type, (t) => this.toGLSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => rightStr);
+                const left = formatOperand(this, '*', true, () => this.toGLSL());
+                const right = formatOperand(other, '*', false, () => rightStr);
 
                 return `${left} * ${right}`;
             };
-            result.toWGSL = (type: 'vertex' | 'fragment') =>
+            result.toWGSL = () =>
             {
-                const rightStr = other.toWGSL(type);
+                const rightStr = other.toWGSL();
                 const hasOp = /[+\-*/]/.test(rightStr);
                 // 排除科学计数法
                 const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
@@ -252,8 +252,8 @@ export class Float implements ShaderValue
                     return `-${rightStr}`;
                 }
 
-                const left = formatOperand(this, '*', true, type, (t) => this.toWGSL(t));
-                const right = formatOperand(other, '*', false, type, (t) => rightStr);
+                const left = formatOperand(this, '*', true, () => this.toWGSL());
+                const right = formatOperand(other, '*', false, () => rightStr);
 
                 return `${left} * ${right}`;
             };
@@ -264,16 +264,16 @@ export class Float implements ShaderValue
         const result = new Float();
 
         // 检查 this 是否是字面量 -1.0
-        const thisValue = this.toGLSL('vertex');
+        const thisValue = this.toGLSL();
         const isNegativeOne = thisValue === '-1.0' || thisValue === '-1';
 
-        result.toGLSL = (type: 'vertex' | 'fragment') =>
+        result.toGLSL = () =>
         {
             if (isNegativeOne)
             {
                 // -1.0 * x 优化为 -x
                 // 如果 x 是复杂表达式，需要添加括号
-                const rightStr = typeof other === 'number' ? formatNumber(other) : other.toGLSL(type);
+                const rightStr = typeof other === 'number' ? formatNumber(other) : other.toGLSL();
                 const hasOp = /[+\-*/]/.test(rightStr);
                 // 排除科学计数法
                 const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
@@ -287,18 +287,18 @@ export class Float implements ShaderValue
                 return `-${rightStr}`;
             }
 
-            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '*', false, type, (t) => other.toGLSL(t));
-            const left = formatOperand(this, '*', true, type, (t) => this.toGLSL(t));
+            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '*', false, () => other.toGLSL());
+            const left = formatOperand(this, '*', true, () => this.toGLSL());
 
             return `${left} * ${right}`;
         };
-        result.toWGSL = (type: 'vertex' | 'fragment') =>
+        result.toWGSL = () =>
         {
             if (isNegativeOne)
             {
                 // -1.0 * x 优化为 -x
                 // 如果 x 是复杂表达式，需要添加括号
-                const rightStr = typeof other === 'number' ? formatNumber(other) : other.toWGSL(type);
+                const rightStr = typeof other === 'number' ? formatNumber(other) : other.toWGSL();
                 const hasOp = /[+\-*/]/.test(rightStr);
                 // 排除科学计数法
                 const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(rightStr);
@@ -312,8 +312,8 @@ export class Float implements ShaderValue
                 return `-${rightStr}`;
             }
 
-            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '*', false, type, (t) => other.toWGSL(t));
-            const left = formatOperand(this, '*', true, type, (t) => this.toWGSL(t));
+            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '*', false, () => other.toWGSL());
+            const left = formatOperand(this, '*', true, () => this.toWGSL());
 
             return `${left} * ${right}`;
         };
@@ -329,17 +329,17 @@ export class Float implements ShaderValue
     {
         const result = new Float();
 
-        result.toGLSL = (type: 'vertex' | 'fragment') =>
+        result.toGLSL = () =>
         {
-            const left = formatOperand(this, '+', true, type, (t) => this.toGLSL(t));
-            const right = formatOperand(other, '+', false, type, (t) => other.toGLSL(t));
+            const left = formatOperand(this, '+', true, () => this.toGLSL());
+            const right = formatOperand(other, '+', false, () => other.toGLSL());
 
             return `${left} + ${right}`;
         };
-        result.toWGSL = (type: 'vertex' | 'fragment') =>
+        result.toWGSL = () =>
         {
-            const left = formatOperand(this, '+', true, type, (t) => this.toWGSL(t));
-            const right = formatOperand(other, '+', false, type, (t) => other.toWGSL(t));
+            const left = formatOperand(this, '+', true, () => this.toWGSL());
+            const right = formatOperand(other, '+', false, () => other.toWGSL());
 
             return `${left} + ${right}`;
         };
@@ -361,17 +361,17 @@ export class Float implements ShaderValue
         {
             const result = new Vec3();
 
-            result.toGLSL = (type: 'vertex' | 'fragment') =>
+            result.toGLSL = () =>
             {
-                const left = formatOperand(this, '-', true, type, (t) => this.toGLSL(t));
-                const right = formatOperand(other, '-', false, type, (t) => other.toGLSL(t));
+                const left = formatOperand(this, '-', true, () => this.toGLSL());
+                const right = formatOperand(other, '-', false, () => other.toGLSL());
 
                 return `${left} - ${right}`;
             };
-            result.toWGSL = (type: 'vertex' | 'fragment') =>
+            result.toWGSL = () =>
             {
-                const left = formatOperand(this, '-', true, type, (t) => this.toWGSL(t));
-                const right = formatOperand(other, '-', false, type, (t) => other.toWGSL(t));
+                const left = formatOperand(this, '-', true, () => this.toWGSL());
+                const right = formatOperand(other, '-', false, () => other.toWGSL());
 
                 return `${left} - ${right}`;
             };
@@ -383,17 +383,17 @@ export class Float implements ShaderValue
         {
             const result = new Vec4();
 
-            result.toGLSL = (type: 'vertex' | 'fragment') =>
+            result.toGLSL = () =>
             {
-                const left = formatOperand(this, '-', true, type, (t) => this.toGLSL(t));
-                const right = formatOperand(other, '-', false, type, (t) => other.toGLSL(t));
+                const left = formatOperand(this, '-', true, () => this.toGLSL());
+                const right = formatOperand(other, '-', false, () => other.toGLSL());
 
                 return `${left} - ${right}`;
             };
-            result.toWGSL = (type: 'vertex' | 'fragment') =>
+            result.toWGSL = () =>
             {
-                const left = formatOperand(this, '-', true, type, (t) => this.toWGSL(t));
-                const right = formatOperand(other, '-', false, type, (t) => other.toWGSL(t));
+                const left = formatOperand(this, '-', true, () => this.toWGSL());
+                const right = formatOperand(other, '-', false, () => other.toWGSL());
 
                 return `${left} - ${right}`;
             };
@@ -405,17 +405,17 @@ export class Float implements ShaderValue
         {
             const result = new Vec2(0, 0);
 
-            result.toGLSL = (type: 'vertex' | 'fragment') =>
+            result.toGLSL = () =>
             {
-                const left = formatOperand(this, '-', true, type, (t) => this.toGLSL(t));
-                const right = formatOperand(other, '-', false, type, (t) => other.toGLSL(t));
+                const left = formatOperand(this, '-', true, () => this.toGLSL());
+                const right = formatOperand(other, '-', false, () => other.toGLSL());
 
                 return `${left} - ${right}`;
             };
-            result.toWGSL = (type: 'vertex' | 'fragment') =>
+            result.toWGSL = () =>
             {
-                const left = formatOperand(this, '-', true, type, (t) => this.toWGSL(t));
-                const right = formatOperand(other, '-', false, type, (t) => other.toWGSL(t));
+                const left = formatOperand(this, '-', true, () => this.toWGSL());
+                const right = formatOperand(other, '-', false, () => other.toWGSL());
 
                 return `${left} - ${right}`;
             };
@@ -425,17 +425,17 @@ export class Float implements ShaderValue
         }
         const result = new Float();
 
-        result.toGLSL = (type: 'vertex' | 'fragment') =>
+        result.toGLSL = () =>
         {
-            const left = formatOperand(this, '-', true, type, (t) => this.toGLSL(t));
-            const right = formatOperand(other, '-', false, type, (t) => other.toGLSL(t));
+            const left = formatOperand(this, '-', true, () => this.toGLSL());
+            const right = formatOperand(other, '-', false, () => other.toGLSL());
 
             return `${left} - ${right}`;
         };
-        result.toWGSL = (type: 'vertex' | 'fragment') =>
+        result.toWGSL = () =>
         {
-            const left = formatOperand(this, '-', true, type, (t) => this.toWGSL(t));
-            const right = formatOperand(other, '-', false, type, (t) => other.toWGSL(t));
+            const left = formatOperand(this, '-', true, () => this.toWGSL());
+            const right = formatOperand(other, '-', false, () => other.toWGSL());
 
             return `${left} - ${right}`;
         };
@@ -451,17 +451,17 @@ export class Float implements ShaderValue
     {
         const result = new Float();
 
-        result.toGLSL = (type: 'vertex' | 'fragment') =>
+        result.toGLSL = () =>
         {
-            const left = formatOperand(this, '/', true, type, (t) => this.toGLSL(t));
-            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '/', false, type, (t) => other.toGLSL(t));
+            const left = formatOperand(this, '/', true, () => this.toGLSL());
+            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '/', false, () => other.toGLSL());
 
             return `${left} / ${right}`;
         };
-        result.toWGSL = (type: 'vertex' | 'fragment') =>
+        result.toWGSL = () =>
         {
-            const left = formatOperand(this, '/', true, type, (t) => this.toWGSL(t));
-            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '/', false, type, (t) => other.toWGSL(t));
+            const left = formatOperand(this, '/', true, () => this.toWGSL());
+            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '/', false, () => other.toWGSL());
 
             return `${left} / ${right}`;
         };

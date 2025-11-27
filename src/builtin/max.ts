@@ -12,8 +12,8 @@ export function max<T extends Float>(a: T | number, b: T | number): T
 {
     const result = new Float();
 
-    result.toGLSL = (type: 'vertex' | 'fragment') => `max(${typeof a === 'number' ? formatNumber(a) : a.toGLSL(type)}, ${typeof b === 'number' ? formatNumber(b) : b.toGLSL(type)})`;
-    result.toWGSL = (type: 'vertex' | 'fragment') => `max(${typeof a === 'number' ? formatNumber(a) : a.toWGSL(type)}, ${typeof b === 'number' ? formatNumber(b) : b.toWGSL(type)})`;
+    result.toGLSL = () => `max(${typeof a === 'number' ? formatNumber(a) : a.toGLSL()}, ${typeof b === 'number' ? formatNumber(b) : b.toGLSL()})`;
+    result.toWGSL = () => `max(${typeof a === 'number' ? formatNumber(a) : a.toWGSL()}, ${typeof b === 'number' ? formatNumber(b) : b.toWGSL()})`;
     result.dependencies = typeof a === 'number' ? (typeof b === 'number' ? [] : [b]) : (typeof b === 'number' ? [a] : [a, b]);
 
     return result as T;

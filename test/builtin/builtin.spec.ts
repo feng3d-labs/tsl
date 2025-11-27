@@ -51,7 +51,7 @@ describe('Builtin', () =>
                 position: vec4(builtin('position')),
             });
             const v = struct.fields.position;
-            expect(v.toGLSL('vertex')).toBe('gl_Position');
+            expect(v.toGLSL()).toBe('gl_Position');
         });
     });
 
@@ -120,7 +120,7 @@ describe('builtin() 函数', () =>
             position: vec4(builtin('position')),
         });
         const v = struct.fields.position;
-        expect(v.toGLSL('vertex')).toBe('gl_Position');
+        expect(v.toGLSL()).toBe('gl_Position');
     });
 
     it('应该能够生成正确的 WGSL 代码', () =>
@@ -153,8 +153,8 @@ describe('builtin() 函数', () =>
             });
             const v1 = struct1.fields.position;
             const v2 = struct2.fields.position;
-            expect(v1.toGLSL('vertex')).toBe('gl_Position');
-            expect(v2.toGLSL('vertex')).toBe('gl_Position');
+            expect(v1.toGLSL()).toBe('gl_Position');
+            expect(v2.toGLSL()).toBe('gl_Position');
         });
 
         it('gl_Position 和 position 应该生成相同的 WGSL 代码', () =>

@@ -14,12 +14,12 @@ export class Precision implements IElement
         this.value = value;
     }
 
-    toGLSL(type: 'vertex' | 'fragment'): string
+    toGLSL(): string
     {
         return `precision ${this.value} float;`;
     }
 
-    toWGSL(type: 'vertex' | 'fragment'): string
+    toWGSL(): string
     {
         // WGSL 不需要 precision 声明
         return '';

@@ -24,7 +24,7 @@ describe('Varying', () =>
         it('应该在没有设置 name 时抛出错误', () =>
         {
             const v = new Varying(0);
-            expect(() => v.toGLSL('vertex')).toThrow(/没有设置 name/);
+            expect(() => v.toGLSL()).toThrow(/没有设置 name/);
         });
 
         it('应该在 varyingStruct 中设置 name 并生成 GLSL', () =>
@@ -34,7 +34,7 @@ describe('Varying', () =>
             });
             const v = struct.fields.vColor.dependencies[0] as Varying;
             expect(v.name).toBe('vColor');
-            expect(v.toGLSL('vertex')).toBe('varying vec4 vColor;');
+            expect(v.toGLSL()).toBe('varying vec4 vColor;');
             expect(v.toGLSL('fragment')).toBe('varying vec4 vColor;');
         });
 
@@ -45,7 +45,7 @@ describe('Varying', () =>
             });
             const v = struct.fields.vColor.dependencies[0] as Varying;
             expect(v.name).toBe('vColor');
-            expect(v.toWGSL('vertex')).toBe('@location(0) vColor: vec4<f32>');
+            expect(v.toWGSL()).toBe('@location(0) vColor: vec4<f32>');
         });
     });
 

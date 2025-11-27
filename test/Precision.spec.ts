@@ -29,7 +29,7 @@ describe('Precision', () =>
         it('应该能够生成 WGSL 代码（返回空字符串）', () =>
         {
             const prec = new Precision('highp');
-            expect(prec.toWGSL('fragment')).toBe('');
+            expect(prec.toWGSL()).toBe('');
         });
     });
 

@@ -19,8 +19,8 @@ describe('Vec2', () =>
             const v = vec2(1.5, 2.5);
             expect(v.x).toBeInstanceOf(Float);
             expect(v.y).toBeInstanceOf(Float);
-            expect(v.x.toGLSL('vertex')).toBe('vec2(1.5, 2.5).x');
-            expect(v.y.toGLSL('vertex')).toBe('vec2(1.5, 2.5).y');
+            expect(v.x.toGLSL()).toBe('vec2(1.5, 2.5).x');
+            expect(v.y.toGLSL()).toBe('vec2(1.5, 2.5).y');
         });
     });
 
@@ -30,14 +30,14 @@ describe('Vec2', () =>
         {
             const v = new Vec2(10.0, 20.0);
             expect(v.x).toBeInstanceOf(Float);
-            expect(v.x.toGLSL('vertex')).toBe('vec2(10.0, 20.0).x');
+            expect(v.x.toGLSL()).toBe('vec2(10.0, 20.0).x');
         });
 
         it('应该能够获取 y 分量', () =>
         {
             const v = new Vec2(10.0, 20.0);
             expect(v.y).toBeInstanceOf(Float);
-            expect(v.y.toGLSL('vertex')).toBe('vec2(10.0, 20.0).y');
+            expect(v.y.toGLSL()).toBe('vec2(10.0, 20.0).y');
         });
     });
 
@@ -46,19 +46,19 @@ describe('Vec2', () =>
         it('应该生成正确的 GLSL 代码', () =>
         {
             const v = new Vec2(1.0, 2.0);
-            expect(v.toGLSL('vertex')).toBe('vec2(1.0, 2.0)');
+            expect(v.toGLSL()).toBe('vec2(1.0, 2.0)');
         });
 
         it('应该处理浮点数', () =>
         {
             const v = new Vec2(1.5, 2.5);
-            expect(v.toGLSL('vertex')).toBe('vec2(1.5, 2.5)');
+            expect(v.toGLSL()).toBe('vec2(1.5, 2.5)');
         });
 
         it('应该处理负数', () =>
         {
             const v = new Vec2(-1.0, -2.0);
-            expect(v.toGLSL('vertex')).toBe('vec2(-1.0, -2.0)');
+            expect(v.toGLSL()).toBe('vec2(-1.0, -2.0)');
         });
     });
 
@@ -67,19 +67,19 @@ describe('Vec2', () =>
         it('应该生成正确的 WGSL 代码', () =>
         {
             const v = new Vec2(1.0, 2.0);
-            expect(v.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0)');
+            expect(v.toWGSL()).toBe('vec2<f32>(1.0, 2.0)');
         });
 
         it('应该处理浮点数', () =>
         {
             const v = new Vec2(1.5, 2.5);
-            expect(v.toWGSL('vertex')).toBe('vec2<f32>(1.5, 2.5)');
+            expect(v.toWGSL()).toBe('vec2<f32>(1.5, 2.5)');
         });
 
         it('应该处理负数', () =>
         {
             const v = new Vec2(-1.0, -2.0);
-            expect(v.toWGSL('vertex')).toBe('vec2<f32>(-1.0, -2.0)');
+            expect(v.toWGSL()).toBe('vec2<f32>(-1.0, -2.0)');
         });
     });
 });
@@ -99,20 +99,20 @@ describe('vec2', () =>
             const result = vec2(1.5, 2.5);
             expect(result.x).toBeInstanceOf(Float);
             expect(result.y).toBeInstanceOf(Float);
-            expect(result.x.toGLSL('vertex')).toBe('vec2(1.5, 2.5).x');
-            expect(result.y.toGLSL('vertex')).toBe('vec2(1.5, 2.5).y');
+            expect(result.x.toGLSL()).toBe('vec2(1.5, 2.5).x');
+            expect(result.y.toGLSL()).toBe('vec2(1.5, 2.5).y');
         });
 
         it('应该能够转换为 GLSL', () =>
         {
             const result = vec2(1.0, 2.0);
-            expect(result.toGLSL('vertex')).toBe('vec2(1.0, 2.0)');
+            expect(result.toGLSL()).toBe('vec2(1.0, 2.0)');
         });
 
         it('应该能够转换为 WGSL', () =>
         {
             const result = vec2(1.0, 2.0);
-            expect(result.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0)');
+            expect(result.toWGSL()).toBe('vec2<f32>(1.0, 2.0)');
         });
     });
 
@@ -123,12 +123,12 @@ describe('vec2', () =>
             const uniform = new Uniform('uPosition', 0, 0);
             const result = vec2(uniform);
             expect(result).toBeInstanceOf(Vec2);
-            expect(result.toGLSL('vertex')).toBe('uPosition');
-            expect(result.toWGSL('vertex')).toBe('uPosition');
-            expect(result.x.toGLSL('vertex')).toBe('uPosition.x');
-            expect(result.y.toGLSL('vertex')).toBe('uPosition.y');
-            expect(result.x.toWGSL('vertex')).toBe('uPosition.x');
-            expect(result.y.toWGSL('vertex')).toBe('uPosition.y');
+            expect(result.toGLSL()).toBe('uPosition');
+            expect(result.toWGSL()).toBe('uPosition');
+            expect(result.x.toGLSL()).toBe('uPosition.x');
+            expect(result.y.toGLSL()).toBe('uPosition.y');
+            expect(result.x.toWGSL()).toBe('uPosition.x');
+            expect(result.y.toWGSL()).toBe('uPosition.y');
         });
 
         it('应该将类型信息保存到 uniform.value', () =>
@@ -148,12 +148,12 @@ describe('vec2', () =>
             const attribute = new Attribute('aPosition', 0);
             const result = vec2(attribute);
             expect(result).toBeInstanceOf(Vec2);
-            expect(result.toGLSL('vertex')).toBe('aPosition');
-            expect(result.toWGSL('vertex')).toBe('aPosition');
-            expect(result.x.toGLSL('vertex')).toBe('aPosition.x');
-            expect(result.y.toGLSL('vertex')).toBe('aPosition.y');
-            expect(result.x.toWGSL('vertex')).toBe('aPosition.x');
-            expect(result.y.toWGSL('vertex')).toBe('aPosition.y');
+            expect(result.toGLSL()).toBe('aPosition');
+            expect(result.toWGSL()).toBe('aPosition');
+            expect(result.x.toGLSL()).toBe('aPosition.x');
+            expect(result.y.toGLSL()).toBe('aPosition.y');
+            expect(result.x.toWGSL()).toBe('aPosition.x');
+            expect(result.y.toWGSL()).toBe('aPosition.y');
         });
 
         it('应该将类型信息保存到 attribute.value', () =>
@@ -195,8 +195,8 @@ describe('vec2', () =>
             const a = vec2(1.0, 2.0);
             const b = vec2(3.0, 4.0);
             const result = a.add(b);
-            expect(result.toGLSL('vertex')).toBe('vec2(1.0, 2.0) + vec2(3.0, 4.0)');
-            expect(result.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0)');
+            expect(result.toGLSL()).toBe('vec2(1.0, 2.0) + vec2(3.0, 4.0)');
+            expect(result.toWGSL()).toBe('vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0)');
         });
 
         it('应该支持减法运算', () =>
@@ -204,8 +204,8 @@ describe('vec2', () =>
             const a = vec2(1.0, 2.0);
             const b = vec2(3.0, 4.0);
             const result = a.subtract(b);
-            expect(result.toGLSL('vertex')).toBe('vec2(1.0, 2.0) - vec2(3.0, 4.0)');
-            expect(result.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) - vec2<f32>(3.0, 4.0)');
+            expect(result.toGLSL()).toBe('vec2(1.0, 2.0) - vec2(3.0, 4.0)');
+            expect(result.toWGSL()).toBe('vec2<f32>(1.0, 2.0) - vec2<f32>(3.0, 4.0)');
         });
 
         it('应该支持乘法运算', () =>
@@ -213,8 +213,8 @@ describe('vec2', () =>
             const a = vec2(1.0, 2.0);
             const b = float(2.0);
             const result = a.multiply(b);
-            expect(result.toGLSL('vertex')).toBe('vec2(1.0, 2.0) * 2.0');
-            expect(result.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) * 2.0');
+            expect(result.toGLSL()).toBe('vec2(1.0, 2.0) * 2.0');
+            expect(result.toWGSL()).toBe('vec2<f32>(1.0, 2.0) * 2.0');
         });
 
         it('应该支持除法运算', () =>
@@ -222,8 +222,8 @@ describe('vec2', () =>
             const a = vec2(1.0, 2.0);
             const b = float(2.0);
             const result = a.divide(b);
-            expect(result.toGLSL('vertex')).toBe('vec2(1.0, 2.0) / 2.0');
-            expect(result.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) / 2.0');
+            expect(result.toGLSL()).toBe('vec2(1.0, 2.0) / 2.0');
+            expect(result.toWGSL()).toBe('vec2<f32>(1.0, 2.0) / 2.0');
         });
 
         it('运算时应该正确生成括号', () =>
@@ -235,14 +235,14 @@ describe('vec2', () =>
             // (a + b) * c 应该生成括号
             const add = a.add(b);
             const mul = add.multiply(c);
-            expect(mul.toGLSL('vertex')).toBe('(vec2(1.0, 2.0) + vec2(3.0, 4.0)) * 2.0');
-            expect(mul.toWGSL('vertex')).toBe('(vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0)) * 2.0');
+            expect(mul.toGLSL()).toBe('(vec2(1.0, 2.0) + vec2(3.0, 4.0)) * 2.0');
+            expect(mul.toWGSL()).toBe('(vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0)) * 2.0');
 
             // a + b * c 不需要括号（乘除优先级更高）
             const mul2 = b.multiply(c);
             const add2 = a.add(mul2);
-            expect(add2.toGLSL('vertex')).toBe('vec2(1.0, 2.0) + vec2(3.0, 4.0) * 2.0');
-            expect(add2.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0) * 2.0');
+            expect(add2.toGLSL()).toBe('vec2(1.0, 2.0) + vec2(3.0, 4.0) * 2.0');
+            expect(add2.toWGSL()).toBe('vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0) * 2.0');
         });
     });
 });

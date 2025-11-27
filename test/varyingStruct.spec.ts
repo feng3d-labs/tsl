@@ -98,8 +98,8 @@ describe('VaryingStruct', () =>
                 position: vec4(builtin('position')),
             });
 
-            const vertexWgsl = v.toWGSL('vertex');
-            const fragmentWgsl = v.toWGSL('fragment');
+            const vertexWgsl = v.toWGSL();
+            const fragmentWgsl = v.toWGSL();
 
             expect(vertexWgsl).toBe('v');
             expect(fragmentWgsl).toBe('v');
@@ -126,7 +126,7 @@ describe('VaryingStruct', () =>
                 position: vec4(builtin('position')),
             });
 
-            const vertexGlsl = v.toGLSL('vertex');
+            const vertexGlsl = v.toGLSL();
             const fragmentGlsl = v.toGLSL('fragment');
 
             expect(vertexGlsl).toBe('');
@@ -142,7 +142,7 @@ describe('VaryingStruct', () =>
                 position: vec4(builtin('position')),
             });
 
-            const wgsl = v.position.toWGSL('vertex');
+            const wgsl = v.position.toWGSL();
             expect(wgsl).toBe('v.position');
         });
 
@@ -152,7 +152,7 @@ describe('VaryingStruct', () =>
                 position: vec4(builtin('position')),
             });
 
-            const wgsl = v.position.x.toWGSL('vertex');
+            const wgsl = v.position.x.toWGSL();
             expect(wgsl).toBe('v.position.x');
         });
 
@@ -162,10 +162,10 @@ describe('VaryingStruct', () =>
                 position: vec4(builtin('position')),
             });
 
-            const wgsl = v.position.x.toWGSL('vertex');
+            const wgsl = v.position.x.toWGSL();
             expect(wgsl).toBe('v.position.x');
 
-            expect(v.position.xyz.toWGSL('vertex')).toBe('v.position.xyz');
+            expect(v.position.xyz.toWGSL()).toBe('v.position.xyz');
         });
 
         it('应该能够为结构体字段属性生成正确的 WGSL 代码', () =>
@@ -178,17 +178,17 @@ describe('VaryingStruct', () =>
 
             expect(v.toWGSLDefinition()).toBe('struct VaryingStruct {\n    @builtin(position) position: vec4<f32>,\n}');
             expect(v.toWGSLVarStatement()).toBe('var v: VaryingStruct;');
-            expect(v.toWGSL('vertex')).toBe('v');
-            expect(position.toWGSL('vertex')).toBe('v.position');
-            expect(position.x.toWGSL('vertex')).toBe('v.position.x');
-            expect(position.xyz.toWGSL('vertex')).toBe('v.position.xyz');
+            expect(v.toWGSL()).toBe('v');
+            expect(position.toWGSL()).toBe('v.position');
+            expect(position.x.toWGSL()).toBe('v.position.x');
+            expect(position.xyz.toWGSL()).toBe('v.position.xyz');
 
             expect(v.toWGSLDefinition()).toBe('struct VaryingStruct {\n    @builtin(position) position: vec4<f32>,\n}');
             expect(v.toWGSLParam()).toBe('v: VaryingStruct');
-            expect(v.toWGSL('fragment')).toBe('v');
-            expect(position.toWGSL('fragment')).toBe('v.position');
-            expect(position.x.toWGSL('fragment')).toBe('v.position.x');
-            expect(position.xyz.toWGSL('fragment')).toBe('v.position.xyz');
+            expect(v.toWGSL()).toBe('v');
+            expect(position.toWGSL()).toBe('v.position');
+            expect(position.x.toWGSL()).toBe('v.position.x');
+            expect(position.xyz.toWGSL()).toBe('v.position.xyz');
         });
     });
 
@@ -200,7 +200,7 @@ describe('VaryingStruct', () =>
                 position: vec4(builtin('position')),
             });
 
-            const glsl = v.position.toGLSL('vertex');
+            const glsl = v.position.toGLSL();
             expect(glsl).toBe('gl_Position');
         });
 
@@ -210,7 +210,7 @@ describe('VaryingStruct', () =>
                 position: vec4(builtin('position')),
             });
 
-            const glsl = v.position.x.toGLSL('vertex');
+            const glsl = v.position.x.toGLSL();
             expect(glsl).toBe('gl_Position.x');
         });
 
@@ -220,7 +220,7 @@ describe('VaryingStruct', () =>
                 color: vec4(varying(1)),
             });
 
-            const glsl = v.color.toGLSL('vertex');
+            const glsl = v.color.toGLSL();
             expect(glsl).toBe('color');
         });
 
@@ -235,34 +235,34 @@ describe('VaryingStruct', () =>
             });
 
             // GLSL
-            expect(v.color.toGLSL('vertex')).toBe('color');
-            expect(v.color2.toGLSL('vertex')).toBe('color2');
-            expect(v.color3.toGLSL('vertex')).toBe('color3');
-            expect(v.color4.toGLSL('vertex')).toBe('color4');
+            expect(v.color.toGLSL()).toBe('color');
+            expect(v.color2.toGLSL()).toBe('color2');
+            expect(v.color3.toGLSL()).toBe('color3');
+            expect(v.color4.toGLSL()).toBe('color4');
 
             expect(v.color.toGLSL('fragment')).toBe('color');
             expect(v.color2.toGLSL('fragment')).toBe('color2');
             expect(v.color3.toGLSL('fragment')).toBe('color3');
             expect(v.color4.toGLSL('fragment')).toBe('color4');
 
-            expect(v.toGLSL('vertex')).toBe('');
+            expect(v.toGLSL()).toBe('');
             expect(v.toGLSL('fragment')).toBe('');
 
             expect(v.toGLSLDefinition()).toBe('varying vec4 color; varying vec4 color2; varying vec4 color3; varying vec4 color4;');
 
             // WGSL
-            expect(v.color.toWGSL('vertex')).toBe('v.color');
-            expect(v.color2.toWGSL('vertex')).toBe('v.color2');
-            expect(v.color3.toWGSL('vertex')).toBe('v.color3');
-            expect(v.color4.toWGSL('vertex')).toBe('v.color4');
+            expect(v.color.toWGSL()).toBe('v.color');
+            expect(v.color2.toWGSL()).toBe('v.color2');
+            expect(v.color3.toWGSL()).toBe('v.color3');
+            expect(v.color4.toWGSL()).toBe('v.color4');
 
-            expect(v.color.toWGSL('fragment')).toBe('v.color');
-            expect(v.color2.toWGSL('fragment')).toBe('v.color2');
-            expect(v.color3.toWGSL('fragment')).toBe('v.color3');
-            expect(v.color4.toWGSL('fragment')).toBe('v.color4');
+            expect(v.color.toWGSL()).toBe('v.color');
+            expect(v.color2.toWGSL()).toBe('v.color2');
+            expect(v.color3.toWGSL()).toBe('v.color3');
+            expect(v.color4.toWGSL()).toBe('v.color4');
 
-            expect(v.toWGSL('vertex')).toBe('v');
-            expect(v.toWGSL('fragment')).toBe('v');
+            expect(v.toWGSL()).toBe('v');
+            expect(v.toWGSL()).toBe('v');
 
             expect(v.toWGSLVarStatement()).toBe('var v: VaryingStruct;');
             expect(v.toWGSLParam()).toBe('v: VaryingStruct');

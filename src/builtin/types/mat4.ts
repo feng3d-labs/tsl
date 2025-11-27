@@ -12,8 +12,8 @@ export class Mat4 implements ShaderValue
     readonly wgslType = 'mat4x4<f32>';
 
     dependencies: IElement[];
-    toGLSL: (type: 'vertex' | 'fragment') => string;
-    toWGSL: (type: 'vertex' | 'fragment') => string;
+    toGLSL: () => string;
+    toWGSL: () => string;
 
     constructor();
     constructor(uniform: Uniform);
@@ -28,8 +28,8 @@ export class Mat4 implements ShaderValue
             {
                 const uniform = args[0] as Uniform;
 
-                this.toGLSL = (type: 'vertex' | 'fragment') => uniform.name;
-                this.toWGSL = (type: 'vertex' | 'fragment') => uniform.name;
+                this.toGLSL = () => uniform.name;
+                this.toWGSL = () => uniform.name;
                 this.dependencies = [uniform];
 
                 uniform.value = this;
@@ -38,8 +38,8 @@ export class Mat4 implements ShaderValue
             {
                 const attribute = args[0] as Attribute;
 
-                this.toGLSL = (type: 'vertex' | 'fragment') => attribute.name;
-                this.toWGSL = (type: 'vertex' | 'fragment') => attribute.name;
+                this.toGLSL = () => attribute.name;
+                this.toWGSL = () => attribute.name;
                 this.dependencies = [attribute];
 
                 attribute.value = this;
@@ -60,8 +60,8 @@ export class Mat4 implements ShaderValue
         if (other instanceof Vec4)
         {
             const vec4 = new Vec4(0, 0, 0, 0);
-            vec4.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${other.toGLSL(type)}`;
-            vec4.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${other.toWGSL(type)}`;
+            vec4.toGLSL = () => `${this.toGLSL()} * ${other.toGLSL()}`;
+            vec4.toWGSL = () => `${this.toWGSL()} * ${other.toWGSL()}`;
             vec4.dependencies = [this, other];
 
             return vec4 as T;
@@ -69,8 +69,8 @@ export class Mat4 implements ShaderValue
         else
         {
             const mat4 = new Mat4();
-            mat4.toGLSL = (type: 'vertex' | 'fragment') => `${this.toGLSL(type)} * ${other.toGLSL(type)}`;
-            mat4.toWGSL = (type: 'vertex' | 'fragment') => `${this.toWGSL(type)} * ${other.toWGSL(type)}`;
+            mat4.toGLSL = () => `${this.toGLSL()} * ${other.toGLSL()}`;
+            mat4.toWGSL = () => `${this.toWGSL()} * ${other.toWGSL()}`;
             mat4.dependencies = [this, other];
 
             return mat4 as T;

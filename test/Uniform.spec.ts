@@ -33,7 +33,7 @@ describe('Uniform', () =>
         {
             const uni = new Uniform('color', 0, 0);
             vec4(uni);
-            expect(uni.toWGSL('fragment')).toBe('@binding(0) @group(0) var<uniform> color : vec4<f32>;');
+            expect(uni.toWGSL()).toBe('@binding(0) @group(0) var<uniform> color : vec4<f32>;');
         });
 
     });
@@ -54,7 +54,7 @@ describe('Uniform', () =>
             const color = vec4(uniform('color', 0, 0));
             expect(color).toBeDefined();
             expect(color.toGLSL('fragment')).toBe('color');
-            expect(color.toWGSL('fragment')).toBe('color');
+            expect(color.toWGSL()).toBe('color');
 
             const fragmentShader = fragment('main', () =>
             {
@@ -74,7 +74,7 @@ describe('Uniform', () =>
             const uni = uniform('color');
             vec4(uni);
             expect(uni.getEffectiveGroup()).toBe(0);
-            expect(uni.toWGSL('fragment')).toContain('@group(0)');
+            expect(uni.toWGSL()).toContain('@group(0)');
         });
 
         it('应该支持 binding 缺省时的自动分配', () =>

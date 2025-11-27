@@ -9,8 +9,8 @@ import { Vec3 } from './types/vec3';
 export function normalize(v: Vec3): Vec3
 {
     const result = new Vec3();
-    result.toGLSL = (type: 'vertex' | 'fragment') => `normalize(${v.toGLSL(type)})`;
-    result.toWGSL = (type: 'vertex' | 'fragment') => `normalize(${v.toWGSL(type)})`;
+    result.toGLSL = () => `normalize(${v.toGLSL()})`;
+    result.toWGSL = () => `normalize(${v.toWGSL()})`;
     result.dependencies = [v];
 
     return result;

@@ -18,13 +18,13 @@ describe('表达式括号生成', () =>
             // a + b * c 应该生成 a + b * c（乘除优先级更高，不需要括号）
             const mul = b.multiply(c);
             const add = a.add(mul);
-            expect(add.toGLSL('vertex')).toBe('1.0 + 2.0 * 3.0');
-            expect(add.toWGSL('vertex')).toBe('1.0 + 2.0 * 3.0');
+            expect(add.toGLSL()).toBe('1.0 + 2.0 * 3.0');
+            expect(add.toWGSL()).toBe('1.0 + 2.0 * 3.0');
 
             // a - b * c 应该生成 a - b * c（乘除优先级更高，不需要括号）
             const sub = a.subtract(mul);
-            expect(sub.toGLSL('vertex')).toBe('1.0 - 2.0 * 3.0');
-            expect(sub.toWGSL('vertex')).toBe('1.0 - 2.0 * 3.0');
+            expect(sub.toGLSL()).toBe('1.0 - 2.0 * 3.0');
+            expect(sub.toWGSL()).toBe('1.0 - 2.0 * 3.0');
         });
 
         it('乘除运算时，加减表达式应该加括号', () =>
@@ -36,14 +36,14 @@ describe('表达式括号生成', () =>
             // (a + b) * c 应该生成 (1.0 + 2.0) * 3.0
             const add = a.add(b);
             const mul = add.multiply(c);
-            expect(mul.toGLSL('vertex')).toBe('(1.0 + 2.0) * 3.0');
-            expect(mul.toWGSL('vertex')).toBe('(1.0 + 2.0) * 3.0');
+            expect(mul.toGLSL()).toBe('(1.0 + 2.0) * 3.0');
+            expect(mul.toWGSL()).toBe('(1.0 + 2.0) * 3.0');
 
             // (a - b) * c 应该生成 (1.0 - 2.0) * 3.0
             const sub = a.subtract(b);
             const mul2 = sub.multiply(c);
-            expect(mul2.toGLSL('vertex')).toBe('(1.0 - 2.0) * 3.0');
-            expect(mul2.toWGSL('vertex')).toBe('(1.0 - 2.0) * 3.0');
+            expect(mul2.toGLSL()).toBe('(1.0 - 2.0) * 3.0');
+            expect(mul2.toWGSL()).toBe('(1.0 - 2.0) * 3.0');
         });
 
         it('除法时，右操作数应该加括号', () =>
@@ -55,14 +55,14 @@ describe('表达式括号生成', () =>
             // a / (b + c) 应该生成 1.0 / (2.0 + 3.0)
             const add = b.add(c);
             const div = a.divide(add);
-            expect(div.toGLSL('vertex')).toBe('1.0 / (2.0 + 3.0)');
-            expect(div.toWGSL('vertex')).toBe('1.0 / (2.0 + 3.0)');
+            expect(div.toGLSL()).toBe('1.0 / (2.0 + 3.0)');
+            expect(div.toWGSL()).toBe('1.0 / (2.0 + 3.0)');
 
             // a / (b * c) 应该生成 1.0 / (2.0 * 3.0)
             const mul = b.multiply(c);
             const div2 = a.divide(mul);
-            expect(div2.toGLSL('vertex')).toBe('1.0 / (2.0 * 3.0)');
-            expect(div2.toWGSL('vertex')).toBe('1.0 / (2.0 * 3.0)');
+            expect(div2.toGLSL()).toBe('1.0 / (2.0 * 3.0)');
+            expect(div2.toWGSL()).toBe('1.0 / (2.0 * 3.0)');
         });
 
         it('简单表达式不需要括号', () =>
@@ -72,13 +72,13 @@ describe('表达式括号生成', () =>
 
             // a + b 不需要括号
             const add = a.add(b);
-            expect(add.toGLSL('vertex')).toBe('1.0 + 2.0');
-            expect(add.toWGSL('vertex')).toBe('1.0 + 2.0');
+            expect(add.toGLSL()).toBe('1.0 + 2.0');
+            expect(add.toWGSL()).toBe('1.0 + 2.0');
 
             // a * b 不需要括号
             const mul = a.multiply(b);
-            expect(mul.toGLSL('vertex')).toBe('1.0 * 2.0');
-            expect(mul.toWGSL('vertex')).toBe('1.0 * 2.0');
+            expect(mul.toGLSL()).toBe('1.0 * 2.0');
+            expect(mul.toWGSL()).toBe('1.0 * 2.0');
         });
     });
 
@@ -93,8 +93,8 @@ describe('表达式括号生成', () =>
             // a + b * c 应该生成 a + b * c（乘除优先级更高，不需要括号）
             const mul = b.multiply(c);
             const add = a.add(mul);
-            expect(add.toGLSL('vertex')).toBe('vec2(1.0, 2.0) + vec2(3.0, 4.0) * 2.0');
-            expect(add.toWGSL('vertex')).toBe('vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0) * 2.0');
+            expect(add.toGLSL()).toBe('vec2(1.0, 2.0) + vec2(3.0, 4.0) * 2.0');
+            expect(add.toWGSL()).toBe('vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0) * 2.0');
         });
 
         it('乘除运算时，加减表达式应该加括号', () =>
@@ -106,8 +106,8 @@ describe('表达式括号生成', () =>
             // (a + b) * c 应该生成 (a + b) * c
             const add = a.add(b);
             const mul = add.multiply(c);
-            expect(mul.toGLSL('vertex')).toBe('(vec2(1.0, 2.0) + vec2(3.0, 4.0)) * 2.0');
-            expect(mul.toWGSL('vertex')).toBe('(vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0)) * 2.0');
+            expect(mul.toGLSL()).toBe('(vec2(1.0, 2.0) + vec2(3.0, 4.0)) * 2.0');
+            expect(mul.toWGSL()).toBe('(vec2<f32>(1.0, 2.0) + vec2<f32>(3.0, 4.0)) * 2.0');
         });
     });
 
@@ -122,8 +122,8 @@ describe('表达式括号生成', () =>
             // a + b * c 应该生成 a + b * c（乘除优先级更高，不需要括号）
             const mul = b.multiply(c);
             const add = a.add(mul);
-            expect(add.toGLSL('vertex')).toBe('vec3(1.0, 2.0, 3.0) + vec3(4.0, 5.0, 6.0) * 2.0');
-            expect(add.toWGSL('vertex')).toBe('vec3<f32>(1.0, 2.0, 3.0) + vec3<f32>(4.0, 5.0, 6.0) * 2.0');
+            expect(add.toGLSL()).toBe('vec3(1.0, 2.0, 3.0) + vec3(4.0, 5.0, 6.0) * 2.0');
+            expect(add.toWGSL()).toBe('vec3<f32>(1.0, 2.0, 3.0) + vec3<f32>(4.0, 5.0, 6.0) * 2.0');
         });
 
         it('乘除运算时，加减表达式应该加括号', () =>
@@ -135,8 +135,8 @@ describe('表达式括号生成', () =>
             // (a + b) * c 应该生成 (a + b) * c
             const add = a.add(b);
             const mul = add.multiply(c);
-            expect(mul.toGLSL('vertex')).toBe('(vec3(1.0, 2.0, 3.0) + vec3(4.0, 5.0, 6.0)) * 2.0');
-            expect(mul.toWGSL('vertex')).toBe('(vec3<f32>(1.0, 2.0, 3.0) + vec3<f32>(4.0, 5.0, 6.0)) * 2.0');
+            expect(mul.toGLSL()).toBe('(vec3(1.0, 2.0, 3.0) + vec3(4.0, 5.0, 6.0)) * 2.0');
+            expect(mul.toWGSL()).toBe('(vec3<f32>(1.0, 2.0, 3.0) + vec3<f32>(4.0, 5.0, 6.0)) * 2.0');
         });
     });
 
@@ -151,8 +151,8 @@ describe('表达式括号生成', () =>
             // a + b * c 应该生成 a + b * c（乘除优先级更高，不需要括号）
             const mul = b.multiply(c);
             const add = a.add(mul);
-            expect(add.toGLSL('vertex')).toBe('vec4(1.0, 2.0, 3.0, 4.0) + vec4(5.0, 6.0, 7.0, 8.0) * 2.0');
-            expect(add.toWGSL('vertex')).toBe('vec4<f32>(1.0, 2.0, 3.0, 4.0) + vec4<f32>(5.0, 6.0, 7.0, 8.0) * 2.0');
+            expect(add.toGLSL()).toBe('vec4(1.0, 2.0, 3.0, 4.0) + vec4(5.0, 6.0, 7.0, 8.0) * 2.0');
+            expect(add.toWGSL()).toBe('vec4<f32>(1.0, 2.0, 3.0, 4.0) + vec4<f32>(5.0, 6.0, 7.0, 8.0) * 2.0');
         });
 
         it('乘除运算时，加减表达式应该加括号', () =>
@@ -164,8 +164,8 @@ describe('表达式括号生成', () =>
             // (a + b) * c 应该生成 (a + b) * c
             const add = a.add(b);
             const mul = add.multiply(c);
-            expect(mul.toGLSL('vertex')).toBe('(vec4(1.0, 2.0, 3.0, 4.0) + vec4(5.0, 6.0, 7.0, 8.0)) * 2.0');
-            expect(mul.toWGSL('vertex')).toBe('(vec4<f32>(1.0, 2.0, 3.0, 4.0) + vec4<f32>(5.0, 6.0, 7.0, 8.0)) * 2.0');
+            expect(mul.toGLSL()).toBe('(vec4(1.0, 2.0, 3.0, 4.0) + vec4(5.0, 6.0, 7.0, 8.0)) * 2.0');
+            expect(mul.toWGSL()).toBe('(vec4<f32>(1.0, 2.0, 3.0, 4.0) + vec4<f32>(5.0, 6.0, 7.0, 8.0)) * 2.0');
         });
     });
 
@@ -182,8 +182,8 @@ describe('表达式括号生成', () =>
             const mul = b.multiply(c);
             const add1 = a.add(mul);
             const add2 = add1.add(d);
-            expect(add2.toGLSL('vertex')).toBe('1.0 + 2.0 * 3.0 + 4.0');
-            expect(add2.toWGSL('vertex')).toBe('1.0 + 2.0 * 3.0 + 4.0');
+            expect(add2.toGLSL()).toBe('1.0 + 2.0 * 3.0 + 4.0');
+            expect(add2.toWGSL()).toBe('1.0 + 2.0 * 3.0 + 4.0');
         });
 
         it('应该正确处理除法中的复杂表达式', () =>
@@ -197,8 +197,8 @@ describe('表达式括号生成', () =>
             const mul = c.multiply(d);
             const add = b.add(mul);
             const div = a.divide(add);
-            expect(div.toGLSL('vertex')).toBe('1.0 / (2.0 + 3.0 * 4.0)');
-            expect(div.toWGSL('vertex')).toBe('1.0 / (2.0 + 3.0 * 4.0)');
+            expect(div.toGLSL()).toBe('1.0 / (2.0 + 3.0 * 4.0)');
+            expect(div.toWGSL()).toBe('1.0 / (2.0 + 3.0 * 4.0)');
         });
 
         it('同级运算符应该省略括号', () =>
@@ -210,14 +210,14 @@ describe('表达式括号生成', () =>
             // a + b + c 应该生成 1.0 + 2.0 + 3.0（不需要括号）
             const add1 = a.add(b);
             const add2 = add1.add(c);
-            expect(add2.toGLSL('vertex')).toBe('1.0 + 2.0 + 3.0');
-            expect(add2.toWGSL('vertex')).toBe('1.0 + 2.0 + 3.0');
+            expect(add2.toGLSL()).toBe('1.0 + 2.0 + 3.0');
+            expect(add2.toWGSL()).toBe('1.0 + 2.0 + 3.0');
 
             // a * b * c 应该生成 1.0 * 2.0 * 3.0（不需要括号）
             const mul1 = a.multiply(b);
             const mul2 = mul1.multiply(c);
-            expect(mul2.toGLSL('vertex')).toBe('1.0 * 2.0 * 3.0');
-            expect(mul2.toWGSL('vertex')).toBe('1.0 * 2.0 * 3.0');
+            expect(mul2.toGLSL()).toBe('1.0 * 2.0 * 3.0');
+            expect(mul2.toWGSL()).toBe('1.0 * 2.0 * 3.0');
         });
 
         it('减法右操作数需要括号', () =>
@@ -229,8 +229,8 @@ describe('表达式括号生成', () =>
             // a - (b + c) 应该生成 1.0 - (2.0 + 3.0)
             const add = b.add(c);
             const sub = a.subtract(add);
-            expect(sub.toGLSL('vertex')).toBe('1.0 - (2.0 + 3.0)');
-            expect(sub.toWGSL('vertex')).toBe('1.0 - (2.0 + 3.0)');
+            expect(sub.toGLSL()).toBe('1.0 - (2.0 + 3.0)');
+            expect(sub.toWGSL()).toBe('1.0 - (2.0 + 3.0)');
         });
     });
 });

@@ -19,7 +19,7 @@ describe('Func', () =>
             {
                 return_(vec4(1.0, 0.0, 0.0, 1.0));
             });
-            const glsl = funcInstance.toGLSL('vertex');
+            const glsl = funcInstance.toGLSL();
             expect(glsl).toContain('void main()');
             expect(glsl).toContain('gl_Position = vec4(1.0, 0.0, 0.0, 1.0);');
         });
@@ -30,7 +30,7 @@ describe('Func', () =>
             {
                 return_(vec4(1.0, 0.0, 0.0, 1.0));
             });
-            const wgsl = funcInstance.toWGSL('fragment');
+            const wgsl = funcInstance.toWGSL();
             expect(wgsl).toContain('@fragment');
             expect(wgsl).toContain('fn main()');
             expect(wgsl).toContain('return vec4<f32>(1.0, 0.0, 0.0, 1.0);');

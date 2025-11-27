@@ -19,8 +19,8 @@ describe('Mat4', () =>
             const uniform = new Uniform('uMatrix', 0, 0);
             const m = mat4(uniform);
             expect(m).toBeInstanceOf(Mat4);
-            expect(m.toGLSL('vertex')).toBe('uMatrix');
-            expect(m.toWGSL('vertex')).toBe('uMatrix');
+            expect(m.toGLSL()).toBe('uMatrix');
+            expect(m.toWGSL()).toBe('uMatrix');
         });
 
         it('应该从 Attribute 创建 Mat4 实例', () =>
@@ -28,8 +28,8 @@ describe('Mat4', () =>
             const attribute = new Attribute('aMatrix', 0);
             const m = mat4(attribute);
             expect(m).toBeInstanceOf(Mat4);
-            expect(m.toGLSL('vertex')).toBe('aMatrix');
-            expect(m.toWGSL('vertex')).toBe('aMatrix');
+            expect(m.toGLSL()).toBe('aMatrix');
+            expect(m.toWGSL()).toBe('aMatrix');
         });
     });
 
@@ -44,8 +44,8 @@ describe('Mat4', () =>
 
             const result = m1.multiply(m2);
             expect(result).toBeInstanceOf(Mat4);
-            expect(result.toGLSL('vertex')).toBe('uMatrix1 * uMatrix2');
-            expect(result.toWGSL('vertex')).toBe('uMatrix1 * uMatrix2');
+            expect(result.toGLSL()).toBe('uMatrix1 * uMatrix2');
+            expect(result.toWGSL()).toBe('uMatrix1 * uMatrix2');
         });
 
         it('应该支持 Mat4 乘以 Vec4，返回 Vec4', () =>
@@ -56,8 +56,8 @@ describe('Mat4', () =>
 
             const result = m.multiply(v);
             expect(result).toBeInstanceOf(Vec4);
-            expect(result.toGLSL('vertex')).toBe('uMatrix * vec4(1.0, 2.0, 3.0, 4.0)');
-            expect(result.toWGSL('vertex')).toBe('uMatrix * vec4<f32>(1.0, 2.0, 3.0, 4.0)');
+            expect(result.toGLSL()).toBe('uMatrix * vec4(1.0, 2.0, 3.0, 4.0)');
+            expect(result.toWGSL()).toBe('uMatrix * vec4<f32>(1.0, 2.0, 3.0, 4.0)');
         });
 
         it('应该支持链式调用 Mat4.multiply(Mat4).multiply(Vec4)', () =>
@@ -73,8 +73,8 @@ describe('Mat4', () =>
             expect(result).toBeInstanceOf(Vec4);
             // 中间结果是 Mat4，其 toGLSL 返回 'uProjection * uModelView'
             // 然后这个结果乘以 Vec4
-            expect(result.toGLSL('vertex')).toBe('uProjection * uModelView * vec4(1.0, 2.0, 3.0, 4.0)');
-            expect(result.toWGSL('vertex')).toBe('uProjection * uModelView * vec4<f32>(1.0, 2.0, 3.0, 4.0)');
+            expect(result.toGLSL()).toBe('uProjection * uModelView * vec4(1.0, 2.0, 3.0, 4.0)');
+            expect(result.toWGSL()).toBe('uProjection * uModelView * vec4<f32>(1.0, 2.0, 3.0, 4.0)');
         });
     });
 });
@@ -88,8 +88,8 @@ describe('mat4', () =>
             const uniform = new Uniform('uMatrix', 0, 0);
             const result = mat4(uniform);
             expect(result).toBeInstanceOf(Mat4);
-            expect(result.toGLSL('vertex')).toBe('uMatrix');
-            expect(result.toWGSL('vertex')).toBe('uMatrix');
+            expect(result.toGLSL()).toBe('uMatrix');
+            expect(result.toWGSL()).toBe('uMatrix');
         });
     });
 
@@ -100,8 +100,8 @@ describe('mat4', () =>
             const attribute = new Attribute('aMatrix', 0);
             const result = mat4(attribute);
             expect(result).toBeInstanceOf(Mat4);
-            expect(result.toGLSL('vertex')).toBe('aMatrix');
-            expect(result.toWGSL('vertex')).toBe('aMatrix');
+            expect(result.toGLSL()).toBe('aMatrix');
+            expect(result.toWGSL()).toBe('aMatrix');
         });
     });
 });

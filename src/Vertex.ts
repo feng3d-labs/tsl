@@ -1,5 +1,5 @@
 import { Attribute } from './Attribute';
-import { getBuildParam, setBuildParam } from './buildParam';
+import { setBuildParam } from './buildParam';
 import { Func } from './Func';
 import { Sampler } from './Sampler';
 import { Uniform } from './Uniform';
@@ -16,20 +16,17 @@ export class Vertex extends Func
 
     /**
      * 转换为完整的 GLSL 代码（vertex shader）
-     * @param shaderType 着色器类型（忽略，vertex shader 固定为 'vertex'）
-     * @param version GLSL 版本（1 = WebGL 1.0, 2 = WebGL 2.0，默认 1）
      * @returns 完整的 GLSL 代码，包括 attributes、uniforms 和函数定义
      */
-    toGLSL(shaderType: 'vertex' | 'fragment' = 'vertex', version: 1 | 2 = 1): string
+    toGLSL(version: 1 | 2 = 1): string
     {
-        setBuildParam({ shaderType: 'glsl', type: 'vertex', version });
-        const buildParam = getBuildParam();
-        const actualVersion = buildParam?.version ?? 1;
+        const buildParam = { language: 'glsl', stage: 'vertex', version: version } as const;
+        setBuildParam(buildParam);
 
         const lines: string[] = [];
 
         // 添加版本声明（WebGL 2.0）
-        if (actualVersion === 2)
+        if (version === 2)
         {
             lines.push('#version 300 es');
             lines.push('');
@@ -40,7 +37,7 @@ export class Vertex extends Func
 
         // 先执行 body 收集依赖（通过调用父类的 toGLSL 来触发，它会执行 body 并填充 dependencies）
         // 这里只为了收集依赖，不生成完整代码
-        super.toGLSL('vertex');
+        super.toGLSL();
 
         // 从函数的 dependencies 中分析获取 attributes、uniforms、varyings 和 samplers（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
@@ -51,13 +48,13 @@ export class Vertex extends Func
         // 生成 attributes（只包含实际使用的）
         for (const attr of dependencies.attributes)
         {
-            lines.push(attr.toGLSL('vertex'));
+            lines.push(attr.toGLSL());
         }
 
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)
         {
-            lines.push(uniform.toGLSL('vertex'));
+            lines.push(uniform.toGLSL());
         }
 
         // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
@@ -97,7 +94,7 @@ export class Vertex extends Func
             // 如果不在结构体中，才单独声明
             if (!inStruct)
             {
-                lines.push(varying.toGLSL('vertex'));
+                lines.push(varying.toGLSL());
             }
         }
 
@@ -105,11 +102,11 @@ export class Vertex extends Func
         const externalVars = dependencies.externalVars;
         for (const { name, expr } of externalVars)
         {
-            lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL('vertex')};`);
+            lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL()};`);
         }
 
         // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-        const funcCode = super.toGLSL('vertex');
+        const funcCode = super.toGLSL();
         const funcLines = funcCode.split('\n').filter(line => line.trim() !== '');
 
         // 如果有声明和函数代码，在它们之间添加一个空行
@@ -134,9 +131,11 @@ export class Vertex extends Func
             result.push(line);
         }
 
-        setBuildParam(null);
+        const resultStr = result.join('\n');
 
-        return result.join('\n');
+        setBuildParam(undefined);
+
+        return resultStr;
     }
 
     /**
@@ -145,11 +144,14 @@ export class Vertex extends Func
      */
     toWGSL(): string
     {
+        const buildParam = { language: 'wgsl', stage: 'vertex', version: 1 } as const;
+        setBuildParam(buildParam);
+
         const lines: string[] = [];
 
         // 先执行 body 收集依赖（通过调用父类的 toWGSL 来触发，它会执行 body 并填充 dependencies）
         // 这里只为了收集依赖，不生成完整代码
-        super.toWGSL('vertex');
+        super.toWGSL();
 
         // 从函数的 dependencies 中分析获取 attributes、uniforms 和 structs（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
@@ -169,14 +171,14 @@ export class Vertex extends Func
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)
         {
-            lines.push(uniform.toWGSL('vertex'));
+            lines.push(uniform.toWGSL());
         }
 
         // 生成外部定义的var_变量（作为全局const）
         const externalVars = dependencies.externalVars;
         for (const { name, expr } of externalVars)
         {
-            lines.push(`const ${name}: ${expr.wgslType} = ${expr.toWGSL('vertex')};`);
+            lines.push(`const ${name}: ${expr.wgslType} = ${expr.toWGSL()};`);
         }
 
         // 空行
@@ -186,10 +188,14 @@ export class Vertex extends Func
         }
 
         // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-        const funcCode = super.toWGSL('vertex');
+        const funcCode = super.toWGSL();
         lines.push(...funcCode.split('\n'));
 
-        return lines.join('\n') + '\n';
+        const resultStr = lines.join('\n') + '\n';
+
+        setBuildParam(undefined);
+
+        return resultStr;
     }
 
     /**

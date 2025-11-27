@@ -1,4 +1,5 @@
 import { ShaderValue } from '../IElement';
+import { getBuildParam } from '../buildParam';
 import { getCurrentFunc } from '../currentFunc';
 import { Builtin } from './builtin';
 
@@ -13,22 +14,22 @@ export function assign<T extends ShaderValue>(target: T, value: T): void
     if (currentFunc)
     {
         const stmt: any = {
-            toGLSL: (type: 'vertex' | 'fragment') =>
+            toGLSL: () =>
             {
-                return `${target.toGLSL(type)} = ${value.toGLSL(type)};`;
+                return `${target.toGLSL()} = ${value.toGLSL()};`;
             },
-            toWGSL: (type: 'vertex' | 'fragment') =>
+            toWGSL: () =>
             {
                 // 在 WGSL 中，如果是 vertex shader 的 position，需要特殊处理
                 const isPositionBuiltin = target instanceof Builtin && target.isPosition;
-                if (isPositionBuiltin && type === 'vertex')
+                if (isPositionBuiltin && getBuildParam().stage === 'vertex')
                 {
                     // 在 vertex shader 中，position 是返回值，使用 return
-                    return `return ${value.toWGSL(type)};`;
+                    return `return ${value.toWGSL()};`;
                 }
                 else
                 {
-                    return `${target.toWGSL(type)} = ${value.toWGSL(type)};`;
+                    return `${target.toWGSL()} = ${value.toWGSL()};`;
                 }
             },
         };

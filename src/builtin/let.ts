@@ -12,8 +12,8 @@ export function let_<T extends ShaderValue>(name: string, expr: T): T
     const cls = expr.constructor;
     const result: ShaderValue = new (cls as any)();
 
-    result.toGLSL = (type: 'vertex' | 'fragment') => `${name}`;
-    result.toWGSL = (type: 'vertex' | 'fragment') => `${name}`;
+    result.toGLSL = () => `${name}`;
+    result.toWGSL = () => `${name}`;
     result.dependencies = [expr];
 
     // 收集 let 语句
@@ -21,8 +21,8 @@ export function let_<T extends ShaderValue>(name: string, expr: T): T
     if (currentFunc)
     {
         currentFunc.statements.push({
-            toGLSL: (type: 'vertex' | 'fragment') => `${expr.glslType} ${name} = ${expr.toGLSL(type)};`,
-            toWGSL: (type: 'vertex' | 'fragment') => `let ${name} = ${expr.toWGSL(type)};`,
+            toGLSL: () => `${expr.glslType} ${name} = ${expr.toGLSL()};`,
+            toWGSL: () => `let ${name} = ${expr.toWGSL()};`,
         });
         // 收集依赖
         currentFunc.dependencies.push(result);

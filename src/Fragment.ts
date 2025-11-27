@@ -1,11 +1,9 @@
-import { getBuildParam, setBuildParam } from './buildParam';
+import { setBuildParam } from './buildParam';
 import { Func } from './Func';
 import { Precision } from './Precision';
 import { Sampler } from './Sampler';
 import { Uniform } from './Uniform';
 import { Vertex } from './Vertex';
-import { Varying } from './Varying';
-import { VaryingStruct } from './varyingStruct';
 
 /**
  * Fragment 类，继承自 Func
@@ -19,20 +17,17 @@ export class Fragment extends Func
 
     /**
      * 转换为完整的 GLSL 代码（fragment shader）
-     * @param shaderType 着色器类型（忽略，fragment shader 固定为 'fragment'）
-     * @param version GLSL 版本（1 = WebGL 1.0, 2 = WebGL 2.0，默认 1）
      * @returns 完整的 GLSL 代码，包括 precision、uniforms 和函数定义
      */
-    toGLSL(shaderType?: 'vertex' | 'fragment', version: 1 | 2 = 1): string
+    toGLSL(version: 1 | 2 = 1): string
     {
-        setBuildParam({ shaderType: 'glsl', type: 'fragment', version });
-        const buildParam = getBuildParam();
-        const actualVersion = buildParam?.version ?? 1;
+        const buildParam = { language: 'glsl', stage: 'fragment', version: version } as const;
+        setBuildParam(buildParam);
 
         const lines: string[] = [];
 
         // 添加版本声明（WebGL 2.0）
-        if (actualVersion === 2)
+        if (version === 2)
         {
             lines.push('#version 300 es');
             lines.push('');
@@ -40,7 +35,7 @@ export class Fragment extends Func
 
         // 先执行 body 收集依赖（通过调用父类的 toGLSL 来触发，它会执行 body 并填充 dependencies）
         // 这里只为了收集依赖，不生成完整代码
-        super.toGLSL('fragment');
+        super.toGLSL();
 
         // 从函数的 dependencies 中分析获取 uniforms、precision、varyings 和 samplers（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
@@ -48,17 +43,17 @@ export class Fragment extends Func
         // Fragment shader 需要 precision 声明（从函数依赖中获取，如果没有则默认使用 highp）
         if (dependencies.precision)
         {
-            lines.push(dependencies.precision.toGLSL('fragment'));
+            lines.push(dependencies.precision.toGLSL());
         }
         else
         {
             // 如果没有指定 precision，默认使用 highp
             const defaultPrecision = new Precision('highp');
-            lines.push(defaultPrecision.toGLSL('fragment'));
+            lines.push(defaultPrecision.toGLSL());
         }
 
         // WebGL 2.0 需要额外的 precision 声明
-        if (actualVersion === 2)
+        if (version === 2)
         {
             lines.push('precision highp int;');
         }
@@ -100,24 +95,24 @@ export class Fragment extends Func
             // 如果不在结构体中，才单独声明
             if (!inStruct)
             {
-                lines.push(varying.toGLSL('fragment'));
+                lines.push(varying.toGLSL());
             }
         }
 
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)
         {
-            lines.push(uniform.toGLSL('fragment'));
+            lines.push(uniform.toGLSL());
         }
 
         // 生成 samplers（只包含实际使用的）
         for (const sampler of dependencies.samplers)
         {
-            lines.push(sampler.toGLSL('fragment'));
+            lines.push(sampler.toGLSL());
         }
 
         // WebGL 2.0 需要声明输出变量
-        if (actualVersion === 2)
+        if (version === 2)
         {
             lines.push('');
             lines.push('layout(location = 0) out vec4 color;');
@@ -127,11 +122,11 @@ export class Fragment extends Func
         const externalVars = dependencies.externalVars;
         for (const { name, expr } of externalVars)
         {
-            lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL('fragment')};`);
+            lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL()};`);
         }
 
         // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-        const funcCode = super.toGLSL('fragment');
+        const funcCode = super.toGLSL();
         const funcLines = funcCode.split('\n').filter(line => line.trim() !== '');
 
         // 如果有声明和函数代码，在它们之间添加一个空行
@@ -156,7 +151,11 @@ export class Fragment extends Func
             result.push(line);
         }
 
-        return result.join('\n');
+        const resultStr = result.join('\n');
+
+        setBuildParam(undefined);
+
+        return resultStr;
     }
 
     /**
@@ -164,15 +163,16 @@ export class Fragment extends Func
      * @param vertexShader 可选的顶点着色器，用于避免 binding 冲突
      * @returns 完整的 WGSL 代码，包括 uniforms 和函数定义
      */
-    toWGSL(): string;
-    toWGSL(vertexShader?: Vertex): string
     toWGSL(vertexShader?: Vertex): string
     {
+        const buildParam = { language: 'wgsl', stage: 'fragment', version: 1 } as const;
+        setBuildParam(buildParam);
+
         const lines: string[] = [];
 
         // 先执行 body 收集依赖（通过调用父类的 toWGSL 来触发，它会执行 body 并填充 dependencies）
         // 这里只为了收集依赖，不生成完整代码
-        super.toWGSL('fragment');
+        super.toWGSL();
 
         // 从函数的 dependencies 中分析获取 uniforms 和 structs（使用缓存）
         const dependencies = this.getAnalyzedDependencies();
@@ -189,14 +189,14 @@ export class Fragment extends Func
         // 生成 uniforms（只包含实际使用的）
         for (const uniform of dependencies.uniforms)
         {
-            lines.push(uniform.toWGSL('fragment'));
+            lines.push(uniform.toWGSL());
         }
 
         // 生成 samplers（只包含实际使用的）
         // 在 WGSL 中，sampler.toWGSL() 返回多行（texture 和 sampler 声明）
         for (const sampler of dependencies.samplers)
         {
-            const samplerWgsl = sampler.toWGSL('fragment');
+            const samplerWgsl = sampler.toWGSL();
             lines.push(...samplerWgsl.split('\n'));
         }
 
@@ -204,7 +204,7 @@ export class Fragment extends Func
         const externalVars = dependencies.externalVars;
         for (const { name, expr } of externalVars)
         {
-            lines.push(`const ${name}: ${expr.wgslType} = ${expr.toWGSL('fragment')};`);
+            lines.push(`const ${name}: ${expr.wgslType} = ${expr.toWGSL()};`);
         }
 
         // 空行
@@ -214,10 +214,14 @@ export class Fragment extends Func
         }
 
         // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-        const funcCode = super.toWGSL('fragment');
+        const funcCode = super.toWGSL();
         lines.push(...funcCode.split('\n'));
 
-        return lines.join('\n') + '\n';
+        const resultStr = lines.join('\n') + '\n';
+
+        setBuildParam(undefined);
+
+        return resultStr;
     }
 
     /**

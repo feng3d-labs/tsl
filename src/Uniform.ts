@@ -38,9 +38,8 @@ export class Uniform implements IElement
 
     /**
      * 转换为 GLSL 代码
-     * @param type 着色器类型
      */
-    toGLSL(type: 'vertex' | 'fragment'): string
+    toGLSL(): string
     {
         if (!this.value)
         {
@@ -62,7 +61,7 @@ export class Uniform implements IElement
     /**
      * 转换为 WGSL 代码
      */
-    toWGSL(type: 'vertex' | 'fragment'): string
+    toWGSL(): string
     {
         if (!this.value)
         {

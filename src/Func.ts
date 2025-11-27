@@ -238,84 +238,80 @@ export class Func
             {
                 if (struct.hasVarying())
                 {
-                    // 查找使用该结构体的变量名
-                    for (const dep of this.dependencies)
+                    // 递归查找使用该结构体的变量名
+                    const findStructInDependencies = (deps: any[]): boolean =>
                     {
-                        // 检查 dep 本身是否是 VaryingStruct 实例
-                        if (dep === struct)
+                        for (const dep of deps)
                         {
-                            // 找到直接使用的结构体变量
-                            if (typeof dep.toWGSL === 'function')
+                            // 检查 dep 本身是否是 VaryingStruct 实例
+                            if (dep === struct)
                             {
-                                const varName = dep.toWGSL(shaderType);
-                                inputStruct = { varName, struct };
-                                break;
+                                // 找到直接使用的结构体变量
+                                if (typeof dep.toWGSL === 'function')
+                                {
+                                    const varName = dep.toWGSL(shaderType);
+
+                                    inputStruct = { varName, struct };
+
+                                    return true;
+                                }
                             }
-                        }
-                        // 检查是否是结构体字段值（通过 _varyingStruct 属性）
-                        else if (dep && typeof dep === 'object' && (dep as any)._varyingStruct === struct)
-                        {
-                            // 找到使用该结构体的字段值，使用结构体的变量名
-                            const varName = struct.toWGSL(shaderType);
-                            inputStruct = { varName, struct };
-                            break;
-                        }
-                        // 检查是否是结构体变量（结构体变量的 dependencies 包含 VaryingStruct）
-                        else if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
-                        {
-                            for (const subDep of dep.dependencies)
+                            // 检查是否是结构体字段值（通过 _varyingStruct 属性）
+                            else if (dep && typeof dep === 'object' && (dep as any)._varyingStruct === struct)
                             {
-                                if (subDep === struct)
+                                // 找到使用该结构体的字段值，使用结构体的变量名
+                                const varName = struct.toWGSL(shaderType);
+
+                                inputStruct = { varName, struct };
+
+                                return true;
+                            }
+                            // 递归检查依赖的 dependencies
+                            else if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
+                            {
+                                // 先检查 dependencies 中是否包含结构体本身
+                                if (dep.dependencies.includes(struct))
                                 {
                                     // 找到使用该结构体的变量
                                     if (typeof dep.toWGSL === 'function')
                                     {
                                         const varName = dep.toWGSL(shaderType);
+
                                         inputStruct = { varName, struct };
-                                        break;
+
+                                        return true;
                                     }
                                 }
-                            }
-                            if (inputStruct)
-                            {
-                                break;
+                                // 递归检查嵌套的 dependencies
+                                if (findStructInDependencies(dep.dependencies))
+                                {
+                                    return true;
+                                }
                             }
                         }
-                    }
-                    // 找到第一个包含 varying 的结构体后直接退出
-                    break;
-                }
-            }
 
-            // 如果没有找到结构体变量，检查是否有直接使用的 varying
-            // 如果有，直接在函数参数中添加 varying 定义
-            const varyingParams: string[] = [];
-            if (!inputStruct && dependencies.varyings.size > 0)
-            {
-                // 收集所有使用的 varying，生成函数参数
-                for (const varying of dependencies.varyings)
-                {
-                    if (varying.value)
+                        return false;
+                    };
+
+                    // 从顶层依赖开始查找
+                    if (findStructInDependencies(this.dependencies))
                     {
-                        const wgslType = varying.value.wgslType;
-                        const effectiveLocation = varying.getEffectiveLocation();
-                        const location = `@location(${effectiveLocation})`;
-                        varyingParams.push(`${location} ${varying.name}: ${wgslType}`);
+                        // 找到第一个包含 varying 的结构体后直接退出
+                        break;
                     }
                 }
             }
 
             // 生成函数参数
+            // Fragment shader 只支持两种参数形式：
+            // 1. 没有参数：()
+            // 2. 使用结构体作为参数：(v: VaryingStruct)
+            // 不再支持单独的 varying 参数
             let paramStr = '()';
             if (inputStruct)
             {
                 // 使用结构体作为参数（变量名固定为 v，结构体名称固定为 VaryingStruct）
                 paramStr = `(v: VaryingStruct)`;
-            }
-            else if (varyingParams.length > 0)
-            {
-                // 使用 varying 作为参数
-                paramStr = `(\n    ${varyingParams.map(p => `${p},`).join('\n    ')}\n)`;
             }
             lines.push(`fn ${this.name}${paramStr} -> @location(0) vec4<f32> {`);
 

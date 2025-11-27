@@ -128,6 +128,8 @@ document.addEventListener('DOMContentLoaded', async () =>
     const sampler: Sampler = { minFilter: 'nearest', magFilter: 'nearest', lodMinClamp: 0, lodMaxClamp: 0 };
 
     // 初始化帧缓冲区
+    // 注意：WebGPU 要求每个颜色附件的纹理视图只能包含一个层
+    // arrayLayerCount 默认值为 1，可以省略显式设置
     const frameBuffer: RenderPassDescriptor = {
         colorAttachments: [
             { view: { texture, baseMipLevel: 0, baseArrayLayer: Textures.RED } },

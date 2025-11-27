@@ -62,7 +62,7 @@ describe('VaryingStruct', () =>
                 position: vec4(builtin('position')),
             });
 
-            const wgsl = v.toWGSL('vertex');
+            const wgsl = v.toWGSLDefinition();
 
             expect(wgsl).toBe('struct VaryingStruct {\n    @builtin(position) position: vec4<f32>,\n}');
         });
@@ -73,14 +73,26 @@ describe('VaryingStruct', () =>
                 pos: vec4(builtin('position')),
             });
 
-            const wgsl = v.toWGSL('vertex');
+            const wgsl = v.toWGSLDefinition();
 
             expect(wgsl).toContain('struct VaryingStruct');
             // 结构体字段使用结构体定义的字段名，而不是 builtin 的 varName
             expect(wgsl).toContain('@builtin(position) pos: vec4<f32>');
         });
 
-        it('应该能够为 vertex 和 fragment 生成相同的 WGSL 代码', () =>
+        it('应该能够为 vertex 和 fragment 生成相同的结构体定义', () =>
+        {
+            const v = varyingStruct({
+                position: vec4(builtin('position')),
+            });
+
+            const vertexWgsl = v.toWGSLDefinition();
+            const fragmentWgsl = v.toWGSLDefinition();
+
+            expect(vertexWgsl).toBe(fragmentWgsl);
+        });
+
+        it('应该能够返回变量名 v', () =>
         {
             const v = varyingStruct({
                 position: vec4(builtin('position')),
@@ -89,7 +101,8 @@ describe('VaryingStruct', () =>
             const vertexWgsl = v.toWGSL('vertex');
             const fragmentWgsl = v.toWGSL('fragment');
 
-            expect(vertexWgsl).toBe(fragmentWgsl);
+            expect(vertexWgsl).toBe('v');
+            expect(fragmentWgsl).toBe('v');
         });
 
         it('应该正确设置 dependencies', () =>
@@ -163,10 +176,19 @@ describe('VaryingStruct', () =>
                 position,
             });
 
-            const wgsl = position.x.toWGSL('vertex');
-            expect(wgsl).toBe('v.position.x');
-
+            expect(v.toWGSLDefinition()).toBe('struct VaryingStruct {\n    @builtin(position) position: vec4<f32>,\n}');
+            expect(v.toWGSLVertexVarStatement()).toBe('var v: VaryingStruct;');
+            expect(v.toWGSL('vertex')).toBe('v');
+            expect(position.toWGSL('vertex')).toBe('v.position');
+            expect(position.x.toWGSL('vertex')).toBe('v.position.x');
             expect(position.xyz.toWGSL('vertex')).toBe('v.position.xyz');
+
+            expect(v.toWGSLDefinition()).toBe('struct VaryingStruct {\n    @builtin(position) position: vec4<f32>,\n}');
+            expect(v.toWGSLFragmentParam()).toBe('v: VaryingStruct');
+            expect(v.toWGSL('fragment')).toBe('v');
+            expect(position.toWGSL('fragment')).toBe('v.position');
+            expect(position.x.toWGSL('fragment')).toBe('v.position.x');
+            expect(position.xyz.toWGSL('fragment')).toBe('v.position.xyz');
         });
     });
 

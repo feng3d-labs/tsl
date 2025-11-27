@@ -13,6 +13,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
     toGLSL: (type: 'vertex' | 'fragment') => string;
     toWGSL: (type: 'vertex' | 'fragment') => string;
     readonly structName = 'VaryingStruct';
+    private readonly varName = 'v';
 
     /**
      * 检查结构体是否包含 varying 字段
@@ -28,6 +29,75 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
 
             return false;
         });
+    }
+
+    /**
+     * 生成 WGSL 结构体定义
+     */
+    toWGSLDefinition(): string
+    {
+        const fieldDefs = Object.entries(this.fields).map(([fieldName, value]) =>
+        {
+            const dep = value.dependencies[0];
+            if (dep instanceof Builtin)
+            {
+                // Builtin.toWGSL() 返回格式: @builtin(position) varName: vec4<f32>
+                // 我们需要提取 @builtin(...) 和类型，使用结构体字段名
+                const builtinWgsl = dep.toWGSL();
+                // 提取 @builtin(...) 部分
+                const builtinMatch = builtinWgsl.match(/@builtin\([^)]+\)/);
+                const builtinPart = builtinMatch ? builtinMatch[0] : '';
+                // 提取类型部分（在冒号之后）
+                const typeMatch = builtinWgsl.match(/:\s*([^;]+)/);
+                const typePart = typeMatch ? typeMatch[1].trim() : dep.value?.wgslType || '';
+
+                return `${builtinPart} ${fieldName}: ${typePart}`;
+            }
+            else if (dep instanceof Varying)
+            {
+                // Varying.toWGSL() 返回格式: @location(1) vColor: vec4<f32>
+                // 直接使用，但替换字段名
+                const varyingWgsl = dep.toWGSL('vertex');
+                // 提取 @location(...) 部分和类型
+                const locationMatch = varyingWgsl.match(/@location\([^)]+\)/);
+                const locationPart = locationMatch ? locationMatch[0] : '@location(0)';
+                // 提取类型部分（在冒号之后）
+                const typeMatch = varyingWgsl.match(/:\s*([^;]+)/);
+                const typePart = typeMatch ? typeMatch[1].trim() : dep.value?.wgslType || '';
+
+                return `${locationPart} ${fieldName}: ${typePart}`;
+            }
+            else
+            {
+                throw new Error(`不支持的依赖类型`);
+            }
+        });
+        // 格式化结构体定义，每个字段占一行，使用逗号分隔（所有字段后面都有逗号）
+        if (fieldDefs.length === 0)
+        {
+            return `struct VaryingStruct {}`;
+        }
+        const formattedFields = fieldDefs.map((field) => `    ${field},`).join('\n');
+
+        return `struct VaryingStruct {\n${formattedFields}\n}`;
+    }
+
+    /**
+     * 生成顶点着色器中的变量声明语句
+     * @returns WGSL 变量声明语句，例如: 'var v: VaryingStruct;'
+     */
+    toWGSLVertexVarStatement(): string
+    {
+        return `var ${this.varName}: ${this.structName};`;
+    }
+
+    /**
+     * 生成片段着色器中的函数参数
+     * @returns WGSL 函数参数，例如: 'v: VaryingStruct'
+     */
+    toWGSLFragmentParam(): string
+    {
+        return `${this.varName}: ${this.structName}`;
     }
 
     constructor(public readonly fields: T)
@@ -57,58 +127,15 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
                 dep.setName(fieldName);
             }
 
+            // 修改字段的 toWGSL 方法，让它返回 'v.fieldName'
+            value.toWGSL = (type: 'vertex' | 'fragment') => `${this.varName}.${fieldName}`;
+
             // 将字段添加到实例上，使其可以直接访问
             (this as any)[fieldName] = value;
         }
 
         this.toGLSL = (type: 'vertex' | 'fragment') => ``;
-        this.toWGSL = (type: 'vertex' | 'fragment') =>
-        {
-            const fieldDefs = Object.entries(this.fields).map(([fieldName, value]) =>
-            {
-                const dep = value.dependencies[0];
-                if (dep instanceof Builtin)
-                {
-                    // Builtin.toWGSL() 返回格式: @builtin(position) varName: vec4<f32>
-                    // 我们需要提取 @builtin(...) 和类型，使用结构体字段名
-                    const builtinWgsl = dep.toWGSL();
-                    // 提取 @builtin(...) 部分
-                    const builtinMatch = builtinWgsl.match(/@builtin\([^)]+\)/);
-                    const builtinPart = builtinMatch ? builtinMatch[0] : '';
-                    // 提取类型部分（在冒号之后）
-                    const typeMatch = builtinWgsl.match(/:\s*([^;]+)/);
-                    const typePart = typeMatch ? typeMatch[1].trim() : dep.value?.wgslType || '';
-
-                    return `${builtinPart} ${fieldName}: ${typePart}`;
-                }
-                else if (dep instanceof Varying)
-                {
-                    // Varying.toWGSL() 返回格式: @location(1) vColor: vec4<f32>
-                    // 直接使用，但替换字段名
-                    const varyingWgsl = dep.toWGSL(type);
-                    // 提取 @location(...) 部分和类型
-                    const locationMatch = varyingWgsl.match(/@location\([^)]+\)/);
-                    const locationPart = locationMatch ? locationMatch[0] : '@location(0)';
-                    // 提取类型部分（在冒号之后）
-                    const typeMatch = varyingWgsl.match(/:\s*([^;]+)/);
-                    const typePart = typeMatch ? typeMatch[1].trim() : dep.value?.wgslType || '';
-
-                    return `${locationPart} ${fieldName}: ${typePart}`;
-                }
-                else
-                {
-                    throw new Error(`不支持的依赖类型`);
-                }
-            });
-            // 格式化结构体定义，每个字段占一行，使用逗号分隔（所有字段后面都有逗号）
-            if (fieldDefs.length === 0)
-            {
-                return `struct VaryingStruct {}`;
-            }
-            const formattedFields = fieldDefs.map((field) => `    ${field},`).join('\n');
-
-            return `struct VaryingStruct {\n${formattedFields}\n}`;
-        };
+        this.toWGSL = (type: 'vertex' | 'fragment') => this.varName;
         this.dependencies = Object.values(this.fields);
     }
 }

@@ -1,5 +1,5 @@
 import { Attribute } from './Attribute';
-import { setBuildParam } from './buildParam';
+import { clearBuildParam, setBuildParam } from './buildParam';
 import { Func } from './Func';
 import { Sampler } from './Sampler';
 import { Uniform } from './Uniform';
@@ -133,7 +133,7 @@ export class Vertex extends Func
 
         const resultStr = result.join('\n');
 
-        setBuildParam(undefined);
+        clearBuildParam();
 
         return resultStr;
     }
@@ -193,7 +193,7 @@ export class Vertex extends Func
 
         const resultStr = lines.join('\n') + '\n';
 
-        setBuildParam(undefined);
+        clearBuildParam();
 
         return resultStr;
     }

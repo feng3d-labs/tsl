@@ -21,7 +21,7 @@ async function main()
 {
     // 使用 TSL 生成着色器代码
     const vertexGlsl = vertexShader.toGLSL(2);
-    const fragmentGlsl = fragmentShader.toGLSL();
+    const fragmentGlsl = fragmentShader.toGLSL(2);
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 

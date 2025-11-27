@@ -1,4 +1,4 @@
-import { setBuildParam } from './buildParam';
+import { clearBuildParam, setBuildParam } from './buildParam';
 import { Func } from './Func';
 import { Precision } from './Precision';
 import { Sampler } from './Sampler';
@@ -153,7 +153,7 @@ export class Fragment extends Func
 
         const resultStr = result.join('\n');
 
-        setBuildParam(undefined);
+        clearBuildParam();
 
         return resultStr;
     }
@@ -219,7 +219,7 @@ export class Fragment extends Func
 
         const resultStr = lines.join('\n') + '\n';
 
-        setBuildParam(undefined);
+        clearBuildParam();
 
         return resultStr;
     }

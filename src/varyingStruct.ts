@@ -55,7 +55,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
 
     /**
      * 生成 WGSL 结构体定义
-     * @param type 着色器类型（vertex 或 fragment），可选。对于 vertex，varying 字段不包含 @location；对于 fragment，varying 字段包含 @location
+     * @param type 着色器类型（vertex 或 fragment），可选。varying 字段始终包含 @location
      * @returns WGSL 结构体定义字符串
      */
     toWGSLDefinition(type?: 'vertex' | 'fragment'): string
@@ -85,20 +85,11 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
                 }
                 const wgslType = dep.value.wgslType;
 
-                // 对于 vertex，不包含 @location；对于 fragment，包含 @location
-                if (type === 'vertex')
-                {
-                    return `${fieldName}: ${wgslType}`;
-                }
-                else
-                {
-                    // fragment 或未指定类型时，使用 @location
+                // varying 字段始终包含 @location（vertex 输出和 fragment 输入都需要）
+                const effectiveLocation = dep.getEffectiveLocation();
+                const location = `@location(${effectiveLocation})`;
 
-                    const effectiveLocation = dep.getEffectiveLocation();
-                    const location = `@location(${effectiveLocation})`;
-
-                    return `${location} ${fieldName}: ${wgslType}`;
-                }
+                return `${location} ${fieldName}: ${wgslType}`;
             }
             else
             {

@@ -262,7 +262,7 @@ describe('VaryingStruct', () =>
             expect(v.toWGSLVarStatement()).toBe('var v: VaryingStruct;');
             expect(v.toWGSLParam()).toBe('v: VaryingStruct');
 
-            expect(v.toWGSLDefinition('vertex')).toBe('struct VaryingStruct {\n    color: vec4<f32>,\n    color2: vec4<f32>,\n    color3: vec4<f32>,\n}');
+            expect(v.toWGSLDefinition('vertex')).toBe('struct VaryingStruct {\n    @location(1) color: vec4<f32>,\n    @location(0) color2: vec4<f32>,\n    @location(2) color3: vec4<f32>,\n}');
             expect(v.toWGSLDefinition('fragment')).toBe('struct VaryingStruct {\n    @location(1) color: vec4<f32>,\n    @location(0) color2: vec4<f32>,\n    @location(2) color3: vec4<f32>,\n}');
         });
     });

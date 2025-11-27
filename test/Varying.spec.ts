@@ -145,10 +145,8 @@ describe('Varying', () =>
             });
 
             const wgsl = vertexShader.toWGSL();
-            // 验证显式指定的 location 被保留
             expect(wgsl).toContain('@location(2) vColor: vec4<f32>');
-            // 验证自动分配的 location（从 0 开始，因为 2 已被占用）
-            expect(wgsl).toMatch(/@location\(0\).*vTexCoord/);
+            expect(wgsl).toContain('@location(0) vTexCoord: vec2<f32>');
         });
 
         it('应该能够获取有效的 location', () =>

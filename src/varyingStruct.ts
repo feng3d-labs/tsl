@@ -36,7 +36,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
      * @param type 着色器类型（vertex 或 fragment）
      * @returns GLSL varying 声明字符串，例如: 'varying vec4 color; varying vec4 color2;'
      */
-    toGLSLDefinition(type: 'vertex' | 'fragment'): string
+    toGLSLDefinition(): string
     {
         const varyingDeclarations: string[] = [];
 
@@ -58,7 +58,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
      * @param type 着色器类型（vertex 或 fragment），可选。varying 字段始终包含 @location
      * @returns WGSL 结构体定义字符串
      */
-    toWGSLDefinition(type?: 'vertex' | 'fragment'): string
+    toWGSLDefinition(): string
     {
         const fieldDefs = Object.entries(this.fields).map(([fieldName, value]) =>
         {

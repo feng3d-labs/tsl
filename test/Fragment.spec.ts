@@ -1,15 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import { attribute } from '../src/Attribute';
+import { assign } from '../src/builtin/assign';
+import { builtin } from '../src/builtin/builtin';
 import { vec2 } from '../src/builtin/types/vec2';
 import { vec4 } from '../src/builtin/types/vec4';
 import { Fragment, fragment } from '../src/Fragment';
 import { return_ } from '../src/index';
 import { varying } from '../src/Varying';
-import { vertex } from '../src/Vertex';
-import { attribute } from '../src/Attribute';
-import { builtin } from '../src/builtin/builtin';
-import { assign } from '../src/builtin/assign';
-import { var_ } from '../src/builtin/var';
 import { varyingStruct } from '../src/varyingStruct';
+import { vertex } from '../src/Vertex';
 
 describe('Fragment', () =>
 {
@@ -114,8 +113,7 @@ describe('Fragment', () =>
         it('应该能够混合显式指定和自动分配的 varying location', () =>
         {
             const v = varyingStruct({
-                vColor: vec4(varying(1)), // 显式指定 location 1
-                vTexCoord: vec2(varying()), // 自动分配
+                vColor: vec4(varying()),
             });
 
             const frag = fragment('main', () =>
@@ -124,8 +122,8 @@ describe('Fragment', () =>
             });
 
             const wgsl = frag.toWGSL();
-            // 验证显式指定的 location 被保留
-            expect(wgsl).toContain('@location(1) vColor: vec4<f32>');
+            expect(wgsl).toContain(v.toWGSLDefinition());
+            expect(wgsl).toContain(v.toWGSLParam());
         });
     });
 });

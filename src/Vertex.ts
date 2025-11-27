@@ -3,6 +3,7 @@ import { Uniform } from './Uniform';
 import { Sampler } from './Sampler';
 import { Attribute } from './Attribute';
 import { Varying } from './Varying';
+import { VaryingStruct } from './varyingStruct';
 
 /**
  * Vertex 类，继承自 Func
@@ -102,7 +103,8 @@ export class Vertex extends Func
         this.allocateLocations(dependencies.attributes);
 
         // 自动分配 varying location（对于 location 缺省的 varying）
-        this.allocateVaryingLocations(dependencies.varyings);
+        // 按照结构体字段定义的顺序来处理 varyings
+        this.allocateVaryingLocations(dependencies.varyings, dependencies.structs);
 
         // 自动分配 binding（对于 binding 缺省的 uniform）
         this.allocateBindings(dependencies.uniforms, new Set());
@@ -178,8 +180,9 @@ export class Vertex extends Func
     /**
      * 自动分配 varying location 值
      * @param varyings varying 集合
+     * @param structs 结构体集合，用于按字段定义顺序处理 varyings
      */
-    private allocateVaryingLocations(varyings: Set<Varying>): void
+    private allocateVaryingLocations(varyings: Set<Varying>, structs: Set<VaryingStruct<any>>): void
     {
         const usedLocations = new Set<number>();
 
@@ -192,8 +195,39 @@ export class Vertex extends Func
             }
         }
 
-        // 为 location 缺省的 varying 自动分配 location
+        // 按照结构体字段定义的顺序来处理 varyings
+        const varyingOrder: Varying[] = [];
+        for (const struct of structs)
+        {
+            // 按照结构体字段定义的顺序遍历
+            for (const [fieldName, value] of Object.entries(struct.fields))
+            {
+                if (value && typeof value === 'object' && 'dependencies' in value && Array.isArray(value.dependencies) && value.dependencies.length > 0)
+                {
+                    const dep = value.dependencies[0];
+                    if (dep instanceof Varying && varyings.has(dep))
+                    {
+                        // 避免重复添加
+                        if (!varyingOrder.includes(dep))
+                        {
+                            varyingOrder.push(dep);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 对于不在结构体中的 varyings，添加到末尾
         for (const varying of varyings)
+        {
+            if (!varyingOrder.includes(varying))
+            {
+                varyingOrder.push(varying);
+            }
+        }
+
+        // 为 location 缺省的 varying 自动分配 location（按照顺序）
+        for (const varying of varyingOrder)
         {
             if (varying.location === undefined)
             {

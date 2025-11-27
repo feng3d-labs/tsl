@@ -410,8 +410,19 @@ export class Func
                     // 查找使用该结构体的变量名
                     for (const dep of this.dependencies)
                     {
+                        // 检查 dep 本身是否是 VaryingStruct 实例
+                        if (dep === struct)
+                        {
+                            // 找到直接使用的结构体变量
+                            if (typeof dep.toWGSL === 'function')
+                            {
+                                const varName = dep.toWGSL(shaderType);
+                                inputStruct = { varName, struct };
+                                break;
+                            }
+                        }
                         // 检查是否是结构体变量（结构体变量的 dependencies 包含 VaryingStruct）
-                        if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
+                        else if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
                         {
                             for (const subDep of dep.dependencies)
                             {
@@ -460,7 +471,7 @@ export class Func
             if (inputStruct)
             {
                 // 使用结构体作为参数（变量名固定为 v，结构体名称固定为 VaryingStruct）
-                paramStr = `(\n    v: VaryingStruct,\n)`;
+                paramStr = `(v: VaryingStruct)`;
             }
             else if (varyingParams.length > 0)
             {

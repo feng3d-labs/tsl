@@ -116,6 +116,11 @@ describe('Vertex', () =>
             });
 
             const wgsl = vert.toWGSL();
+            // 验证结构体声明包含 @location
+            expect(wgsl).toContain('struct VaryingStruct {');
+            expect(wgsl).toContain('@builtin(position) position: vec4<f32>');
+            expect(wgsl).toContain('@location(0) vColor: vec4<f32>');
+            expect(wgsl).toContain('@location(1) vTexCoord: vec2<f32>');
             // 验证自动分配的 varying location
             expect(wgsl).toMatch(/@location\(0\).*vColor/);
         });
@@ -137,9 +142,13 @@ describe('Vertex', () =>
             });
 
             const wgsl = vert.toWGSL();
+            // 验证结构体声明包含 @location
+            expect(wgsl).toContain('struct VaryingStruct {');
+            expect(wgsl).toContain('@builtin(position) position: vec4<f32>');
+            expect(wgsl).toContain('@location(1) vColor: vec4<f32>');
+            expect(wgsl).toContain('@location(0) vTexCoord: vec2<f32>');
             // 验证显式指定的 location 被保留
             expect(wgsl).toContain('@location(2) aPos: vec2<f32>');
-            expect(wgsl).toContain('@location(1) vColor: vec4<f32>');
         });
 
         it('应该使用结构体字段名作为变量名', () =>

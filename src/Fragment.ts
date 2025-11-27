@@ -153,7 +153,7 @@ export class Fragment extends Func
         // 自动分配 binding（对于 binding 缺省的 uniform），考虑顶点着色器的 binding
         this.allocateBindings(dependencies.uniforms, dependencies.samplers, vertexShader);
 
-        // 生成结构体定义（只包含实际使用的）
+        // 生成结构体定义（包含所有字段，即使未使用）
         for (const struct of dependencies.structs)
         {
             lines.push(struct.toWGSLDefinition());

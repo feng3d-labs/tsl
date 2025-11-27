@@ -122,232 +122,63 @@ export class Func
                 params.push(attr.toWGSL('vertex'));
             }
 
-            // 检查是否返回结构体（通过检查是否有结构体变量被赋值）
-            // 如果存在结构体变量且被赋值，则认为 vertex shader 返回结构体
+            // 检查是否返回结构体（直接使用收集到的结构体，不重新构建）
             let returnStruct: VaryingStruct<any> | undefined;
-            // 检查 dependencies 中是否有结构体变量（通过检查是否有 VaryingStruct 依赖）
+
+            // 从依赖分析中查找结构体
+            // 1. 检查是否是直接使用的结构体实例
             for (const dep of this.dependencies)
             {
-                // 检查是否是结构体变量（结构体变量的 dependencies 包含 VaryingStruct）
-                if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
+                if (dep instanceof VaryingStruct)
                 {
-                    for (const subDep of dep.dependencies)
-                    {
-                        if (subDep instanceof VaryingStruct)
-                        {
-                            // 检查这个结构体变量是否在语句中被使用（赋值或返回）
-                            for (const stmt of this.statements)
-                            {
-                                const stmtWgsl = stmt.toWGSL(shaderType);
-                                // 检查是否有对结构体字段的赋值（如 output.position = ...）
-                                // 或者是否有 return 语句返回结构体变量
-                                if (typeof dep.toWGSL === 'function')
-                                {
-                                    const varName = dep.toWGSL(shaderType);
-                                    // 检查是否有对结构体字段的赋值（变量名固定为 v）
-                                    if (stmtWgsl.includes(`v.`) || stmtWgsl.includes(`return v`))
-                                    {
-                                        returnStruct = subDep;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (returnStruct)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (returnStruct)
-                {
+                    returnStruct = dep;
                     break;
                 }
             }
 
-            // 如果没有找到结构体变量，检查是否有对 builtin 和 varying 的直接赋值
-            // 如果有，自动创建结构体来包装这些变量
+            // 2. 检查是否是结构体变量（结构体变量的 dependencies 包含 VaryingStruct）
             if (!returnStruct)
             {
-                /**
-                 * 从 ShaderValue 中提取基础变量（Builtin 或 Varying）
-                 * @param value ShaderValue 实例
-                 * @returns Builtin 或 Varying 实例，如果找不到则返回 null
-                 */
-                const extractBaseVar = (value: ShaderValue): Builtin | Varying | null =>
+                for (const dep of this.dependencies)
                 {
-                    if (!value || typeof value !== 'object' || !('dependencies' in value) || !Array.isArray(value.dependencies) || value.dependencies.length === 0)
+                    if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
                     {
-                        return null;
-                    }
-
-                    const firstDep = value.dependencies[0];
-
-                    // 直接是 Builtin 或 Varying
-                    if (firstDep instanceof Builtin || firstDep instanceof Varying)
-                    {
-                        return firstDep;
-                    }
-
-                    // 处理成员访问的情况（如 gl_Position.z），递归查找 Builtin 或 Varying
-                    if (firstDep && typeof firstDep === 'object' && 'dependencies' in firstDep && Array.isArray(firstDep.dependencies) && firstDep.dependencies.length > 0)
-                    {
-                        const secondDep = firstDep.dependencies[0];
-                        if (secondDep instanceof Builtin || secondDep instanceof Varying)
+                        for (const subDep of dep.dependencies)
                         {
-                            return secondDep;
+                            if (subDep instanceof VaryingStruct)
+                            {
+                                returnStruct = subDep;
+                                break;
+                            }
                         }
-                    }
-
-                    return null;
-                };
-
-                // 收集所有对 builtin 和 varying 的赋值
-                const builtinSet = new Set<Builtin>();
-                const varyingSet = new Set<Varying>();
-
-                for (const stmt of this.statements)
-                {
-                    const stmtAny = stmt as any;
-                    if (stmtAny._assignTarget && stmtAny._assignValue)
-                    {
-                        const target = stmtAny._assignTarget as ShaderValue;
-                        const baseVar = extractBaseVar(target);
-                        if (baseVar instanceof Builtin)
+                        if (returnStruct)
                         {
-                            builtinSet.add(baseVar);
-                        }
-                        else if (baseVar instanceof Varying)
-                        {
-                            varyingSet.add(baseVar);
+                            break;
                         }
                     }
                 }
+            }
 
-                // 如果有对 builtin 或 varying 的赋值，创建结构体
-                if (builtinSet.size > 0 || varyingSet.size > 0)
+            // 3. 从字段值中查找结构体（通过 _varyingStruct 属性）
+            if (!returnStruct)
+            {
+                for (const dep of this.dependencies)
                 {
-                    const structVarName = 'v';
-
-                    // 创建结构体字段
-                    const structFields: { [key: string]: IElement } = {};
-                    const structFieldMap = new Map<Builtin | Varying, string>();
-
-                    // 添加 builtin 字段
-                    for (const builtin of builtinSet)
+                    if (dep && typeof dep === 'object' && (dep as any)._varyingStruct instanceof VaryingStruct)
                     {
-                        // builtin 必须在 varyingStruct 中初始化，所以 name 应该已经设置
-                        if (!builtin.name)
-                        {
-                            throw new Error(`Builtin '${builtin.builtinName}' 没有设置 name，必须在 varyingStruct 中初始化。`);
-                        }
-                        const fieldName = builtin.name;
-                        // 使用 builtin.value（Vec4）作为结构体字段
-                        structFields[fieldName] = builtin.value!;
-                        structFieldMap.set(builtin, fieldName);
+                        returnStruct = (dep as any)._varyingStruct;
+                        break;
                     }
+                }
+            }
 
-                    // 添加 varying 字段
-                    for (const varying of varyingSet)
-                    {
-                        // varying 必须在 varyingStruct 中初始化，所以 name 应该已经设置
-                        if (!varying.name)
-                        {
-                            throw new Error(`Varying 没有设置 name，必须在 varyingStruct 中初始化。`);
-                        }
-                        const fieldName = varying.name;
-                        // 使用 varying.value 作为结构体字段
-                        structFields[fieldName] = varying.value!;
-                        structFieldMap.set(varying, fieldName);
-                    }
-
-                    // 创建结构体（结构体名称固定为 VaryingStruct）
-                    returnStruct = new VaryingStruct(structFields);
-
-                    // 创建结构体变量
-                    const structVar = {
-                        toGLSL: () => '',
-                        toWGSL: () => structVarName,
-                        dependencies: [returnStruct],
-                    } as IElement;
-
-                    /**
-                     * 递归重写 ShaderValue 的 toWGSL 方法
-                     * 使其在结构体上下文中返回正确的字段访问（如 output.position_vec4）
-                     * @param value ShaderValue 实例
-                     */
-                    const rewriteToWGSL = (value: ShaderValue): void =>
-                    {
-                        if (!value || typeof value !== 'object' || !('dependencies' in value) || !Array.isArray(value.dependencies) || value.dependencies.length === 0)
-                        {
-                            return;
-                        }
-
-                        const firstDep = value.dependencies[0];
-
-                        // 直接是 Builtin 或 Varying，重写 toWGSL 方法
-                        if (firstDep instanceof Builtin || firstDep instanceof Varying)
-                        {
-                            const fieldName = structFieldMap.get(firstDep);
-                            if (fieldName)
-                            {
-                                // 重写 toWGSL 方法，返回结构体字段访问
-                                value.toWGSL = (type: 'vertex' | 'fragment') => `${structVarName}.${fieldName}`;
-                            }
-
-                            return;
-                        }
-
-                        // 处理成员访问的情况（如 gl_Position.z），递归处理
-                        if (firstDep && typeof firstDep === 'object' && 'dependencies' in firstDep && Array.isArray(firstDep.dependencies) && firstDep.dependencies.length > 0)
-                        {
-                            rewriteToWGSL(firstDep as ShaderValue);
-                        }
-                    };
-
-                    // 重写所有相关的 ShaderValue 的 toWGSL 方法
-                    for (const builtin of builtinSet)
-                    {
-                        if (builtin.value)
-                        {
-                            rewriteToWGSL(builtin.value);
-                        }
-                    }
-                    for (const varying of varyingSet)
-                    {
-                        if (varying.value)
-                        {
-                            rewriteToWGSL(varying.value);
-                        }
-                    }
-
-                    // 添加结构体变量声明语句（变量名固定为 v，结构体名称固定为 VaryingStruct）
-                    const newStatements: IStatement[] = [];
-                    newStatements.push({
-                        toGLSL: () => '',
-                        toWGSL: () => `var v: VaryingStruct;`,
-                    });
-
-                    // 保留所有原有语句（由于已经重写了 toWGSL 方法，赋值语句会自动使用正确的结构体字段访问）
-                    for (const stmt of this.statements)
-                    {
-                        newStatements.push(stmt);
-                    }
-
-                    // 添加 return 语句
-                    newStatements.push({
-                        toGLSL: () => '',
-                        toWGSL: () => `return v;`,
-                    });
-
-                    // 替换 statements
-                    this.statements = newStatements;
-
-                    // 添加结构体变量到 dependencies
-                    this.dependencies.push(structVar);
-
-                    // 清除缓存，以便重新分析依赖（包含新创建的结构体）
-                    this._analyzedDependencies = undefined;
+            // 4. 从依赖分析的 structs 集合中获取（如果只有一个结构体）
+            if (!returnStruct)
+            {
+                const dependencies = this.getAnalyzedDependencies();
+                if (dependencies.structs.size === 1)
+                {
+                    returnStruct = Array.from(dependencies.structs)[0];
                 }
             }
 

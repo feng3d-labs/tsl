@@ -41,6 +41,7 @@ export { uvec2 } from './builtin/types/uvec2';
 export { uvec3 } from './builtin/types/uvec3';
 export { uvec4 } from './builtin/types/uvec4';
 export { float } from './builtin/types/float';
+export { int } from './builtin/types/int';
 export { vec2 } from './builtin/types/vec2';
 export { vec3 } from './builtin/types/vec3';
 export { vec4 } from './builtin/types/vec4';

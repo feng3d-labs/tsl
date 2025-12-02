@@ -85,7 +85,10 @@ export class Sampler implements IElement
         const textureBinding = `@binding(${effectiveBinding}) @group(${effectiveGroup})`;
         const samplerBinding = `@binding(${effectiveBinding + 1}) @group(${effectiveGroup})`;
 
-        return `${textureBinding} var ${this.name}_texture: texture_2d<f32>;\n${samplerBinding} var ${this.name}: sampler;`;
+        // 根据 sampler 类型决定使用 texture_2d 还是 texture_2d_array
+        const textureType = this._samplerType === '2DArray' ? 'texture_2d_array<f32>' : 'texture_2d<f32>';
+
+        return `${textureBinding} var ${this.name}_texture: ${textureType};\n${samplerBinding} var ${this.name}: sampler;`;
     }
 }
 

@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', async () =>
     // 注意：当前 TSL 不支持多个输出和纹理数组，所以使用手动编写的 GLSL/WGSL
     const layerVertexGlsl = layerVertexShader.toGLSL(2);
     const layerFragmentGlsl = layerFragmentShader.toGLSL(2);
-    // const layerVertexWgsl = layerVertexShader.toWGSL();
-    // const layerFragmentWgsl = layerFragmentShader.toWGSL(layerVertexShader);
+    const layerVertexWgsl = layerVertexShader.toWGSL();
+    const layerFragmentWgsl = layerFragmentShader.toWGSL(layerVertexShader);
 
     const multipleOutputVertexGlsl = multipleOutputVertexShader.toGLSL(2);
     const multipleOutputFragmentGlsl = multipleOutputFragmentShader.toGLSL(2);

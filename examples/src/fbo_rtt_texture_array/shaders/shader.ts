@@ -1,4 +1,4 @@
-import { assign, attribute, builtin, color, float, fragment, fragmentOutput, mat4, return_, sampler, texture, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { assign, attribute, builtin, color, float, fragment, fragmentOutput, int, mat4, return_, sampler, texture, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // ============================================================================
 // Layer Shader (用于从纹理数组读取并渲染到屏幕)
@@ -35,12 +35,12 @@ export const layerVertexShader = vertex('main', () =>
 // 注意：TSL 当前不支持 sampler2DArray，这里使用 sampler2D 作为占位
 // 实际使用时需要扩展 TSL 以支持纹理数组
 const diffuse = sampler('diffuse');
-const layer = float(uniform('layer'));
+const layer = int(uniform('layer'));
 
 // 对应 GLSL: color = texture(diffuse, vec3(v_st, float(layer)));
 export const layerFragmentShader = fragment('main', () =>
 {
-    return_(texture(diffuse, vec3(vLayer.v_st, layer)));
+    return_(texture(diffuse, vLayer.v_st, layer));
 });
 
 // ============================================================================

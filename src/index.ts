@@ -26,6 +26,8 @@ export { step } from './builtin/step';
 export { texture2D } from './builtin/texture2D';
 export { texture } from './builtin/texture';
 export { var_ } from './builtin/var';
+export { color } from './builtin/color';
+export * from './fragmentOutput';
 // 导出向量类型
 export { Float } from './builtin/types/float';
 export { Vec2 } from './builtin/types/vec2';

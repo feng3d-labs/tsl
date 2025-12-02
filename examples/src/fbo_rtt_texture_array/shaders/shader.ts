@@ -1,4 +1,4 @@
-import { assign, attribute, builtin, float, fragment, mat4, return_, sampler, texture, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { assign, attribute, builtin, color, float, fragment, fragmentOutput, mat4, return_, sampler, texture, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // ============================================================================
 // Layer Shader (用于从纹理数组读取并渲染到屏幕)
@@ -59,27 +59,16 @@ export const multipleOutputVertexShader = vertex('main', () =>
     assign(vMultipleOutput.vPosition, mvp.multiply(vec4(position, 0.0, 1.0)));
 });
 
-// Multiple Output Fragment shader
-// 对应 GLSL:
-//   layout(location = 0) out vec4 red;
-//   layout(location = 1) out vec4 green;
-//   layout(location = 2) out vec4 blue;
-//   red = vec4(0.5, 0.0, 0.0, 1.0);
-//   green = vec4(0.0, 0.3, 0.0, 1.0);
-//   blue = vec4(0.0, 0.0, 0.8, 1.0);
-// 注意：TSL 当前不支持多个输出（multiple render targets）
-// 这里使用单个输出作为占位，实际使用时需要扩展 TSL
+const f = fragmentOutput({
+    red: vec4(color(0)),
+    green: vec4(color(1)),
+    blue: vec4(color(2)),
+});
+
 export const multipleOutputFragmentShader = fragment('main', () =>
 {
-    // 注意：多个输出需要扩展 TSL 来支持
-    // 当前实现只返回一个颜色
-    // 实际 WGSL 代码需要返回多个 @location 的输出
-    // 对应 GLSL 的值：
-    const red = var_('red', vec4(0.5, 0.0, 0.0, 1.0));
-    const green = var_('green', vec4(0.0, 0.3, 0.0, 1.0));
-    const blue = var_('blue', vec4(0.0, 0.0, 0.8, 1.0));
-
-    // 当前只返回一个颜色，实际应该返回多个
-    return_(red);
+    assign(f.red, vec4(0.5, 0.0, 0.0, 1.0));
+    assign(f.green, vec4(0.0, 0.3, 0.0, 1.0));
+    assign(f.blue, vec4(0.0, 0.0, 0.8, 1.0));
 });
 

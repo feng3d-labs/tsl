@@ -24,8 +24,8 @@ document.addEventListener('DOMContentLoaded', async () =>
     // const layerVertexWgsl = layerVertexShader.toWGSL();
     // const layerFragmentWgsl = layerFragmentShader.toWGSL(layerVertexShader);
 
-    // const multipleOutputVertexGlsl = multipleOutputVertexShader.toGLSL();
-    // const multipleOutputFragmentGlsl = multipleOutputFragmentShader.toGLSL();
+    const multipleOutputVertexGlsl = multipleOutputVertexShader.toGLSL(2);
+    const multipleOutputFragmentGlsl = multipleOutputFragmentShader.toGLSL(2);
     // const multipleOutputVertexWgsl = multipleOutputVertexShader.toWGSL();
     // const multipleOutputFragmentWgsl = multipleOutputFragmentShader.toWGSL(multipleOutputVertexShader);
 

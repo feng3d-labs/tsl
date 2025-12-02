@@ -4,6 +4,8 @@ import { Precision } from './Precision';
 import { Sampler } from './Sampler';
 import { Uniform } from './Uniform';
 import { Vertex } from './Vertex';
+import { FragmentOutput } from './fragmentOutput';
+import { VaryingStruct } from './varyingStruct';
 
 /**
  * Fragment 类，继承自 Func
@@ -123,7 +125,19 @@ export class Fragment extends Func
             if (version === 2)
             {
                 lines.push('');
-                lines.push('layout(location = 0) out vec4 color;');
+                // 如果有 FragmentOutput，使用多个输出；否则使用默认的单个输出
+                if (dependencies.fragmentOutput)
+                {
+                    const outputDecls = dependencies.fragmentOutput.toGLSLDefinitions();
+                    for (const decl of outputDecls)
+                    {
+                        lines.push(decl);
+                    }
+                }
+                else
+                {
+                    lines.push('layout(location = 0) out vec4 color;');
+                }
             }
 
             // 生成外部定义的var_变量（作为全局const）
@@ -221,9 +235,46 @@ export class Fragment extends Func
                 lines.push('');
             }
 
-            // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-            const funcCode = super.toWGSL();
-            lines.push(...funcCode.split('\n'));
+            // 生成函数签名和函数体
+            // 查找输入结构体（VaryingStruct）
+            let inputStruct: { varName: string; struct: VaryingStruct<any> } | undefined;
+            for (const struct of dependencies.structs)
+            {
+                if (struct.hasVarying())
+                {
+                    inputStruct = { varName: 'v', struct };
+                    // 函数中最多只会出现一个 VaryingStruct
+                    break;
+                }
+            }
+
+            // 生成函数参数
+            let paramStr = '()';
+            if (inputStruct)
+            {
+                paramStr = `(v: VaryingStruct)`;
+            }
+
+            // 生成返回类型：如果有 FragmentOutput，使用多个输出；否则使用单个输出
+            let returnType: string;
+            if (dependencies.fragmentOutput)
+            {
+                returnType = dependencies.fragmentOutput.toWGSLReturnType();
+            }
+            else
+            {
+                returnType = '@location(0) vec4<f32>';
+            }
+
+            lines.push(`fn ${this.name}${paramStr} -> ${returnType} {`);
+
+            // 生成函数体
+            this.statements.forEach(stmt =>
+            {
+                lines.push(`    ${stmt.toWGSL()}`);
+            });
+
+            lines.push('}');
 
             const resultStr = lines.join('\n') + '\n';
 

@@ -111,9 +111,6 @@ export function uvec3(attribute: Attribute): Uvec3;
 export function uvec3(x: number, y: number, z: number): Uvec3;
 export function uvec3(...args: any[]): Uvec3
 {
-    if (args.length === 1) return new Uvec3(args[0] as any);
-    if (args.length === 3) return new Uvec3(args[0] as any, args[1] as any, args[2] as any);
-
-    throw new Error('uvec3: invalid arguments');
+    return new (Uvec3 as any)(...args);
 }
 

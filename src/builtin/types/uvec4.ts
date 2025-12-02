@@ -125,9 +125,6 @@ export function uvec4(attribute: Attribute): Uvec4;
 export function uvec4(x: number, y: number, z: number, w: number): Uvec4;
 export function uvec4(...args: any[]): Uvec4
 {
-    if (args.length === 1) return new Uvec4(args[0] as any);
-    if (args.length === 4) return new Uvec4(args[0] as any, args[1] as any, args[2] as any, args[3] as any);
-
-    throw new Error('uvec4: invalid arguments');
+    return new (Uvec4 as any)(...args);
 }
 

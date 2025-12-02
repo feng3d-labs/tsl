@@ -97,9 +97,6 @@ export function ivec2(attribute: Attribute): IVec2;
 export function ivec2(x: number, y: number): IVec2;
 export function ivec2(...args: any[]): IVec2
 {
-    if (args.length === 1) return new IVec2(args[0] as any);
-    if (args.length === 2) return new IVec2(args[0] as any, args[1] as any);
-
-    throw new Error('ivec2: invalid arguments');
+    return new (IVec2 as any)(...args);
 }
 

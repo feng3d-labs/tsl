@@ -85,8 +85,6 @@ export function mat4(uniform: Uniform): Mat4;
 export function mat4(attribute: Attribute): Mat4;
 export function mat4(...args: any[]): Mat4
 {
-    if (args.length === 1) return new Mat4(args[0] as any);
-
-    throw new Error('mat4: invalid arguments');
+    return new (Mat4 as any)(...args);
 }
 

@@ -111,8 +111,5 @@ export function ivec3(attribute: Attribute): IVec3;
 export function ivec3(x: number, y: number, z: number): IVec3;
 export function ivec3(...args: any[]): IVec3
 {
-    if (args.length === 1) return new IVec3(args[0] as any);
-    if (args.length === 3) return new IVec3(args[0] as any, args[1] as any, args[2] as any);
-
-    throw new Error('ivec3: invalid arguments');
+    return new (IVec3 as any)(...args);
 }

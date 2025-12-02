@@ -285,8 +285,5 @@ export function vec2(varying: Varying): Vec2;
 export function vec2(x: number | Float, y: number | Float): Vec2;
 export function vec2(...args: any[]): Vec2
 {
-    if (args.length === 1) return new Vec2(args[0] as any);
-    if (args.length === 2) return new Vec2(args[0] as any, args[1] as any);
-
-    throw new Error('vec2：无效的参数');
+    return new (Vec2 as any)(...args);
 }

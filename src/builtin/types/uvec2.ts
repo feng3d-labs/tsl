@@ -97,9 +97,6 @@ export function uvec2(attribute: Attribute): Uvec2;
 export function uvec2(x: number, y: number): Uvec2;
 export function uvec2(...args: any[]): Uvec2
 {
-    if (args.length === 1) return new Uvec2(args[0] as any);
-    if (args.length === 2) return new Uvec2(args[0] as any, args[1] as any);
-
-    throw new Error('uvec2: invalid arguments');
+    return new (Uvec2 as any)(...args);
 }
 

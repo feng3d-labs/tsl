@@ -414,7 +414,6 @@ export class Vec4 implements ShaderValue
 
 /**
  * vec4 构造函数
- * 直接调用 Vec4 构造函数，所有参数处理逻辑都在 Vec4 构造函数中
  */
 export function vec4(uniform: Uniform): Vec4;
 export function vec4(attribute: Attribute): Vec4;
@@ -427,10 +426,5 @@ export function vec4(xyz: Vec3, w: number | Float): Vec4;
 export function vec4(x: number | Float, y: number | Float, z: number | Float, w: number | Float): Vec4;
 export function vec4(...args: any[]): Vec4
 {
-    if (args.length === 1) return new Vec4(args[0] as any);
-    if (args.length === 2) return new Vec4(args[0] as any, args[1] as any);
-    if (args.length === 3) return new Vec4(args[0] as any, args[1] as any, args[2] as any);
-    if (args.length === 4) return new Vec4(args[0] as any, args[1] as any, args[2] as any, args[3] as any);
-
-    throw new Error('vec4: invalid arguments');
+    return new (Vec4 as any)(...args);
 }

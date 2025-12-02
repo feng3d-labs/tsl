@@ -292,7 +292,6 @@ export class Vec3 implements ShaderValue
 
 /**
  * vec3 构造函数
- * 如果传入单个 Uniform、Attribute 或 Varying 实例，则将类型信息保存到对应的 value 属性
  */
 export function vec3(): Vec3;
 export function vec3(uniform: Uniform): Vec3;
@@ -303,13 +302,5 @@ export function vec3(x: number, y: number, z: number): Vec3;
 export function vec3(vec2: Vec2, z: Float | number): Vec3;
 export function vec3(...args: (number | Uniform | Attribute | Varying | Float | Vec2)[]): Vec3
 {
-    if (args.length === 0) return new Vec3();
-
-    if (args.length === 1) return new Vec3(args[0] as any);
-
-    if (args.length === 2 && args[0] instanceof Vec2) return new Vec3(args[0] as Vec2, args[1] as Float | number);
-
-    if (args.length === 3) return new Vec3(args[0] as number, args[1] as number, args[2] as number);
-
-    throw new Error('Invalid arguments for vec3');
+    return new (Vec3 as any)(...args);
 }

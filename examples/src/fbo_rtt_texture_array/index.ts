@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     const multipleOutputVertexGlsl = multipleOutputVertexShader.toGLSL(2);
     const multipleOutputFragmentGlsl = multipleOutputFragmentShader.toGLSL(2);
-    // const multipleOutputVertexWgsl = multipleOutputVertexShader.toWGSL();
-    // const multipleOutputFragmentWgsl = multipleOutputFragmentShader.toWGSL(multipleOutputVertexShader);
+    const multipleOutputVertexWgsl = multipleOutputVertexShader.toWGSL();
+    const multipleOutputFragmentWgsl = multipleOutputFragmentShader.toWGSL(multipleOutputVertexShader);
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 

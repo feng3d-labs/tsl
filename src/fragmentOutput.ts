@@ -68,20 +68,38 @@ export class FragmentOutput<T extends { [key: string]: ShaderValue }> implements
     }
 
     /**
-     * 生成 WGSL 输出类型定义
-     * @returns WGSL 输出类型字符串（多个 @location 输出）
+     * 生成 WGSL 结构体定义
+     * @returns WGSL 结构体定义字符串
      */
-    toWGSLReturnType(): string
+    toWGSLDefinition(): string
     {
-        const outputs: string[] = [];
+        const structName = 'FragmentOut';
+        const fields: string[] = [];
 
         for (const [fieldName, value] of Object.entries(this.fields))
         {
             const dep = value.dependencies[0] as Color;
-            outputs.push(`@location(${dep.location}) ${fieldName}: vec4<f32>`);
+            fields.push(`    @location(${dep.location}) ${fieldName}: vec4<f32>,`);
         }
 
-        return `(${outputs.join(', ')})`;
+        return `struct ${structName} {\n${fields.join('\n')}\n}`;
+    }
+
+    /**
+     * 获取结构体名称
+     */
+    getStructName(): string
+    {
+        return 'FragmentOut';
+    }
+
+    /**
+     * 生成 WGSL 输出类型定义
+     * @returns WGSL 输出类型字符串（结构体名称）
+     */
+    toWGSLReturnType(): string
+    {
+        return this.getStructName();
     }
 }
 

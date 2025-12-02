@@ -6,6 +6,7 @@ import { Uniform } from './Uniform';
 import { Vertex } from './Vertex';
 import { FragmentOutput } from './fragmentOutput';
 import { VaryingStruct } from './varyingStruct';
+import { ShaderValue } from './IElement';
 
 /**
  * Fragment 类，继承自 Func
@@ -208,6 +209,12 @@ export class Fragment extends Func
                 lines.push(struct.toWGSLDefinition());
             }
 
+            // 生成 FragmentOutput 结构体定义（如果有）
+            if (dependencies.fragmentOutput)
+            {
+                lines.push(dependencies.fragmentOutput.toWGSLDefinition());
+            }
+
             // 生成 uniforms（只包含实际使用的）
             for (const uniform of dependencies.uniforms)
             {
@@ -271,11 +278,40 @@ export class Fragment extends Func
 
             lines.push(`fn ${this.name}${paramStr} -> ${returnType} {`);
 
-            // 生成函数体
-            this.statements.forEach(stmt =>
+            // 如果有 FragmentOutput，需要生成结构体变量并修改字段的 toWGSL 方法
+            if (dependencies.fragmentOutput)
             {
-                lines.push(`    ${stmt.toWGSL()}`);
-            });
+                const fragmentOutput = dependencies.fragmentOutput;
+                const structName = fragmentOutput.getStructName();
+                const outputVarName = 'output';
+
+                // 重写字段的 toWGSL 方法，使其返回 output.fieldName
+                for (const [fieldName, value] of Object.entries(fragmentOutput.fields))
+                {
+                    const shaderValue = value as ShaderValue;
+                    shaderValue.toWGSL = () => `${outputVarName}.${fieldName}`;
+                }
+
+                // 在函数体开头添加 var output: FragmentOut; 声明
+                lines.push(`    var ${outputVarName}: ${structName};`);
+
+                // 生成函数体
+                this.statements.forEach(stmt =>
+                {
+                    lines.push(`    ${stmt.toWGSL()}`);
+                });
+
+                // 在函数体末尾添加 return output; 语句
+                lines.push(`    return ${outputVarName};`);
+            }
+            else
+            {
+                // 生成函数体（单个输出，不需要结构体）
+                this.statements.forEach(stmt =>
+                {
+                    lines.push(`    ${stmt.toWGSL()}`);
+                });
+            }
 
             lines.push('}');
 

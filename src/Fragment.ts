@@ -42,31 +42,33 @@ export class Fragment extends Func
             // 从函数的 dependencies 中分析获取 uniforms、precision、varyings 和 samplers（使用缓存）
             const dependencies = this.getAnalyzedDependencies();
 
-            // Fragment shader 需要 precision 声明（从函数依赖中获取，如果没有则默认使用 highp）
-            if (dependencies.precision)
+            // Fragment shader 需要 precision 声明
+            // 收集已设置的 precision
+            const precisionMap = new Map<string, Precision>();
+            for (const prec of dependencies.precisions)
             {
-                lines.push(dependencies.precision.toGLSL());
-            }
-            else
-            {
-                // 如果没有指定 precision，默认使用 highp
-                const defaultPrecision = new Precision('highp');
-                lines.push(defaultPrecision.toGLSL());
+                precisionMap.set(prec.type, prec);
             }
 
-            // WebGL 2.0 需要额外的 precision 声明
+            // 生成 float precision（如果没有设置，默认使用 highp）
+            const floatPrecision = precisionMap.get('float') || new Precision('highp', 'float');
+            lines.push(floatPrecision.toGLSL());
+
+            // WebGL 2.0 需要 int precision（如果没有设置，默认使用 highp）
             if (version === 2)
             {
-                lines.push('precision highp int;');
+                const intPrecision = precisionMap.get('int') || new Precision('highp', 'int');
+                lines.push(intPrecision.toGLSL());
+            }
 
-                // 检查是否有 sampler2DArray，如果有则需要添加 precision 声明
-                const hasSampler2DArray = Array.from(dependencies.samplers).some(s =>
-                    s.getSamplerType() === '2DArray',
-                );
-                if (hasSampler2DArray)
-                {
-                    lines.push('precision lowp sampler2DArray;');
-                }
+            // 检查是否有 sampler2DArray，如果有则需要添加 precision 声明（如果没有设置，默认使用 lowp）
+            const hasSampler2DArray = Array.from(dependencies.samplers).some(s =>
+                s.getSamplerType() === '2DArray',
+            );
+            if (hasSampler2DArray)
+            {
+                const samplerPrecision = precisionMap.get('sampler2DArray') || new Precision('lowp', 'sampler2DArray');
+                lines.push(samplerPrecision.toGLSL());
             }
 
             // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）

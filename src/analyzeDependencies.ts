@@ -12,7 +12,7 @@ import { FragmentOutput } from './fragmentOutput';
  * @param dependencies 函数依赖数组
  * @returns 使用的 Attribute、Uniform、Precision、VaryingStruct、Varying、Sampler、FragmentOutput 和外部变量集合
  */
-export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precision?: Precision; structs: Set<VaryingStruct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; fragmentOutput?: FragmentOutput<any>; externalVars: Array<{ name: string; expr: ShaderValue }> }
+export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precisions: Set<Precision>; structs: Set<VaryingStruct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; fragmentOutput?: FragmentOutput<any>; externalVars: Array<{ name: string; expr: ShaderValue }> }
 {
     const attributes = new Set<Attribute>();
     const uniforms = new Set<Uniform>();
@@ -20,7 +20,7 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
     const varyings = new Set<Varying>();
     const samplers = new Set<Sampler>();
     const externalVars = new Map<string, { name: string; expr: ShaderValue }>();
-    let precision: Precision | undefined;
+    const precisions = new Set<Precision>();
     let fragmentOutput: FragmentOutput<any> | undefined;
     const visited = new WeakSet();
 
@@ -56,13 +56,10 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
             return;
         }
 
-        // 如果是 Precision 实例，保存（只取第一个）
+        // 如果是 Precision 实例，添加到集合中
         if (value instanceof Precision)
         {
-            if (!precision)
-            {
-                precision = value;
-            }
+            precisions.add(value);
 
             return;
         }
@@ -173,6 +170,6 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
         analyzeValue(dep);
     }
 
-    return { attributes, uniforms, precision, structs, varyings, samplers, fragmentOutput, externalVars: Array.from(externalVars.values()) };
+    return { attributes, uniforms, precisions, structs, varyings, samplers, fragmentOutput, externalVars: Array.from(externalVars.values()) };
 }
 

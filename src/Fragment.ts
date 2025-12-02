@@ -4,6 +4,9 @@ import { Precision } from './Precision';
 import { Sampler } from './Sampler';
 import { Uniform } from './Uniform';
 import { Vertex } from './Vertex';
+import { FragmentOutput } from './fragmentOutput';
+import { VaryingStruct } from './varyingStruct';
+import { ShaderValue } from './IElement';
 
 /**
  * Fragment 类，继承自 Func
@@ -39,22 +42,83 @@ export class Fragment extends Func
             // 从函数的 dependencies 中分析获取 uniforms、precision、varyings 和 samplers（使用缓存）
             const dependencies = this.getAnalyzedDependencies();
 
-            // Fragment shader 需要 precision 声明（从函数依赖中获取，如果没有则默认使用 highp）
-            if (dependencies.precision)
+            // Fragment shader 需要 precision 声明
+            // 收集已设置的 precision
+            const precisionMap = new Map<string, Precision>();
+            for (const prec of dependencies.precisions)
             {
-                lines.push(dependencies.precision.toGLSL());
-            }
-            else
-            {
-                // 如果没有指定 precision，默认使用 highp
-                const defaultPrecision = new Precision('highp');
-                lines.push(defaultPrecision.toGLSL());
+                precisionMap.set(prec.type, prec);
             }
 
-            // WebGL 2.0 需要额外的 precision 声明
+            // 生成 float precision（如果没有设置，默认使用 highp）
+            const floatPrecision = precisionMap.get('float') || new Precision('highp', 'float');
+            lines.push(floatPrecision.toGLSL());
+
+            // WebGL 2.0 需要 int precision（只有在使用了 int 类型时才生成，如果没有设置，默认使用 highp）
             if (version === 2)
             {
-                lines.push('precision highp int;');
+                // 检查是否有 int 类型的使用
+                // 1. 检查 uniforms 中是否有 int 类型的 uniform
+                // 2. 检查 attributes 中是否有 int 类型的 attribute
+                // 3. 检查所有依赖中是否有 glslType === 'int' 的 ShaderValue
+                let hasIntType = false;
+
+                // 检查 uniforms
+                hasIntType = Array.from(dependencies.uniforms).some(u =>
+                    u.value && u.value.glslType === 'int',
+                );
+
+                // 检查 attributes
+                if (!hasIntType)
+                {
+                    hasIntType = Array.from(dependencies.attributes).some(a =>
+                        a.value && a.value.glslType === 'int',
+                    );
+                }
+
+                // 检查所有依赖中的 ShaderValue（包括字面量）
+                if (!hasIntType)
+                {
+                    const checkForInt = (value: any): boolean =>
+                    {
+                        if (!value || typeof value !== 'object')
+                        {
+                            return false;
+                        }
+
+                        // 检查是否是 ShaderValue 且有 int 类型
+                        if ('glslType' in value && value.glslType === 'int')
+                        {
+                            return true;
+                        }
+
+                        // 递归检查 dependencies
+                        if ('dependencies' in value && Array.isArray(value.dependencies))
+                        {
+                            return value.dependencies.some((dep: any) => checkForInt(dep));
+                        }
+
+                        return false;
+                    };
+
+                    hasIntType = this.dependencies.some(dep => checkForInt(dep));
+                }
+
+                if (hasIntType)
+                {
+                    const intPrecision = precisionMap.get('int') || new Precision('highp', 'int');
+                    lines.push(intPrecision.toGLSL());
+                }
+            }
+
+            // 检查是否有 sampler2DArray，如果有则需要添加 precision 声明（如果没有设置，默认使用 lowp）
+            const hasSampler2DArray = Array.from(dependencies.samplers).some(s =>
+                s.getSamplerType() === '2DArray',
+            );
+            if (hasSampler2DArray)
+            {
+                const samplerPrecision = precisionMap.get('sampler2DArray') || new Precision('lowp', 'sampler2DArray');
+                lines.push(samplerPrecision.toGLSL());
             }
 
             // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
@@ -114,7 +178,19 @@ export class Fragment extends Func
             if (version === 2)
             {
                 lines.push('');
-                lines.push('layout(location = 0) out vec4 color;');
+                // 如果有 FragmentOutput，使用多个输出；否则使用默认的单个输出
+                if (dependencies.fragmentOutput)
+                {
+                    const outputDecls = dependencies.fragmentOutput.toGLSLDefinitions();
+                    for (const decl of outputDecls)
+                    {
+                        lines.push(decl);
+                    }
+                }
+                else
+                {
+                    lines.push('layout(location = 0) out vec4 color;');
+                }
             }
 
             // 生成外部定义的var_变量（作为全局const）
@@ -185,6 +261,12 @@ export class Fragment extends Func
                 lines.push(struct.toWGSLDefinition());
             }
 
+            // 生成 FragmentOutput 结构体定义（如果有）
+            if (dependencies.fragmentOutput)
+            {
+                lines.push(dependencies.fragmentOutput.toWGSLDefinition());
+            }
+
             // 生成 uniforms（只包含实际使用的）
             for (const uniform of dependencies.uniforms)
             {
@@ -212,9 +294,78 @@ export class Fragment extends Func
                 lines.push('');
             }
 
-            // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-            const funcCode = super.toWGSL();
-            lines.push(...funcCode.split('\n'));
+            // 添加 @fragment 标记
+            lines.push('@fragment');
+
+            // 生成函数签名和函数体
+            // 查找输入结构体（VaryingStruct）
+            let inputStruct: { varName: string; struct: VaryingStruct<any> } | undefined;
+            for (const struct of dependencies.structs)
+            {
+                if (struct.hasVarying())
+                {
+                    inputStruct = { varName: 'v', struct };
+                    // 函数中最多只会出现一个 VaryingStruct
+                    break;
+                }
+            }
+
+            // 生成函数参数
+            let paramStr = '()';
+            if (inputStruct)
+            {
+                paramStr = `(v: VaryingStruct)`;
+            }
+
+            // 生成返回类型：如果有 FragmentOutput，使用多个输出；否则使用单个输出
+            let returnType: string;
+            if (dependencies.fragmentOutput)
+            {
+                returnType = dependencies.fragmentOutput.toWGSLReturnType();
+            }
+            else
+            {
+                returnType = '@location(0) vec4<f32>';
+            }
+
+            lines.push(`fn ${this.name}${paramStr} -> ${returnType} {`);
+
+            // 如果有 FragmentOutput，需要生成结构体变量并修改字段的 toWGSL 方法
+            if (dependencies.fragmentOutput)
+            {
+                const fragmentOutput = dependencies.fragmentOutput;
+                const structName = fragmentOutput.getStructName();
+                const outputVarName = 'output';
+
+                // 重写字段的 toWGSL 方法，使其返回 output.fieldName
+                for (const [fieldName, value] of Object.entries(fragmentOutput.fields))
+                {
+                    const shaderValue = value as ShaderValue;
+                    shaderValue.toWGSL = () => `${outputVarName}.${fieldName}`;
+                }
+
+                // 在函数体开头添加 var output: FragmentOut; 声明
+                lines.push(`    var ${outputVarName}: ${structName};`);
+
+                // 生成函数体
+                this.statements.forEach(stmt =>
+                {
+                    lines.push(`    ${stmt.toWGSL()}`);
+                });
+
+                // 在函数体末尾添加 return output; 语句
+                lines.push(`    return ${outputVarName};`);
+            }
+            else
+            {
+                // 生成函数体（单个输出，不需要结构体）
+                this.statements.forEach(stmt =>
+                {
+                    lines.push(`    ${stmt.toWGSL()}`);
+                });
+            }
+
+            lines.push('}');
 
             const resultStr = lines.join('\n') + '\n';
 

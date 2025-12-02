@@ -24,7 +24,10 @@ export { sin } from './builtin/sin';
 export { smoothstep } from './builtin/smoothstep';
 export { step } from './builtin/step';
 export { texture2D } from './builtin/texture2D';
+export { texture } from './builtin/texture';
 export { var_ } from './builtin/var';
+export { color } from './builtin/color';
+export * from './fragmentOutput';
 // 导出向量类型
 export { Float } from './builtin/types/float';
 export { Vec2 } from './builtin/types/vec2';
@@ -38,6 +41,7 @@ export { uvec2 } from './builtin/types/uvec2';
 export { uvec3 } from './builtin/types/uvec3';
 export { uvec4 } from './builtin/types/uvec4';
 export { float } from './builtin/types/float';
+export { int } from './builtin/types/int';
 export { vec2 } from './builtin/types/vec2';
 export { vec3 } from './builtin/types/vec3';
 export { vec4 } from './builtin/types/vec4';

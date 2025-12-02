@@ -1,5 +1,3 @@
-// 根据 fragment-multiple-output.glsl 生成，保持风格一致
-
 struct FragmentOut {
     @location(0) red: vec4<f32>,
     @location(1) green: vec4<f32>,

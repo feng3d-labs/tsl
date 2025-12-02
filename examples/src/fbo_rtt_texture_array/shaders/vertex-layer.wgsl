@@ -1,7 +1,3 @@
-// 根据 vertex-layer.glsl 生成，保持风格一致
-// #define POSITION_LOCATION 0
-// #define TEXCOORD_LOCATION 4
-
 struct VaryingStruct {
     @builtin(position) vPosition: vec4<f32>,
     @location(0) v_st: vec2<f32>,

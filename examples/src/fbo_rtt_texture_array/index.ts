@@ -19,15 +19,15 @@ document.addEventListener('DOMContentLoaded', async () =>
 {
     // 生成 TSL 着色器代码（用于参考）
     // 注意：当前 TSL 不支持多个输出和纹理数组，所以使用手动编写的 GLSL/WGSL
-    // const layerVertexGlsl = layerVertexShader.toGLSL();
-    // const layerFragmentGlsl = layerFragmentShader.toGLSL();
-    // const layerVertexWgsl = layerVertexShader.toWGSL();
-    // const layerFragmentWgsl = layerFragmentShader.toWGSL(layerVertexShader);
+    const layerVertexGlsl = layerVertexShader.toGLSL(2);
+    const layerFragmentGlsl = layerFragmentShader.toGLSL(2);
+    const layerVertexWgsl = layerVertexShader.toWGSL();
+    const layerFragmentWgsl = layerFragmentShader.toWGSL(layerVertexShader);
 
-    // const multipleOutputVertexGlsl = multipleOutputVertexShader.toGLSL();
-    // const multipleOutputFragmentGlsl = multipleOutputFragmentShader.toGLSL();
-    // const multipleOutputVertexWgsl = multipleOutputVertexShader.toWGSL();
-    // const multipleOutputFragmentWgsl = multipleOutputFragmentShader.toWGSL(multipleOutputVertexShader);
+    const multipleOutputVertexGlsl = multipleOutputVertexShader.toGLSL(2);
+    const multipleOutputFragmentGlsl = multipleOutputFragmentShader.toGLSL(2);
+    const multipleOutputVertexWgsl = multipleOutputVertexShader.toWGSL();
+    const multipleOutputFragmentWgsl = multipleOutputFragmentShader.toWGSL(multipleOutputVertexShader);
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 

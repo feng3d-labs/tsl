@@ -1,6 +1,3 @@
-// 根据 vertex-multiple-output.glsl 生成，保持风格一致
-// #define POSITION_LOCATION 0
-
 @binding(0) @group(0) var<uniform> mvp : mat4x4<f32>;
 
 @vertex

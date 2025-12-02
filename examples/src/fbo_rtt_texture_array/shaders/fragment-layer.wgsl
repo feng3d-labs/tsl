@@ -1,5 +1,3 @@
-// 根据 fragment-layer.glsl 生成，保持风格一致
-
 struct VaryingStruct {
     @builtin(position) vPosition: vec4<f32>,
     @location(0) v_st: vec2<f32>,

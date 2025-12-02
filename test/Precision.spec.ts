@@ -3,6 +3,12 @@ import { Precision, precision } from '../src/Precision';
 import { fragment } from '../src/Fragment';
 import { vec4 } from '../src/builtin/types/vec4';
 import { uniform } from '../src/Uniform';
+import { sampler } from '../src/Sampler';
+import { texture } from '../src/builtin/texture';
+import { int } from '../src/builtin/types/int';
+import { vec2 } from '../src/builtin/types/vec2';
+import { vec3 } from '../src/builtin/types/vec3';
+import { return_ } from '../src/builtin/return';
 
 describe('Precision', () =>
 {
@@ -138,6 +144,114 @@ describe('Precision', () =>
 
             const glsl2 = fragmentShader2.toGLSL();
             expect(glsl2).toContain('precision highp float;');
+        });
+
+        it('应该支持指定类型的 precision', () =>
+        {
+            const prec = new Precision('highp', 'float');
+            expect(prec.type).toBe('float');
+            expect(prec.toGLSL()).toBe('precision highp float;');
+
+            const precInt = new Precision('highp', 'int');
+            expect(precInt.type).toBe('int');
+            expect(precInt.toGLSL()).toBe('precision highp int;');
+
+            const precSampler = new Precision('lowp', 'sampler2DArray');
+            expect(precSampler.type).toBe('sampler2DArray');
+            expect(precSampler.toGLSL()).toBe('precision lowp sampler2DArray;');
+        });
+
+        it('应该支持 precision 函数指定类型（但只有在使用相应类型时才生成 precision）', () =>
+        {
+            const diffuse = sampler('diffuse');
+            const coord = vec2(0.5, 0.5);
+            const layer = int(uniform('layer')); // 使用 int 类型
+
+            const fragmentShader = fragment('main', () =>
+            {
+                precision('highp', 'float');
+                precision('highp', 'int');
+                precision('lowp', 'sampler2DArray'); // 显式设置，并且使用了纹理数组
+
+                return_(texture(diffuse, coord, layer));
+            });
+
+            const glsl = fragmentShader.toGLSL(2);
+            expect(glsl).toContain('precision highp float;');
+            expect(glsl).toContain('precision highp int;'); // 因为使用了 int 类型
+            // 只有在使用纹理数组时才生成 sampler2DArray precision
+            expect(glsl).toContain('precision lowp sampler2DArray;');
+        });
+
+        it('应该在没有设置 precision 时使用默认值', () =>
+        {
+            const fragmentShader = fragment('main', () =>
+            {
+                return vec4(1.0, 0.0, 0.0, 1.0);
+            });
+
+            const glsl = fragmentShader.toGLSL(2);
+            // 应该使用默认的 highp float
+            expect(glsl).toContain('precision highp float;');
+            // 不应该包含 int precision（因为没有使用 int 类型）
+            expect(glsl).not.toContain('precision highp int;');
+            // 不应该包含 sampler2DArray precision（因为没有使用纹理数组）
+            expect(glsl).not.toContain('sampler2DArray');
+        });
+
+        it('应该在没有设置 sampler2DArray precision 时使用默认值（如果存在 sampler2DArray）', () =>
+        {
+            const diffuse = sampler('diffuse');
+            const coord = vec3(0.5, 0.5, 1.0);
+
+            const fragmentShader = fragment('main', () =>
+            {
+                precision('highp', 'float');
+                precision('highp', 'int');
+                // 不设置 sampler2DArray precision，但使用了纹理数组（vec3坐标）
+
+                return_(texture(diffuse, coord));
+            });
+
+            const glsl = fragmentShader.toGLSL(2);
+            // 应该使用默认的 lowp sampler2DArray（因为使用了纹理数组）
+            expect(glsl).toContain('precision lowp sampler2DArray;');
+        });
+
+        it('应该在没有使用纹理数组时不生成 sampler2DArray precision（即使显式设置）', () =>
+        {
+            const diffuse = sampler('diffuse');
+            const coord = vec2(0.5, 0.5);
+
+            const fragmentShader = fragment('main', () =>
+            {
+                precision('highp', 'float');
+                precision('highp', 'int');
+                precision('lowp', 'sampler2DArray'); // 显式设置，但没有使用纹理数组
+
+                return_(texture(diffuse, coord));
+            });
+
+            const glsl = fragmentShader.toGLSL(2);
+            // 不应该包含 sampler2DArray precision（因为没有使用纹理数组）
+            expect(glsl).not.toContain('precision lowp sampler2DArray;');
+            expect(glsl).not.toContain('sampler2DArray');
+        });
+
+        it('应该在没有使用 int 类型时不生成 int precision（即使显式设置）', () =>
+        {
+            const fragmentShader = fragment('main', () =>
+            {
+                precision('highp', 'float');
+                precision('highp', 'int'); // 显式设置，但没有使用 int 类型
+
+                return vec4(1.0, 0.0, 0.0, 1.0);
+            });
+
+            const glsl = fragmentShader.toGLSL(2);
+            expect(glsl).toContain('precision highp float;');
+            // 不应该包含 int precision（因为没有使用 int 类型）
+            expect(glsl).not.toContain('precision highp int;');
         });
     });
 });

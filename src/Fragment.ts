@@ -54,11 +54,61 @@ export class Fragment extends Func
             const floatPrecision = precisionMap.get('float') || new Precision('highp', 'float');
             lines.push(floatPrecision.toGLSL());
 
-            // WebGL 2.0 需要 int precision（如果没有设置，默认使用 highp）
+            // WebGL 2.0 需要 int precision（只有在使用了 int 类型时才生成，如果没有设置，默认使用 highp）
             if (version === 2)
             {
-                const intPrecision = precisionMap.get('int') || new Precision('highp', 'int');
-                lines.push(intPrecision.toGLSL());
+                // 检查是否有 int 类型的使用
+                // 1. 检查 uniforms 中是否有 int 类型的 uniform
+                // 2. 检查 attributes 中是否有 int 类型的 attribute
+                // 3. 检查所有依赖中是否有 glslType === 'int' 的 ShaderValue
+                let hasIntType = false;
+
+                // 检查 uniforms
+                hasIntType = Array.from(dependencies.uniforms).some(u =>
+                    u.value && u.value.glslType === 'int',
+                );
+
+                // 检查 attributes
+                if (!hasIntType)
+                {
+                    hasIntType = Array.from(dependencies.attributes).some(a =>
+                        a.value && a.value.glslType === 'int',
+                    );
+                }
+
+                // 检查所有依赖中的 ShaderValue（包括字面量）
+                if (!hasIntType)
+                {
+                    const checkForInt = (value: any): boolean =>
+                    {
+                        if (!value || typeof value !== 'object')
+                        {
+                            return false;
+                        }
+
+                        // 检查是否是 ShaderValue 且有 int 类型
+                        if ('glslType' in value && value.glslType === 'int')
+                        {
+                            return true;
+                        }
+
+                        // 递归检查 dependencies
+                        if ('dependencies' in value && Array.isArray(value.dependencies))
+                        {
+                            return value.dependencies.some((dep: any) => checkForInt(dep));
+                        }
+
+                        return false;
+                    };
+
+                    hasIntType = this.dependencies.some(dep => checkForInt(dep));
+                }
+
+                if (hasIntType)
+                {
+                    const intPrecision = precisionMap.get('int') || new Precision('highp', 'int');
+                    lines.push(intPrecision.toGLSL());
+                }
             }
 
             // 检查是否有 sampler2DArray，如果有则需要添加 precision 声明（如果没有设置，默认使用 lowp）

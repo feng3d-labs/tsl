@@ -5,6 +5,7 @@ import { Varying } from '../../Varying';
 import { formatOperand } from '../expressionUtils';
 import { formatNumber } from '../formatNumber';
 import { Float } from './float';
+import { Vec2 } from './vec2';
 
 export class Vec3 implements ShaderValue
 {
@@ -20,7 +21,8 @@ export class Vec3 implements ShaderValue
     constructor(varying: Varying);
     constructor(value: Float | number);
     constructor(x: number, y: number, z: number);
-    constructor(...args: (number | Uniform | Attribute | Varying | Float)[])
+    constructor(vec2: Vec2, z: Float | number);
+    constructor(...args: (number | Uniform | Attribute | Varying | Float | Vec2)[])
     {
         if (args.length === 0) return;
         if (args.length === 1 && args[0] instanceof Uniform)
@@ -61,6 +63,24 @@ export class Vec3 implements ShaderValue
                 this.toGLSL = () => `vec3(${value.toGLSL()})`;
                 this.toWGSL = () => `vec3<f32>(${value.toWGSL()})`;
                 this.dependencies = [value];
+            }
+        }
+        else if (args.length === 2 && args[0] instanceof Vec2)
+        {
+            // 从 vec2 和 float/number 构造 vec3
+            const vec2 = args[0] as Vec2;
+            const z = args[1] as Float | number;
+            if (typeof z === 'number')
+            {
+                this.toGLSL = () => `vec3(${vec2.toGLSL()}, ${formatNumber(z)})`;
+                this.toWGSL = () => `vec3<f32>(${vec2.toWGSL()}, ${formatNumber(z)})`;
+                this.dependencies = [vec2];
+            }
+            else
+            {
+                this.toGLSL = () => `vec3(${vec2.toGLSL()}, ${z.toGLSL()})`;
+                this.toWGSL = () => `vec3<f32>(${vec2.toWGSL()}, ${z.toWGSL()})`;
+                this.dependencies = [vec2, z];
             }
         }
         else if (args.length === 3 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number')
@@ -280,11 +300,14 @@ export function vec3(attribute: Attribute): Vec3;
 export function vec3(varying: Varying): Vec3;
 export function vec3(value: Float | number): Vec3;
 export function vec3(x: number, y: number, z: number): Vec3;
-export function vec3(...args: (number | Uniform | Attribute | Varying | Float)[]): Vec3
+export function vec3(vec2: Vec2, z: Float | number): Vec3;
+export function vec3(...args: (number | Uniform | Attribute | Varying | Float | Vec2)[]): Vec3
 {
     if (args.length === 0) return new Vec3();
 
     if (args.length === 1) return new Vec3(args[0] as any);
+
+    if (args.length === 2 && args[0] instanceof Vec2) return new Vec3(args[0] as Vec2, args[1] as Float | number);
 
     if (args.length === 3) return new Vec3(args[0] as number, args[1] as number, args[2] as number);
 

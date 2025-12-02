@@ -55,6 +55,15 @@ export class Fragment extends Func
             if (version === 2)
             {
                 lines.push('precision highp int;');
+
+                // 检查是否有 sampler2DArray，如果有则需要添加 precision 声明
+                const hasSampler2DArray = Array.from(dependencies.samplers).some(s =>
+                    s.getSamplerType() === '2DArray',
+                );
+                if (hasSampler2DArray)
+                {
+                    lines.push('precision lowp sampler2DArray;');
+                }
             }
 
             // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）

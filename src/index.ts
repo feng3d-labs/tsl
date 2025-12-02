@@ -24,6 +24,7 @@ export { sin } from './builtin/sin';
 export { smoothstep } from './builtin/smoothstep';
 export { step } from './builtin/step';
 export { texture2D } from './builtin/texture2D';
+export { texture } from './builtin/texture';
 export { var_ } from './builtin/var';
 // 导出向量类型
 export { Float } from './builtin/types/float';

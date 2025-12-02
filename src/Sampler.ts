@@ -11,6 +11,7 @@ export class Sampler implements IElement
     readonly binding?: number;
     readonly group?: number;
     private _autoBinding?: number; // 自动分配的 binding
+    private _samplerType?: '2D' | '2DArray'; // sampler 类型：2D 或 2DArray
 
     constructor(name: string, group?: number, binding?: number)
     {
@@ -44,11 +45,31 @@ export class Sampler implements IElement
     }
 
     /**
+     * 设置 sampler 类型（内部使用）
+     * @param type sampler 类型：'2D' 或 '2DArray'
+     */
+    setSamplerType(type: '2D' | '2DArray'): void
+    {
+        this._samplerType = type;
+    }
+
+    /**
+     * 获取 sampler 类型
+     * @returns sampler 类型：'2D' 或 '2DArray'，如果未设置则返回 undefined
+     */
+    getSamplerType(): '2D' | '2DArray' | undefined
+    {
+        return this._samplerType;
+    }
+
+    /**
      * 转换为 GLSL 代码
      */
     toGLSL(): string
     {
-        return `uniform sampler2D ${this.name};`;
+        const samplerType = this._samplerType === '2DArray' ? 'sampler2DArray' : 'sampler2D';
+
+        return `uniform ${samplerType} ${this.name};`;
     }
 
     /**

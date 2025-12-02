@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', async () =>
 {
     // 生成 TSL 着色器代码（用于参考）
     // 注意：当前 TSL 不支持多个输出和纹理数组，所以使用手动编写的 GLSL/WGSL
-    // const layerVertexGlsl = layerVertexShader.toGLSL();
-    // const layerFragmentGlsl = layerFragmentShader.toGLSL();
+    const layerVertexGlsl = layerVertexShader.toGLSL(2);
+    const layerFragmentGlsl = layerFragmentShader.toGLSL(2);
     // const layerVertexWgsl = layerVertexShader.toWGSL();
     // const layerFragmentWgsl = layerFragmentShader.toWGSL(layerVertexShader);
 

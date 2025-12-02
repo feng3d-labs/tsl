@@ -1,4 +1,4 @@
-import { assign, attribute, builtin, float, fragment, mat4, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { assign, attribute, builtin, float, fragment, mat4, return_, sampler, texture, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // ============================================================================
 // Layer Shader (用于从纹理数组读取并渲染到屏幕)
@@ -35,24 +35,12 @@ export const layerVertexShader = vertex('main', () =>
 // 注意：TSL 当前不支持 sampler2DArray，这里使用 sampler2D 作为占位
 // 实际使用时需要扩展 TSL 以支持纹理数组
 const diffuse = sampler('diffuse');
-const layer = uniform('layer');
+const layer = float(uniform('layer'));
 
 // 对应 GLSL: color = texture(diffuse, vec3(v_st, float(layer)));
 export const layerFragmentShader = fragment('main', () =>
 {
-    // 注意：texture2DArray 功能需要扩展 TSL 来支持
-    // 当前实现使用 texture2D 作为占位
-    // 实际 WGSL 代码需要手动修改为 textureLoad 或 textureSampleLevel 来访问纹理数组
-    // 对应 GLSL: float(layer) - 将 int 转换为 float
-    // 注意：layer 是 int uniform，需要转换为 float
-    // 在 GLSL 中使用 float(layer)，在 TSL 中需要先将 layer 包装为 float
-    // 由于 TSL 当前不支持 int uniform 和 texture2DArray，这里使用 texture2D 作为占位
-    // 实际使用时需要扩展 TSL 以支持：
-    // 1. int uniform 类型
-    // 2. sampler2DArray 类型
-    // 3. texture2DArray 函数
-    // 临时使用 texture2D，实际应该使用 texture2DArray(diffuse, vec3(v_st, float(layer)))
-    return_(texture2D(diffuse, vLayer.v_st));
+    return_(texture(diffuse, vec3(vLayer.v_st, layer)));
 });
 
 // ============================================================================
@@ -72,7 +60,7 @@ export const multipleOutputVertexShader = vertex('main', () =>
 });
 
 // Multiple Output Fragment shader
-// 对应 GLSL: 
+// 对应 GLSL:
 //   layout(location = 0) out vec4 red;
 //   layout(location = 1) out vec4 green;
 //   layout(location = 2) out vec4 blue;
@@ -90,7 +78,7 @@ export const multipleOutputFragmentShader = fragment('main', () =>
     const red = var_('red', vec4(0.5, 0.0, 0.0, 1.0));
     const green = var_('green', vec4(0.0, 0.3, 0.0, 1.0));
     const blue = var_('blue', vec4(0.0, 0.0, 0.8, 1.0));
-    
+
     // 当前只返回一个颜色，实际应该返回多个
     return_(red);
 });

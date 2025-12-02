@@ -235,6 +235,9 @@ export class Fragment extends Func
                 lines.push('');
             }
 
+            // 添加 @fragment 标记
+            lines.push('@fragment');
+
             // 生成函数签名和函数体
             // 查找输入结构体（VaryingStruct）
             let inputStruct: { varName: string; struct: VaryingStruct<any> } | undefined;

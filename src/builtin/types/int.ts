@@ -1,7 +1,7 @@
-import { Attribute } from '../../Attribute';
+import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
-import { Uniform } from '../../Uniform';
-import { Varying } from '../../Varying';
+import { Uniform } from '../../uniform';
+import { Varying } from '../../varying';
 
 /**
  * Int 类，用于表示整数类型（int/i32）

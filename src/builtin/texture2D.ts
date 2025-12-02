@@ -1,5 +1,5 @@
 import { getBuildParam } from '../buildShader';
-import { Sampler } from '../Sampler';
+import { Sampler } from '../sampler';
 import { Vec2 } from './types/vec2';
 import { Vec4 } from './types/vec4';
 

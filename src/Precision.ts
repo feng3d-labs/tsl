@@ -20,6 +20,14 @@ export class Precision implements IElement
     {
         this.value = value;
         this.type = type;
+
+        // 如果当前正在执行函数，将 precision 添加到依赖中
+        const currentFunc = getCurrentFunc();
+        if (!currentFunc)
+        {
+            throw new Error('precision() 必须在 fragment shader 函数中调用');
+        }
+        currentFunc.dependencies.push(this);
     }
 
     toGLSL(): string
@@ -43,16 +51,5 @@ export class Precision implements IElement
 export function precision(value: 'lowp' | 'mediump' | 'highp', type?: PrecisionType): Precision;
 export function precision(value: 'lowp' | 'mediump' | 'highp', type: PrecisionType = 'float'): Precision
 {
-    const precisionInstance = new Precision(value, type);
-
-    // 如果当前正在执行函数，将 precision 添加到依赖中
-    const currentFunc = getCurrentFunc();
-    if (!currentFunc)
-    {
-        throw new Error('precision() 必须在 fragment shader 函数中调用');
-    }
-    currentFunc.dependencies.push(precisionInstance);
-
-    return precisionInstance;
+    return new Precision(value, type);
 }
-

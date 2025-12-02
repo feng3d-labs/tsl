@@ -1,9 +1,9 @@
-import { Attribute } from './Attribute';
-import { Precision } from './Precision';
-import { Sampler } from './Sampler';
+import { Attribute } from './attribute';
+import { Precision } from './precision';
+import { Sampler } from './sampler';
 import { VaryingStruct } from './varyingStruct';
-import { Uniform } from './Uniform';
-import { Varying } from './Varying';
+import { Uniform } from './uniform';
+import { Varying } from './varying';
 import { ShaderValue } from './IElement';
 import { FragmentOutput } from './fragmentOutput';
 

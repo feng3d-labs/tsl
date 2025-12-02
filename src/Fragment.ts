@@ -1,8 +1,8 @@
 import { buildShader } from './buildShader';
 import { Func } from './Func';
-import { Precision } from './Precision';
-import { Sampler } from './Sampler';
-import { Uniform } from './Uniform';
+import { Precision } from './precision';
+import { Sampler } from './sampler';
+import { Uniform } from './uniform';
 import { Vertex } from './Vertex';
 import { FragmentOutput } from './fragmentOutput';
 import { VaryingStruct } from './varyingStruct';

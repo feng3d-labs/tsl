@@ -1,8 +1,8 @@
-import { Attribute } from './Attribute';
+import { Attribute } from './attribute';
 import { buildShader } from './buildShader';
 import { Func } from './Func';
-import { Sampler } from './Sampler';
-import { Uniform } from './Uniform';
+import { Sampler } from './sampler';
+import { Uniform } from './uniform';
 
 /**
  * Vertex 类，继承自 Func

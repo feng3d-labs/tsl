@@ -1,6 +1,6 @@
-import { Attribute } from '../../Attribute';
+import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
-import { Uniform } from '../../Uniform';
+import { Uniform } from '../../uniform';
 import { Vec4 } from './vec4';
 
 /**

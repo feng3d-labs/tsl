@@ -1,13 +1,13 @@
 import { analyzeDependencies } from './analyzeDependencies';
-import { Attribute } from './Attribute';
+import { Attribute } from './attribute';
 import { getBuildParam } from './buildShader';
 import { IStatement } from './builtin/Statement';
 import { setCurrentFunc } from './currentFunc';
 import { IElement, ShaderValue } from './IElement';
-import { Precision } from './Precision';
-import { Sampler } from './Sampler';
-import { Uniform } from './Uniform';
-import { Varying } from './Varying';
+import { Precision } from './precision';
+import { Sampler } from './sampler';
+import { Uniform } from './uniform';
+import { Varying } from './varying';
 import { VaryingStruct } from './varyingStruct';
 
 /**

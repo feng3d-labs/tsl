@@ -1,8 +1,7 @@
-import { IElement, ShaderValue } from '../IElement';
+import { formatNumber } from './formatNumber';
 import { Float } from './types/float';
 import { Vec3 } from './types/vec3';
 import { Vec4 } from './types/vec4';
-import { formatNumber } from './formatNumber';
 
 /**
  * clamp 函数，将值限制在范围内

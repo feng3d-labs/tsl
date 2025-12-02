@@ -1,4 +1,4 @@
-import { Func } from './Func';
+import { Func } from './func';
 
 /**
  * 当前正在执行的函数实例（用于收集 _let 和 _return 语句）

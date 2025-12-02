@@ -1,7 +1,6 @@
-import { IElement, ShaderValue } from '../IElement';
+import { formatNumber } from './formatNumber';
 import { Float } from './types/float';
 import { Vec2 } from './types/vec2';
-import { formatNumber } from './formatNumber';
 
 /**
  * atan 函数，计算反正切

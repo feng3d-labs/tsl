@@ -1,12 +1,11 @@
 import { buildShader } from './buildShader';
-import { Func } from './Func';
+import { Func } from './func';
+import { ShaderValue } from './IElement';
 import { Precision } from './precision';
 import { Sampler } from './sampler';
 import { Uniform } from './uniform';
-import { Vertex } from './Vertex';
-import { FragmentOutput } from './fragmentOutput';
 import { VaryingStruct } from './varyingStruct';
-import { ShaderValue } from './IElement';
+import { Vertex } from './vertex';
 
 /**
  * Fragment 类，继承自 Func

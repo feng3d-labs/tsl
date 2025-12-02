@@ -1,6 +1,5 @@
-import { IElement, ShaderValue } from '../IElement';
-import { Float } from './types/float';
 import { formatNumber } from './formatNumber';
+import { Float } from './types/float';
 
 /**
  * acos 函数，计算反余弦

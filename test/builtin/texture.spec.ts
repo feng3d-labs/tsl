@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { fragment } from '../../src/Fragment';
-import { sampler } from '../../src/Sampler';
+import { fragment } from '../../src/fragment';
+import { sampler } from '../../src/sampler';
 import { texture } from '../../src/builtin/texture';
 import { int } from '../../src/builtin/types/int';
 import { vec2 } from '../../src/builtin/types/vec2';
 import { vec3 } from '../../src/builtin/types/vec3';
 import { vec4 } from '../../src/builtin/types/vec4';
-import { uniform } from '../../src/Uniform';
+import { uniform } from '../../src/uniform';
 import { return_ } from '../../src/builtin/return';
 
 describe('texture', () =>

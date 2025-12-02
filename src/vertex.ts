@@ -1,6 +1,6 @@
 import { Attribute } from './attribute';
 import { buildShader } from './buildShader';
-import { Func } from './Func';
+import { Func } from './func';
 import { Sampler } from './sampler';
 import { Uniform } from './uniform';
 

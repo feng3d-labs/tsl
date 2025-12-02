@@ -12,6 +12,7 @@ import { Vec3 } from './vec3';
 
 /**
  * Vec4 类型，表示 vec4 字面量值或 uniform/attribute 变量
+ * @internal 库外部不应直接使用 `new Vec4()`，应使用 `vec4()` 函数
  */
 export class Vec4 implements ShaderValue
 {

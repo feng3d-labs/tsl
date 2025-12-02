@@ -2,6 +2,7 @@ import { IElement } from './IElement';
 
 /**
  * Sampler 类，表示纹理采样器
+ * @internal 库外部不应直接使用 `new Sampler()`，应使用 `sampler()` 函数
  */
 export class Sampler implements IElement
 {

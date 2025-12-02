@@ -4,7 +4,8 @@ import { Uniform } from '../../Uniform';
 import { Float } from './float';
 
 /**
- * UVec2 类，用于表示 uvec2 字面量值或 uniform/attribute 变量
+ * Uvec2 类，用于表示 uvec2 字面量值或 uniform/attribute 变量
+ * @internal 库外部不应直接使用 `new Uvec2()`，应使用 `uvec2()` 函数
  */
 export class Uvec2 implements ShaderValue
 {

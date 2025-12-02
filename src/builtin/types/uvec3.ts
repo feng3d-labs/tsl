@@ -5,6 +5,7 @@ import { Float } from './float';
 
 /**
  * Uvec3 类，用于表示 uvec3 字面量值或 uniform/attribute 变量
+ * @internal 库外部不应直接使用 `new Uvec3()`，应使用 `uvec3()` 函数
  */
 export class Uvec3 implements ShaderValue
 {

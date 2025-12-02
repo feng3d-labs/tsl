@@ -3,6 +3,7 @@ import { IElement, ShaderValue } from '../IElement';
 /**
  * Builtin 类，表示内置变量（如 position）
  * 只能在 varyingStruct 中使用，变量名从结构体字段名获取
+ * @internal 库外部不应直接使用 `new Builtin()`，应使用 `builtin()` 函数
  */
 export class Builtin implements IElement
 {

@@ -7,6 +7,7 @@ import { IElement, ShaderValue } from './IElement';
  * 只能在 varyingStruct 中使用：
  * - 变量名由 varyingStruct 根据字段名自动设置
  * - location 可以显式指定，也可以由 varyingStruct 自动分配
+ * @internal 库外部不应直接使用 `new Varying()`，应使用 `varying()` 函数
  */
 export class Varying implements IElement
 {

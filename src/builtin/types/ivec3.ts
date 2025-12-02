@@ -5,6 +5,7 @@ import { Float } from './float';
 
 /**
  * IVec3 类，用于表示 ivec3 字面量值或 uniform/attribute 变量
+ * @internal 库外部不应直接使用 `new IVec3()`，应使用 `ivec3()` 函数
  */
 export class IVec3 implements ShaderValue
 {

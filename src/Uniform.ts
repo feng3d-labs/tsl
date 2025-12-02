@@ -2,6 +2,7 @@ import { IElement, ShaderValue } from './IElement';
 
 /**
  * Uniform 类
+ * @internal 库外部不应直接使用 `new Uniform()`，应使用 `uniform()` 函数
  */
 export class Uniform implements IElement
 {

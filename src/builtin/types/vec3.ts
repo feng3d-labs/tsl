@@ -7,6 +7,10 @@ import { formatNumber } from '../formatNumber';
 import { Float } from './float';
 import { Vec2 } from './vec2';
 
+/**
+ * Vec3 类，用于表示 vec3 字面量值或 uniform/attribute 变量
+ * @internal 库外部不应直接使用 `new Vec3()`，应使用 `vec3()` 函数
+ */
 export class Vec3 implements ShaderValue
 {
     readonly glslType = 'vec3';

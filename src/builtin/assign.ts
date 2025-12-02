@@ -2,6 +2,53 @@ import { ShaderValue } from '../IElement';
 import { getBuildParam } from '../buildShader';
 import { getCurrentFunc } from '../currentFunc';
 import { Builtin } from './builtin';
+import { IStatement } from './Statement';
+
+/**
+ * Assign 类，表示赋值语句
+ * @internal 库外部不应直接使用 `new Assign()`，应使用 `assign()` 函数
+ */
+export class Assign implements IStatement
+{
+    readonly target: ShaderValue;
+    readonly value: ShaderValue;
+
+    constructor(target: ShaderValue, value: ShaderValue)
+    {
+        this.target = target;
+        this.value = value;
+
+        // 将语句添加到当前函数的 statements 中
+        const currentFunc = getCurrentFunc();
+        if (currentFunc)
+        {
+            currentFunc.statements.push(this);
+            // 收集依赖（包括 target 和 value）
+            currentFunc.dependencies.push(target);
+            currentFunc.dependencies.push(value);
+        }
+    }
+
+    toGLSL(): string
+    {
+        return `${this.target.toGLSL()} = ${this.value.toGLSL()};`;
+    }
+
+    toWGSL(): string
+    {
+        // 在 WGSL 中，如果是 vertex shader 的 position，需要特殊处理
+        const isPositionBuiltin = this.target instanceof Builtin && this.target.isPosition;
+        if (isPositionBuiltin && getBuildParam().stage === 'vertex')
+        {
+            // 在 vertex shader 中，position 是返回值，使用 return
+            return `return ${this.value.toWGSL()};`;
+        }
+        else
+        {
+            return `${this.target.toWGSL()} = ${this.value.toWGSL()};`;
+        }
+    }
+}
 
 /**
  * 赋值操作（用于对内置变量进行赋值）
@@ -10,38 +57,6 @@ import { Builtin } from './builtin';
  */
 export function assign<T extends ShaderValue>(target: T, value: T): void
 {
-    const currentFunc = getCurrentFunc();
-    if (currentFunc)
-    {
-        const stmt: any = {
-            toGLSL: () =>
-            {
-                return `${target.toGLSL()} = ${value.toGLSL()};`;
-            },
-            toWGSL: () =>
-            {
-                // 在 WGSL 中，如果是 vertex shader 的 position，需要特殊处理
-                const isPositionBuiltin = target instanceof Builtin && target.isPosition;
-                if (isPositionBuiltin && getBuildParam().stage === 'vertex')
-                {
-                    // 在 vertex shader 中，position 是返回值，使用 return
-                    return `return ${value.toWGSL()};`;
-                }
-                else
-                {
-                    return `${target.toWGSL()} = ${value.toWGSL()};`;
-                }
-            },
-        };
-
-        // 保存原始信息，用于自动创建结构体
-        stmt._assignTarget = target;
-        stmt._assignValue = value;
-
-        currentFunc.statements.push(stmt);
-        // 收集依赖（包括 target 和 value）
-        currentFunc.dependencies.push(target);
-        currentFunc.dependencies.push(value);
-    }
+    new Assign(target, value);
 }
 

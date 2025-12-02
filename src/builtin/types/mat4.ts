@@ -5,6 +5,7 @@ import { Vec4 } from './vec4';
 
 /**
  * Mat4 类，用于表示 mat4 字面量值或 uniform/attribute 变量
+ * @internal 库外部不应直接使用 `new Mat4()`，应使用 `mat4()` 函数
  */
 export class Mat4 implements ShaderValue
 {

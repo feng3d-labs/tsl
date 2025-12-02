@@ -8,6 +8,7 @@ export type PrecisionType = 'float' | 'int' | 'sampler2DArray';
 
 /**
  * Precision 类，表示 GLSL 精度声明（仅用于 fragment shader）
+ * @internal 库外部不应直接使用 `new Precision()`，应使用 `precision()` 函数
  */
 export class Precision implements IElement
 {

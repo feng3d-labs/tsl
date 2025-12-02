@@ -8,6 +8,7 @@ import { Float } from './float';
 
 /**
  * Vec2 类，用于表示 vec2 字面量值或 uniform/attribute 变量
+ * @internal 库外部不应直接使用 `new Vec2()`，应使用 `vec2()` 函数
  */
 export class Vec2 implements ShaderValue
 {

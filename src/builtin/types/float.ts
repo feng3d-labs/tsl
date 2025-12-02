@@ -8,6 +8,10 @@ import { Vec2 } from './vec2';
 import { Vec3 } from './vec3';
 import { Vec4 } from './vec4';
 
+/**
+ * Float 类，用于表示浮点数类型（float/f32）
+ * @internal 库外部不应直接使用 `new Float()`，应使用 `float()` 函数
+ */
 export class Float implements ShaderValue
 {
     readonly glslType = 'float';

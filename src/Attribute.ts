@@ -3,6 +3,7 @@ import { IElement, ShaderValue } from './IElement';
 
 /**
  * Attribute 类
+ * @internal 库外部不应直接使用 `new Attribute()`，应使用 `attribute()` 函数
  */
 export class Attribute implements IElement
 {

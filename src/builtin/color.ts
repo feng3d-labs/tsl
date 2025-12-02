@@ -2,6 +2,7 @@ import { IElement, ShaderValue } from '../IElement';
 
 /**
  * Color 类，表示 fragment shader 的输出 location
+ * @internal 库外部不应直接使用 `new Color()`，应使用 `color()` 函数
  */
 export class Color implements IElement
 {

@@ -5,6 +5,7 @@ import { Varying } from '../../Varying';
 
 /**
  * Int 类，用于表示整数类型（int/i32）
+ * @internal 库外部不应直接使用 `new Int()`，应使用 `int()` 函数
  */
 export class Int implements ShaderValue
 {

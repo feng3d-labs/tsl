@@ -16,6 +16,13 @@
 		"webgl-examples/sample7",
 		"webgl-examples/sample8"
 	],
+	"regl-examples": [
+		"regl-examples/basic",
+		"regl-examples/batch",
+		"regl-examples/cube",
+		"regl-examples/bunny",
+		"regl-examples/camera"
+	],
 	"WebGL2Samples": [
 		"WebGL2Samples/fbo_rtt_texture_array"
 	]

@@ -71,7 +71,10 @@ document.addEventListener('DOMContentLoaded', async () =>
             commandEncoders: [{
                 passEncoders: [
                     {
-                        descriptor: { colorAttachments: [{ clearValue: [0, 0, 0, 1] }] },
+                        descriptor: {
+                            colorAttachments: [{ clearValue: [0, 0, 0, 1] }],
+                            depthStencilAttachment: { depthClearValue: 1 },
+                        },
                         renderPassObjects: [renderObject],
                     },
                 ],

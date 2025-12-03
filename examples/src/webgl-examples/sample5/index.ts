@@ -90,8 +90,8 @@ document.addEventListener('DOMContentLoaded', async () =>
 
         const { projectionMatrix, modelViewMatrix } = drawScene(webgpuCanvas, deltaTime);
 
-        reactive(renderObject.bindingResources).uProjectionMatrix = { value: projectionMatrix as Float32Array };
-        reactive(renderObject.bindingResources).uModelViewMatrix = { value: modelViewMatrix as Float32Array };
+        reactive(renderObject.bindingResources).uProjectionMatrix = { value: projectionMatrix as Float32Array<ArrayBuffer> };
+        reactive(renderObject.bindingResources).uModelViewMatrix = { value: modelViewMatrix as Float32Array<ArrayBuffer> };
 
         const submit: Submit = {
             commandEncoders: [{

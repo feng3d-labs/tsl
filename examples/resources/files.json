@@ -1,22 +1,22 @@
 {
 	"test": [
-		"sky"
+		"test/sky"
 	],
 	"Basic Graphics": [
-		"helloTriangle",
-		"fractalCube"
+		"webgpu/helloTriangle",
+		"webgpu/fractalCube"
 	],
 	"webgl-examples": [
-		"sample1",
-		"sample2",
-		"sample3",
-		"sample4",
-		"sample5",
-		"sample6",
-		"sample7",
-		"sample8"
+		"webgl-examples/sample1",
+		"webgl-examples/sample2",
+		"webgl-examples/sample3",
+		"webgl-examples/sample4",
+		"webgl-examples/sample5",
+		"webgl-examples/sample6",
+		"webgl-examples/sample7",
+		"webgl-examples/sample8"
 	],
 	"WebGL2Samples": [
-		"fbo_rtt_texture_array"
+		"WebGL2Samples/fbo_rtt_texture_array"
 	]
 }

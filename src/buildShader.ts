@@ -15,6 +15,7 @@ export function buildShader<T>(param: { language: 'glsl' | 'wgsl', stage: 'verte
     {
         result = undefined as unknown as T;
         console.error('Error in buildParam', error);
+        throw new Error(`Error in buildParam: ${error.message}`);
     }
 
     buildParam = previousBuildParam;

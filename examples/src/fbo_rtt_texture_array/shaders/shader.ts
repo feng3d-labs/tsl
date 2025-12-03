@@ -48,5 +48,7 @@ export const multipleOutputFragmentShader = fragment('main', () =>
     assign(f.red, vec4(0.5, 0.0, 0.0, 1.0));
     assign(f.green, vec4(0.0, 0.3, 0.0, 1.0));
     assign(f.blue, vec4(0.0, 0.0, 0.8, 1.0));
+
+    return_(f);
 });
 

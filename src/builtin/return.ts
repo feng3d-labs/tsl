@@ -1,14 +1,15 @@
 import { getBuildParam } from '../buildShader';
-import { ShaderValue } from '../IElement';
+import { IElement, ShaderValue } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
+import { FragmentOutput } from '../fragmentOutput';
 import { VaryingStruct } from '../varyingStruct';
 
 /**
  * 创建一个 return 语句（用于函数返回值）
- * @param expr 返回值表达式
+ * @param expr 返回值表达式，可以是 ShaderValue 或 FragmentOutput
  * @returns 返回值表达式（原样返回，用于链式调用）
  */
-export function return_<T extends ShaderValue>(expr: T): void
+export function return_<T extends ShaderValue | FragmentOutput<any>>(expr: T): void
 {
     const currentFunc = getCurrentFunc();
     if (currentFunc)
@@ -16,11 +17,15 @@ export function return_<T extends ShaderValue>(expr: T): void
         // 检查是否是结构体变量（通过检查 dependencies 中是否包含 VaryingStruct 实例）
         const isStructVar = expr.dependencies && expr.dependencies.some(dep => dep instanceof VaryingStruct);
 
+        // 检查是否是 FragmentOutput 实例
+        const isFragmentOutput = expr instanceof FragmentOutput ||
+            (typeof expr === 'object' && expr !== null && (expr as any)._fragmentOutput instanceof FragmentOutput);
+
         const stmt: any = {
             toGLSL: () =>
             {
-                // 如果是结构体变量，在 GLSL 中只生成 return;（输出已通过 assign 设置）
-                if (isStructVar)
+                // 如果是结构体变量或 FragmentOutput，在 GLSL 中只生成 return;（输出已通过 assign 设置）
+                if (isStructVar || isFragmentOutput)
                 {
                     return 'return;';
                 }
@@ -48,11 +53,22 @@ export function return_<T extends ShaderValue>(expr: T): void
 
                 return `return ${expr.toGLSL()};`;
             },
-            toWGSL: () => `return ${expr.toWGSL()};`,
+            toWGSL: () =>
+            {
+                // 如果是 FragmentOutput，在 WGSL 中返回 output 变量
+                if (isFragmentOutput)
+                {
+                    return 'return output;';
+                }
+
+                return `return ${expr.toWGSL()};`;
+            },
         };
 
         // 保存原始表达式，用于 fragment shader 中自动创建结构体
         stmt._returnExpr = expr;
+        // 标记这是一个 return 语句，用于 fragment.ts 检查
+        stmt._isReturn = true;
 
         currentFunc.statements.push(stmt);
         currentFunc.dependencies.push(expr);

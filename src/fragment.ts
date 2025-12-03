@@ -346,14 +346,20 @@ export class Fragment extends Func
                 // 在函数体开头添加 var output: FragmentOut; 声明
                 lines.push(`    var ${outputVarName}: ${structName};`);
 
+                // 检查是否已经有 return 语句
+                const hasReturn = this.statements.some(stmt => (stmt as any)._isReturn);
+
                 // 生成函数体
                 this.statements.forEach(stmt =>
                 {
                     lines.push(`    ${stmt.toWGSL()}`);
                 });
 
-                // 在函数体末尾添加 return output; 语句
-                lines.push(`    return ${outputVarName};`);
+                // 如果没有 return 语句，在函数体末尾添加 return output; 语句
+                if (!hasReturn)
+                {
+                    lines.push(`    return ${outputVarName};`);
+                }
             }
             else
             {

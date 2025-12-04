@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
     webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
     const webgl = new WebGL(
-        { canvasId: 'webgl', webGLcontextId: 'webgl' },
+        { canvasId: 'webgl', webGLcontextId: 'webgl2' },
     );
 
     // 初始化缓冲区

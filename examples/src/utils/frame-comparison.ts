@@ -48,7 +48,7 @@ async function compareFirstFrame(
 {
     // 等待一帧，确保渲染完成
     // await new Promise(resolve => requestAnimationFrame(resolve));
-    await new Promise(resolve => setTimeout(resolve, 100)); // 额外等待 100ms 确保渲染完成
+    // await new Promise(resolve => setTimeout(resolve, 100)); // 额外等待 100ms 确保渲染完成
 
     const webglPixels = readWebGLPixels(webgl, webglCanvas);
     const webgpuPixels = await readWebGPUPixels(webgpu, webgpuCanvas);

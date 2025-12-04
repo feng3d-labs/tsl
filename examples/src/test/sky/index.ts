@@ -12,6 +12,7 @@ import vertexWgsl from './shaders/vertex.wgsl';
 import fragmentWgsl from './shaders/fragment.wgsl';
 
 import { vertexShader, fragmentShader } from './shaders/shader';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 const parameters: {
     readonly elevation: number,
@@ -162,11 +163,20 @@ async function main()
         }],
     };
 
+    let frameCount = 0;
+
     // Draw the scene repeatedly
     function render()
     {
         webgpu.submit(submit);
         webgl.submit(submit);
+
+        // 第一帧后进行比较
+        if (frameCount === 0)
+        {
+            frameCount++;
+            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
+        }
 
         requestAnimationFrame(render);
     }

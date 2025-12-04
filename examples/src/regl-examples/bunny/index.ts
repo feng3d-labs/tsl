@@ -6,6 +6,7 @@ import * as bunny from './utils/bunny';
 import * as mat4 from './utils/gl-mat4';
 
 import { vertexShader, fragmentShader } from './shaders/shader';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
@@ -109,6 +110,12 @@ document.addEventListener('DOMContentLoaded', async () =>
 
         webgpu.submit(submit);
         webgl.submit(submit);
+
+        // 第一帧后进行比较
+        if (tick === 1)
+        {
+            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
+        }
 
         requestAnimationFrame(draw);
     }

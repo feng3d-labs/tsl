@@ -1,6 +1,7 @@
 import { RenderObject, RenderPass, RenderPassDescriptor, RenderPassObject, RenderPipeline, Sampler, Submit, Texture } from '@feng3d/render-api';
 import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 // 导入手动编写的 GLSL 和 WGSL 文件（因为 TSL 当前不支持多个输出和纹理数组）
 import layerVertexGlsl from './shaders/vertex-layer.glsl';
@@ -209,6 +210,9 @@ document.addEventListener('DOMContentLoaded', async () =>
     // 渲染
     webgpu.submit(submit);
     webgl.submit(submit);
+
+    // 第一帧后进行比较
+    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
 
     // 清理资源
     // webgpu.deleteFramebuffer(frameBuffer);

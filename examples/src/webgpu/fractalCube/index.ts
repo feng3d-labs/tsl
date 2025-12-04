@@ -3,6 +3,7 @@ import { RenderObject, RenderPassDescriptor, Sampler, Submit, Texture } from '@f
 import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { mat4 } from 'gl-matrix';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 import vertexGlsl from './shaders/vertex.glsl';
 import fragmentGlsl from './shaders/fragment.glsl';
@@ -115,6 +116,7 @@ async function main()
     };
 
     let then = 0;
+    let frameCount = 0;
 
     // Draw the scene repeatedly
     function render()
@@ -131,6 +133,13 @@ async function main()
 
         webgpu.submit(submit);
         webgl.submit(submit);
+
+        // 第一帧后进行比较
+        if (frameCount === 0)
+        {
+            frameCount++;
+            autoCompareFirstFrame(webgl, webgpu, webglCanvas, canvas, 0);
+        }
 
         requestAnimationFrame(render);
     }

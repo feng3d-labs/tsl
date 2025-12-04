@@ -5,6 +5,7 @@ import { WebGPU } from '@feng3d/webgpu';
 import { mat4 } from 'gl-matrix';
 
 import { vertexShader, fragmentShader } from './shaders/shader';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 let cubeRotation = 0.0;
 
@@ -80,6 +81,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     };
 
     let then = 0;
+    let frameCount = 0;
 
     // 绘制场景
     function render(now: number)
@@ -101,6 +103,13 @@ document.addEventListener('DOMContentLoaded', async () =>
 
         webgpu.submit(submit);
         webgl.submit(submit);
+
+        // 第一帧后进行比较
+        if (frameCount === 0)
+        {
+            frameCount++;
+            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
+        }
 
         requestAnimationFrame(render);
     }

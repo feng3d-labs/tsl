@@ -5,6 +5,7 @@ import { WebGPU } from '@feng3d/webgpu';
 import * as mat4 from './utils/gl-mat4';
 
 import { vertexShader, fragmentShader } from './shaders/shader';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 (async () =>
 {
@@ -115,6 +116,8 @@ import { vertexShader, fragmentShader } from './shaders/shader';
         }],
     };
 
+    let frameCount = 0;
+
     function draw()
     {
         tick++;
@@ -141,6 +144,13 @@ import { vertexShader, fragmentShader } from './shaders/shader';
 
         webgpu.submit(submit);
         webgl.submit(submit);
+
+        // 第一帧后进行比较
+        if (frameCount === 0)
+        {
+            frameCount++;
+            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
+        }
 
         requestAnimationFrame(draw);
     }

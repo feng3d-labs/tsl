@@ -1,6 +1,7 @@
 import { RenderPassDescriptor, Submit } from '@feng3d/render-api';
 import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 import vertexGlsl from './shaders/vertex.glsl';
 import vertexWgsl from './shaders/vertex.wgsl';
@@ -69,4 +70,7 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     webgpu.submit(submit);
     webgl.submit(submit);
+
+    // 第一帧后进行比较
+    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
 });

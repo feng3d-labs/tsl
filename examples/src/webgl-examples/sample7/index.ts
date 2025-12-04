@@ -3,6 +3,7 @@ import { reactive } from '@feng3d/reactivity';
 import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { mat4 } from 'gl-matrix';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 // 导入原始 GLSL 和 WGSL 文件作为参考和备选
 import vertexGlsl from './shaders/vertex.glsl';
@@ -95,6 +96,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     };
 
     let then = 0;
+    let frameCount = 0;
 
     // 绘制场景
     function render(now: number)
@@ -117,6 +119,13 @@ document.addEventListener('DOMContentLoaded', async () =>
 
         webgpu.submit(submit);
         webgl.submit(submit);
+
+        // 第一帧后进行比较
+        if (frameCount === 0)
+        {
+            frameCount++;
+            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
+        }
 
         requestAnimationFrame(render);
     }

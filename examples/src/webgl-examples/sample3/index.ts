@@ -4,6 +4,7 @@ import { WebGPU } from '@feng3d/webgpu';
 import { mat4 } from 'gl-matrix';
 
 import { vertexShader, fragmentShader } from './shaders/shader';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
@@ -93,6 +94,9 @@ document.addEventListener('DOMContentLoaded', async () =>
     // 提交渲染命令
     webgpu.submit(submit);
     webgl.submit(submit);
+
+    // 第一帧后进行比较
+    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
 });
 
 /**

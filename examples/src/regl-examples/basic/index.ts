@@ -3,6 +3,7 @@ import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 
 import { vertexShader, fragmentShader } from './shaders/shader';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
@@ -51,6 +52,8 @@ document.addEventListener('DOMContentLoaded', async () =>
         },
     };
 
+    let frameCount = 0;
+
     function draw()
     {
         webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
@@ -74,6 +77,13 @@ document.addEventListener('DOMContentLoaded', async () =>
 
         webgpu.submit(submit);
         webgl.submit(submit);
+
+        // 第一帧后进行比较
+        if (frameCount === 0)
+        {
+            frameCount++;
+            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
+        }
 
         requestAnimationFrame(draw);
     }

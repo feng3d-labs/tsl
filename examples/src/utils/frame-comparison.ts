@@ -19,6 +19,119 @@ interface ComparisonResult
 }
 
 /**
+ * 自动比较并显示结果（便捷函数）
+ */
+export async function autoCompareFirstFrame(
+    webgl: WebGL,
+    webgpu: WebGPU,
+    webglCanvas: HTMLCanvasElement,
+    webgpuCanvas: HTMLCanvasElement,
+    tolerance = 0,
+    containerId = 'comparison-result',
+): Promise<ComparisonResult>
+{
+    const result = await compareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, tolerance);
+    displayComparisonResult(result, containerId);
+    return result;
+}
+
+/**
+ * 比较 WebGL 和 WebGPU 的第一帧画面
+ */
+async function compareFirstFrame(
+    webgl: WebGL,
+    webgpu: WebGPU,
+    webglCanvas: HTMLCanvasElement,
+    webgpuCanvas: HTMLCanvasElement,
+    tolerance = 0,
+): Promise<ComparisonResult>
+{
+    // 等待一帧，确保渲染完成
+    // await new Promise(resolve => requestAnimationFrame(resolve));
+    await new Promise(resolve => setTimeout(resolve, 100)); // 额外等待 100ms 确保渲染完成
+
+    const webglPixels = readWebGLPixels(webgl, webglCanvas);
+    const webgpuPixels = await readWebGPUPixels(webgpu, webgpuCanvas);
+
+    if (!webglPixels || !webgpuPixels)
+    {
+        return {
+            isMatch: false,
+            difference: 1,
+            pixelDifference: 0,
+            totalPixels: 0,
+        };
+    }
+
+    return compareImageData(webglPixels, webgpuPixels, tolerance);
+}
+
+/**
+ * 在页面上显示比较结果
+ */
+function displayComparisonResult(result: ComparisonResult, containerId = 'comparison-result')
+{
+    let container = document.getElementById(containerId);
+    if (!container)
+    {
+        container = document.createElement('div');
+        container.id = containerId;
+        container.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 10000;
+            max-width: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        `;
+        document.body.appendChild(container);
+    }
+
+    const statusColor = result.isMatch ? '#4caf50' : '#f44336';
+    const statusText = result.isMatch ? '✓ 一致' : '✗ 不一致';
+
+    container.innerHTML = `
+        <div style="margin-bottom: 10px; font-weight: bold; color: ${statusColor};">
+            ${statusText}
+        </div>
+        <div style="margin-bottom: 5px;">
+            差异像素: ${result.pixelDifference} / ${result.totalPixels}
+        </div>
+        <div style="margin-bottom: 5px;">
+            差异比例: ${(result.difference * 100).toFixed(2)}%
+        </div>
+        ${result.diffImageData ? `
+            <div style="margin-top: 10px;">
+                <div style="margin-bottom: 5px;">差异图像（红色=差异，灰色=相同）:</div>
+                <canvas id="diff-canvas" style="border: 1px solid #666; max-width: 100%;"></canvas>
+            </div>
+        ` : ''}
+    `;
+
+    // 显示差异图像
+    if (result.diffImageData)
+    {
+        const diffCanvas = document.getElementById('diff-canvas') as HTMLCanvasElement;
+        if (diffCanvas)
+        {
+            diffCanvas.width = result.diffImageData.width;
+            diffCanvas.height = result.diffImageData.height;
+            const ctx = diffCanvas.getContext('2d');
+            if (ctx)
+            {
+                ctx.putImageData(result.diffImageData, 0, 0);
+            }
+        }
+    }
+}
+
+/**
  * 从 WebGL canvas 读取像素数据
  */
 function readWebGLPixels(webgl: WebGL, canvas: HTMLCanvasElement): ImageData | null
@@ -207,123 +320,3 @@ function compareImageData(
         diffImageData,
     };
 }
-
-/**
- * 比较 WebGL 和 WebGPU 的第一帧画面
- * @param webgl WebGL 实例
- * @param webgpu WebGPU 实例
- * @param webglCanvas WebGL canvas 元素
- * @param webgpuCanvas WebGPU canvas 元素
- * @param tolerance 像素差异容差（0-255），默认 0（完全一致）
- * @returns 比较结果
- */
-export async function compareFirstFrame(
-    webgl: WebGL,
-    webgpu: WebGPU,
-    webglCanvas: HTMLCanvasElement,
-    webgpuCanvas: HTMLCanvasElement,
-    tolerance = 0,
-): Promise<ComparisonResult>
-{
-    // 等待一帧，确保渲染完成
-    await new Promise(resolve => requestAnimationFrame(resolve));
-    await new Promise(resolve => setTimeout(resolve, 100)); // 额外等待 100ms 确保渲染完成
-
-    const webglPixels = readWebGLPixels(webgl, webglCanvas);
-    const webgpuPixels = await readWebGPUPixels(webgpu, webgpuCanvas);
-
-    if (!webglPixels || !webgpuPixels)
-    {
-        return {
-            isMatch: false,
-            difference: 1,
-            pixelDifference: 0,
-            totalPixels: 0,
-        };
-    }
-
-    return compareImageData(webglPixels, webgpuPixels, tolerance);
-}
-
-/**
- * 在页面上显示比较结果
- */
-export function displayComparisonResult(result: ComparisonResult, containerId = 'comparison-result')
-{
-    let container = document.getElementById(containerId);
-    if (!container)
-    {
-        container = document.createElement('div');
-        container.id = containerId;
-        container.style.cssText = `
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 12px;
-            z-index: 10000;
-            max-width: 300px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        `;
-        document.body.appendChild(container);
-    }
-
-    const statusColor = result.isMatch ? '#4caf50' : '#f44336';
-    const statusText = result.isMatch ? '✓ 一致' : '✗ 不一致';
-
-    container.innerHTML = `
-        <div style="margin-bottom: 10px; font-weight: bold; color: ${statusColor};">
-            ${statusText}
-        </div>
-        <div style="margin-bottom: 5px;">
-            差异像素: ${result.pixelDifference} / ${result.totalPixels}
-        </div>
-        <div style="margin-bottom: 5px;">
-            差异比例: ${(result.difference * 100).toFixed(2)}%
-        </div>
-        ${result.diffImageData ? `
-            <div style="margin-top: 10px;">
-                <div style="margin-bottom: 5px;">差异图像（红色=差异，灰色=相同）:</div>
-                <canvas id="diff-canvas" style="border: 1px solid #666; max-width: 100%;"></canvas>
-            </div>
-        ` : ''}
-    `;
-
-    // 显示差异图像
-    if (result.diffImageData)
-    {
-        const diffCanvas = document.getElementById('diff-canvas') as HTMLCanvasElement;
-        if (diffCanvas)
-        {
-            diffCanvas.width = result.diffImageData.width;
-            diffCanvas.height = result.diffImageData.height;
-            const ctx = diffCanvas.getContext('2d');
-            if (ctx)
-            {
-                ctx.putImageData(result.diffImageData, 0, 0);
-            }
-        }
-    }
-}
-
-/**
- * 自动比较并显示结果（便捷函数）
- */
-export async function autoCompareFirstFrame(
-    webgl: WebGL,
-    webgpu: WebGPU,
-    webglCanvas: HTMLCanvasElement,
-    webgpuCanvas: HTMLCanvasElement,
-    tolerance = 0,
-    containerId = 'comparison-result',
-): Promise<ComparisonResult>
-{
-    const result = await compareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, tolerance);
-    displayComparisonResult(result, containerId);
-    return result;
-}
-

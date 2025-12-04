@@ -145,13 +145,8 @@ function readWebGLPixels(webgl: WebGL, canvas: HTMLCanvasElement): ImageData | n
             },
         };
 
-        const textureView: TextureView = {
-            texture: canvasTexture,
-        };
-
         const readPixelsParams: ReadPixels = {
             texture: canvasTexture,
-            textureView,
             origin: [0, 0],
             copySize: [canvas.width, canvas.height],
         };
@@ -193,13 +188,8 @@ async function readWebGPUPixels(webgpu: WebGPU, canvas: HTMLCanvasElement): Prom
             },
         };
 
-        const textureView: TextureView = {
-            texture: canvasTexture,
-        };
-
         const readPixelsParams: ReadPixels = {
-            texture: canvasTexture,
-            textureView,
+            // texture: canvasTexture,
             origin: [0, 0],
             copySize: [canvas.width, canvas.height],
         };

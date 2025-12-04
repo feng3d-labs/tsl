@@ -8,8 +8,6 @@ import { vertexShader, fragmentShader } from './shaders/shader';
 import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 let cubeRotation = 0.0;
-// will set to true when video can be copied to texture
-let copyVideo = false;
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
@@ -46,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     // 设置视频（视频文件应该在 packages/tsl/examples/resources/ 目录下）
     // 由于 vite.config.js 中设置了 publicDir: 'resources'，resources 目录会被复制到构建输出
     // 所以从 sample8 目录访问，路径应该是 ../../Firefox.mp4
-    const video = setupVideo('./Firefox.mp4');
+    const video = await setupVideo('./Firefox.mp4');
 
     // 设置取消静音按钮
     const unmuteBtn = document.getElementById('unmuteBtn') as HTMLButtonElement;
@@ -124,10 +122,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         then = now;
 
         // 如果视频可以复制到纹理，则更新纹理
-        if (copyVideo)
-        {
-            updateTexture(texture.texture, video);
-        }
+        updateTexture(texture.texture, video);
 
         const { projectionMatrix, modelViewMatrix, normalMatrix } = drawScene(webgpuCanvas, deltaTime);
 
@@ -156,37 +151,18 @@ document.addEventListener('DOMContentLoaded', async () =>
     requestAnimationFrame(render);
 });
 
-function setupVideo(url: string)
+async function setupVideo(url: string): Promise<HTMLVideoElement>
 {
     const video = document.createElement('video');
 
-    let playing = false;
-    let timeupdate = false;
-
     // 先静音自动播放（浏览器允许），用户可以通过按钮取消静音
+    video.loop = true;
     video.autoplay = true;
     video.muted = true;
-    video.loop = true;
-
-    // Waiting for these 2 events ensures
-    // there is data in the video
-
-    video.addEventListener('playing', function ()
-    {
-        playing = true;
-        checkReady();
-    }, true);
-
-    video.addEventListener('timeupdate', function ()
-    {
-        timeupdate = true;
-        checkReady();
-    }, true);
-
     video.src = url;
 
-    // 尝试播放，如果失败则等待用户交互
-    video.play().catch((error) =>
+    // 等待视频播放
+    await video.play().catch((error) =>
     {
         console.warn('自动播放失败，等待用户交互:', error);
         // 添加点击事件监听，用户点击后开始播放
@@ -204,14 +180,6 @@ function setupVideo(url: string)
         document.addEventListener('click', startPlay, { once: true });
         document.addEventListener('touchstart', startPlay, { once: true });
     });
-
-    function checkReady()
-    {
-        if (playing && timeupdate)
-        {
-            copyVideo = true;
-        }
-    }
 
     return video;
 }

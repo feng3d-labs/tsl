@@ -30,11 +30,35 @@ document.addEventListener('DOMContentLoaded', async () =>
     webglCanvas.height = window.innerHeight * devicePixelRatio;
     const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2', webGLContextAttributes: { antialias: true } });
 
+    // 计算兔子模型的边界框，用于调整相机距离
+    const positions = bunny.positions.flat();
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    for (let i = 0; i < positions.length; i += 3)
+    {
+        minX = Math.min(minX, positions[i]);
+        maxX = Math.max(maxX, positions[i]);
+        minY = Math.min(minY, positions[i + 1]);
+        maxY = Math.max(maxY, positions[i + 1]);
+        minZ = Math.min(minZ, positions[i + 2]);
+        maxZ = Math.max(maxZ, positions[i + 2]);
+    }
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const centerZ = (minZ + maxZ) / 2;
+    const sizeX = maxX - minX;
+    const sizeY = maxY - minY;
+    const sizeZ = maxZ - minZ;
+    const maxSize = Math.max(sizeX, sizeY, sizeZ);
+    // 计算合适的初始距离，确保模型完整显示（使用模型大小的 3 倍作为初始距离）
+    const initialDistance = maxSize * 3;
+
     const camera = createCamera({
-        center: [0, 2.5, 0],
+        center: [centerX, centerY, centerZ],
+        distance: initialDistance,
+        maxDistance: initialDistance * 10, // 允许拉得更远
     });
 
-    const positions = bunny.positions.flat();
     const indices = bunny.cells.flat();
     const normals = angleNormals(bunny.cells, bunny.positions).flat();
 

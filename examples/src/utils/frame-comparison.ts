@@ -80,15 +80,16 @@ function displayComparisonResult(result: ComparisonResult, containerId = 'compar
             position: fixed;
             top: 10px;
             right: 10px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             color: white;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: monospace;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             font-size: 12px;
             z-index: 10000;
-            max-width: 300px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            max-width: 280px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            line-height: 1.4;
         `;
         document.body.appendChild(container);
     }
@@ -97,19 +98,19 @@ function displayComparisonResult(result: ComparisonResult, containerId = 'compar
     const statusText = result.isMatch ? '✓ 一致' : '✗ 不一致';
 
     container.innerHTML = `
-        <div style="margin-bottom: 10px; font-weight: bold; color: ${statusColor};">
+        <div style="margin-bottom: 8px; font-weight: bold; color: ${statusColor}; font-size: 14px;">
             ${statusText}
         </div>
-        <div style="margin-bottom: 5px;">
+        <div style="margin-bottom: 4px; font-size: 11px; white-space: nowrap;">
             差异像素: ${result.pixelDifference} / ${result.totalPixels}
         </div>
-        <div style="margin-bottom: 5px;">
+        <div style="margin-bottom: ${result.diffImageData ? '8px' : '0'}; font-size: 11px;">
             差异比例: ${(result.difference * 100).toFixed(2)}%
         </div>
         ${result.diffImageData ? `
-            <div style="margin-top: 10px;">
-                <div style="margin-bottom: 5px;">差异图像（红色=差异，灰色=相同）:</div>
-                <canvas id="diff-canvas" style="border: 1px solid #666; max-width: 100%;"></canvas>
+            <div style="margin-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.2); padding-top: 8px;">
+                <div style="margin-bottom: 4px; font-size: 10px; color: rgba(255, 255, 255, 0.8);">差异图像（红色=差异，灰色=相同）:</div>
+                <canvas id="diff-canvas" style="border: 1px solid #666; max-width: 100%; max-height: 200px; display: block; width: auto; height: auto;"></canvas>
             </div>
         ` : ''}
     `;
@@ -120,8 +121,20 @@ function displayComparisonResult(result: ComparisonResult, containerId = 'compar
         const diffCanvas = document.getElementById('diff-canvas') as HTMLCanvasElement;
         if (diffCanvas)
         {
+            // 计算缩放比例，确保图像不会太大
+            const maxDisplayWidth = 260; // 容器最大宽度减去 padding
+            const maxDisplayHeight = 200;
+            const scale = Math.min(
+                maxDisplayWidth / result.diffImageData.width,
+                maxDisplayHeight / result.diffImageData.height,
+                1, // 不放大
+            );
+
             diffCanvas.width = result.diffImageData.width;
             diffCanvas.height = result.diffImageData.height;
+            diffCanvas.style.width = `${result.diffImageData.width * scale}px`;
+            diffCanvas.style.height = `${result.diffImageData.height * scale}px`;
+
             const ctx = diffCanvas.getContext('2d');
             if (ctx)
             {

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset='utf-8' />
-    <title>feng3d examples - Cloth Simulation</title>
+    <title>feng3d examples - cloth</title>
     <meta name='apple-mobile-web-app-capable' content='yes' />
     <meta name='full-screen' content='true' />
     <meta name='screen-orientation' content='landscape' />
@@ -206,7 +206,7 @@
     <div class="container">
         <header class="header">
             <h1 class="title">布料模拟示例</h1>
-            <p class="description">使用 TSL (TypeScript Shader Language) 实现的实时布料物理模拟，展示 WebGL 和 WebGPU 渲染结果对比。</p>
+            <p class="description">使用 TSL 实现的实时布料物理模拟，展示 WebGL 和 WebGPU 渲染结果对比。</p>
         </header>
 
         <div class="canvas-container">
@@ -223,12 +223,11 @@
         <div class="info-panel">
             <h2 class="info-title">关于示例</h2>
             <ul class="info-list">
-                <li>使用 Verlet 积分实现布料物理模拟</li>
-                <li>支持重力和风力效果</li>
-                <li>通过约束系统保持布料结构</li>
-                <li>实时渲染布料纹理和法线</li>
-                <li>支持鼠标交互旋转视角</li>
+                <li>使用 TSL (TypeScript Shader Language) 编写着色器</li>
+                <li>同时支持 WebGL 和 WebGPU 渲染</li>
                 <li>自动比较 WebGL 和 WebGPU 渲染结果</li>
+                <li>实时渲染，支持交互操作</li>
+                <li>基于 feng3d 框架实现</li>
             </ul>
         </div>
     </div>
@@ -237,4 +236,3 @@
 </body>
 
 </html>
-

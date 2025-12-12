@@ -5,6 +5,11 @@ import { WebGPU } from '@feng3d/webgpu';
 
 import { attachCamera } from './hughsk/canvas-orbit-camera';
 import { fragmentShader, vertexShader } from './shaders/shader';
+// 导入原始 GLSL 和 WGSL 文件作为参考和备选
+import vertexGlsl from './shaders/vertex.glsl';
+import fragmentGlsl from './shaders/fragment.glsl';
+import vertexWgsl from './shaders/vertex.wgsl';
+import fragmentWgsl from './shaders/fragment.wgsl';
 import * as mat4 from './stackgl/gl-mat4';
 import * as vec3 from './stackgl/gl-vec3';
 
@@ -24,11 +29,11 @@ import * as vec3 from './stackgl/gl-vec3';
     canvas.height = canvas.clientHeight * devicePixelRatio;
     const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
 
-    // 使用 TSL 生成着色器代码
-    const vertexGlsl = vertexShader.toGLSL();
-    const fragmentGlsl = fragmentShader.toGLSL();
-    const vertexWgsl = vertexShader.toWGSL();
-    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+    // 使用导入的原始 GLSL 和 WGSL 文件
+    // const vertexGlsl = vertexShader.toGLSL();
+    // const fragmentGlsl = fragmentShader.toGLSL();
+    // const vertexWgsl = vertexShader.toWGSL();
+    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     const camera = attachCamera(canvas);
 
@@ -377,7 +382,7 @@ import * as vec3 from './stackgl/gl-vec3';
             sources: [{ image: img }],
         }, sampler: { minFilter: 'linear', mipmapFilter: 'linear', addressModeU: 'repeat', addressModeV: 'repeat' },
     };
-    reactive(renderObject.bindingResources).uSampler = diffuse;
+    reactive(renderObject.bindingResources).texture = diffuse;
 
     draw();
 })();

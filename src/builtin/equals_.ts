@@ -7,9 +7,11 @@ import { Bool } from './types/bool';
  * equals_ 函数，用于比较两个值是否相等
  * @param a 第一个比较值
  * @param b 第二个比较值
- * @returns 比较结果的Float对象
+ * @returns 比较结果的Bool对象
  */
-export function equals_(a: Float | Bool | number | boolean | Builtin, b: Float | Bool | number | boolean | Builtin): Bool
+export function equals_(a: Float | number, b: Float | number): Bool;
+export function equals_(a: Bool | boolean, b: Bool | boolean): Bool;
+export function equals_(a: Float | Bool | number | boolean, b: Float | Bool | number | boolean): Bool
 {
     const result = new Bool();
 

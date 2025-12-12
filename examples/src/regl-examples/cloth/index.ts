@@ -32,8 +32,8 @@ import * as vec3 from './stackgl/gl-vec3';
     // 使用导入的原始 GLSL 和 WGSL 文件
     const vertexGlsl = vertexShader.toGLSL();
     const fragmentGlsl = fragmentShader.toGLSL();
-    // const vertexWgsl = vertexShader.toWGSL();
-    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+    const vertexWgsl = vertexShader.toWGSL();
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     const camera = attachCamera(canvas);
 
@@ -366,7 +366,7 @@ import * as vec3 from './stackgl/gl-vec3';
         webgpu.submit(submit);
         webgl.submit(submit);
 
-        // requestAnimationFrame(draw);
+        requestAnimationFrame(draw);
     }
 
     const img = new Image();

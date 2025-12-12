@@ -29,48 +29,93 @@ export function equals_(a: Float | Bool | number | boolean, b: Float | Bool | nu
     if (isBooleanComparison)
     {
         // 处理布尔值比较
-        let aStr: string;
-        let bStr: string;
-        
-        // 获取a的字符串表示
-        if (aIsBool)
-        {
-            aStr = (a as Bool).toGLSL();
-        }
-        else if (typeof a === 'boolean')
-        {
-            aStr = a ? 'true' : 'false';
-        }
-        else if (aIsBuiltin)
-        {
-            aStr = (a as Builtin).toGLSL();
-        }
-        else
-        {
-            aStr = (a as Float).toGLSL();
-        }
-        
-        // 获取b的字符串表示
-        if (bIsBool)
-        {
-            bStr = (b as Bool).toGLSL();
-        }
-        else if (typeof b === 'boolean')
-        {
-            bStr = b ? 'true' : 'false';
-        }
-        else if (bIsBuiltin)
-        {
-            bStr = (b as Builtin).toGLSL();
-        }
-        else
-        {
-            bStr = (b as Float).toGLSL();
-        }
-        
         // 生成布尔比较代码
-        result.toGLSL = () => `${aStr} == ${bStr}`;
-        result.toWGSL = () => `${aStr} == ${bStr}`;
+        result.toGLSL = () => {
+            let aStr: string;
+            let bStr: string;
+            
+            // 获取a的GLSL字符串表示
+            if (aIsBool)
+            {
+                aStr = (a as Bool).toGLSL();
+            }
+            else if (typeof a === 'boolean')
+            {
+                aStr = a ? 'true' : 'false';
+            }
+            else if (aIsBuiltin)
+            {
+                aStr = (a as Builtin).toGLSL();
+            }
+            else
+            {
+                aStr = (a as Float).toGLSL();
+            }
+            
+            // 获取b的GLSL字符串表示
+            if (bIsBool)
+            {
+                bStr = (b as Bool).toGLSL();
+            }
+            else if (typeof b === 'boolean')
+            {
+                bStr = b ? 'true' : 'false';
+            }
+            else if (bIsBuiltin)
+            {
+                bStr = (b as Builtin).toGLSL();
+            }
+            else
+            {
+                bStr = (b as Float).toGLSL();
+            }
+            
+            return `${aStr} == ${bStr}`;
+        };
+        
+        result.toWGSL = () => {
+            let aStr: string;
+            let bStr: string;
+            
+            // 获取a的WGSL字符串表示
+            if (aIsBool)
+            {
+                aStr = (a as Bool).toWGSL();
+            }
+            else if (typeof a === 'boolean')
+            {
+                aStr = a ? 'true' : 'false';
+            }
+            else if (aIsBuiltin)
+            {
+                aStr = (a as Builtin).toWGSL();
+            }
+            else
+            {
+                aStr = (a as Float).toWGSL();
+            }
+            
+            // 获取b的WGSL字符串表示
+            if (bIsBool)
+            {
+                bStr = (b as Bool).toWGSL();
+            }
+            else if (typeof b === 'boolean')
+            {
+                bStr = b ? 'true' : 'false';
+            }
+            else if (bIsBuiltin)
+            {
+                bStr = (b as Builtin).toWGSL();
+            }
+            else
+            {
+                bStr = (b as Float).toWGSL();
+            }
+            
+            return `${aStr} == ${bStr}`;
+        };
+        
         result.dependencies = [...(aIsBool || aIsBuiltin ? [a as IElement] : []), ...(bIsBool || bIsBuiltin ? [b as IElement] : [])];
     }
     else if (typeof a === 'number' && typeof b === 'number')
@@ -85,31 +130,43 @@ export function equals_(a: Float | Bool | number | boolean, b: Float | Bool | nu
     {
         // 第一个是数字字面量，第二个是Float或Builtin对象
         const aNum = a as number;
-        const bStr = bIsBuiltin ? (b as Builtin).toGLSL() : (b as Float).toGLSL();
-        const bWGSLStr = bIsBuiltin ? (b as Builtin).toWGSL() : (b as Float).toWGSL();
-        result.toGLSL = () => `${aNum} == ${bStr}`;
-        result.toWGSL = () => `${aNum} == ${bWGSLStr}`;
+        result.toGLSL = () => {
+            const bStr = bIsBuiltin ? (b as Builtin).toGLSL() : (b as Float).toGLSL();
+            return `${aNum} == ${bStr}`;
+        };
+        result.toWGSL = () => {
+            const bWGSLStr = bIsBuiltin ? (b as Builtin).toWGSL() : (b as Float).toWGSL();
+            return `${aNum} == ${bWGSLStr}`;
+        };
         result.dependencies = [b as IElement];
     }
     else if (typeof b === 'number')
     {
         // 第二个是数字字面量，第一个是Float或Builtin对象
         const bNum = b as number;
-        const aStr = aIsBuiltin ? (a as Builtin).toGLSL() : (a as Float).toGLSL();
-        const aWGSLStr = aIsBuiltin ? (a as Builtin).toWGSL() : (a as Float).toWGSL();
-        result.toGLSL = () => `${aStr} == ${bNum}`;
-        result.toWGSL = () => `${aWGSLStr} == ${bNum}`;
+        result.toGLSL = () => {
+            const aStr = aIsBuiltin ? (a as Builtin).toGLSL() : (a as Float).toGLSL();
+            return `${aStr} == ${bNum}`;
+        };
+        result.toWGSL = () => {
+            const aWGSLStr = aIsBuiltin ? (a as Builtin).toWGSL() : (a as Float).toWGSL();
+            return `${aWGSLStr} == ${bNum}`;
+        };
         result.dependencies = [a as IElement];
     }
     else
     {
         // 两个都是非数字对象
-        const aStr = aIsBuiltin ? (a as Builtin).toGLSL() : (a as Float).toGLSL();
-        const bStr = bIsBuiltin ? (b as Builtin).toGLSL() : (b as Float).toGLSL();
-        const aWGSLStr = aIsBuiltin ? (a as Builtin).toWGSL() : (a as Float).toWGSL();
-        const bWGSLStr = bIsBuiltin ? (b as Builtin).toWGSL() : (b as Float).toWGSL();
-        result.toGLSL = () => `${aStr} == ${bStr}`;
-        result.toWGSL = () => `${aWGSLStr} == ${bWGSLStr}`;
+        result.toGLSL = () => {
+            const aStr = aIsBuiltin ? (a as Builtin).toGLSL() : (a as Float).toGLSL();
+            const bStr = bIsBuiltin ? (b as Builtin).toGLSL() : (b as Float).toGLSL();
+            return `${aStr} == ${bStr}`;
+        };
+        result.toWGSL = () => {
+            const aWGSLStr = aIsBuiltin ? (a as Builtin).toWGSL() : (a as Float).toWGSL();
+            const bWGSLStr = bIsBuiltin ? (b as Builtin).toWGSL() : (b as Float).toWGSL();
+            return `${aWGSLStr} == ${bWGSLStr}`;
+        };
         result.dependencies = [a as IElement, b as IElement];
     }
     

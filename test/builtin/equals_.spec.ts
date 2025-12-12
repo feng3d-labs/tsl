@@ -39,7 +39,7 @@ describe('equals_', () => {
             const result = equals_(v, false);
             
             expect(result.toGLSL()).toBe('gl_FrontFacing == false');
-            expect(result.toWGSL()).toBe('gl_FrontFacing == false');
+            expect(result.toWGSL()).toBe('v.gl_FrontFacing == false');
         });
         
         it('应该返回 Bool 类型', () => {

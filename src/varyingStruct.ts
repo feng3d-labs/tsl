@@ -78,6 +78,10 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
     {
         // 分配 location：按照字段定义顺序，为所有 varying 字段分配唯一的 location
         this.allocateVaryingLocations();
+        
+        // 从 buildParam 中获取当前的 stage
+        const buildParam = getBuildParam();
+        const stage = buildParam?.stage || 'fragment';
 
         // 生成字段定义
         const fieldDefs = Object.entries(this.fields).map(([fieldName, value]) =>
@@ -85,8 +89,8 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             const dep = value.dependencies[0];
             if (dep instanceof Builtin)
             {
-                // 排除 front_facing 相关的 builtin，它们不应该出现在顶点着色器的输出结构体中
-                if (dep.isFrontFacing)
+                // 顶点着色器中排除 front_facing 相关的 builtin
+                if (stage === 'vertex' && 'isFrontFacing' in dep && dep.isFrontFacing)
                 {
                     return null;
                 }

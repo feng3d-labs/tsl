@@ -2,7 +2,6 @@ import { Buffer, RenderObject, Submit } from '@feng3d/render-api';
 import { SamplerTexture, WebGL } from '@feng3d/webgl';
 
 import { reactive } from '@feng3d/reactivity';
-import { fit } from './hughsk/canvas-fit';
 import { attachCamera } from './hughsk/canvas-orbit-camera';
 import * as mat4 from './stackgl/gl-mat4';
 import * as vec3 from './stackgl/gl-vec3';
@@ -11,28 +10,27 @@ import { fragmentShader, vertexShader } from './shaders/shader';
 
 (async () =>
 {
+    const devicePixelRatio = window.devicePixelRatio || 1;
+
+    // 初始化 WebGPU
+    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
+    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
+    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
+    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
+
+    // 初始化 WebGL
+    const canvas = document.getElementById('webgl') as HTMLCanvasElement;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+
     // 使用 TSL 生成着色器代码
     const vertexGlsl = vertexShader.toGLSL();
     const fragmentGlsl = fragmentShader.toGLSL();
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
-    const devicePixelRatio = window.devicePixelRatio || 1;
-
-    // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = window.innerWidth * devicePixelRatio;
-    webgpuCanvas.height = window.innerHeight * devicePixelRatio;
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const canvas = document.getElementById('webgl') as HTMLCanvasElement;
-    canvas.width = window.innerWidth * devicePixelRatio;
-    canvas.height = window.innerHeight * devicePixelRatio;
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
-
     const camera = attachCamera(canvas);
-    window.addEventListener('resize', fit(canvas), false);
 
     // configure intial camera view.
     camera.view(mat4.lookAt([], [0, 3.0, 30.0], [0, 0, -5.5], [0, 1, 0]));

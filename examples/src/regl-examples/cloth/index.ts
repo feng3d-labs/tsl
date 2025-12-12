@@ -366,7 +366,7 @@ import * as vec3 from './stackgl/gl-vec3';
         webgpu.submit(submit);
         webgl.submit(submit);
 
-        requestAnimationFrame(draw);
+        // requestAnimationFrame(draw);
     }
 
     const img = new Image();

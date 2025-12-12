@@ -85,6 +85,12 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             const dep = value.dependencies[0];
             if (dep instanceof Builtin)
             {
+                // 排除 front_facing 相关的 builtin，它们不应该出现在顶点着色器的输出结构体中
+                if (dep.isFrontFacing)
+                {
+                    return null;
+                }
+                
                 // Builtin.toWGSL() 返回格式: @builtin(position) varName: vec4<f32>
                 // 我们需要提取 @builtin(...) 和类型，使用结构体字段名
                 const builtinWgsl = dep.toWGSL();
@@ -115,7 +121,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             {
                 throw new Error(`不支持的依赖类型`);
             }
-        });
+        }).filter(Boolean) as string[];
         // 格式化结构体定义，每个字段占一行，使用逗号分隔（所有字段后面都有逗号）
         if (fieldDefs.length === 0)
         {

@@ -3,9 +3,10 @@
 
 // 定义输入结构体
 struct FragmentInput {
+    @builtin(position) position: vec4<f32>,
     @location(0) vUv: vec2<f32>,
     @location(1) vNormal: vec3<f32>,
-    @builtin(front_facing) front_facing: bool
+    @builtin(front_facing) gl_FrontFacing: bool
 };
 
 @fragment
@@ -18,7 +19,7 @@ fn main(
     var n = input.vNormal;
     
     // for the back faces we need to use the opposite normals.
-    if (input.front_facing == false) {
+    if (input.gl_FrontFacing == false) {
         n = -n;
     }
     

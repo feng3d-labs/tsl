@@ -1,5 +1,6 @@
 import { Buffer, RenderObject, Submit } from '@feng3d/render-api';
 import { SamplerTexture, WebGL } from '@feng3d/webgl';
+import { WebGPU } from '@feng3d/webgpu';
 import { reactive } from '@feng3d/reactivity';
 import { vertexShader, fragmentShader } from './shaders/shader';
 
@@ -30,7 +31,7 @@ async function init() {
     
     // 初始化 WebGL 和 WebGPU
     const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
-    // const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
+    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
     
     // 创建布料的几何数据
     const uv: number[][] = [];
@@ -135,7 +136,7 @@ async function init() {
     const vertexGlsl = vertexShader.toGLSL();
     const fragmentGlsl = fragmentShader.toGLSL();
     const vertexWgsl = vertexShader.toWGSL();
-    const fragmentWgsl = fragmentShader.toWGSL();
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
     
     // 创建渲染对象
     const renderObject: RenderObject = {
@@ -340,6 +341,7 @@ async function init() {
         
         // 提交渲染命令
         webgl.submit(submit);
+        webgpu.submit(submit);
         
         // 请求下一帧
         requestAnimationFrame(draw);

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { Varying, varying } from '../src/Varying';
+import { Varying, varying } from '../src/varying';
 import { vec2 } from '../src/builtin/types/vec2';
 import { vec4 } from '../src/builtin/types/vec4';
-import { vertex } from '../src/Vertex';
-import { fragment } from '../src/Fragment';
+import { vertex } from '../src/vertex';
+import { fragment } from '../src/fragment';
 import { return_ } from '../src/index';
 import { assign } from '../src/builtin/assign';
 import { builtin } from '../src/builtin/builtin';

@@ -72,16 +72,17 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
     /**
      * 生成 WGSL 结构体定义
      * 自动为没有显式指定 location 的 varying 字段分配 location
+     * @param stage 着色器阶段（vertex 或 fragment），如果不提供，则从 getBuildParam() 获取
      * @returns WGSL 结构体定义字符串
      */
-    toWGSLDefinition(): string
+    toWGSLDefinition(stage?: 'vertex' | 'fragment'): string
     {
         // 分配 location：按照字段定义顺序，为所有 varying 字段分配唯一的 location
         this.allocateVaryingLocations();
         
-        // 从 buildParam 中获取当前的 stage
+        // 从 buildParam 中获取当前的 stage，如果没有提供的话
         const buildParam = getBuildParam();
-        const stage = buildParam?.stage || 'fragment';
+        const effectiveStage = stage || buildParam?.stage || 'fragment';
 
         // 生成字段定义
         const fieldDefs = Object.entries(this.fields).map(([fieldName, value]) =>
@@ -90,7 +91,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             if (dep instanceof Builtin)
             {
                 // 顶点着色器中排除 front_facing 相关的 builtin
-                if (stage === 'vertex' && 'isFrontFacing' in dep && dep.isFrontFacing)
+                if (effectiveStage === 'vertex' && 'isFrontFacing' in dep && dep.isFrontFacing)
                 {
                     return null;
                 }

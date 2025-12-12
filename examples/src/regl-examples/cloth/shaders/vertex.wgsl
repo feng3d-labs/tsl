@@ -1,3 +1,9 @@
+struct VertexInput {
+    @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
+    @location(2) uv: vec2<f32>
+};
+
 struct VertexOutput {
     @builtin(position) position: vec4<f32>,
     @location(0) vUv: vec2<f32>,
@@ -9,13 +15,11 @@ struct VertexOutput {
 
 @vertex
 fn main(
-    @location(0) position: vec3<f32>,
-    @location(1) normal: vec3<f32>,
-    @location(2) uv: vec2<f32>
+    input: VertexInput
 ) -> VertexOutput {
     var output: VertexOutput;
-    output.vUv = uv;
-    output.vNormal = normal;
-    output.position = projection * view * vec4<f32>(position, 1.0);
+    output.vUv = input.uv;
+    output.vNormal = input.normal;
+    output.position = projection * view * vec4<f32>(input.position, 1.0);
     return output;
 }

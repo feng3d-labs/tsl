@@ -19,7 +19,7 @@
         "dev": "cd examples && npm run dev",
         "clean": "rimraf \"{lib,dist,public}\"",
         "build": "vite build",
-        "test": "vitest",
+        "test": "vitest run",
         "types": "tsc",
         "watch": "tsc -w",
         "lint": "eslint . --ext .js,.ts --max-warnings 0",

@@ -12,7 +12,7 @@ import { Bool } from './types/bool';
 export function equals_(a: Float | Bool | number | boolean | Builtin, b: Float | Bool | number | boolean | Builtin): Bool
 {
     const result = new Bool();
-    
+
     // 处理a是Builtin类型的情况
     const aIsBuiltin = a instanceof Builtin;
     const bIsBuiltin = b instanceof Builtin;

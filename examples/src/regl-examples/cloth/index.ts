@@ -1,361 +1,394 @@
 import { Buffer, RenderObject, Submit } from '@feng3d/render-api';
 import { SamplerTexture, WebGL } from '@feng3d/webgl';
-import { WebGPU } from '@feng3d/webgpu';
-import { reactive } from '@feng3d/reactivity';
-import { vertexShader, fragmentShader } from './shaders/shader';
 
-// 导入依赖的数学库
+import { reactive } from '@feng3d/reactivity';
 import { fit } from './hughsk/canvas-fit';
 import { attachCamera } from './hughsk/canvas-orbit-camera';
 import * as mat4 from './stackgl/gl-mat4';
 import * as vec3 from './stackgl/gl-vec3';
 
-// 创建一个约束类，连接两个顶点
-class Constraint {
-    i0: number;
-    i1: number;
-    restLength: number;
-    
-    constructor(i0: number, i1: number, position: number[][]) {
-        this.i0 = i0;
-        this.i1 = i1;
-        this.restLength = vec3.distance(position[i0], position[i1]);
-    }
-}
+(async () =>
+{
+    const canvas = document.createElement('canvas');
+    canvas.id = 'glcanvas';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
 
-// 初始化函数
-async function init() {
-    // 获取 canvas 元素
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    
-    const devicePixelRatio = window.devicePixelRatio || 1;
-    
-    // 初始化 WebGL 和 WebGPU
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-    
-    // 创建布料的几何数据
+    const webgl = new WebGL({ canvasId: 'glcanvas' });
+
+    const camera = attachCamera(canvas);
+    window.addEventListener('resize', fit(canvas), false);
+
+    // configure intial camera view.
+    camera.view(mat4.lookAt([], [0, 3.0, 30.0], [0, 0, -5.5], [0, 1, 0]));
+    camera.rotate([0.0, 0.0], [3.14 * 0.15, 0.0]);
+
     const uv: number[][] = [];
     const elements: number[][] = [];
     const position: number[][] = [];
     const oldPosition: number[][] = [];
     const normal: number[][] = [];
     const constraints: Constraint[] = [];
-    
-    // 布料的大小和细分程度
+
+    // create a constraint between the vertices with the indices i0 and i1.
+    class Constraint
+    {
+        i0: any;
+        i1: any;
+        restLength: number;
+        constructor(i0, i1)
+        {
+            this.i0 = i0;
+            this.i1 = i1;
+
+            this.restLength = vec3.distance(position[i0], position[i1]);
+        }
+    }
+
     const size = 5.5;
     const xmin = -size;
-    const xmax = size;
+    const xmax = Number(size);
     const ymin = -size;
-    const ymax = size;
+    const ymax = Number(size);
+
+    // the tesselation level of the cloth.
     const N = 20;
-    
-    // 创建布料的顶点和UV
-    for (let row = 0; row <= N; ++row) {
+
+    let row;
+    let col;
+
+    // create cloth vertices and uvs.
+    for (row = 0; row <= N; ++row)
+    {
         const z = (row / N) * (ymax - ymin) + ymin;
         const v = row / N;
-        
-        for (let col = 0; col <= N; ++col) {
+
+        for (col = 0; col <= N; ++col)
+        {
             const x = (col / N) * (xmax - xmin) + xmin;
             const u = col / N;
-            
+
             position.push([x, 0.0, z]);
             oldPosition.push([x, 0.0, z]);
             uv.push([u, v]);
         }
     }
-    
-    // 创建法线数组
-    for (let i = 0; i < position.length; ++i) {
+
+    let i; let i0; let i1; let i2; let
+        i3;
+
+    // for every vertex, create a corresponding normal.
+    for (i = 0; i < position.length; ++i)
+    {
         normal.push([0.0, 0.0, 0.0]);
     }
-    
-    // 创建三角形面
-    for (let row = 0; row <= (N - 1); ++row) {
-        for (let col = 0; col <= (N - 1); ++col) {
-            const i = row * (N + 1) + col;
-            
-            const i0 = i + 0;
-            const i1 = i + 1;
-            const i2 = i + (N + 1) + 0;
-            const i3 = i + (N + 1) + 1;
-            
+
+    // create faces
+    for (row = 0; row <= (N - 1); ++row)
+    {
+        for (col = 0; col <= (N - 1); ++col)
+        {
+            i = row * (N + 1) + col;
+
+            i0 = i + 0;
+            i1 = i + 1;
+            i2 = i + (N + 1) + 0;
+            i3 = i + (N + 1) + 1;
+
             elements.push([i3, i1, i0]);
             elements.push([i0, i2, i3]);
         }
     }
-    
-    // 创建约束
-    for (let row = 0; row <= N; ++row) {
-        for (let col = 0; col <= N; ++col) {
-            const i = row * (N + 1) + col;
-            
-            const i0 = i + 0;
-            const i1 = i + 1;
-            const i2 = i + (N + 1) + 0;
-            const i3 = i + (N + 1) + 1;
-            
-            // 水平约束
-            if (col < N) {
-                constraints.push(new Constraint(i0, i1, position));
+
+    // create constraints
+    for (row = 0; row <= N; ++row)
+    {
+        for (col = 0; col <= N; ++col)
+        {
+            i = row * (N + 1) + col;
+
+            i0 = i + 0;
+            i1 = i + 1;
+            i2 = i + (N + 1) + 0;
+            i3 = i + (N + 1) + 1;
+
+            // add constraint linked to the element in the next column, if it exist.
+            if (col < N)
+            {
+                constraints.push(new Constraint(i0, i1));
             }
-            
-            // 垂直约束
-            if (row < N) {
-                constraints.push(new Constraint(i0, i2, position));
+
+            // add constraint linked to the element in the next row, if it exists
+            if (row < N)
+            {
+                constraints.push(new Constraint(i0, i2));
             }
-            
-            // 对角线约束
-            if (col < N && row < N) {
-                constraints.push(new Constraint(i0, i3, position));
+
+            // add constraint linked the next diagonal element, if it exists.
+            if (col < N && row < N)
+            {
+                constraints.push(new Constraint(i0, i3));
             }
         }
     }
-    
-    // 扁平化数组
-    const positions = position.reduce((pv: number[], cv: number[]) => {
+
+    const positions = position.reduce((pv: number[], cv: number[]) =>
+    {
         cv.forEach((v) => { pv.push(v); });
+
         return pv;
     }, []);
-    
-    const uvs = uv.reduce((pv: number[], cv: number[]) => {
+
+    const uvs = uv.reduce((pv: number[], cv: number[]) =>
+    {
         cv.forEach((v) => { pv.push(v); });
+
         return pv;
     }, []);
-    
-    const normals = normal.reduce((pv: number[], cv: number[]) => {
+
+    const normals = normal.reduce((pv: number[], cv: number[]) =>
+    {
         cv.forEach((v) => { pv.push(v); });
+
         return pv;
     }, []);
-    
-    const indices = elements.reduce((pv: number[], cv: number[]) => {
+
+    const indices = elements.reduce((pv: number[], cv: number[]) =>
+    {
         cv.forEach((v) => { pv.push(v); });
+
         return pv;
     }, []);
-    
-    // 使用 TSL 生成着色器代码
-    const vertexGlsl = vertexShader.toGLSL();
-    const fragmentGlsl = fragmentShader.toGLSL();
-    const vertexWgsl = vertexShader.toWGSL();
-    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
-    
-    // 创建渲染对象
+
+    let tick = 0;
+    let viewportWidth = 1;
+    let viewportHeight = 1;
+
     const renderObject: RenderObject = {
         vertices: {
-            position: {
-                data: new Float32Array(positions),
-                format: 'float32x3' as const,
-            },
-            normal: {
-                data: new Float32Array(normals),
-                format: 'float32x3' as const,
-            },
-            uv: {
-                data: new Float32Array(uvs),
-                format: 'float32x2' as const,
-            },
+            position: { data: new Float32Array(positions), format: 'float32x3' },
+            normal: { data: new Float32Array(normals), format: 'float32x3' },
+            uv: { data: new Float32Array(uvs), format: 'float32x2' },
         },
         indices: new Uint16Array(indices),
-        draw: { __type__: 'DrawIndexed' as const, indexCount: indices.length },
+        draw: { __type__: 'DrawIndexed', indexCount: indices.length },
         bindingResources: {},
         pipeline: {
             vertex: {
-                glsl: vertexGlsl,
-                wgsl: vertexWgsl,
-            },
+                code: /* wgsl */`precision mediump float;
+
+        attribute vec3 position;
+        attribute vec3 normal;
+        attribute vec2 uv;
+      
+        varying vec2 vUv;
+        varying vec3 vNormal;
+      
+        uniform mat4 projection, view;
+      
+        void main() {
+          vUv = uv;
+          vNormal = normal;
+          gl_Position = projection * view * vec4(position, 1);
+        }` },
             fragment: {
-                glsl: fragmentGlsl,
-                wgsl: fragmentWgsl,
+                code: /* wgsl */`precision mediump float;
+
+        varying vec2 vUv;
+        varying vec3 vNormal;
+      
+        uniform sampler2D texture;
+      
+        void main () {
+          vec3 tex = texture2D(texture, vUv*1.0).xyz;
+          vec3 lightDir = normalize(vec3(0.4, 0.9, 0.3));
+      
+          vec3 n = vNormal;
+      
+          // for the back faces we need to use the opposite normals.
+          if(gl_FrontFacing == false) {
+            n = -n;
+          }
+      
+          vec3 ambient = 0.3 * tex;
+          vec3 diffuse = 0.7 * tex * clamp( dot(n, lightDir ), 0.0, 1.0 );
+      
+          gl_FragColor = vec4(ambient + diffuse, 1.0);
+        }`,
                 targets: [{ blend: {} }],
             },
             depthStencil: {},
         },
     };
-    
-    // 创建相机，设置与原示例一致的初始朝向
-    // 原示例相机位置：[0, 3.0, 30.0]，目标位置：[0, 0, -5.5]
-    // 计算距离：Math.sqrt(0^2 + 3^2 + 35.5^2) ≈ 35.63
-    // 计算phi角度：Math.asin(3 / 35.63) ≈ 0.0843
-    const camera = createCamera({
-        center: [0, 0, -5.5],
-        theta: Math.PI + 0.15 * Math.PI, // 原示例的rotate调用
-        phi: -0.0843, // 对应相机y轴偏移3.0
-        distance: Math.log(35.63), // 原示例相机到目标的距离
-        maxDistance: Math.log(100.0),
-    });
 
-    // 创建 submit 对象
     const submit: Submit = {
         commandEncoders: [{
             passEncoders: [
                 {
-                    descriptor: { 
-                        colorAttachments: [{ clearValue: [0, 0, 0, 1] }],
-                        depthStencilAttachment: { depthClearValue: 1 },
-                    },
+                    descriptor: { colorAttachments: [{ clearValue: [0, 0, 0, 1] }] },
                     renderPassObjects: [renderObject],
                 },
             ],
         }],
     };
-    
-    let tick = 0;
-    
-    // 渲染循环
-    function draw() {
+
+    function draw()
+    {
         const deltaTime = 0.017;
-        
-        // 更新画布尺寸
-        webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-        webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-        webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-        webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
-        
-        // 物理模拟
-        const vel: number[] = [];
-        const next: number[] = [];
+
+        let vel: number[] = [];
+        let next: number[] = [];
         const delta = deltaTime;
-        
-        const g = [0.0, -4.0, 0.0]; // 重力向量
-        
-        // 风力
+
+        const g = [0.0, -4.0, 0.0]; // gravity force vector.
+
         const windForce = [Math.sin(tick / 2.0), Math.cos(tick / 3.0), Math.sin(tick / 1.0)];
         vec3.normalize(windForce, windForce);
         vec3.scale(windForce, windForce, 20.6);
-        
-        // 对每个顶点进行 Verlet 积分
-        for (let i = 0; i < position.length; ++i) {
-            // 计算速度
+
+        for (i = 0; i < position.length; ++i)
+        {
+            //
+            // we do verlet integration for every vertex.
+            //
+
+            // compute velocity.
             vec3.subtract(vel, position[i], oldPosition[i]);
-            next[0] = position[i][0];
-            next[1] = position[i][1];
-            next[2] = position[i][2];
-            
-            // 使用速度更新位置
+            vel = [vel[0], vel[1], vel[2]];
+            next = [position[i][0], position[i][1], position[i][2]];
+
+            // advance vertex with velocity.
             vec3.add(next, next, vel);
-            
-            // 应用重力
+
+            // apply gravity force.
             vec3.scaleAndAdd(next, next, g, delta * delta);
-            
-            // 应用风力
+
+            // apply wind force.
             vec3.scaleAndAdd(next, next, windForce, delta * delta);
-            
-            // 更新旧位置和新位置
-            oldPosition[i][0] = position[i][0];
-            oldPosition[i][1] = position[i][1];
-            oldPosition[i][2] = position[i][2];
-            
-            position[i][0] = next[0];
-            position[i][1] = next[1];
-            position[i][2] = next[2];
+
+            // keep track of current and old position.
+            oldPosition[i] = [position[i][0], position[i][1], position[i][2]];
+            position[i] = [next[0], next[1], next[2]];
         }
-        
-        // 满足约束条件
+
         const d = [];
-        for (let i = 0; i < 15; ++i) {
-            for (let j = 0; j < constraints.length; j++) {
+        let v0; let
+            v1;
+        //
+        // Attempt to satisfy the constraints by running a couple of iterations.
+        //
+        for (i = 0; i < 15; ++i)
+        {
+            for (let j = 0; j < constraints.length; j++)
+            {
                 const c = constraints[j];
-                const v0 = position[c.i0];
-                const v1 = position[c.i1];
-                
+
+                v0 = position[c.i0];
+                v1 = position[c.i1];
+
                 vec3.subtract(d, v1, v0);
+
                 const dLength = vec3.length(d);
                 const diff = (dLength - c.restLength) / dLength;
-                
-                // 调整顶点位置以满足约束
+
+                // repulse/attract the end vertices of the constraint.
                 vec3.scaleAndAdd(v0, v0, d, +0.5 * diff);
                 vec3.scaleAndAdd(v1, v1, d, -0.5 * diff);
             }
         }
-        
-        // 固定布料的顶部边缘
-        for (let i = 0; i <= N; ++i) {
-            position[i][0] = oldPosition[i][0];
-            position[i][1] = oldPosition[i][1];
-            position[i][2] = oldPosition[i][2];
+
+        // we make some vertices at the edge of the cloth unmovable.
+        for (i = 0; i <= N; ++i)
+        {
+            position[i] = [oldPosition[i][0], oldPosition[i][1], oldPosition[i][2]];
         }
-        
-        // 重新计算法线
-        for (let i = 0; i < normal.length; i++) {
-            normal[i][0] = 0.0;
-            normal[i][1] = 0.0;
-            normal[i][2] = 0.0;
+
+        // next, we recompute the normals
+        for (i = 0; i < normal.length; i++)
+        {
+            normal[i] = [0.0, 0.0, 0.0];
         }
-        
-        // 计算每个面的法线并累加到顶点
-        for (let i = 0; i < elements.length; i++) {
-            const i0 = elements[i][0];
-            const i1 = elements[i][1];
-            const i2 = elements[i][2];
-            
+
+        //
+        for (i = 0; i < elements.length; i++)
+        {
+            i0 = elements[i][0];
+            i1 = elements[i][1];
+            i2 = elements[i][2];
+
             const p0 = position[i0];
             const p1 = position[i1];
             const p2 = position[i2];
-            
-            const v0 = [0.0, 0.0, 0.0];
+
+            v0 = [0.0, 0.0, 0.0];
             vec3.subtract(v0, p0, p1);
-            
-            const v1 = [0.0, 0.0, 0.0];
+
+            v1 = [0.0, 0.0, 0.0];
             vec3.subtract(v1, p0, p2);
-            
-            // 计算面法线
+
+            // compute face normal.
             const n0 = [0.0, 0.0, 0.0];
             vec3.cross(n0, v0, v1);
             vec3.normalize(n0, n0);
-            
-            // 将面法线添加到顶点法线
+
+            // add face normal to vertices of face.
             vec3.add(normal[i0], normal[i0], n0);
             vec3.add(normal[i1], normal[i1], n0);
             vec3.add(normal[i2], normal[i2], n0);
         }
-        
-        // 归一化顶点法线
-        for (let i = 0; i < normal.length; i++) {
+
+        // the average of the total face normals approximates the vertex normals.
+        for (i = 0; i < normal.length; i++)
+        {
             vec3.normalize(normal[i], normal[i]);
         }
-        
-        // 更新缓冲区数据
-        const updatedPositions = position.reduce((pv: number[], cv: number[]) => {
+
+        /*
+          Make sure that we stream the positions and normals to their buffers,
+          since these are updated every frame.
+          */
+        const positions = position.reduce((pv: number[], cv: number[]) =>
+        {
             cv.forEach((v) => { pv.push(v); });
+
             return pv;
         }, []);
-        
-        const updatedNormals = normal.reduce((pv: number[], cv: number[]) => {
+        const normals = normal.reduce((pv: number[], cv: number[]) =>
+        {
             cv.forEach((v) => { pv.push(v); });
+
             return pv;
         }, []);
-        
-        // 更新顶点缓冲区
-        reactive(Buffer.getBuffer(renderObject.vertices.position.data.buffer)).writeBuffers = [{ 
-            data: new Float32Array(updatedPositions) 
-        }];
-        
-        reactive(Buffer.getBuffer(renderObject.vertices.normal.data.buffer)).writeBuffers = [{ 
-            data: new Float32Array(updatedNormals) 
-        }];
-        
+
+        reactive(Buffer.getBuffer(renderObject.vertices.position.data.buffer)).writeBuffers = [{ data: new Float32Array(positions) }];
+        reactive(Buffer.getBuffer(renderObject.vertices.normal.data.buffer)).writeBuffers = [{ data: new Float32Array(normals) }];
+
         tick++;
-        
-        // 使用相机更新渲染对象的绑定资源
-        const viewportWidth = webglCanvas.width;
-        const viewportHeight = webglCanvas.height;
-        camera(renderObject, viewportWidth, viewportHeight);
-        
-        // 提交渲染命令
+
+        viewportWidth = canvas.width = canvas.clientWidth;
+        viewportHeight = canvas.height = canvas.clientHeight;
+
+        camera.tick();
+
+        reactive(renderObject.bindingResources).view = { value: camera.view() };
+        reactive(renderObject.bindingResources).projection = {
+            value: mat4.perspective([],
+                Math.PI / 4,
+                viewportWidth / viewportHeight,
+                0.01,
+                1000),
+        };
+
         webgl.submit(submit);
-        // webgpu.submit(submit);
-        
-        // 请求下一帧
+
         requestAnimationFrame(draw);
     }
-    
-    // 加载纹理
+
     const img = new Image();
     img.src = './assets/cloth.png';
     await img.decode();
-    
-    // 创建纹理对象
+
     const diffuse: SamplerTexture = {
         texture: {
             descriptor: {
@@ -363,21 +396,9 @@ async function init() {
                 generateMipmap: true,
             },
             sources: [{ image: img }],
-        }, 
-        sampler: { 
-            minFilter: 'linear', 
-            mipmapFilter: 'linear', 
-            addressModeU: 'repeat', 
-            addressModeV: 'repeat' 
-        },
+        }, sampler: { minFilter: 'linear', mipmapFilter: 'linear', addressModeU: 'repeat', addressModeV: 'repeat' },
     };
-    
-    // 将纹理添加到渲染对象的绑定资源中
-    reactive(renderObject.bindingResources).uSampler = diffuse;
-    
-    // 开始渲染循环
-    draw();
-}
+    reactive(renderObject.bindingResources).texture = diffuse;
 
-// 监听 DOM 加载完成事件
-document.addEventListener('DOMContentLoaded', init);
+    draw();
+})();

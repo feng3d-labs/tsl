@@ -2,11 +2,11 @@
 	"test": [
 		"test/sky"
 	],
-	"Basic Graphics": [
+	"webgpu - Basic Graphics": [
 		"webgpu/helloTriangle",
 		"webgpu/fractalCube"
 	],
-	"webgl-examples": [
+	"webgl - examples": [
 		"webgl-examples/sample1",
 		"webgl-examples/sample2",
 		"webgl-examples/sample3",
@@ -16,7 +16,7 @@
 		"webgl-examples/sample7",
 		"webgl-examples/sample8"
 	],
-	"regl-examples": [
+	"regl - examples": [
 		"regl-examples/basic",
 		"regl-examples/batch",
 		"regl-examples/cube",

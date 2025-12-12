@@ -95,6 +95,14 @@
             }
         }
 
+        .canvas-wrapper {
+            position: relative;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+        }
+
         canvas {
             width: 100%;
             height: auto;
@@ -102,6 +110,32 @@
             border-radius: 6px;
             background: #000;
             border: 2px solid var(--border-color);
+        }
+
+        .canvas-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        .canvas-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 10;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -199,8 +233,14 @@
         </header>
 
         <div class="canvas-container">
-            <canvas id="webgl"></canvas>
-            <canvas id="webgpu"></canvas>
+            <div class="canvas-wrapper">
+                <canvas id="webgl"></canvas>
+                <div class="canvas-label">WebGL</div>
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="webgpu"></canvas>
+                <div class="canvas-label">WebGPU</div>
+            </div>
         </div>
 
         <div class="info-section">

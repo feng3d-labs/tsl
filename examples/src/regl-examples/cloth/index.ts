@@ -190,10 +190,12 @@ import { fragmentShader, vertexShader } from './shaders/shader';
         bindingResources: {},
         pipeline: {
             vertex: {
-                glsl: vertexGlsl
+                glsl: vertexGlsl,
+                wgsl: vertexWgsl
             },
             fragment: {
                 glsl: fragmentGlsl,
+                wgsl: fragmentWgsl,
                 targets: [{ blend: {} }],
             },
             depthStencil: {},
@@ -358,6 +360,7 @@ import { fragmentShader, vertexShader } from './shaders/shader';
                 1000),
         };
 
+        webgpu.submit(submit);
         webgl.submit(submit);
 
         requestAnimationFrame(draw);

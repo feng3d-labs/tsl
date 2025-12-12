@@ -21,7 +21,8 @@
 		"regl-examples/batch",
 		"regl-examples/cube",
 		"regl-examples/bunny",
-		"regl-examples/camera"
+		"regl-examples/camera",
+		"regl-examples/cloth"
 	],
 	"WebGL2Samples": [
 		"WebGL2Samples/fbo_rtt_texture_array"

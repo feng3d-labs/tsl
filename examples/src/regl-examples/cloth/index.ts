@@ -5,8 +5,9 @@ import { reactive } from '@feng3d/reactivity';
 import { vertexShader, fragmentShader } from './shaders/shader';
 
 // 导入依赖的数学库
-import * as mat4 from './gl-mat4';
-import * as vec3 from './gl-vec3';
+import * as mat4 from './utils/gl-mat4';
+import * as vec3 from './utils/gl-vec3';
+import { createCamera } from './utils/camera';
 
 // 创建一个约束类，连接两个顶点
 class Constraint {
@@ -171,6 +172,15 @@ async function init() {
         },
     };
     
+    // 创建相机，设置与原示例一致的初始朝向
+    const camera = createCamera({
+        center: [0, 0, -5.5],
+        theta: Math.PI + Math.PI * 0.15, // 原示例的rotate调用 (Math.PI + 0.15π)
+        phi: -0.0845, // 原示例相机y轴偏移3.0对应的角度
+        distance: Math.log(35.63), // 原示例相机到目标的精确距离
+        maxDistance: Math.log(100.0),
+    });
+
     // 创建 submit 对象
     const submit: Submit = {
         commandEncoders: [{
@@ -323,21 +333,10 @@ async function init() {
         
         tick++;
         
-        // 更新相机矩阵
+        // 使用相机更新渲染对象的绑定资源
         const viewportWidth = webglCanvas.width;
         const viewportHeight = webglCanvas.height;
-        
-        reactive(renderObject.bindingResources).view = { 
-            value: mat4.lookAt([], [0, 3.0, 30.0], [0, 0, -5.5], [0, 1, 0]) 
-        };
-        
-        reactive(renderObject.bindingResources).projection = {
-            value: mat4.perspective([],
-                Math.PI / 4,
-                viewportWidth / viewportHeight,
-                0.01,
-                1000),
-        };
+        camera(renderObject, viewportWidth, viewportHeight);
         
         // 提交渲染命令
         webgl.submit(submit);

@@ -351,8 +351,11 @@ import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
         tick++;
 
+        // 更新两个canvas的尺寸
         viewportWidth = canvas.width = canvas.clientWidth;
         viewportHeight = canvas.height = canvas.clientHeight;
+        webgpuCanvas.width = canvas.width;
+        webgpuCanvas.height = canvas.height;
 
         camera.tick();
 

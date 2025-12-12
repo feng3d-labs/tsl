@@ -236,4 +236,3 @@ export function mouseListen(element?, callback?)
 
     return result;
 }
-

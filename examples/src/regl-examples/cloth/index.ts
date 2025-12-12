@@ -5,9 +5,10 @@ import { reactive } from '@feng3d/reactivity';
 import { vertexShader, fragmentShader } from './shaders/shader';
 
 // 导入依赖的数学库
-import * as mat4 from './utils/gl-mat4';
-import * as vec3 from './utils/gl-vec3';
-import { createCamera } from './utils/camera';
+import { fit } from './hughsk/canvas-fit';
+import { attachCamera } from './hughsk/canvas-orbit-camera';
+import * as mat4 from './stackgl/gl-mat4';
+import * as vec3 from './stackgl/gl-vec3';
 
 // 创建一个约束类，连接两个顶点
 class Constraint {
@@ -173,11 +174,14 @@ async function init() {
     };
     
     // 创建相机，设置与原示例一致的初始朝向
+    // 原示例相机位置：[0, 3.0, 30.0]，目标位置：[0, 0, -5.5]
+    // 计算距离：Math.sqrt(0^2 + 3^2 + 35.5^2) ≈ 35.63
+    // 计算phi角度：Math.asin(3 / 35.63) ≈ 0.0843
     const camera = createCamera({
         center: [0, 0, -5.5],
-        theta: Math.PI + Math.PI * 0.15, // 原示例的rotate调用 (Math.PI + 0.15π)
-        phi: -0.0845, // 原示例相机y轴偏移3.0对应的角度
-        distance: Math.log(35.63), // 原示例相机到目标的精确距离
+        theta: Math.PI + 0.15 * Math.PI, // 原示例的rotate调用
+        phi: -0.0843, // 对应相机y轴偏移3.0
+        distance: Math.log(35.63), // 原示例相机到目标的距离
         maxDistance: Math.log(100.0),
     });
 
@@ -340,7 +344,7 @@ async function init() {
         
         // 提交渲染命令
         webgl.submit(submit);
-        webgpu.submit(submit);
+        // webgpu.submit(submit);
         
         // 请求下一帧
         requestAnimationFrame(draw);

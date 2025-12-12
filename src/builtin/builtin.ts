@@ -12,7 +12,7 @@ export class Builtin implements IElement
     value: ShaderValue;
     dependencies: IElement[] = [];
 
-    constructor(builtinName: 'position' | 'gl_Position')
+    constructor(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing')
     {
         this.builtinName = builtinName;
     }
@@ -27,11 +27,13 @@ export class Builtin implements IElement
     }
 
     /**
-     * 获取 WGSL 中的 builtin 名称（将 gl_Position 映射为 position）
+     * 获取 WGSL 中的 builtin 名称（将 gl_Position 映射为 position，gl_FrontFacing 映射为 front_facing）
      */
     get wgslBuiltinName(): string
     {
-        return this.builtinName === 'gl_Position' ? 'position' : this.builtinName;
+        if (this.builtinName === 'gl_Position') return 'position';
+        if (this.builtinName === 'gl_FrontFacing') return 'front_facing';
+        return this.builtinName;
     }
 
     /**
@@ -42,15 +44,23 @@ export class Builtin implements IElement
         return this.builtinName === 'position' || this.builtinName === 'gl_Position';
     }
 
+    /**
+     * 检查是否是 front_facing 相关的 builtin
+     */
+    get isFrontFacing(): boolean
+    {
+        return this.builtinName === 'front_facing' || this.builtinName === 'gl_FrontFacing';
+    }
+
     toGLSL(): string
     {
-        if (!this.value)
-        {
-            throw new Error(`Builtin '${this.builtinName}' 没有设置 value，无法生成 GLSL。`);
-        }
         if (this.isPosition)
         {
             return 'gl_Position';
+        }
+        if (this.isFrontFacing)
+        {
+            return 'gl_FrontFacing';
         }
 
         throw new Error(`Builtin '${this.builtinName}' 不支持 GLSL，无法生成 GLSL 代码。`);
@@ -58,7 +68,7 @@ export class Builtin implements IElement
 
     toWGSL(): string
     {
-        const wgslType = this.value?.wgslType;
+        const wgslType = this.value?.wgslType || (this.isFrontFacing ? 'bool' : undefined);
         if (!wgslType)
         {
             throw new Error(`Builtin '${this.builtinName}' 的 value 没有设置 wgslType，无法生成 WGSL。`);
@@ -75,10 +85,10 @@ export class Builtin implements IElement
 /**
  * 创建内置变量引用
  * 只能在 varyingStruct 中使用，变量名从结构体字段名获取
- * @param builtinName WGSL 中内置的固定名称（如 'position' 或 'gl_Position'，两者等价）
+ * @param builtinName WGSL 中内置的固定名称（如 'position' 或 'gl_Position'，两者等价；或 'front_facing' 或 'gl_FrontFacing'，两者等价）
  * @returns Builtin 实例
  */
-export function builtin(builtinName: 'position' | 'gl_Position'): Builtin
+export function builtin(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing'): Builtin
 {
     return new Builtin(builtinName);
 }

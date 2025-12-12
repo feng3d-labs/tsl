@@ -1,12 +1,12 @@
+import { reactive } from '@feng3d/reactivity';
 import { Buffer, RenderObject, Submit } from '@feng3d/render-api';
 import { SamplerTexture, WebGL } from '@feng3d/webgl';
+import { WebGPU } from '@feng3d/webgpu';
 
-import { reactive } from '@feng3d/reactivity';
 import { attachCamera } from './hughsk/canvas-orbit-camera';
+import { fragmentShader, vertexShader } from './shaders/shader';
 import * as mat4 from './stackgl/gl-mat4';
 import * as vec3 from './stackgl/gl-vec3';
-import { WebGPU } from '@feng3d/webgpu';
-import { fragmentShader, vertexShader } from './shaders/shader';
 
 (async () =>
 {

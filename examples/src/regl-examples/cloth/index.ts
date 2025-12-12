@@ -6,16 +6,30 @@ import { fit } from './hughsk/canvas-fit';
 import { attachCamera } from './hughsk/canvas-orbit-camera';
 import * as mat4 from './stackgl/gl-mat4';
 import * as vec3 from './stackgl/gl-vec3';
+import { WebGPU } from '@feng3d/webgpu';
+import { fragmentShader, vertexShader } from './shaders/shader';
 
 (async () =>
 {
-    const canvas = document.createElement('canvas');
-    canvas.id = 'glcanvas';
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    document.body.appendChild(canvas);
+    // 使用 TSL 生成着色器代码
+    const vertexGlsl = vertexShader.toGLSL();
+    const fragmentGlsl = fragmentShader.toGLSL();
+    const vertexWgsl = vertexShader.toWGSL();
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
-    const webgl = new WebGL({ canvasId: 'glcanvas' });
+    const devicePixelRatio = window.devicePixelRatio || 1;
+
+    // 初始化 WebGPU
+    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
+    webgpuCanvas.width = window.innerWidth * devicePixelRatio;
+    webgpuCanvas.height = window.innerHeight * devicePixelRatio;
+    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
+
+    // 初始化 WebGL
+    const canvas = document.getElementById('webgl') as HTMLCanvasElement;
+    canvas.width = window.innerWidth * devicePixelRatio;
+    canvas.height = window.innerHeight * devicePixelRatio;
+    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
 
     const camera = attachCamera(canvas);
     window.addEventListener('resize', fit(canvas), false);
@@ -176,46 +190,10 @@ import * as vec3 from './stackgl/gl-vec3';
         bindingResources: {},
         pipeline: {
             vertex: {
-                code: /* wgsl */`precision mediump float;
-
-        attribute vec3 position;
-        attribute vec3 normal;
-        attribute vec2 uv;
-      
-        varying vec2 vUv;
-        varying vec3 vNormal;
-      
-        uniform mat4 projection, view;
-      
-        void main() {
-          vUv = uv;
-          vNormal = normal;
-          gl_Position = projection * view * vec4(position, 1);
-        }` },
+                glsl: vertexGlsl
+            },
             fragment: {
-                code: /* wgsl */`precision mediump float;
-
-        varying vec2 vUv;
-        varying vec3 vNormal;
-      
-        uniform sampler2D texture;
-      
-        void main () {
-          vec3 tex = texture2D(texture, vUv*1.0).xyz;
-          vec3 lightDir = normalize(vec3(0.4, 0.9, 0.3));
-      
-          vec3 n = vNormal;
-      
-          // for the back faces we need to use the opposite normals.
-          if(gl_FrontFacing == false) {
-            n = -n;
-          }
-      
-          vec3 ambient = 0.3 * tex;
-          vec3 diffuse = 0.7 * tex * clamp( dot(n, lightDir ), 0.0, 1.0 );
-      
-          gl_FragColor = vec4(ambient + diffuse, 1.0);
-        }`,
+                glsl: fragmentGlsl,
                 targets: [{ blend: {} }],
             },
             depthStencil: {},
@@ -398,7 +376,7 @@ import * as vec3 from './stackgl/gl-vec3';
             sources: [{ image: img }],
         }, sampler: { minFilter: 'linear', mipmapFilter: 'linear', addressModeU: 'repeat', addressModeV: 'repeat' },
     };
-    reactive(renderObject.bindingResources).texture = diffuse;
+    reactive(renderObject.bindingResources).uSampler = diffuse;
 
     draw();
 })();

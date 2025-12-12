@@ -30,8 +30,8 @@ import * as vec3 from './stackgl/gl-vec3';
     const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
 
     // 使用导入的原始 GLSL 和 WGSL 文件
-    // const vertexGlsl = vertexShader.toGLSL();
-    // const fragmentGlsl = fragmentShader.toGLSL();
+    const vertexGlsl = vertexShader.toGLSL();
+    const fragmentGlsl = fragmentShader.toGLSL();
     // const vertexWgsl = vertexShader.toWGSL();
     // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 

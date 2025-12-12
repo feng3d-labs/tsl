@@ -1,6 +1,6 @@
 import { IStatement } from './Statement';
 import { getCurrentFunc } from '../currentFunc';
-import { Float } from './types/float';
+import { Bool } from './types/bool';
 import { IElement } from '../IElement';
 import { getCurrentIfStatement, pushIfStatement, popIfStatement } from '../ifStack';
 
@@ -9,7 +9,7 @@ import { getCurrentIfStatement, pushIfStatement, popIfStatement } from '../ifSta
  * @param condition 条件表达式
  * @param body 条件满足时执行的回调函数
  */
-export function if_(condition: Float, body: () => void): void
+export function if_(condition: Bool, body: () => void): void
 {
     // 创建一个IfStatement实例，用于生成条件判断代码
     const ifStatement = new IfStatement(condition);
@@ -47,11 +47,11 @@ export function if_(condition: Float, body: () => void): void
  */
 export class IfStatement implements IStatement
 {
-    readonly condition: Float;
+    readonly condition: Bool;
     readonly statements: IStatement[] = [];
     private isBodyActive = false;
 
-    constructor(condition: Float)
+    constructor(condition: Bool)
     {
         this.condition = condition;
     }

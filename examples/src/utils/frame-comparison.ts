@@ -76,43 +76,38 @@ function displayComparisonResult(result: ComparisonResult, containerId = 'compar
     {
         container = document.createElement('div');
         container.id = containerId;
-        container.style.cssText = `
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.85);
-            color: white;
-            padding: 12px;
-            border-radius: 6px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            font-size: 12px;
-            z-index: 10000;
-            max-width: 280px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            line-height: 1.4;
-        `;
         document.body.appendChild(container);
     }
 
     const statusColor = result.isMatch ? '#4caf50' : '#f44336';
     const statusText = result.isMatch ? '✓ 一致' : '✗ 不一致';
 
+    // 包含差异图像的比较结果
+    let diffImageHtml = '';
+    if (result.diffImageData)
+    {
+        diffImageHtml = `
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0, 0, 0, 0.1);">
+                <div style="margin-bottom: 6px; font-weight: bold;">差异图像</div>
+                <div style="margin-bottom: 6px; font-size: 13px; color: #666;">
+                    红色区域表示 WebGL 和 WebGPU 渲染结果的差异，灰色区域表示结果一致
+                </div>
+                <canvas id="diff-canvas" style="border: 1px solid #ddd; border-radius: 4px; max-width: 100%; height: auto;"></canvas>
+            </div>
+        `;
+    }
+
     container.innerHTML = `
-        <div style="margin-bottom: 8px; font-weight: bold; color: ${statusColor}; font-size: 14px;">
+        <div style="margin-bottom: 8px; font-weight: bold; color: ${statusColor};">
             ${statusText}
         </div>
-        <div style="margin-bottom: 4px; font-size: 11px; white-space: nowrap;">
+        <div style="margin-bottom: 4px;">
             差异像素: ${result.pixelDifference} / ${result.totalPixels}
         </div>
-        <div style="margin-bottom: ${result.diffImageData ? '8px' : '0'}; font-size: 11px;">
+        <div style="margin-bottom: 8px;">
             差异比例: ${(result.difference * 100).toFixed(2)}%
         </div>
-        ${result.diffImageData ? `
-            <div style="margin-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.2); padding-top: 8px;">
-                <div style="margin-bottom: 4px; font-size: 10px; color: rgba(255, 255, 255, 0.8);">差异图像（红色=差异，灰色=相同）:</div>
-                <canvas id="diff-canvas" style="border: 1px solid #666; max-width: 100%; max-height: 200px; display: block; width: auto; height: auto;"></canvas>
-            </div>
-        ` : ''}
+        ${diffImageHtml}
     `;
 
     // 显示差异图像
@@ -121,15 +116,10 @@ function displayComparisonResult(result: ComparisonResult, containerId = 'compar
         const diffCanvas = document.getElementById('diff-canvas') as HTMLCanvasElement;
         if (diffCanvas)
         {
-            // 计算缩放比例，确保图像不会太大
-            const maxDisplayWidth = 260; // 容器最大宽度减去 padding
-            const maxDisplayHeight = 200;
-            const scale = Math.min(
-                maxDisplayWidth / result.diffImageData.width,
-                maxDisplayHeight / result.diffImageData.height,
-                1, // 不放大
-            );
-
+            // 设置canvas尺寸
+            const maxWidth = 300;
+            const scale = Math.min(maxWidth / result.diffImageData.width, 1);
+            
             diffCanvas.width = result.diffImageData.width;
             diffCanvas.height = result.diffImageData.height;
             diffCanvas.style.width = `${result.diffImageData.width * scale}px`;
@@ -140,6 +130,102 @@ function displayComparisonResult(result: ComparisonResult, containerId = 'compar
             {
                 ctx.putImageData(result.diffImageData, 0, 0);
             }
+
+            // 添加点击放大功能
+            diffCanvas.style.cursor = 'pointer';
+            diffCanvas.title = '点击放大查看详细差异';
+            diffCanvas.addEventListener('click', () => {
+                // 创建放大视图容器
+                const zoomContainer = document.createElement('div');
+                zoomContainer.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.85);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                    cursor: zoom-out;
+                `;
+
+                // 创建放大后的canvas
+                const zoomCanvas = document.createElement('canvas');
+                zoomCanvas.width = result.diffImageData.width;
+                zoomCanvas.height = result.diffImageData.height;
+                // 设置最大尺寸，避免超出屏幕
+                zoomCanvas.style.cssText = `
+                    max-width: 90%;
+                    max-height: 90%;
+                    border: 2px solid white;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+                `;
+
+                // 绘制放大后的图像
+                const zoomCtx = zoomCanvas.getContext('2d');
+                if (zoomCtx)
+                {
+                    zoomCtx.putImageData(result.diffImageData, 0, 0);
+                }
+
+                // 添加关闭按钮
+                const closeBtn = document.createElement('button');
+                closeBtn.textContent = '关闭';
+                closeBtn.style.cssText = `
+                    position: absolute;
+                    top: 20px;
+                    right: 20px;
+                    padding: 8px 16px;
+                    background: #4a90e2;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    z-index: 10001;
+                `;
+                closeBtn.addEventListener('click', () => {
+                    document.body.removeChild(zoomContainer);
+                });
+
+                // 添加放大说明
+                const zoomInfo = document.createElement('div');
+                zoomInfo.textContent = '点击图像或按ESC键关闭';
+                zoomInfo.style.cssText = `
+                    position: absolute;
+                    bottom: 20px;
+                    color: white;
+                    font-size: 14px;
+                    opacity: 0.8;
+                `;
+
+                // 点击容器关闭放大视图
+                zoomContainer.addEventListener('click', (e) => {
+                    if (e.target === zoomContainer || e.target === zoomInfo)
+                    {
+                        document.body.removeChild(zoomContainer);
+                    }
+                });
+
+                // 按ESC键关闭放大视图
+                const handleEscKey = (e: KeyboardEvent) => {
+                    if (e.key === 'Escape')
+                    {
+                        document.body.removeChild(zoomContainer);
+                        window.removeEventListener('keydown', handleEscKey);
+                    }
+                };
+                window.addEventListener('keydown', handleEscKey);
+
+                // 添加到页面
+                zoomContainer.appendChild(zoomCanvas);
+                zoomContainer.appendChild(closeBtn);
+                zoomContainer.appendChild(zoomInfo);
+                document.body.appendChild(zoomContainer);
+            });
         }
     }
 }
@@ -202,7 +288,7 @@ async function readWebGPUPixels(webgpu: WebGPU, canvas: HTMLCanvasElement): Prom
         };
 
         const readPixelsParams: ReadPixels = {
-            // texture: canvasTexture,
+            texture: canvasTexture,
             origin: [0, 0],
             copySize: [canvas.width, canvas.height],
         };

@@ -12,6 +12,7 @@ import vertexWgsl from './shaders/vertex.wgsl';
 import fragmentWgsl from './shaders/fragment.wgsl';
 import * as mat4 from './stackgl/gl-mat4';
 import * as vec3 from './stackgl/gl-vec3';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 (async () =>
 {
@@ -181,6 +182,7 @@ import * as vec3 from './stackgl/gl-vec3';
     let tick = 0;
     let viewportWidth = 1;
     let viewportHeight = 1;
+    let frameCount = 0;
 
     const renderObject: RenderObject = {
         vertices: {
@@ -365,6 +367,13 @@ import * as vec3 from './stackgl/gl-vec3';
 
         webgpu.submit(submit);
         webgl.submit(submit);
+
+        // 第一帧后进行比较
+        if (frameCount === 0)
+        {
+            frameCount++;
+            autoCompareFirstFrame(webgl, webgpu, canvas, webgpuCanvas, 0);
+        }
 
         requestAnimationFrame(draw);
     }

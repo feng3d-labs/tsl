@@ -4,8 +4,8 @@ import { reactive } from '@feng3d/reactivity';
 import { vertexShader, fragmentShader } from './shaders/shader';
 
 // 导入依赖的数学库
-import * as mat4 from '../../utils/gl-mat4';
-import * as vec3 from '../../utils/gl-vec3';
+import * as mat4 from './gl-mat4';
+import * as vec3 from './gl-vec3';
 
 // 创建一个约束类，连接两个顶点
 class Constraint {
@@ -30,6 +30,7 @@ async function init() {
     
     // 初始化 WebGL 和 WebGPU
     const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    // const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
     
     // 创建布料的几何数据
     const uv: number[][] = [];
@@ -346,7 +347,7 @@ async function init() {
     
     // 加载纹理
     const img = new Image();
-    img.src = '../../../../assets/cloth.png';
+    img.src = './assets/cloth.png';
     await img.decode();
     
     // 创建纹理对象
@@ -367,7 +368,7 @@ async function init() {
     };
     
     // 将纹理添加到渲染对象的绑定资源中
-    reactive(renderObject.bindingResources).texture = diffuse;
+    reactive(renderObject.bindingResources).uSampler = diffuse;
     
     // 开始渲染循环
     draw();

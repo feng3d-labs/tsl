@@ -6,5 +6,5 @@
 fn main(
     @builtin(position) fragCoord: vec4f,
 ) -> @location(0) vec4f {
-    return textureSample(diffuse_texture, diffuse, vec2f(fragCoord.x, u_imageSize.y - fragCoord.y) / u_imageSize);
+    return textureSample(diffuse_texture, diffuse, vec2f(fragCoord.x, u_imageSize.y - (-fragCoord.y)) / u_imageSize);
 }

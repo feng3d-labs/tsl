@@ -1,13 +1,13 @@
-import { RenderPassDescriptor, RenderPipeline, Sampler, Submit, Texture } from '@feng3d/render-api';
+import { RenderPipeline, Sampler, Submit, Texture } from '@feng3d/render-api';
 import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 // 直接导入预生成的着色器文件
-import vertexGlsl from './shaders/vertex.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
 import fragmentGlsl from './shaders/fragment.glsl';
 import fragmentWgsl from './shaders/fragment.wgsl';
+import vertexGlsl from './shaders/vertex.glsl';
+import vertexWgsl from './shaders/vertex.wgsl';
 
 // 辅助函数：加载图像
 function loadImage(url: string, onload: (img: HTMLImageElement) => void): HTMLImageElement

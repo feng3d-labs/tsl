@@ -20,14 +20,14 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     // 初始化 WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = window.innerWidth * devicePixelRatio;
-    webgpuCanvas.height = window.innerHeight * devicePixelRatio;
+    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
+    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
     const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
 
     // 初始化 WebGL
     const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    webglCanvas.width = window.innerWidth * devicePixelRatio;
-    webglCanvas.height = window.innerHeight * devicePixelRatio;
+    webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
+    webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
     const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2', webGLContextAttributes: { antialias: true } });
 
     const positions = bunny.positions.reduce((pv: number[], cv: number[]) =>
@@ -45,8 +45,8 @@ document.addEventListener('DOMContentLoaded', async () =>
     }, []);
 
     let tick = 0;
-    let viewportWidth = webglCanvas.clientWidth;
-    let viewportHeight = webglCanvas.clientHeight;
+    let viewportWidth = webglCanvas.clientWidth * devicePixelRatio;
+    let viewportHeight = webglCanvas.clientHeight * devicePixelRatio;
 
     const renderObject: RenderObject = {
         vertices: {
@@ -85,11 +85,6 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     function draw()
     {
-        viewportWidth = webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-        viewportHeight = webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-        webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-        webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
-
         tick++;
         const t = 0.01 * tick;
 

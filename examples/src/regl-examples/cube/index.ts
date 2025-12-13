@@ -16,17 +16,16 @@ import { autoCompareFirstFrame } from '../../utils/frame-comparison';
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     const devicePixelRatio = window.devicePixelRatio || 1;
-
     // 初始化 WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = window.innerWidth * devicePixelRatio;
-    webgpuCanvas.height = window.innerHeight * devicePixelRatio;
+    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
+    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
     const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
 
     // 初始化 WebGL
     const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    webglCanvas.width = window.innerWidth * devicePixelRatio;
-    webglCanvas.height = window.innerHeight * devicePixelRatio;
+    webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
+    webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
     const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
 
     const cubePosition = [
@@ -78,8 +77,8 @@ import { autoCompareFirstFrame } from '../../utils/frame-comparison';
     }, []);
 
     let tick = 0;
-    let viewportWidth = 1;
-    let viewportHeight = 1;
+    let viewportWidth = webglCanvas.clientWidth * devicePixelRatio;
+    let viewportHeight = webglCanvas.clientHeight * devicePixelRatio;
 
     const renderObject: RenderObject = {
         vertices: {
@@ -121,11 +120,6 @@ import { autoCompareFirstFrame } from '../../utils/frame-comparison';
     function draw()
     {
         tick++;
-
-        viewportWidth = webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-        viewportHeight = webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-        webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-        webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
 
         const t = 0.01 * tick;
         reactive(renderObject.bindingResources).view = {

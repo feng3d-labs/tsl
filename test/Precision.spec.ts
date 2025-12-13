@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { Precision, precision } from '../src/Precision';
-import { fragment } from '../src/Fragment';
+import { Precision, precision } from '../src/precision';
+import { fragment } from '../src/fragment';
 import { vec4 } from '../src/builtin/types/vec4';
-import { uniform } from '../src/Uniform';
-import { sampler } from '../src/Sampler';
+import { uniform } from '../src/uniform';
+import { sampler } from '../src/sampler';
 import { texture } from '../src/builtin/texture';
 import { int } from '../src/builtin/types/int';
 import { vec2 } from '../src/builtin/types/vec2';

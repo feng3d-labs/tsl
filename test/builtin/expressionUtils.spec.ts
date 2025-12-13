@@ -3,7 +3,7 @@ import { float, Float } from '../../src/builtin/types/float';
 import { vec2, Vec2 } from '../../src/builtin/types/vec2';
 import { vec3, Vec3 } from '../../src/builtin/types/vec3';
 import { vec4, Vec4 } from '../../src/builtin/types/vec4';
-import { Uniform } from '../../src/Uniform';
+import { Uniform } from '../../src/uniform';
 
 describe('表达式括号生成', () =>
 {

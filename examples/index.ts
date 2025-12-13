@@ -24,6 +24,10 @@ async function init()
     content.appendChild(container);
 
     viewSrcButton.style.display = 'none';
+    // 默认不显示缩略图，添加 minimal 类
+    content.classList.add('minimal');
+    // 设置缩略图按钮初始透明度
+    previewsToggler.style.opacity = content.classList.contains('minimal') ? '1' : '0.25';
 
     const files = await (await fetch('./files.json')).json();
     const tags = await (await fetch('./tags.json')).json();
@@ -131,6 +135,8 @@ async function init()
     {
         event.preventDefault();
         content.classList.toggle('minimal');
+        // 同步更新缩略图按钮的透明度
+        previewsToggler.style.opacity = content.classList.contains('minimal') ? '1' : '0.25';
     };
 
     // iOS iframe auto-resize workaround
@@ -265,11 +271,8 @@ function filterExample(file, exp, tags)
 
 function getName(file)
 {
-    // const name = file.split('_');
-    // name.shift();
-
-    // return name.join(' / ');
-    return file;
+    // 只返回文件名部分，去除路径前缀
+    return file.split('/').pop();
 }
 
 function layoutList(files)

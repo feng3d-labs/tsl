@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { assign } from '../src/builtin/assign';
-import { attribute } from '../src/Attribute';
+import { attribute } from '../src/attribute';
 import { builtin } from '../src/builtin/builtin';
 import { var_ } from '../src/builtin/var';
 import { vec2 } from '../src/builtin/types/vec2';
 import { vec4 } from '../src/builtin/types/vec4';
-import { varying } from '../src/Varying';
-import { Vertex, vertex } from '../src/Vertex';
+import { varying } from '../src/varying';
+import { Vertex, vertex } from '../src/vertex';
 import { return_ } from '../src/index';
 import { varyingStruct } from '../src/varyingStruct';
 

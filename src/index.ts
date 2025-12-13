@@ -27,12 +27,16 @@ export { texture2D } from './builtin/texture2D';
 export { texture } from './builtin/texture';
 export { var_ } from './builtin/var';
 export { color } from './builtin/color';
+export { if_ } from './builtin/if_';
+export { equals_ } from './builtin/equals_';
 export * from './fragmentOutput';
 // 导出向量类型
+export { Bool } from './builtin/types/bool';
 export { Float } from './builtin/types/float';
 export { Vec2 } from './builtin/types/vec2';
 export { Vec4 } from './builtin/types/vec4';
 // 导出向量构造函数
+export { bool } from './builtin/types/bool';
 export { ivec2 } from './builtin/types/ivec2';
 export { ivec3 } from './builtin/types/ivec3';
 export { ivec4 } from './builtin/types/ivec4';

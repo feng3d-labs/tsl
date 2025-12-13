@@ -37,12 +37,12 @@ describe('Builtin', () =>
         });
     });
 
-    describe('toGLSL', () =>
-    {
-        it('应该在没有设置 value 时抛出错误', () =>
+    describe('toGLSL', () => {
+        it('应该返回正确的 GLSL 代码', () =>
         {
             const b = builtin('position');
-            expect(() => b.toGLSL()).toThrow(/没有设置 value/);
+            expect(() => b.toGLSL()).not.toThrow();
+            expect(b.toGLSL()).toBe('gl_Position');
         });
 
         it('应该在设置 value 后返回 gl_Position', () =>

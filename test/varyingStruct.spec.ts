@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { attribute } from '../src/Attribute';
-import { uniform } from '../src/Uniform';
+import { attribute } from '../src/attribute';
+import { uniform } from '../src/uniform';
 import { builtin } from '../src/builtin/builtin';
 import { mat4 } from '../src/builtin/types/mat4';
 import { vec3 } from '../src/builtin/types/vec3';
 import { vec4 } from '../src/builtin/types/vec4';
 import { VaryingStruct, varyingStruct } from '../src/varyingStruct';
-import { varying } from '../src/Varying';
+import { varying } from '../src/varying';
 
 describe('VaryingStruct', () =>
 {
@@ -203,7 +203,59 @@ describe('VaryingStruct', () =>
             const glsl = v.position.toGLSL();
             expect(glsl).toBe('gl_Position');
         });
+    });
+    
+    describe('VaryingStruct - gl_FrontFacing 处理', () =>
+    {
+        it('应该为片段着色器生成包含 gl_FrontFacing 的结构体定义', () =>
+        {
+            const v = varyingStruct({
+                position: vec4(builtin('position')),
+                gl_FrontFacing: vec4(builtin('gl_FrontFacing')),
+            });
 
+            // 从构建上下文获取stage信息，应该返回包含gl_FrontFacing的定义
+            const fragmentWgsl = v.toWGSLDefinition();
+            
+            // 验证生成的WGSL包含gl_FrontFacing
+            expect(fragmentWgsl).toContain('@builtin(front_facing) gl_FrontFacing: vec4<f32>');
+        });
+        
+        it('应该为片段着色器生成包含 gl_FrontFacing 的结构体定义 - 类型验证', () =>
+        {
+            const v = varyingStruct({
+                gl_FrontFacing: vec4(builtin('gl_FrontFacing')),
+            });
+            
+            // 从构建上下文获取stage信息，应该返回包含gl_FrontFacing的定义
+            const fragmentWgsl = v.toWGSLDefinition();
+            
+            // 验证生成的WGSL包含正确的类型
+            expect(fragmentWgsl).toContain('vec4<f32>');
+        });
+        
+        it('应该为 vertex 和 fragment 生成不同的结构体定义', () =>
+        {
+            const v = varyingStruct({
+                position: vec4(builtin('position')),
+                gl_FrontFacing: vec4(builtin('gl_FrontFacing')),
+            });
+            
+            // 显式传递stage参数
+            const vertexWgsl = v.toWGSLDefinition('vertex');
+            const fragmentWgsl = v.toWGSLDefinition('fragment');
+            
+            // 验证两个阶段的定义不同
+            expect(vertexWgsl).not.toBe(fragmentWgsl);
+            // 验证顶点着色器定义不包含gl_FrontFacing
+            expect(vertexWgsl).not.toContain('gl_FrontFacing');
+            // 验证片段着色器定义包含gl_FrontFacing
+            expect(fragmentWgsl).toContain('gl_FrontFacing');
+        });
+    });
+    
+    describe('VaryingStruct 直接使用 - GLSL 代码生成 (继续)', () =>
+    {
         it('应该能够为结构体字段属性生成正确的 GLSL 代码', () =>
         {
             const v = varyingStruct({

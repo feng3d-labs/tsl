@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { attribute } from '../src/Attribute';
+import { attribute } from '../src/attribute';
 import { assign } from '../src/builtin/assign';
 import { builtin } from '../src/builtin/builtin';
 import { vec2 } from '../src/builtin/types/vec2';
 import { vec4 } from '../src/builtin/types/vec4';
-import { Fragment, fragment } from '../src/Fragment';
+import { Fragment, fragment } from '../src/fragment';
 import { return_ } from '../src/index';
-import { varying } from '../src/Varying';
+import { varying } from '../src/varying';
 import { varyingStruct } from '../src/varyingStruct';
-import { vertex } from '../src/Vertex';
+import { vertex } from '../src/vertex';
 
 describe('Fragment', () =>
 {

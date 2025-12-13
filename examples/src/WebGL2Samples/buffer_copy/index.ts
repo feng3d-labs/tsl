@@ -8,18 +8,18 @@ import vertexGlsl from './shaders/vertex.glsl';
 import vertexWgsl from './shaders/vertex.wgsl';
 import fragmentGlsl from './shaders/fragment.glsl';
 import fragmentWgsl from './shaders/fragment.wgsl';
+import { fragmentShader, vertexShader } from './shaders/shader';
 
 // 注释掉TSL着色器导入
 // import { fragmentShader, vertexShader } from './shaders/shader';
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    // 注释掉TSL生成着色器代码的部分
-    // // 使用函数式方式定义着色器生成着色器代码
-    // const vertexGlsl = vertexShader.toGLSL();
-    // const vertexWgsl = vertexShader.toWGSL();
-    // const fragmentGlsl = fragmentShader.toGLSL();
-    // const fragmentWgsl = fragmentShader.toWGSL();
+    // 使用函数式方式定义着色器生成着色器代码
+    const vertexGlsl = vertexShader.toGLSL();
+    const vertexWgsl = vertexShader.toWGSL();
+    const fragmentGlsl = fragmentShader.toGLSL();
+    const fragmentWgsl = fragmentShader.toWGSL();
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 

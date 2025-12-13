@@ -8,6 +8,7 @@ import fragmentGlsl from './shaders/fragment.glsl';
 import fragmentWgsl from './shaders/fragment.wgsl';
 import vertexGlsl from './shaders/vertex.glsl';
 import vertexWgsl from './shaders/vertex.wgsl';
+import { vertexShader, fragmentShader } from './shaders/shader';
 
 // 辅助函数：加载图像
 function loadImage(url: string, onload: (img: HTMLImageElement) => void): HTMLImageElement
@@ -23,14 +24,19 @@ function loadImage(url: string, onload: (img: HTMLImageElement) => void): HTMLIm
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
+    // const vertexGlsl = vertexShader.toGLSL(2);
+    // const fragmentGlsl = fragmentShader.toGLSL(2);
+    // const vertexWgsl = vertexShader.toWGSL();
+    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+
     const devicePixelRatio = window.devicePixelRatio || 1;
-    
+
     // 初始化WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
     webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
     webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
     const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-    
+
     // 初始化WebGL
     const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
     webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
@@ -48,13 +54,13 @@ document.addEventListener('DOMContentLoaded', async () =>
             },
             sources: [{ image: img, flipY: false }],
         };
-        
+
         // 创建采样器
         const sampler: Sampler = {
             minFilter: 'linear',
             magFilter: 'linear',
         };
-        
+
         // 渲染管线
         const program: RenderPipeline = {
             vertex: {

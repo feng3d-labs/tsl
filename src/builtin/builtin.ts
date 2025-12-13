@@ -12,7 +12,7 @@ export class Builtin implements IElement
     value: ShaderValue;
     dependencies: IElement[] = [];
 
-    constructor(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing')
+    constructor(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing' | 'vertexIndex' | 'gl_VertexID' | 'fragCoord' | 'gl_FragCoord')
     {
         this.builtinName = builtinName;
     }
@@ -33,6 +33,10 @@ export class Builtin implements IElement
     {
         if (this.builtinName === 'gl_Position') return 'position';
         if (this.builtinName === 'gl_FrontFacing') return 'front_facing';
+        if (this.builtinName === 'gl_VertexID') return 'vertex_index';
+        if (this.builtinName === 'vertexIndex') return 'vertex_index';
+        if (this.builtinName === 'gl_FragCoord') return 'position';
+        if (this.builtinName === 'fragCoord') return 'position';
         return this.builtinName;
     }
 
@@ -52,6 +56,22 @@ export class Builtin implements IElement
         return this.builtinName === 'front_facing' || this.builtinName === 'gl_FrontFacing';
     }
 
+    /**
+     * 检查是否是 vertexIndex 相关的 builtin
+     */
+    get isVertexIndex(): boolean
+    {
+        return this.builtinName === 'vertexIndex' || this.builtinName === 'gl_VertexID';
+    }
+
+    /**
+     * 检查是否是 fragCoord 相关的 builtin
+     */
+    get isFragCoord(): boolean
+    {
+        return this.builtinName === 'fragCoord' || this.builtinName === 'gl_FragCoord';
+    }
+
     toGLSL(): string
     {
         if (this.isPosition)
@@ -62,13 +82,28 @@ export class Builtin implements IElement
         {
             return 'gl_FrontFacing';
         }
+        if (this.isVertexIndex)
+        {
+            return 'gl_VertexID';
+        }
+        if (this.isFragCoord)
+        {
+            return 'gl_FragCoord';
+        }
 
         throw new Error(`Builtin '${this.builtinName}' 不支持 GLSL，无法生成 GLSL 代码。`);
     }
 
     toWGSL(): string
     {
-        const wgslType = this.value?.wgslType || (this.isFrontFacing ? 'bool' : undefined);
+        let wgslType = this.value?.wgslType;
+        if (!wgslType)
+        {
+            if (this.isFrontFacing) wgslType = 'bool';
+            else if (this.isVertexIndex) wgslType = 'u32';
+            else if (this.isFragCoord) wgslType = 'vec4f';
+            else wgslType = 'vec4f';
+        }
         if (!wgslType)
         {
             throw new Error(`Builtin '${this.builtinName}' 的 value 没有设置 wgslType，无法生成 WGSL。`);
@@ -88,7 +123,7 @@ export class Builtin implements IElement
  * @param builtinName WGSL 中内置的固定名称（如 'position' 或 'gl_Position'，两者等价；或 'front_facing' 或 'gl_FrontFacing'，两者等价）
  * @returns Builtin 实例
  */
-export function builtin(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing'): Builtin
+export function builtin(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing' | 'vertexIndex' | 'gl_VertexID' | 'fragCoord' | 'gl_FragCoord'): Builtin
 {
     return new Builtin(builtinName);
 }

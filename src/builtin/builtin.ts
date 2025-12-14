@@ -96,7 +96,13 @@ export class Builtin implements IElement
 
     toWGSL(): string
     {
-        let wgslType = this.value?.wgslType;
+        // 如果没有设置value，抛出错误
+        if (!this.value)
+        {
+            throw new Error(`Builtin '${this.builtinName}' 的 value 没有设置 wgslType，无法生成 WGSL。`);
+        }
+        
+        let wgslType = this.value.wgslType;
         if (!wgslType)
         {
             if (this.isFrontFacing) wgslType = 'bool';

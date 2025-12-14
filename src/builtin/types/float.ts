@@ -4,6 +4,7 @@ import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
 import { formatOperand } from '../expressionUtils';
 import { formatNumber } from '../formatNumber';
+import { UInt } from './uint';
 import { Vec2 } from './vec2';
 import { Vec3 } from './vec3';
 import { Vec4 } from './vec4';
@@ -468,6 +469,32 @@ export class Float implements ShaderValue
             const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '/', false, () => other.toWGSL());
 
             return `${left} / ${right}`;
+        };
+        result.dependencies = typeof other === 'number' ? [this] : [this, other];
+
+        return result;
+    }
+
+    /**
+     * 取模运算
+     */
+    mod(other: Float | number): Float
+    {
+        const result = new Float();
+
+        result.toGLSL = () =>
+        {
+            const left = formatOperand(this, '%', true, () => this.toGLSL());
+            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '%', false, () => other.toGLSL());
+
+            return `${left} % ${right}`;
+        };
+        result.toWGSL = () =>
+        {
+            const left = formatOperand(this, '%', true, () => this.toWGSL());
+            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '%', false, () => other.toWGSL());
+
+            return `${left} % ${right}`;
         };
         result.dependencies = typeof other === 'number' ? [this] : [this, other];
 

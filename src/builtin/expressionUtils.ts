@@ -49,8 +49,8 @@ function hasOperator(expr: string): boolean
     }
 
     // 检查是否包含运算符（排除函数调用中的括号）
-    // 简单检查：如果包含 +、-、*、/ 运算符
-    return /[+\-*/]/.test(expr);
+    // 简单检查：如果包含 +、-、*、/、% 运算符
+    return /[+\-*/%]/.test(expr);
 }
 
 /**
@@ -64,10 +64,10 @@ function hasAddSubOperator(expr: string): boolean
 /**
  * 检测表达式是否包含乘除运算符
  */
-function hasMulDivOperator(expr: string): boolean
+export function hasMulDivOperator(expr: string): boolean
 {
     // eslint-disable-next-line no-useless-escape
-    return /[*\/]/.test(expr);
+    return /[*\/%]/.test(expr);
 }
 
 /**
@@ -123,7 +123,7 @@ function wrapWithParens(expr: string, needsParens: boolean): string
  */
 export function formatOperand(
     operand: ShaderValue | number,
-    currentOp: '+' | '-' | '*' | '/',
+    currentOp: '+' | '-' | '*' | '/' | '%',
     isLeftOperand: boolean,
     toCode: () => string,
 ): string
@@ -199,7 +199,26 @@ export function formatOperand(
         }
         else
         {
-            // 右操作数：如果操作数是任何表达式，都需要括号
+            // 右操作数：如果是任何表达式，都需要括号
+            needsParens = true;
+        }
+    }
+    else if (currentOp === '%')
+    {
+        // 取模：左结合，与 * / 优先级相同
+        // 左操作数：如果是加减表达式，需要括号
+        // 右操作数：如果是任何表达式，都需要括号（因为 a % (b * c) ≠ a % b * c）
+        if (isLeftOperand)
+        {
+            // 左操作数：如果操作数是加减表达式，需要括号
+            if (operandTopOp === 'addsub')
+            {
+                needsParens = true;
+            }
+        }
+        else
+        {
+            // 右操作数：如果是任何表达式，都需要括号
             needsParens = true;
         }
     }

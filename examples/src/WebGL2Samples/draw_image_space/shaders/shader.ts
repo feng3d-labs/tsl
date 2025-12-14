@@ -1,4 +1,4 @@
-import { Builtin, builtin, float, fragment, mod, precision, return_, sampler, texture, uint, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
+import { Builtin, builtin, float, fragment, precision, return_, sampler, texture, uint, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
 
 const gl_VertexID = uint(builtin('gl_VertexID'))
 
@@ -18,6 +18,6 @@ export const fragmentShader = fragment('main', () =>
 {
     precision('highp', 'float');
     precision('highp', 'int');
-
+    
     return_(texture(diffuse, vec2(gl_FragCoord.x, u_imageSize.y.subtract(gl_FragCoord.y)).divide(u_imageSize)));
 });

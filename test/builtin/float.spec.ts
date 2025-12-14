@@ -220,6 +220,24 @@ describe('Float', () =>
             expect(negMul.toGLSL()).toBe('-(vBetaR * sR + vBetaM * sM)');
             expect(negMul.toWGSL()).toBe('-(vBetaR * sR + vBetaM * sM)');
         });
+
+        it('应该支持取模运算', () =>
+        {
+            const a = float(10.5);
+            const b = float(3.0);
+            const result = a.mod(b);
+            expect(result.toGLSL()).toBe('10.5 % 3.0');
+            expect(result.toWGSL()).toBe('10.5 % 3.0');
+        });
+
+        it('应该能够处理混合参数', () =>
+        {
+            const a = float(10.5);
+            const b = 3.0;
+            const result = a.mod(b);
+            expect(result.toGLSL()).toBe('10.5 % 3.0');
+            expect(result.toWGSL()).toBe('10.5 % 3.0');
+        });
     });
 });
 

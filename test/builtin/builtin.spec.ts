@@ -180,5 +180,48 @@ describe('builtin() 函数', () =>
             expect(b.wgslBuiltinName).toBe('position');
         });
     });
+
+    describe('gl_VertexID 与 vertexIndex 等价', () =>
+    {
+        it('应该能够创建 gl_VertexID builtin', () =>
+        {
+            const b = builtin('gl_VertexID');
+            expect(b.builtinName).toBe('gl_VertexID');
+            expect(b.isVertexIndex).toBe(true);
+        });
+
+        it('应该能够创建 vertexIndex builtin', () =>
+        {
+            const b = builtin('vertexIndex');
+            expect(b.builtinName).toBe('vertexIndex');
+            expect(b.isVertexIndex).toBe(true);
+        });
+
+        it('gl_VertexID 和 vertexIndex 应该生成相同的 GLSL 代码', () =>
+        {
+            const struct1 = varyingStruct({
+                gl_VertexID: vec4(builtin('gl_VertexID')),
+            });
+            const struct2 = varyingStruct({
+                vertexIndex: vec4(builtin('vertexIndex')),
+            });
+            const v1 = struct1.fields.gl_VertexID;
+            const v2 = struct2.fields.vertexIndex;
+            expect(v1.toGLSL()).toBe('gl_VertexID');
+            expect(v2.toGLSL()).toBe('gl_VertexID');
+        });
+
+        it('gl_VertexID 应该正确映射为 WGSL 的 vertex_index', () =>
+        {
+            const b = builtin('gl_VertexID');
+            expect(b.wgslBuiltinName).toBe('vertex_index');
+        });
+
+        it('vertexIndex 应该正确映射为 WGSL 的 vertex_index', () =>
+        {
+            const b = builtin('vertexIndex');
+            expect(b.wgslBuiltinName).toBe('vertex_index');
+        });
+    });
 });
 

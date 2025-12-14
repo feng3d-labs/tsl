@@ -61,16 +61,24 @@ export class UInt implements ShaderValue
             const value = args[0] as number;
             const uintValue = Math.floor(value); // 确保是整数
             this.toGLSL = () => `${uintValue}u`;
-            this.toWGSL = () => `${uintValue}`;
+            this.toWGSL = () => `${uintValue}u`;
             this.dependencies = [];
         }
         else if (args.length === 1 && typeof args[0] === 'object')
         {
-            // 类型转换，将其他类型转换为uint
             const other = args[0] as IElement;
             this.dependencies = [other];
-            this.toGLSL = () => `uint(${other.toGLSL()})`;
-            this.toWGSL = () => `u32(${other.toWGSL()})`;
+            
+            // 检查是否是Builtin对象，如果是，不需要添加uint()包装
+            if ('builtinName' in other) {
+                // 对于builtin变量，直接使用其名称，不需要类型转换
+                this.toGLSL = () => other.toGLSL();
+                this.toWGSL = () => other.toWGSL();
+            } else {
+                // 类型转换，将其他类型转换为uint
+                this.toGLSL = () => `uint(${other.toGLSL()})`;
+                this.toWGSL = () => `u32(${other.toWGSL()})`;
+            }
         }
         else
         {

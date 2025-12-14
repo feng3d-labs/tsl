@@ -96,12 +96,19 @@ export class UInt implements ShaderValue
         };
         result.toWGSL = () =>
         {
-            const left = formatOperand(this, '%', true, () => this.toWGSL());
-            const right = typeof other === 'number' 
-                ? `${Math.floor(other)}` 
-                : formatOperand(other, '%', false, () => other.toWGSL());
+            // 先使用formatOperand处理优先级和括号，然后添加u后缀
+            const formattedLeft = formatOperand(this, '%', true, () => {
+                const left = this.toWGSL();
+                return left.endsWith('u') ? left : `${left}u`;
+            });
+            const formattedRight = typeof other === 'number' 
+                ? `${Math.floor(other)}u` 
+                : formatOperand(other, '%', false, () => {
+                    const right = other.toWGSL();
+                    return right.endsWith('u') ? right : `${right}u`;
+                });
 
-            return `${left} % ${right}`;
+            return `${formattedLeft} % ${formattedRight}`;
         };
         result.dependencies = typeof other === 'number' ? [this] : [this, other];
 

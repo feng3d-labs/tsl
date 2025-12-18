@@ -411,10 +411,11 @@ export class Float implements ShaderValue
      * 减法运算
      */
     subtract(other: Float): Float;
+    subtract(other: number): Float;
     subtract(other: Vec3): Vec3;
     subtract(other: Vec4): Vec4;
     subtract(other: Vec2): Vec2;
-    subtract(other: Float | Vec2 | Vec3 | Vec4): Float | Vec2 | Vec3 | Vec4
+    subtract(other: Float | Vec2 | Vec3 | Vec4 | number): Float | Vec2 | Vec3 | Vec4
     {
         if (other instanceof Vec3)
         {
@@ -482,23 +483,24 @@ export class Float implements ShaderValue
 
             return result;
         }
+
         const result = new Float();
 
         result.toGLSL = () =>
         {
             const left = formatOperand(this, '-', true, () => this.toGLSL());
-            const right = formatOperand(other, '-', false, () => other.toGLSL());
+            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '-', false, () => other.toGLSL());
 
             return `${left} - ${right}`;
         };
         result.toWGSL = () =>
         {
             const left = formatOperand(this, '-', true, () => this.toWGSL());
-            const right = formatOperand(other, '-', false, () => other.toWGSL());
+            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '-', false, () => other.toWGSL());
 
             return `${left} - ${right}`;
         };
-        result.dependencies = [this, other];
+        result.dependencies = typeof other === 'number' ? [this] : [this, other];
 
         return result;
     }

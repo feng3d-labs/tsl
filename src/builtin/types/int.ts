@@ -2,6 +2,7 @@ import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
+import { Builtin } from '../builtin';
 
 /**
  * Int 类，用于表示整数类型（int/i32）
@@ -20,8 +21,9 @@ export class Int implements ShaderValue
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(varying: Varying);
+    constructor(builtin: Builtin);
     constructor(value: number);
-    constructor(...args: (number | Uniform | Attribute | Varying)[])
+    constructor(...args: (number | Uniform | Attribute | Varying | Builtin)[])
     {
         if (args.length === 0)
         {
@@ -52,6 +54,14 @@ export class Int implements ShaderValue
             this.toWGSL = () => varying.name;
             varying.value = this;
         }
+        else if (args.length === 1 && args[0] instanceof Builtin)
+        {
+            const builtin = args[0] as Builtin;
+            this.dependencies = [builtin];
+            this.toGLSL = () => builtin.name;
+            this.toWGSL = () => builtin.name;
+            builtin.value = this;
+        }
         else if (args.length === 1 && typeof args[0] === 'number')
         {
             const value = args[0] as number;
@@ -73,8 +83,9 @@ export class Int implements ShaderValue
 export function int(uniform: Uniform): Int;
 export function int(attribute: Attribute): Int;
 export function int(varying: Varying): Int;
+export function int(builtin: Builtin): Int;
 export function int(value: number): Int;
-export function int(...args: (number | Uniform | Attribute | Varying)[]): Int
+export function int(...args: (number | Uniform | Attribute | Varying | Builtin)[]): Int
 {
     return new (Int as any)(...args);
 }

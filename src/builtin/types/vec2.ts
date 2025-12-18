@@ -2,6 +2,7 @@ import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
+import { Builtin } from '../builtin';
 import { formatOperand } from '../expressionUtils';
 import { formatNumber } from '../formatNumber';
 import { Float } from './float';
@@ -22,8 +23,9 @@ export class Vec2 implements ShaderValue
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(varying: Varying);
+    constructor(builtin: Builtin);
     constructor(x: number | Float, y: number | Float);
-    constructor(...args: (number | Uniform | Attribute | Varying | Float)[])
+    constructor(...args: (number | Uniform | Attribute | Varying | Float | Builtin)[])
     {
         if (args.length === 0)
         {
@@ -62,6 +64,15 @@ export class Vec2 implements ShaderValue
                 this.dependencies = [varying];
 
                 varying.value = this;
+            }
+            else if (args[0] instanceof Builtin)
+            {
+                const builtin = args[0] as Builtin;
+
+                this.toGLSL = () => builtin.name;
+                this.toWGSL = () => builtin.name;
+                this.dependencies = [builtin];
+                builtin.value = this;
             }
             else
             {
@@ -283,6 +294,7 @@ export class Vec2 implements ShaderValue
 export function vec2(uniform: Uniform): Vec2;
 export function vec2(attribute: Attribute): Vec2;
 export function vec2(varying: Varying): Vec2;
+export function vec2(builtin: Builtin): Vec2;
 export function vec2(x: number | Float, y: number | Float): Vec2;
 export function vec2(...args: any[]): Vec2
 {

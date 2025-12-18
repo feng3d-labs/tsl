@@ -20,6 +20,9 @@ export class Vec2 implements ShaderValue
     toGLSL: () => string;
     toWGSL: () => string;
 
+    /** @internal 存储 Builtin 引用，用于 gl_FragCoord 的 Y 坐标翻转 */
+    private _builtin?: Builtin;
+
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(varying: Varying);
@@ -73,6 +76,7 @@ export class Vec2 implements ShaderValue
                 this.toWGSL = () => builtin.name ?? builtin.defaultName;
                 this.dependencies = [builtin];
                 builtin.value = this;
+                this._builtin = builtin; // 记录 builtin 引用，用于 .y 的翻转处理
             }
             else
             {
@@ -133,12 +137,22 @@ export class Vec2 implements ShaderValue
 
     /**
      * 获取 y 分量
+     * 注意：对于 gl_FragCoord，WGSL 中使用 (-fragCoord.y) 来解决 Y 轴翻转问题
      */
     get y(): Float
     {
         const float = new Float();
         float.toGLSL = () => `${this.toGLSL()}.y`;
-        float.toWGSL = () => `${this.toWGSL()}.y`;
+
+        // 对于 gl_FragCoord，WGSL 中使用负值来解决 Y 轴翻转
+        if (this._builtin && this._builtin.isFragCoord)
+        {
+            float.toWGSL = () => `(-${this.toWGSL()}.y)`;
+        }
+        else
+        {
+            float.toWGSL = () => `${this.toWGSL()}.y`;
+        }
         float.dependencies = [this];
 
         return float;

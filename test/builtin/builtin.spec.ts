@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { builtin } from '../../src/builtin/builtin';
+import { vec2 } from '../../src/builtin/types/vec2';
 import { vec4 } from '../../src/builtin/types/vec4';
 import { varyingStruct } from '../../src/varyingStruct';
 
@@ -57,18 +58,13 @@ describe('Builtin', () =>
 
     describe('toWGSL', () =>
     {
-        it('应该在没有设置 value 时抛出错误', () =>
-        {
-            const b = builtin('position');
-            expect(() => b.toWGSL()).toThrow(/没有设置 wgslType/);
-        });
-
-        it('应该在没有设置 name 时抛出错误', () =>
+        it('应该在设置 value 后使用默认名称生成正确的 WGSL 代码', () =>
         {
             const b = builtin('position');
             const v = vec4(1.0, 2.0, 3.0, 4.0);
             b.value = v;
-            expect(() => b.toWGSL()).toThrow(/没有设置 name/);
+            // 使用默认名称 position
+            expect(b.toWGSL()).toBe('@builtin(position) position: vec4<f32>');
         });
 
         it('应该返回正确格式的 WGSL 代码', () =>
@@ -178,6 +174,52 @@ describe('builtin() 函数', () =>
         {
             const b = builtin('gl_Position');
             expect(b.wgslBuiltinName).toBe('position');
+        });
+    });
+
+    describe('gl_FragCoord', () =>
+    {
+        it('应该能够创建 gl_FragCoord builtin', () =>
+        {
+            const b = builtin('gl_FragCoord');
+            expect(b.builtinName).toBe('gl_FragCoord');
+            expect(b.isFragCoord).toBe(true);
+        });
+
+        it('gl_FragCoord 应该正确映射为 WGSL 的 position', () =>
+        {
+            const b = builtin('gl_FragCoord');
+            expect(b.wgslBuiltinName).toBe('position');
+        });
+
+        it('gl_FragCoord 的 defaultName 应该是 fragCoord', () =>
+        {
+            const b = builtin('gl_FragCoord');
+            expect(b.defaultName).toBe('fragCoord');
+        });
+
+        it('gl_FragCoord.x 在 GLSL 和 WGSL 中应该相同', () =>
+        {
+            const fragCoord = vec2(builtin('gl_FragCoord'));
+            const x = fragCoord.x;
+            expect(x.toGLSL()).toBe('gl_FragCoord.x');
+            expect(x.toWGSL()).toBe('fragCoord.x');
+        });
+
+        it('gl_FragCoord.y 在 WGSL 中应该翻转（使用负值）', () =>
+        {
+            const fragCoord = vec2(builtin('gl_FragCoord'));
+            const y = fragCoord.y;
+            expect(y.toGLSL()).toBe('gl_FragCoord.y');
+            expect(y.toWGSL()).toBe('(-fragCoord.y)');
+        });
+
+        it('fragCoord 别名应该与 gl_FragCoord 行为一致', () =>
+        {
+            const fragCoord = vec2(builtin('fragCoord'));
+            const y = fragCoord.y;
+            expect(y.toGLSL()).toBe('gl_FragCoord.y');
+            expect(y.toWGSL()).toBe('(-fragCoord.y)');
         });
     });
 });

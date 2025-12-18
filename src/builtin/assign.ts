@@ -48,12 +48,45 @@ export class Assign implements IStatement
 
     toWGSL(): string
     {
-        // 在 WGSL 中，如果是 vertex shader 的 position，需要特殊处理
-        const isPositionBuiltin = this.target instanceof Builtin && this.target.isPosition;
-        if (isPositionBuiltin && getBuildParam().stage === 'vertex')
+        const buildParam = getBuildParam();
+
+        // 检测是否是 position builtin（直接或通过 VaryingStruct 包装）
+        let isPositionBuiltin = false;
+        if (this.target instanceof Builtin && this.target.isPosition)
         {
-            // 在 vertex shader 中，position 是返回值，使用 return
-            return `return ${this.value.toWGSL()};`;
+            isPositionBuiltin = true;
+        }
+        else if (this.target && 'dependencies' in this.target && Array.isArray(this.target.dependencies))
+        {
+            // 检查 dependencies[0] 是否是 position builtin（用于 VaryingStruct 字段）
+            const dep = this.target.dependencies[0];
+            if (dep instanceof Builtin && dep.isPosition)
+            {
+                isPositionBuiltin = true;
+            }
+        }
+
+        // 在 WGSL 中，如果是 vertex shader 的 position，需要特殊处理
+        if (isPositionBuiltin && buildParam.stage === 'vertex')
+        {
+            // 获取值的 WGSL 表示
+            const valueWGSL = this.value.toWGSL();
+
+            // 如果启用了深度转换，将深度从 WebGL 的 [-1, 1] 转换为 WebGPU 的 [0, 1]
+            if (buildParam.convertDepth)
+            {
+                // 公式: z_webgpu = (z_webgl + 1.0) * 0.5
+                // 生成: vec4<f32>(pos.xy, (pos.z + 1.0) * 0.5, pos.w)
+                // 使用临时变量避免重复计算
+                const tempVar = '_pos_temp';
+                const targetWGSL = this.target.toWGSL();
+                const depthConversion = `let ${tempVar} = ${valueWGSL}; ${targetWGSL} = vec4<f32>(${tempVar}.xy, (${tempVar}.z + 1.0) * 0.5, ${tempVar}.w);`;
+
+                return depthConversion;
+            }
+
+            // 普通赋值
+            return `${this.target.toWGSL()} = ${valueWGSL};`;
         }
         else
         {

@@ -29,7 +29,8 @@ document.addEventListener('DOMContentLoaded', async () =>
     // 生成 TSL 着色器代码（变量名与导入的相同，便于调试切换）
     const drawBufferVertexGlsl = drawBufferVertexShader.toGLSL(2);
     const drawBufferFragmentGlsl = drawBufferFragmentShader.toGLSL(2);
-    const drawBufferVertexWgsl = drawBufferVertexShader.toWGSL();
+    // 使用 convertDepth: true 自动将深度从 WebGL 的 [-1, 1] 转换为 WebGPU 的 [0, 1]
+    const drawBufferVertexWgsl = drawBufferVertexShader.toWGSL({ convertDepth: true });
     const drawBufferFragmentWgsl = drawBufferFragmentShader.toWGSL(drawBufferVertexShader);
 
     const drawVertexGlsl = drawVertexShader.toGLSL(2);

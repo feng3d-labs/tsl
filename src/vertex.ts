@@ -138,11 +138,15 @@ export class Vertex extends Func
 
     /**
      * 转换为完整的 WGSL 代码（vertex shader）
+     * @param options 可选参数
+     * @param options.convertDepth 是否转换深度值，将深度从 WebGL 的 [-1, 1] 转换为 WebGPU 的 [0, 1]（默认 false）
      * @returns 完整的 WGSL 代码，包括 uniforms、attributes 和函数定义
      */
-    toWGSL(): string
+    toWGSL(options?: { convertDepth?: boolean }): string
     {
-        return buildShader({ language: 'wgsl', stage: 'vertex', version: 1 }, () =>
+        const convertDepth = options?.convertDepth ?? false;
+
+        return buildShader({ language: 'wgsl', stage: 'vertex', version: 1, convertDepth }, () =>
         {
             const lines: string[] = [];
 

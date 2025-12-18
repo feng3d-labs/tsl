@@ -1,6 +1,25 @@
-let buildParam: { language: 'glsl' | 'wgsl', stage: 'vertex' | 'fragment', version: 1 | 2 };
+/**
+ * 构建着色器的参数
+ */
+export interface BuildShaderParam
+{
+    /** 目标语言 */
+    language: 'glsl' | 'wgsl';
+    /** 着色器阶段 */
+    stage: 'vertex' | 'fragment';
+    /** 版本（GLSL 使用） */
+    version: 1 | 2;
+    /**
+     * 是否转换深度值（仅 WGSL vertex shader 使用）
+     * 将深度从 WebGL 的 [-1, 1] 转换为 WebGPU 的 [0, 1]
+     * 公式: z_webgpu = (z_webgl + 1.0) * 0.5
+     */
+    convertDepth?: boolean;
+}
 
-export function buildShader<T>(param: { language: 'glsl' | 'wgsl', stage: 'vertex' | 'fragment', version: 1 | 2 }, callback: () => T): T
+let buildParam: BuildShaderParam;
+
+export function buildShader<T>(param: BuildShaderParam, callback: () => T): T
 {
     const previousBuildParam = buildParam;
 

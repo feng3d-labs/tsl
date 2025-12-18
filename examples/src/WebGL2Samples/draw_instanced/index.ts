@@ -8,6 +8,8 @@ import fragmentGlsl from './shaders/fragment.glsl';
 import fragmentWgsl from './shaders/fragment.wgsl';
 import vertexGlsl from './shaders/vertex.glsl';
 import vertexWgsl from './shaders/vertex.wgsl';
+// 导入TSL着色器
+import { vertexShader, fragmentShader } from './shaders/shader';
 
 // 辅助函数：初始化画布大小
 function initCanvasSize(canvas: HTMLCanvasElement)
@@ -37,7 +39,13 @@ document.addEventListener('DOMContentLoaded', async () =>
         1.0, 0.5, 0.0,
         0.0, 0.5, 1.0]);
 
-    // 渲染管线
+    // 生成着色器代码
+    // const vertexGlsl = vertexShader.toGLSL(2);
+    // const fragmentGlsl = fragmentShader.toGLSL(2);
+    // const vertexWgsl = vertexShader.toWGSL();
+    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+
+    // 渲染管线 - 使用生成的着色器代码
     const program: RenderPipeline = {
         vertex: {
             glsl: vertexGlsl,
@@ -85,7 +93,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     };
 
     // 执行渲染
-    // webgpu.submit(submit);
+    webgpu.submit(submit);
     webgl.submit(submit);
 
     // 第一帧后进行比较

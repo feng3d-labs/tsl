@@ -28,7 +28,8 @@ export class Float implements ShaderValue
     constructor(attribute: Attribute);
     constructor(varying: Varying);
     constructor(value: number);
-    constructor(...args: (number | Uniform | Attribute | Varying)[])
+    constructor(value: UInt);
+    constructor(...args: (number | Uniform | Attribute | Varying | UInt)[])
     {
         if (args.length === 0)
         {
@@ -565,11 +566,8 @@ export function float(uniform: Uniform): Float;
 export function float(attribute: Attribute): Float;
 export function float(varying: Varying): Float;
 export function float(value: number): Float;
-export function float(...args: (number | Uniform | Attribute | Varying)[]): Float
+export function float(value: UInt): Float;
+export function float(...args: any[]): Float
 {
-    if (args.length === 0) return new Float();
-
-    if (args.length === 1) return new Float(args[0] as any);
-
-    throw new Error('Invalid arguments for float');
+    return new (Float as any)(...args);
 }

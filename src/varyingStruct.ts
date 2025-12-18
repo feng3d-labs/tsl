@@ -79,7 +79,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
     {
         // 分配 location：按照字段定义顺序，为所有 varying 字段分配唯一的 location
         this.allocateVaryingLocations();
-        
+
         // 从 buildParam 中获取当前的 stage，如果没有提供的话
         const buildParam = getBuildParam();
         const effectiveStage = stage || buildParam?.stage || 'fragment';
@@ -95,7 +95,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
                 {
                     return null;
                 }
-                
+
                 // Builtin.toWGSL() 返回格式: @builtin(position) varName: vec4<f32>
                 // 我们需要提取 @builtin(...) 和类型，使用结构体字段名
                 const builtinWgsl = dep.toWGSL();

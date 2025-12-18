@@ -196,7 +196,7 @@ import { autoCompareFirstFrame } from '../../utils/frame-comparison';
         pipeline: {
             vertex: {
                 glsl: vertexGlsl,
-                wgsl: vertexWgsl
+                wgsl: vertexWgsl,
             },
             fragment: {
                 glsl: fragmentGlsl,
@@ -350,7 +350,6 @@ import { autoCompareFirstFrame } from '../../utils/frame-comparison';
         reactive(Buffer.getBuffer(renderObject.vertices.normal.data.buffer)).writeBuffers = [{ data: new Float32Array(normals) }];
 
         tick++;
-
 
         camera.tick();
 

@@ -18,6 +18,6 @@ export const fragmentShader = fragment('main', () =>
 {
     precision('highp', 'float');
     precision('highp', 'int');
-    
+
     return_(texture(diffuse, vec2(gl_FragCoord.x, u_imageSize.y.subtract(gl_FragCoord.y)).divide(u_imageSize)));
 });

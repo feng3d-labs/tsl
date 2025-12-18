@@ -187,8 +187,8 @@ describe('mod', () =>
             const result = x.mod(y);
 
             expect(result.toGLSL()).toBe('5u % 2u');
-            // WGSL 中数字字面量不需要 u 后缀，类型由变量声明决定
-            expect(result.toWGSL()).toBe('5 % 2');
+            // WGSL 中显式使用 u 后缀指定 u32 类型
+            expect(result.toWGSL()).toBe('5u % 2u');
         });
 
         it('应该能够处理uint和number混合参数', () =>
@@ -198,8 +198,8 @@ describe('mod', () =>
             const result = x.mod(y);
 
             expect(result.toGLSL()).toBe('5u % 2u');
-            // WGSL 中数字字面量需要 u 后缀（当 other 是 number 时）
-            expect(result.toWGSL()).toBe('5 % 2u');
+            // WGSL 中显式使用 u 后缀指定 u32 类型
+            expect(result.toWGSL()).toBe('5u % 2u');
         });
 
         it('应该能够在顶点着色器中使用uint类型', () =>

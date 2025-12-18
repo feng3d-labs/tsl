@@ -13,7 +13,7 @@ export function if_(condition: Bool, body: () => void): void
 {
     // 创建一个IfStatement实例，用于生成条件判断代码
     const ifStatement = new IfStatement(condition);
-    
+
     // 将语句添加到当前函数的 statements 中
     const currentFunc = getCurrentFunc();
     if (currentFunc)
@@ -32,7 +32,7 @@ export function if_(condition: Bool, body: () => void): void
         }
         // 收集条件表达式的依赖
         currentFunc.dependencies.push(condition);
-        
+
         // 执行回调函数，收集要执行的语句
         pushIfStatement(ifStatement); // 将当前if语句推入堆栈
         ifStatement.beginBody();
@@ -55,7 +55,7 @@ export class IfStatement implements IStatement
     {
         this.condition = condition;
     }
-    
+
     /**
      * 开始收集if语句体
      */
@@ -63,7 +63,7 @@ export class IfStatement implements IStatement
     {
         this.isBodyActive = true;
     }
-    
+
     /**
      * 结束收集if语句体
      */
@@ -71,7 +71,7 @@ export class IfStatement implements IStatement
     {
         this.isBodyActive = false;
     }
-    
+
     /**
      * 添加语句到if语句体
      */
@@ -87,6 +87,7 @@ export class IfStatement implements IStatement
     {
         const conditionStr = this.condition.toGLSL();
         const bodyStr = this.statements.map(statement => statement.toGLSL()).join('\n    ');
+
         return `if (${conditionStr}) {\n    ${bodyStr}\n}`;
     }
 
@@ -94,6 +95,7 @@ export class IfStatement implements IStatement
     {
         const conditionStr = this.condition.toWGSL();
         const bodyStr = this.statements.map(statement => statement.toWGSL()).join('\n    ');
+
         return `if (${conditionStr}) {\n    ${bodyStr}\n}`;
     }
 }

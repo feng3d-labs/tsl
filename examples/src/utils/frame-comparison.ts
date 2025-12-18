@@ -32,6 +32,7 @@ export async function autoCompareFirstFrame(
 {
     const result = await compareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, tolerance);
     displayComparisonResult(result, containerId);
+
     return result;
 }
 
@@ -119,7 +120,7 @@ function displayComparisonResult(result: ComparisonResult, containerId = 'compar
             // 设置canvas尺寸
             const maxWidth = 300;
             const scale = Math.min(maxWidth / result.diffImageData.width, 1);
-            
+
             diffCanvas.width = result.diffImageData.width;
             diffCanvas.height = result.diffImageData.height;
             diffCanvas.style.width = `${result.diffImageData.width * scale}px`;
@@ -270,6 +271,7 @@ function readWebGLPixels(webgl: WebGL, canvas: HTMLCanvasElement): ImageData | n
     } catch (e)
     {
         console.error('读取 WebGL canvas 像素失败:', e);
+
         return null;
     }
 }
@@ -328,6 +330,7 @@ async function readWebGPUPixels(webgpu: WebGPU, canvas: HTMLCanvasElement): Prom
     } catch (e)
     {
         console.error('读取 WebGPU canvas 像素失败:', e);
+
         return null;
     }
 }

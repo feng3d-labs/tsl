@@ -17,12 +17,12 @@ let currentFunc = {
 class MockIfStatement {
     condition: any;
     statements: any[];
-    
+
     constructor(condition: any) {
         this.condition = condition;
         this.statements = [];
     }
-    
+
     beginBody(): void {}
     endBody(): void {}
 }
@@ -42,21 +42,21 @@ vi.mock('../../src/ifStack', () => ({
 vi.mock('../../src/builtin/if_', async () => {
     // 导入实际的模块
     const actual = await vi.importActual('../../src/builtin/if_') as any;
-    
+
     // 在内联中重新定义MockIfStatement，避免提升问题
     class MockIfStatement {
         condition: any;
         statements: any[];
-        
+
         constructor(condition: any) {
             this.condition = condition;
             this.statements = [];
         }
-        
+
         beginBody(): void {}
         endBody(): void {}
     }
-    
+
     return {
         ...actual,
         IfStatement: MockIfStatement,
@@ -72,12 +72,12 @@ describe('if_', () => {
             dependencies: [],
         };
     });
-    
+
     afterEach(() => {
         // 清除所有模拟
         vi.clearAllMocks();
     });
-    
+
     describe('if_ 函数', () => {
         it('应该能够使用 bool 条件', () => {
             const struct = varyingStruct({
@@ -85,44 +85,44 @@ describe('if_', () => {
             });
             const v = struct.fields.gl_FrontFacing;
             const result = v.equals(false);
-            
+
             // 执行if_函数
             if_(result, () => {});
-            
+
             // 检查条件是否被正确添加到dependencies
             expect(currentFunc.dependencies).toContain(result);
         });
-        
+
         it('应该能够在顶点着色器中使用', () => {
             const v = bool(builtin('gl_FrontFacing'));
-            
+
             // 创建顶点着色器
             const vShader = vertex('main', () => {
                 const result = v.equals(false);
                 if_(result, () => {});
             });
-            
+
             // 检查着色器是否成功创建
             expect(vShader).toBeDefined();
         });
-        
+
         it('应该能够在片段着色器中使用', () => {
             const v = bool(builtin('gl_FrontFacing'));
-            
+
             // 创建片段着色器
             const fShader = fragment('main', () => {
                 const result = v.equals(false);
                 if_(result, () => {});
             });
-            
+
             // 检查着色器是否成功创建
             expect(fShader).toBeDefined();
         });
-        
+
         it('应该能够与 vec3 类型一起使用', () => {
             const v = bool(builtin('gl_FrontFacing'));
             const n = vec3(1.0, 2.0, 3.0);
-            
+
             // 创建片段着色器
             const fShader = fragment('main', () => {
                 const result = v.equals(false);
@@ -131,7 +131,7 @@ describe('if_', () => {
                     // assign(n, n.multiply(float(-1.0)));
                 });
             });
-            
+
             // 检查着色器是否成功创建
             expect(fShader).toBeDefined();
         });

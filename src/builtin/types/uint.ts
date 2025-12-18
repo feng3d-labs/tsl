@@ -77,7 +77,7 @@ export class UInt implements ShaderValue
         {
             const other = args[0] as IElement;
             this.dependencies = [other];
-            
+
             // 检查是否是Builtin对象，如果是，不需要添加uint()包装
             if ('builtinName' in other) {
                 // 对于builtin变量，直接使用其名称，不需要类型转换
@@ -101,6 +101,7 @@ export class UInt implements ShaderValue
         result.toGLSL = () => `${this.toGLSL()} / ${Math.floor(other)}u`;
         result.toWGSL = () => `${this.toWGSL()} / ${Math.floor(other)}u`;
         result.dependencies = [this];
+
         return result;
     }
 

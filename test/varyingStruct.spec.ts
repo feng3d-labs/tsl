@@ -205,7 +205,7 @@ describe('VaryingStruct', () =>
             expect(glsl).toBe('gl_Position');
         });
     });
-    
+
     describe('VaryingStruct - gl_FrontFacing 处理', () =>
     {
         it('应该为片段着色器生成包含 gl_FrontFacing 的结构体定义', () =>
@@ -217,35 +217,35 @@ describe('VaryingStruct', () =>
 
             // 从构建上下文获取stage信息，应该返回包含gl_FrontFacing的定义
             const fragmentWgsl = v.toWGSLDefinition();
-            
+
             // 验证生成的WGSL包含gl_FrontFacing（类型强制为 bool）
             expect(fragmentWgsl).toContain('@builtin(front_facing) gl_FrontFacing: bool');
         });
-        
+
         it('应该为片段着色器生成包含 gl_FrontFacing 的结构体定义 - 类型验证', () =>
         {
             const v = varyingStruct({
                 gl_FrontFacing: bool(builtin('gl_FrontFacing')),
             });
-            
+
             // 从构建上下文获取stage信息，应该返回包含gl_FrontFacing的定义
             const fragmentWgsl = v.toWGSLDefinition();
-            
+
             // 验证生成的WGSL包含正确的类型（gl_FrontFacing 在 WGSL 中强制为 bool 类型）
             expect(fragmentWgsl).toContain('bool');
         });
-        
+
         it('应该为 vertex 和 fragment 生成不同的结构体定义', () =>
         {
             const v = varyingStruct({
                 position: vec4(builtin('position')),
                 gl_FrontFacing: bool(builtin('gl_FrontFacing')),
             });
-            
+
             // 显式传递stage参数
             const vertexWgsl = v.toWGSLDefinition('vertex');
             const fragmentWgsl = v.toWGSLDefinition('fragment');
-            
+
             // 验证两个阶段的定义不同
             expect(vertexWgsl).not.toBe(fragmentWgsl);
             // 验证顶点着色器定义不包含gl_FrontFacing
@@ -254,7 +254,7 @@ describe('VaryingStruct', () =>
             expect(fragmentWgsl).toContain('gl_FrontFacing');
         });
     });
-    
+
     describe('VaryingStruct 直接使用 - GLSL 代码生成 (继续)', () =>
     {
         it('应该能够为结构体字段属性生成正确的 GLSL 代码', () =>

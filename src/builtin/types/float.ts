@@ -94,12 +94,14 @@ export class Float implements ShaderValue
             result.toGLSL = () =>
             {
                 const thisStr = this.toGLSL();
+
                 return `${thisStr} == ${formatNumber(other)}`;
             };
 
             result.toWGSL = () =>
             {
                 const thisStr = this.toWGSL();
+
                 return `${thisStr} == ${formatNumber(other)}`;
             };
 
@@ -112,6 +114,7 @@ export class Float implements ShaderValue
             {
                 const thisStr = this.toGLSL();
                 const otherStr = other.toGLSL();
+
                 return `${thisStr} == ${otherStr}`;
             };
 
@@ -119,6 +122,7 @@ export class Float implements ShaderValue
             {
                 const thisStr = this.toWGSL();
                 const otherStr = other.toWGSL();
+
                 return `${thisStr} == ${otherStr}`;
             };
 

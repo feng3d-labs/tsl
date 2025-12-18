@@ -19,6 +19,7 @@ function loadImage(url: string, onload: (img: HTMLImageElement) => void): HTMLIm
         onload(img);
     };
     img.src = url;
+
     return img;
 }
 

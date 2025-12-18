@@ -75,21 +75,23 @@ export class Bool implements ShaderValue
         const result = new Bool();
         const otherIsBool = other instanceof Bool;
         const otherIsBuiltin = other instanceof Builtin;
-        
+
         result.toGLSL = () => {
             const thisStr = this.toGLSL();
             const otherStr = otherIsBool ? other.toGLSL() : typeof other === 'boolean' ? other.toString() : other;
+
             return `${thisStr} == ${otherStr}`;
         };
-        
+
         result.toWGSL = () => {
             const thisStr = this.toWGSL();
             const otherStr = otherIsBool ? other.toWGSL() : typeof other === 'boolean' ? other.toString() : other;
+
             return `${thisStr} == ${otherStr}`;
         };
-        
+
         result.dependencies = [...this.dependencies, ...(otherIsBool ? other.dependencies : [])];
-        
+
         return result;
     }
 }
@@ -131,6 +133,7 @@ export function bool(arg?: boolean | Uniform | Attribute | Varying | Builtin): B
     {
         return new Bool(arg);
     }
+
     // 默认情况，应该不会到达这里
     return new Bool();
 }

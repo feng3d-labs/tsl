@@ -49,6 +49,7 @@ export class Builtin implements IElement
         if (this.builtinName === 'fragCoord') return 'position';
         if (this.builtinName === 'gl_InstanceID') return 'instance_index';
         if (this.builtinName === 'instance_index') return 'instance_index';
+
         return this.builtinName;
     }
 

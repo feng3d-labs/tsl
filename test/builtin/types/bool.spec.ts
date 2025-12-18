@@ -3,7 +3,6 @@ import { bool } from '../../../src/builtin/types/bool';
 import { builtin } from '../../../src/builtin/builtin';
 import { varyingStruct } from '../../../src/varyingStruct';
 import { vec3 } from '../../../src/builtin/types/vec3';
-import { equals_ } from '../../../src/builtin/equals_';
 import { if_ } from '../../../src/builtin/if_';
 import { vertex } from '../../../src/vertex';
 import { fragment } from '../../../src/fragment';
@@ -124,13 +123,13 @@ describe('Bool', () => {
         });
     });
     
-    describe('equals_ 函数', () => {
+    describe('Bool.equals 方法', () => {
         it('应该生成正确的 bool 比较 GLSL 代码', () => {
             const struct = varyingStruct({
                 gl_FrontFacing: bool(builtin('gl_FrontFacing')),
             });
             const v = struct.fields.gl_FrontFacing;
-            const result = equals_(v, false);
+            const result = v.equals(false);
             
             expect(result.toGLSL()).toBe('gl_FrontFacing == false');
             expect(result.toWGSL()).toBe('v.gl_FrontFacing == false');
@@ -141,7 +140,7 @@ describe('Bool', () => {
                 gl_FrontFacing: bool(builtin('gl_FrontFacing')),
             });
             const v = struct.fields.gl_FrontFacing;
-            const result = equals_(v, false);
+            const result = v.equals(false);
             
             expect(result.glslType).toBe('bool');
             expect(result.wgslType).toBe('bool');
@@ -154,7 +153,7 @@ describe('Bool', () => {
                 gl_FrontFacing: bool(builtin('gl_FrontFacing')),
             });
             const v = struct.fields.gl_FrontFacing;
-            const result = equals_(v, false);
+            const result = v.equals(false);
             
             // 执行if_函数
             if_(result, () => {});
@@ -168,7 +167,7 @@ describe('Bool', () => {
             
             // 创建顶点着色器
             const vShader = vertex('main', () => {
-                const result = equals_(v, false);
+                const result = v.equals(false);
                 if_(result, () => {});
             });
             
@@ -181,7 +180,7 @@ describe('Bool', () => {
             
             // 创建片段着色器
             const fShader = fragment('main', () => {
-                const result = equals_(v, false);
+                const result = v.equals(false);
                 if_(result, () => {});
             });
             
@@ -220,7 +219,7 @@ describe('Bool', () => {
             
             // 创建片段着色器
             const fShader = fragment('main', () => {
-                const result = equals_(v, false);
+                const result = v.equals(false);
                 if_(result, () => {
                     // 模拟对n的操作
                     // assign(n, n.multiply(float(-1.0)));

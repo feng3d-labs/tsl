@@ -18,7 +18,7 @@
     "scripts": {
         "dev": "cd examples && npm run dev",
         "clean": "rimraf \"{lib,dist,public}\"",
-        "build": "vite build",
+        "build": "tsc && vite build",
         "test": "vitest run",
         "test:watch": "vitest",
         "types": "tsc",

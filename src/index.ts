@@ -28,7 +28,7 @@ export { texture } from './builtin/texture';
 export { var_ } from './builtin/var';
 export { color } from './builtin/color';
 export { if_ } from './builtin/if_';
-export { equals_ } from './builtin/equals_';
+
 export * from './fragmentOutput';
 // 导出向量类型
 export { Bool } from './builtin/types/bool';

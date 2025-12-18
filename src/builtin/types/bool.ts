@@ -70,7 +70,28 @@ export class Bool implements ShaderValue
         }
     }
 
-
+    equals(other: Bool | boolean): Bool
+    {
+        const result = new Bool();
+        const otherIsBool = other instanceof Bool;
+        const otherIsBuiltin = other instanceof Builtin;
+        
+        result.toGLSL = () => {
+            const thisStr = this.toGLSL();
+            const otherStr = otherIsBool ? other.toGLSL() : typeof other === 'boolean' ? other.toString() : other;
+            return `${thisStr} == ${otherStr}`;
+        };
+        
+        result.toWGSL = () => {
+            const thisStr = this.toWGSL();
+            const otherStr = otherIsBool ? other.toWGSL() : typeof other === 'boolean' ? other.toString() : other;
+            return `${thisStr} == ${otherStr}`;
+        };
+        
+        result.dependencies = [...this.dependencies, ...(otherIsBool ? other.dependencies : [])];
+        
+        return result;
+    }
 }
 
 /**
@@ -85,23 +106,29 @@ export function bool(value: boolean): Bool;
 export function bool(builtin: Builtin): Bool;
 export function bool(arg?: boolean | Uniform | Attribute | Varying | Builtin): Bool
 {
-    if (arg === undefined) {
+    if (arg === undefined)
+    {
         return new Bool();
     }
     // 使用类型保护来明确调用哪个构造函数
-    if (typeof arg === 'boolean') {
+    if (typeof arg === 'boolean')
+    {
         return new Bool(arg);
     }
-    if (arg instanceof Uniform) {
+    if (arg instanceof Uniform)
+    {
         return new Bool(arg);
     }
-    if (arg instanceof Attribute) {
+    if (arg instanceof Attribute)
+    {
         return new Bool(arg);
     }
-    if (arg instanceof Varying) {
+    if (arg instanceof Varying)
+    {
         return new Bool(arg);
     }
-    if (arg instanceof Builtin) {
+    if (arg instanceof Builtin)
+    {
         return new Bool(arg);
     }
     // 默认情况，应该不会到达这里

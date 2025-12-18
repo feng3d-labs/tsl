@@ -98,6 +98,43 @@ document.addEventListener('DOMContentLoaded', async () =>
         textureCoordinates: { data: texcoords, format: 'float32x2' },
     };
 
+    // 窗口大小（WebGL 和 WebGPU 画布尺寸相同）
+    const windowSize = {
+        x: webglCanvas.width,
+        y: webglCanvas.height,
+    };
+
+    // 分割视口
+    const viewports = new Array(Corners.MAX);
+
+    viewports[Corners.BOTTOM_LEFT] = {
+        x: 0,
+        y: 0,
+        width: windowSize.x / 2,
+        height: windowSize.y / 2,
+    };
+
+    viewports[Corners.BOTTOM_RIGHT] = {
+        x: windowSize.x / 2,
+        y: 0,
+        width: windowSize.x / 2,
+        height: windowSize.y / 2,
+    };
+
+    viewports[Corners.TOP_RIGHT] = {
+        x: windowSize.x / 2,
+        y: windowSize.y / 2,
+        width: windowSize.x / 2,
+        height: windowSize.y / 2,
+    };
+
+    viewports[Corners.TOP_LEFT] = {
+        x: 0,
+        y: windowSize.y / 2,
+        width: windowSize.x / 2,
+        height: windowSize.y / 2,
+    };
+
     // 加载纹理
     loadImage('./images/Di-3d.png', (image) =>
     {
@@ -123,152 +160,99 @@ document.addEventListener('DOMContentLoaded', async () =>
             0.0, 0.0, 0.0, 1.0,
         ]);
 
-        // 创建渲染资源的函数
-        function createRenderResources(canvasWidth: number, canvasHeight: number)
+        // 基础渲染对象
+        const renderObject: RenderObject = {
+            pipeline: program,
+            bindingResources: { mvp: { value: matrix }, diffuse: { texture, sampler } },
+            vertices,
+            draw: { __type__: 'DrawVertex', vertexCount: 6 },
+        };
+
+        const renderObjects: RenderPassObject[] = [];
+
+        for (let i = 0; i < Corners.MAX; ++i)
         {
-            // 窗口大小
-            const windowSize = {
-                x: canvasWidth,
-                y: canvasHeight,
-            };
+            const viewport: Viewport = viewports[i];
 
-            // 分割视口
-            const viewports = new Array(Corners.MAX);
-
-            viewports[Corners.BOTTOM_LEFT] = {
-                x: 0,
-                y: 0,
-                width: windowSize.x / 2,
-                height: windowSize.y / 2,
-            };
-
-            viewports[Corners.BOTTOM_RIGHT] = {
-                x: windowSize.x / 2,
-                y: 0,
-                width: windowSize.x / 2,
-                height: windowSize.y / 2,
-            };
-
-            viewports[Corners.TOP_RIGHT] = {
-                x: windowSize.x / 2,
-                y: windowSize.y / 2,
-                width: windowSize.x / 2,
-                height: windowSize.y / 2,
-            };
-
-            viewports[Corners.TOP_LEFT] = {
-                x: 0,
-                y: windowSize.y / 2,
-                width: windowSize.x / 2,
-                height: windowSize.y / 2,
-            };
-
-            // 基础渲染对象
-            const renderObject: RenderObject = {
-                pipeline: program,
-                bindingResources: { mvp: { value: matrix }, diffuse: { texture, sampler } },
-                vertices,
-                draw: { __type__: 'DrawVertex', vertexCount: 6 },
-            };
-
-            const renderObjects: RenderPassObject[] = [];
-
-            for (let i = 0; i < Corners.MAX; ++i)
+            if (i === Corners.TOP_LEFT)
             {
-                const viewport: Viewport = viewports[i];
-
-                if (i === Corners.TOP_LEFT)
-                {
-                    // 左上角：只显示背景，不渲染
-                    // pass
-                }
-                else if (i === Corners.TOP_RIGHT)
-                {
-                    // 右上角：正常混合，显示原图
-                    renderObjects.push({
-                        ...renderObject,
-                        viewport,
-                    });
-                }
-                else if (i === Corners.BOTTOM_RIGHT)
-                {
-                    // 右下角：MIN 混合
-                    renderObjects.push({
-                        ...renderObject,
-                        viewport,
-                        pipeline: {
-                            ...program,
-                            fragment: {
-                                ...program.fragment,
-                                targets: [{
-                                    ...program.fragment!.targets![0],
-                                    blend: {
-                                        ...program.fragment!.targets![0].blend,
-                                        color: { ...program.fragment!.targets![0].blend!.color, operation: 'min' },
-                                        alpha: { ...program.fragment!.targets![0].blend!.alpha, operation: 'min' },
-                                    },
-                                }],
-                            },
-                        },
-                    });
-                }
-                else if (i === Corners.BOTTOM_LEFT)
-                {
-                    // 左下角：MAX 混合
-                    renderObjects.push({
-                        ...renderObject,
-                        viewport,
-                        pipeline: {
-                            ...program,
-                            fragment: {
-                                ...program.fragment,
-                                targets: [{
-                                    ...program.fragment!.targets![0],
-                                    blend: {
-                                        ...program.fragment!.targets![0].blend,
-                                        color: { ...program.fragment!.targets![0].blend!.color, operation: 'max' },
-                                        alpha: { ...program.fragment!.targets![0].blend!.alpha, operation: 'max' },
-                                    },
-                                }],
-                            },
-                        },
-                    });
-                }
+                // 左上角：只显示背景，不渲染
+                // pass
             }
-
-            // 渲染通道
-            const renderPass: RenderPass = {
-                descriptor: {
-                    colorAttachments: [{
-                        clearValue: [0.5, 0.0, 0.0, 1.0],
-                        loadOp: 'clear',
-                    }],
-                },
-                renderPassObjects: renderObjects,
-            };
-
-            return renderPass;
+            else if (i === Corners.TOP_RIGHT)
+            {
+                // 右上角：正常混合，显示原图
+                renderObjects.push({
+                    ...renderObject,
+                    viewport,
+                });
+            }
+            else if (i === Corners.BOTTOM_RIGHT)
+            {
+                // 右下角：MIN 混合
+                renderObjects.push({
+                    ...renderObject,
+                    viewport,
+                    pipeline: {
+                        ...program,
+                        fragment: {
+                            ...program.fragment,
+                            targets: [{
+                                ...program.fragment!.targets![0],
+                                blend: {
+                                    ...program.fragment!.targets![0].blend,
+                                    color: { ...program.fragment!.targets![0].blend!.color, operation: 'min' },
+                                    alpha: { ...program.fragment!.targets![0].blend!.alpha, operation: 'min' },
+                                },
+                            }],
+                        },
+                    },
+                });
+            }
+            else if (i === Corners.BOTTOM_LEFT)
+            {
+                // 左下角：MAX 混合
+                renderObjects.push({
+                    ...renderObject,
+                    viewport,
+                    pipeline: {
+                        ...program,
+                        fragment: {
+                            ...program.fragment,
+                            targets: [{
+                                ...program.fragment!.targets![0],
+                                blend: {
+                                    ...program.fragment!.targets![0].blend,
+                                    color: { ...program.fragment!.targets![0].blend!.color, operation: 'max' },
+                                    alpha: { ...program.fragment!.targets![0].blend!.alpha, operation: 'max' },
+                                },
+                            }],
+                        },
+                    },
+                });
+            }
         }
 
-        // 创建 WebGL 渲染资源
-        const webglRenderPass = createRenderResources(webglCanvas.width, webglCanvas.height);
+        // 渲染通道
+        const renderPass: RenderPass = {
+            descriptor: {
+                colorAttachments: [{
+                    clearValue: [0.5, 0.0, 0.0, 1.0],
+                    loadOp: 'clear',
+                }],
+            },
+            renderPassObjects: renderObjects,
+        };
 
-        // 创建 WebGPU 渲染资源
-        const webgpuRenderPass = createRenderResources(webgpuCanvas.width, webgpuCanvas.height);
-
-        // 执行 WebGL 渲染
-        webgl.submit({
+        // 提交渲染命令（WebGL 和 WebGPU 共用同一套数据）
+        const submit = {
             commandEncoders: [{
-                passEncoders: [webglRenderPass],
+                passEncoders: [renderPass],
             }],
-        });
+        };
 
-        // 执行 WebGPU 渲染
-        webgpu.submit({
-            commandEncoders: [{
-                passEncoders: [webgpuRenderPass],
-            }],
-        });
+        webgl.submit(submit);
+        webgpu.submit(submit);
 
         // 第一帧后进行比较
         autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);

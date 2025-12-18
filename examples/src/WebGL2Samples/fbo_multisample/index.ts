@@ -123,90 +123,74 @@ document.addEventListener('DOMContentLoaded', async () =>
     const mvp = mat4.create();
     mat4.scale(mvp, IDENTITY, scaleVector3);
 
-    // 创建渲染资源的函数
-    function createRenderResources(canvasWidth: number, canvasHeight: number)
-    {
-        // 纹理尺寸
-        const FRAMEBUFFER_SIZE = {
-            x: canvasWidth,
-            y: canvasHeight,
-        };
+    // 纹理尺寸（WebGL 和 WebGPU 画布尺寸相同）
+    const FRAMEBUFFER_SIZE = {
+        x: webglCanvas.width,
+        y: webglCanvas.height,
+    };
 
-        // 创建目标纹理
-        const targetTexture: Texture = {
-            descriptor: {
-                format: 'rgba8unorm',
-                size: [FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y],
+    // 创建目标纹理
+    const targetTexture: Texture = {
+        descriptor: {
+            format: 'rgba8unorm',
+            size: [FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y],
+        },
+    };
+    const sampler: Sampler = { minFilter: 'nearest', magFilter: 'nearest' };
+
+    // 多重采样帧缓冲
+    const framebuffer: RenderPassDescriptor = {
+        colorAttachments: [{
+            view: { texture: targetTexture, baseMipLevel: 0 },
+            clearValue: [0.0, 0.0, 0.0, 1.0],
+        }],
+        sampleCount: 4, // 4x 多重采样
+    };
+
+    // Pass 1：渲染圆形到多重采样纹理
+    const renderPass1: RenderPass = {
+        descriptor: framebuffer,
+        renderPassObjects: [{
+            pipeline: {
+                ...renderPipeline,
+                primitive: { topology: 'line-strip' },
             },
-        };
-        const sampler: Sampler = { minFilter: 'nearest', magFilter: 'nearest' };
+            bindingResources: {
+                MVP: { value: IDENTITY as Float32Array },
+            },
+            vertices: renderVertices,
+            draw: { __type__: 'DrawVertex', vertexCount },
+        }],
+    };
 
-        // 多重采样帧缓冲
-        const framebuffer: RenderPassDescriptor = {
+    // Pass 2：将纹理渲染到屏幕
+    const renderPass2: RenderPass = {
+        descriptor: {
             colorAttachments: [{
-                view: { texture: targetTexture, baseMipLevel: 0 },
                 clearValue: [0.0, 0.0, 0.0, 1.0],
+                loadOp: 'clear',
             }],
-            sampleCount: 4, // 4x 多重采样
-        };
-
-        // Pass 1：渲染圆形到多重采样纹理
-        const renderPass1: RenderPass = {
-            descriptor: framebuffer,
-            renderPassObjects: [{
-                pipeline: {
-                    ...renderPipeline,
-                    primitive: { topology: 'line-strip' },
-                },
-                bindingResources: {
-                    MVP: { value: IDENTITY as Float32Array },
-                },
-                vertices: renderVertices,
-                draw: { __type__: 'DrawVertex', vertexCount },
-            }],
-        };
-
-        // Pass 2：将纹理渲染到屏幕
-        const renderPass2: RenderPass = {
-            descriptor: {
-                colorAttachments: [{
-                    clearValue: [0.0, 0.0, 0.0, 1.0],
-                    loadOp: 'clear',
-                }],
+        },
+        renderPassObjects: [{
+            pipeline: splashPipeline,
+            bindingResources: {
+                diffuse: { texture: targetTexture, sampler },
+                MVP: { value: mvp as Float32Array },
             },
-            renderPassObjects: [{
-                pipeline: splashPipeline,
-                bindingResources: {
-                    diffuse: { texture: targetTexture, sampler },
-                    MVP: { value: mvp as Float32Array },
-                },
-                vertices: splashVertices,
-                draw: { __type__: 'DrawVertex', vertexCount: 6 },
-            }],
-        };
-
-        return { renderPass1, renderPass2 };
-    }
-
-    // 创建 WebGL 渲染资源
-    const webglResources = createRenderResources(webglCanvas.width, webglCanvas.height);
-
-    // 创建 WebGPU 渲染资源
-    const webgpuResources = createRenderResources(webgpuCanvas.width, webgpuCanvas.height);
-
-    // 执行 WebGL 渲染
-    webgl.submit({
-        commandEncoders: [{
-            passEncoders: [webglResources.renderPass1, webglResources.renderPass2],
+            vertices: splashVertices,
+            draw: { __type__: 'DrawVertex', vertexCount: 6 },
         }],
-    });
+    };
 
-    // 执行 WebGPU 渲染
-    webgpu.submit({
+    // 提交渲染命令（WebGL 和 WebGPU 共用同一套数据）
+    const submit = {
         commandEncoders: [{
-            passEncoders: [webgpuResources.renderPass1, webgpuResources.renderPass2],
+            passEncoders: [renderPass1, renderPass2],
         }],
-    });
+    };
+
+    webgl.submit(submit);
+    webgpu.submit(submit);
 
     // 第一帧后进行比较
     autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);

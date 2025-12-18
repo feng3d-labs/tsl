@@ -1,6 +1,16 @@
 import { IElement, ShaderValue } from '../IElement';
 
 /**
+ * 将下划线命名转换为驼峰命名
+ * @param name 下划线命名，如 "vertex_index"
+ * @returns 驼峰命名，如 "vertexIndex"
+ */
+function toCamelCase(name: string): string
+{
+    return name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
+/**
  * Builtin 类，表示内置变量（如 position）
  * 只能在 varyingStruct 中使用，变量名从结构体字段名获取
  * @internal 库外部不应直接使用 `new Builtin()`，应使用 `builtin()` 函数
@@ -37,7 +47,24 @@ export class Builtin implements IElement
         if (this.builtinName === 'vertexIndex') return 'vertex_index';
         if (this.builtinName === 'gl_FragCoord') return 'position';
         if (this.builtinName === 'fragCoord') return 'position';
+        if (this.builtinName === 'gl_InstanceID') return 'instance_index';
+        if (this.builtinName === 'instance_index') return 'instance_index';
         return this.builtinName;
+    }
+
+    /**
+     * 获取默认的变量名（驼峰命名格式）
+     * 注意：gl_FragCoord 使用 fragCoord 而不是 position，以区分顶点着色器的 position 输出
+     */
+    get defaultName(): string
+    {
+        // gl_FragCoord/fragCoord 特殊处理，使用 fragCoord 作为变量名
+        if (this.isFragCoord)
+        {
+            return 'fragCoord';
+        }
+
+        return toCamelCase(this.wgslBuiltinName);
     }
 
     /**
@@ -96,30 +123,35 @@ export class Builtin implements IElement
 
     toWGSL(): string
     {
-        // 如果没有设置value，抛出错误
-        if (!this.value)
+        // 对于特定的 builtin，强制使用正确的 WGSL 类型
+        // 这些类型是 WGSL 规范要求的，不能由用户代码改变
+        let wgslType: string;
+        if (this.isFrontFacing)
         {
-            throw new Error(`Builtin '${this.builtinName}' 的 value 没有设置 wgslType，无法生成 WGSL。`);
+            wgslType = 'bool';
         }
-        
-        let wgslType = this.value.wgslType;
-        if (!wgslType)
+        else if (this.isVertexIndex || this.builtinName === 'instance_index' || this.builtinName === 'gl_InstanceID')
         {
-            if (this.isFrontFacing) wgslType = 'bool';
-            else if (this.isVertexIndex) wgslType = 'u32';
-            else if (this.isFragCoord) wgslType = 'vec4f';
-            else wgslType = 'vec4f';
+            wgslType = 'u32';
         }
-        if (!wgslType)
+        else if (this.isFragCoord || this.isPosition)
         {
-            throw new Error(`Builtin '${this.builtinName}' 的 value 没有设置 wgslType，无法生成 WGSL。`);
+            wgslType = 'vec4<f32>';
         }
-        if (!this.name)
+        else
         {
-            throw new Error(`Builtin '${this.builtinName}' 没有设置 name，必须在 varyingStruct 中使用。`);
+            // 对于其他 builtin，使用 value 的类型
+            if (!this.value)
+            {
+                throw new Error(`Builtin '${this.builtinName}' 的 value 没有设置，无法生成 WGSL。`);
+            }
+            wgslType = this.value.wgslType ?? 'vec4<f32>';
         }
 
-        return `@builtin(${this.wgslBuiltinName}) ${this.name}: ${wgslType}`;
+        // 如果没有设置 name，使用默认名称
+        const varName = this.name ?? this.defaultName;
+
+        return `@builtin(${this.wgslBuiltinName}) ${varName}: ${wgslType}`;
     }
 }
 

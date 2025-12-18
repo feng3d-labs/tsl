@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', async () =>
 {
     const vertexGlsl = vertexShader.toGLSL(2);
     const fragmentGlsl = fragmentShader.toGLSL(2);
-    // const vertexWgsl = vertexShader.toWGSL();
-    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+    const vertexWgsl = vertexShader.toWGSL();
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 

@@ -1,4 +1,5 @@
 import { buildShader } from './buildShader';
+import { Builtin } from './builtin/builtin';
 import { Func } from './func';
 import { ShaderValue } from './IElement';
 import { Precision } from './precision';
@@ -310,11 +311,24 @@ export class Fragment extends Func
             }
 
             // 生成函数参数
-            let paramStr = '()';
+            const params: string[] = [];
+
+            // 添加结构体参数（如果有）
             if (inputStruct)
             {
-                paramStr = `(v: VaryingStruct)`;
+                params.push(`v: VaryingStruct`);
             }
+
+            // 添加 builtins 参数（只添加 fragment shader 输入类型的 builtin，如 position/gl_FragCoord）
+            for (const builtin of dependencies.builtins)
+            {
+                if (builtin.isFragCoord)
+                {
+                    params.push(builtin.toWGSL());
+                }
+            }
+
+            const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
 
             // 生成返回类型：如果有 FragmentOutput，使用多个输出；否则使用单个输出
             let returnType: string;

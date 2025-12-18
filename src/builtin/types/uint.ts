@@ -2,6 +2,7 @@ import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
+import { Builtin } from '../builtin';
 import { formatOperand } from '../expressionUtils';
 
 /**
@@ -21,9 +22,10 @@ export class UInt implements ShaderValue
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(varying: Varying);
+    constructor(builtin: Builtin);
     constructor(value: number);
     constructor(other: IElement);
-    constructor(...args: (number | Uniform | Attribute | Varying | IElement)[])
+    constructor(...args: (number | Uniform | Attribute | Varying | Builtin | IElement)[])
     {
         if (args.length === 0)
         {
@@ -53,6 +55,15 @@ export class UInt implements ShaderValue
             this.toGLSL = () => varying.name;
             this.toWGSL = () => varying.name;
             varying.value = this;
+        }
+        else if (args.length === 1 && args[0] instanceof Builtin)
+        {
+            const builtin = args[0] as Builtin;
+            this.dependencies = [builtin];
+            // gl_VertexID 在 GLSL 中是 int 类型，需要转换为 uint
+            this.toGLSL = () => `uint(${builtin.toGLSL()})`;
+            this.toWGSL = () => builtin.name ?? builtin.defaultName;
+            builtin.value = this;
         }
         else if (args.length === 1 && typeof args[0] === 'number')
         {
@@ -103,21 +114,12 @@ export class UInt implements ShaderValue
         };
         result.toWGSL = () =>
         {
-            // 先使用formatOperand处理优先级和括号，然后添加u后缀
-            const formattedLeft = formatOperand(this, '%', true, () =>
-            {
-                const left = this.toWGSL();
-                return left.endsWith('u') ? left : `${left}u`;
-            });
-            const formattedRight = typeof other === 'number'
+            const left = formatOperand(this, '%', true, () => this.toWGSL());
+            const right = typeof other === 'number'
                 ? `${Math.floor(other)}u`
-                : formatOperand(other, '%', false, () =>
-                {
-                    const right = other.toWGSL();
-                    return right.endsWith('u') ? right : `${right}u`;
-                });
+                : formatOperand(other, '%', false, () => other.toWGSL());
 
-            return `${formattedLeft} % ${formattedRight}`;
+            return `${left} % ${right}`;
         };
         result.dependencies = typeof other === 'number' ? [this] : [this, other];
 
@@ -131,9 +133,10 @@ export class UInt implements ShaderValue
 export function uint(uniform: Uniform): UInt;
 export function uint(attribute: Attribute): UInt;
 export function uint(varying: Varying): UInt;
+export function uint(builtin: Builtin): UInt;
 export function uint(value: number): UInt;
 export function uint(other: IElement): UInt;
-export function uint(...args: (number | Uniform | Attribute | Varying | IElement)[]): UInt
+export function uint(...args: (number | Uniform | Attribute | Varying | Builtin | IElement)[]): UInt
 {
     return new (UInt as any)(...args);
 }

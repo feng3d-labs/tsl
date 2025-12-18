@@ -59,7 +59,7 @@ export class Int implements ShaderValue
             const builtin = args[0] as Builtin;
             this.dependencies = [builtin];
             this.toGLSL = () => builtin.toGLSL();
-            this.toWGSL = () => builtin.name;
+            this.toWGSL = () => builtin.name ?? builtin.defaultName;
             builtin.value = this;
         }
         else if (args.length === 1 && typeof args[0] === 'number')

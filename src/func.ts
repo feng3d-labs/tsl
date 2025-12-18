@@ -128,7 +128,7 @@ export class Func
             for (const builtin of dependencies.builtins)
             {
                 // 只添加输入类型的 builtin（vertex_index、instance_index 等）
-                if (builtin.isVertexIndex || builtin.builtinName === 'instance_index' || builtin.builtinName === 'gl_InstanceID')
+                if (builtin.isVertexIndex || builtin.isInstanceIndex)
                 {
                     params.push(builtin.toWGSL());
                 }

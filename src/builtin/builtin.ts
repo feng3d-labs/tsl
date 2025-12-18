@@ -99,6 +99,14 @@ export class Builtin implements IElement
         return this.builtinName === 'fragCoord' || this.builtinName === 'gl_FragCoord';
     }
 
+    /**
+     * 检查是否是 instanceIndex 相关的 builtin
+     */
+    get isInstanceIndex(): boolean
+    {
+        return this.builtinName === 'instance_index' || this.builtinName === 'gl_InstanceID';
+    }
+
     toGLSL(): string
     {
         if (this.isPosition)
@@ -117,6 +125,10 @@ export class Builtin implements IElement
         {
             return 'gl_FragCoord';
         }
+        if (this.isInstanceIndex)
+        {
+            return 'gl_InstanceID';
+        }
 
         throw new Error(`Builtin '${this.builtinName}' 不支持 GLSL，无法生成 GLSL 代码。`);
     }
@@ -130,7 +142,7 @@ export class Builtin implements IElement
         {
             wgslType = 'bool';
         }
-        else if (this.isVertexIndex || this.builtinName === 'instance_index' || this.builtinName === 'gl_InstanceID')
+        else if (this.isVertexIndex || this.isInstanceIndex)
         {
             wgslType = 'u32';
         }

@@ -161,5 +161,117 @@ describe('Vertex', () =>
             expect(wgsl).toContain('v.position_vec4.z = v.position_vec4.w');
         });
     });
+
+    describe('convertDepth 深度转换', () =>
+    {
+        it('不使用 convertDepth 时，position 赋值应该保持原样', () =>
+        {
+            const position = vec4(attribute('position'));
+            const v = varyingStruct({
+                vPosition: vec4(builtin('position')),
+            });
+
+            const vert = vertex('main', () =>
+            {
+                assign(v.vPosition, position);
+            });
+
+            const wgsl = vert.toWGSL();
+            expect(wgsl).toContain('v.vPosition = position;');
+            expect(wgsl).not.toContain('_pos_temp');
+        });
+
+        it('使用 convertDepth: true 时，应该自动转换深度值', () =>
+        {
+            const position = vec4(attribute('position'));
+            const v = varyingStruct({
+                vPosition: vec4(builtin('position')),
+            });
+
+            const vert = vertex('main', () =>
+            {
+                assign(v.vPosition, position);
+            });
+
+            const wgsl = vert.toWGSL({ convertDepth: true });
+            // 验证深度转换代码生成
+            expect(wgsl).toContain('let _pos_temp = position;');
+            expect(wgsl).toContain('v.vPosition = vec4<f32>(_pos_temp.xy, (_pos_temp.z + 1.0) * 0.5, _pos_temp.w);');
+        });
+
+        it('使用 convertDepth: false 时，应该与默认行为相同', () =>
+        {
+            const position = vec4(attribute('position'));
+            const v = varyingStruct({
+                vPosition: vec4(builtin('position')),
+            });
+
+            const vert = vertex('main', () =>
+            {
+                assign(v.vPosition, position);
+            });
+
+            const wgslDefault = vert.toWGSL();
+            const wgslExplicitFalse = vert.toWGSL({ convertDepth: false });
+            expect(wgslDefault).toBe(wgslExplicitFalse);
+        });
+
+        it('深度转换应该正确处理复杂表达式', () =>
+        {
+            const pos = vec2(attribute('pos'));
+            const v = varyingStruct({
+                vPosition: vec4(builtin('position')),
+            });
+
+            const vert = vertex('main', () =>
+            {
+                assign(v.vPosition, vec4(pos, 0.0, 1.0));
+            });
+
+            const wgsl = vert.toWGSL({ convertDepth: true });
+            // 验证复杂表达式也能正确处理
+            expect(wgsl).toContain('let _pos_temp = vec4<f32>(pos, 0.0, 1.0);');
+            expect(wgsl).toContain('v.vPosition = vec4<f32>(_pos_temp.xy, (_pos_temp.z + 1.0) * 0.5, _pos_temp.w);');
+        });
+
+        it('深度转换不应影响非 position 的赋值', () =>
+        {
+            const color = vec4(attribute('color'));
+            const v = varyingStruct({
+                vPosition: vec4(builtin('position')),
+                vColor: vec4(varying()),
+            });
+
+            const vert = vertex('main', () =>
+            {
+                assign(v.vPosition, vec4(1.0, 0.0, 0.0, 1.0));
+                assign(v.vColor, color);
+            });
+
+            const wgsl = vert.toWGSL({ convertDepth: true });
+            // position 赋值应该有深度转换
+            expect(wgsl).toContain('_pos_temp');
+            // color 赋值不应该有深度转换
+            expect(wgsl).toContain('v.vColor = color;');
+        });
+
+        it('GLSL 输出不应受 convertDepth 影响', () =>
+        {
+            const position = vec4(attribute('position'));
+            const v = varyingStruct({
+                vPosition: vec4(builtin('position')),
+            });
+
+            const vert = vertex('main', () =>
+            {
+                assign(v.vPosition, position);
+            });
+
+            const glsl = vert.toGLSL(2);
+            // GLSL 不需要深度转换，应该保持原样
+            expect(glsl).toContain('gl_Position = position;');
+            expect(glsl).not.toContain('_pos_temp');
+        });
+    });
 });
 

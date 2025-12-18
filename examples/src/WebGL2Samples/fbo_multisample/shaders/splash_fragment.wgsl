@@ -1,5 +1,5 @@
-@group(0) @binding(1) var diffuse: texture_2d<f32>;
-@group(0) @binding(2) var diffuseSampler: sampler;
+@group(0) @binding(1) var diffuse_texture: texture_2d<f32>;
+@group(0) @binding(2) var diffuse: sampler;
 
 struct FragmentInput {
     @location(0) uv: vec2<f32>
@@ -7,5 +7,5 @@ struct FragmentInput {
 
 @fragment
 fn main(input: FragmentInput) -> @location(0) vec4<f32> {
-    return textureSample(diffuse, diffuseSampler, input.uv);
+    return textureSample(diffuse_texture, diffuse, input.uv);
 }

@@ -36,6 +36,50 @@ packages/tsl/examples/src/WebGL2Samples/<示例名>/
 2. **`shaders/vertex.glsl`** 和 **`shaders/fragment.glsl`** - GLSL 着色器（调试用）
 3. **`shaders/vertex.wgsl`** 和 **`shaders/fragment.wgsl`** - WGSL 着色器（调试用）
 
+#### WGSL 着色器编写规则（重要）
+
+WGSL 着色器中的 uniform 变量**必须直接声明，不要使用 struct 包装**，以确保与 render-api 的绑定机制兼容：
+
+```wgsl
+// ✅ 正确：直接声明 uniform
+@group(0) @binding(0) var<uniform> MVP: mat4x4<f32>;
+
+// ❌ 错误：使用 struct 包装（与 render-api 不兼容）
+struct Uniforms { MVP: mat4x4<f32> }
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+```
+
+在着色器中直接使用变量名：
+```wgsl
+// ✅ 正确
+output.position = MVP * vec4<f32>(input.position, 0.0, 1.0);
+
+// ❌ 错误
+output.position = uniforms.MVP * vec4<f32>(input.position, 0.0, 1.0);
+```
+
+**原因**：render-api 通过 `bindingResources` 中的 key（如 `MVP`）直接绑定 uniform，WGSL 中的变量名必须与之匹配。
+
+#### Texture+Sampler 组合绑定规则
+
+当 `bindingResources` 使用 texture+sampler 组合时（如 `diffuse: { texture, sampler }`），WGSL 中需要使用特定的命名：
+
+```wgsl
+// bindingResources: { diffuse: { texture, sampler }, MVP: { value: ... } }
+
+// 顶点着色器
+@group(0) @binding(0) var<uniform> MVP: mat4x4<f32>;
+
+// 片段着色器（binding 索引必须与顶点着色器错开）
+@group(0) @binding(1) var diffuse_texture: texture_2d<f32>;  // 纹理：原名 + "_texture"
+@group(0) @binding(2) var diffuse: sampler;                   // 采样器：原名
+```
+
+**重要**：
+- 纹理变量名 = `bindingResources` 中的 key + `_texture`（如 `diffuse_texture`）
+- 采样器变量名 = `bindingResources` 中的 key（如 `diffuse`）
+- 片段着色器的 `@binding` 索引必须与顶点着色器错开，避免冲突
+
 ### 步骤 3: 创建 `index.ts`
 
 参考 `draw_primitive_restart/index.ts`，关键代码结构：

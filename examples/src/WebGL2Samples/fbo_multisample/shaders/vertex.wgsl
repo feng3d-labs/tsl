@@ -1,8 +1,4 @@
-struct Uniforms {
-    MVP: mat4x4<f32>
-}
-
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> MVP: mat4x4<f32>;
 
 struct VertexInput {
     @location(0) position: vec2<f32>
@@ -15,6 +11,6 @@ struct VertexOutput {
 @vertex
 fn main(input: VertexInput) -> VertexOutput {
     var output: VertexOutput;
-    output.position = uniforms.MVP * vec4<f32>(input.position, 0.0, 1.0);
+    output.position = MVP * vec4<f32>(input.position, 0.0, 1.0);
     return output;
 }

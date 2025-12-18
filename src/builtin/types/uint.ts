@@ -2,9 +2,7 @@ import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
-import { Float } from './float';
 import { formatOperand } from '../expressionUtils';
-import { formatNumber } from '../formatNumber';
 
 /**
  * UInt 类，用于表示无符号整数类型（uint/u32）

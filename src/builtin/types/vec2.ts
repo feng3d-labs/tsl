@@ -69,7 +69,7 @@ export class Vec2 implements ShaderValue
             {
                 const builtin = args[0] as Builtin;
 
-                this.toGLSL = () => builtin.name;
+                this.toGLSL = () => builtin.toGLSL();
                 this.toWGSL = () => builtin.name;
                 this.dependencies = [builtin];
                 builtin.value = this;

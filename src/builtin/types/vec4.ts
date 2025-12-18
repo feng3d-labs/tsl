@@ -61,12 +61,7 @@ export class Vec4 implements ShaderValue
             {
                 const builtin = args[0] as Builtin;
 
-                this.toGLSL = () =>
-                {
-                    if (builtin.isPosition) return 'gl_Position';
-
-                    throw new Error(`Builtin '${builtin.builtinName}' 不支持 GLSL，无法生成 GLSL 代码。`);
-                };
+                this.toGLSL = () => builtin.toGLSL();
                 this.toWGSL = () => builtin.name;
                 this.dependencies = [builtin];
                 builtin.value = this;

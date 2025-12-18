@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { builtin } from '../../src/builtin/builtin';
+import { uint } from '../../src/builtin/types/uint';
 import { vec2 } from '../../src/builtin/types/vec2';
 import { vec4 } from '../../src/builtin/types/vec4';
 import { varyingStruct } from '../../src/varyingStruct';
@@ -220,6 +221,66 @@ describe('builtin() 函数', () =>
             const y = fragCoord.y;
             expect(y.toGLSL()).toBe('gl_FragCoord.y');
             expect(y.toWGSL()).toBe('(-fragCoord.y)');
+        });
+    });
+
+    describe('gl_InstanceID / instance_index', () =>
+    {
+        it('应该能够创建 gl_InstanceID builtin', () =>
+        {
+            const b = builtin('gl_InstanceID');
+            expect(b.builtinName).toBe('gl_InstanceID');
+            expect(b.isInstanceIndex).toBe(true);
+        });
+
+        it('应该能够创建 instance_index builtin', () =>
+        {
+            const b = builtin('instance_index');
+            expect(b.builtinName).toBe('instance_index');
+            expect(b.isInstanceIndex).toBe(true);
+        });
+
+        it('gl_InstanceID 应该正确映射为 WGSL 的 instance_index', () =>
+        {
+            const b = builtin('gl_InstanceID');
+            expect(b.wgslBuiltinName).toBe('instance_index');
+        });
+
+        it('gl_InstanceID 应该生成正确的 GLSL 代码', () =>
+        {
+            const b = builtin('gl_InstanceID');
+            expect(b.toGLSL()).toBe('gl_InstanceID');
+        });
+
+        it('instance_index 应该生成正确的 GLSL 代码', () =>
+        {
+            const b = builtin('instance_index');
+            expect(b.toGLSL()).toBe('gl_InstanceID');
+        });
+
+        it('gl_InstanceID 的 defaultName 应该是 instanceIndex', () =>
+        {
+            const b = builtin('gl_InstanceID');
+            expect(b.defaultName).toBe('instanceIndex');
+        });
+
+        it('uint(builtin("gl_InstanceID")) 应该生成正确的 GLSL 代码', () =>
+        {
+            const instanceID = uint(builtin('gl_InstanceID'));
+            expect(instanceID.toGLSL()).toBe('uint(gl_InstanceID)');
+        });
+
+        it('uint(builtin("gl_InstanceID")) 应该生成正确的 WGSL 代码', () =>
+        {
+            const instanceID = uint(builtin('gl_InstanceID'));
+            expect(instanceID.toWGSL()).toBe('instanceIndex');
+        });
+
+        it('gl_InstanceID 应该生成正确的 WGSL builtin 声明', () =>
+        {
+            const b = builtin('gl_InstanceID');
+            const instanceID = uint(b);
+            expect(b.toWGSL()).toBe('@builtin(instance_index) instanceIndex: u32');
         });
     });
 });

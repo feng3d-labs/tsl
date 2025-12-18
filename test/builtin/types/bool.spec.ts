@@ -145,6 +145,27 @@ describe('Bool', () => {
             expect(result.glslType).toBe('bool');
             expect(result.wgslType).toBe('bool');
         });
+        
+        it('应该能够比较两个布尔值', () => {
+            const b1 = bool(true);
+            const b2 = bool(false);
+            const result = b1.equals(b2);
+            
+            expect(result.toGLSL()).toBe('true == false');
+            expect(result.toWGSL()).toBe('true == false');
+            expect(result.glslType).toBe('bool');
+            expect(result.wgslType).toBe('bool');
+        });
+        
+        it('应该能够比较布尔值和布尔字面量', () => {
+            const b = bool(true);
+            const result = b.equals(true);
+            
+            expect(result.toGLSL()).toBe('true == true');
+            expect(result.toWGSL()).toBe('true == true');
+            expect(result.glslType).toBe('bool');
+            expect(result.wgslType).toBe('bool');
+        });
     });
     
     describe('if_ 函数', () => {

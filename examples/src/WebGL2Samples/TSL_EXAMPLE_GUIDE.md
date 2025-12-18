@@ -28,6 +28,7 @@ packages/tsl/examples/src/WebGL2Samples/<示例名>/
 - `<title>` 和 `.title` 标题
 - `.description` 描述
 - `关于示例` 列表
+- **必须包含两个画布**：`<canvas id="webgl">` 和 `<canvas id="webgpu">`
 
 ### 步骤 2: 创建着色器文件
 
@@ -53,6 +54,53 @@ const vertexGlsl = vertexShader.toGLSL(2);
 const fragmentGlsl = fragmentShader.toGLSL(2);
 const vertexWgsl = vertexShader.toWGSL();
 const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+```
+
+## WebGL 与 WebGPU 双渲染（重要）
+
+**所有示例必须同时支持 WebGL 和 WebGPU 渲染，并自动对比结果**，除非该功能仅某一平台支持（如 `BlitFramebuffer` 仅 WebGL 支持）。
+
+### 标准模板
+
+```typescript
+import { WebGL } from '@feng3d/webgl';
+import { WebGPU } from '@feng3d/webgpu';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // 初始化 WebGPU
+    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
+    initCanvasSize(webgpuCanvas);
+    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
+
+    // 初始化 WebGL
+    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
+    initCanvasSize(webglCanvas);
+    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+
+    // ... 创建渲染资源 ...
+
+    // 执行渲染
+    webgl.submit(submit);
+    webgpu.submit(submit);
+
+    // 第一帧后进行比较
+    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
+});
+```
+
+### 仅单平台支持的情况
+
+如果功能仅某一平台支持，需要：
+1. HTML 中只保留对应平台的画布
+2. 在"关于示例"中说明平台限制
+3. 代码中添加注释说明原因
+
+示例（仅 WebGL）：
+```typescript
+// BlitFramebuffer 是 WebGL 特有功能，WebGPU 暂不支持
+const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+webgl.submit(submit);
 ```
 
 ### 步骤 4: 更新配置文件
@@ -143,10 +191,11 @@ export const fragmentShader = fragment('main', () => {
 ## 参考示例
 
 根据功能复杂度选择参考：
-- `draw_primitive_restart/` - 基础模板（无纹理）
-- `draw_range_arrays/` - 视口分割绘制
-- `draw_image_space/` - 纹理采样
-- `fbo_blit/` - 纹理 + MVP 矩阵变换
+- `draw_primitive_restart/` - 基础模板（无纹理，双渲染）
+- `draw_range_arrays/` - 视口分割绘制（双渲染）
+- `draw_image_space/` - 纹理采样（双渲染）
+- `fbo_multisample/` - 多重采样 + 两阶段渲染（双渲染）
+- `fbo_blit/` - 仅 WebGL 支持（BlitFramebuffer）
 - `webgl-examples/sample5/` - 完整 MVP 变换
 
 ## 调试技巧

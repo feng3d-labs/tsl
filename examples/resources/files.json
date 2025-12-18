@@ -32,6 +32,7 @@
 		"WebGL2Samples/fbo_blit",
 		"WebGL2Samples/fbo_multisample",
 		"WebGL2Samples/fbo_new_blend_equation",
+		"WebGL2Samples/fbo_rtt_draw_buffers",
 		"WebGL2Samples/fbo_rtt_texture_array",
 		"WebGL2Samples/buffer_copy"
 	]

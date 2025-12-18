@@ -3,7 +3,6 @@ import { if_ } from '../../src/builtin/if_';
 import { bool } from '../../src/builtin/types/bool';
 import { builtin } from '../../src/builtin/builtin';
 import { varyingStruct } from '../../src/varyingStruct';
-import { equals_ } from '../../src/builtin/equals_';
 import { vec3 } from '../../src/builtin/types/vec3';
 import { vertex } from '../../src/vertex';
 import { fragment } from '../../src/fragment';
@@ -85,7 +84,7 @@ describe('if_', () => {
                 gl_FrontFacing: bool(builtin('gl_FrontFacing')),
             });
             const v = struct.fields.gl_FrontFacing;
-            const result = equals_(v, false);
+            const result = v.equals(false);
             
             // 执行if_函数
             if_(result, () => {});
@@ -99,7 +98,7 @@ describe('if_', () => {
             
             // 创建顶点着色器
             const vShader = vertex('main', () => {
-                const result = equals_(v, false);
+                const result = v.equals(false);
                 if_(result, () => {});
             });
             
@@ -112,7 +111,7 @@ describe('if_', () => {
             
             // 创建片段着色器
             const fShader = fragment('main', () => {
-                const result = equals_(v, false);
+                const result = v.equals(false);
                 if_(result, () => {});
             });
             
@@ -126,7 +125,7 @@ describe('if_', () => {
             
             // 创建片段着色器
             const fShader = fragment('main', () => {
-                const result = equals_(v, false);
+                const result = v.equals(false);
                 if_(result, () => {
                     // 模拟对n的操作
                     // assign(n, n.multiply(float(-1.0)));

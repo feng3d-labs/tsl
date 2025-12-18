@@ -8,6 +8,7 @@ import { UInt } from './uint';
 import { Vec2 } from './vec2';
 import { Vec3 } from './vec3';
 import { Vec4 } from './vec4';
+import { Bool } from './bool';
 
 /**
  * Float 类，用于表示浮点数类型（float/f32）
@@ -69,6 +70,58 @@ export class Float implements ShaderValue
         {
             throw new Error('Invalid arguments for Float');
         }
+    }
+
+    /**
+     * 比较两个值是否相等
+     */
+    equals(other: Float | number): Bool
+    {
+        const result = new Bool();
+        const otherIsFloat = other instanceof Float;
+
+        if (typeof other === 'number')
+        {
+            // 与数字字面量比较
+            result.toGLSL = () =>
+            {
+                const thisStr = this.toGLSL();
+                return `${thisStr} == ${formatNumber(other)}`;
+            };
+
+            result.toWGSL = () =>
+            {
+                const thisStr = this.toWGSL();
+                return `${thisStr} == ${formatNumber(other)}`;
+            };
+
+            result.dependencies = [...this.dependencies];
+        }
+        else if (otherIsFloat)
+        {
+            // 与 Float 对象比较
+            result.toGLSL = () =>
+            {
+                const thisStr = this.toGLSL();
+                const otherStr = other.toGLSL();
+                return `${thisStr} == ${otherStr}`;
+            };
+
+            result.toWGSL = () =>
+            {
+                const thisStr = this.toWGSL();
+                const otherStr = other.toWGSL();
+                return `${thisStr} == ${otherStr}`;
+            };
+
+            result.dependencies = [...this.dependencies, ...other.dependencies];
+        }
+        else
+        {
+            throw new Error('Invalid argument for equals: ' + typeof other);
+        }
+
+        return result;
     }
 
     /**

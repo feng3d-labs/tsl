@@ -43,7 +43,7 @@ export const fragmentShader = fragment('main', () =>
     // if(gl_FrontFacing == false) {
     //     n = -n;
     // }
-    if_(equals_(v.gl_FrontFacing, false), () =>
+    if_(v.gl_FrontFacing.equals(false), () =>
     {
         assign(n, float(-1.0).multiply(n));
     });

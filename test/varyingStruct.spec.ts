@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { attribute } from '../src/attribute';
 import { uniform } from '../src/uniform';
 import { builtin } from '../src/builtin/builtin';
+import { bool } from '../src/builtin/types/bool';
 import { mat4 } from '../src/builtin/types/mat4';
 import { vec3 } from '../src/builtin/types/vec3';
 import { vec4 } from '../src/builtin/types/vec4';
@@ -211,34 +212,34 @@ describe('VaryingStruct', () =>
         {
             const v = varyingStruct({
                 position: vec4(builtin('position')),
-                gl_FrontFacing: vec4(builtin('gl_FrontFacing')),
+                gl_FrontFacing: bool(builtin('gl_FrontFacing')),
             });
 
             // 从构建上下文获取stage信息，应该返回包含gl_FrontFacing的定义
             const fragmentWgsl = v.toWGSLDefinition();
             
-            // 验证生成的WGSL包含gl_FrontFacing
-            expect(fragmentWgsl).toContain('@builtin(front_facing) gl_FrontFacing: vec4<f32>');
+            // 验证生成的WGSL包含gl_FrontFacing（类型强制为 bool）
+            expect(fragmentWgsl).toContain('@builtin(front_facing) gl_FrontFacing: bool');
         });
         
         it('应该为片段着色器生成包含 gl_FrontFacing 的结构体定义 - 类型验证', () =>
         {
             const v = varyingStruct({
-                gl_FrontFacing: vec4(builtin('gl_FrontFacing')),
+                gl_FrontFacing: bool(builtin('gl_FrontFacing')),
             });
             
             // 从构建上下文获取stage信息，应该返回包含gl_FrontFacing的定义
             const fragmentWgsl = v.toWGSLDefinition();
             
-            // 验证生成的WGSL包含正确的类型
-            expect(fragmentWgsl).toContain('vec4<f32>');
+            // 验证生成的WGSL包含正确的类型（gl_FrontFacing 在 WGSL 中强制为 bool 类型）
+            expect(fragmentWgsl).toContain('bool');
         });
         
         it('应该为 vertex 和 fragment 生成不同的结构体定义', () =>
         {
             const v = varyingStruct({
                 position: vec4(builtin('position')),
-                gl_FrontFacing: vec4(builtin('gl_FrontFacing')),
+                gl_FrontFacing: bool(builtin('gl_FrontFacing')),
             });
             
             // 显式传递stage参数

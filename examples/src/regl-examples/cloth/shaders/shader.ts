@@ -1,4 +1,4 @@
-import { attribute, bool, fragment, normalize, precision, return_, texture2D, uniform, varying, vec2, vec3, vec4, vertex, dot, clamp, mat4, assign, builtin, float, varyingStruct, sampler, var_, mix, if_, equals_ } from '@feng3d/tsl';
+import { assign, attribute, bool, builtin, clamp, dot, float, fragment, if_, mat4, normalize, precision, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attribute
 const position = vec3(attribute('position')); // attribute vec3 position;
@@ -43,7 +43,7 @@ export const fragmentShader = fragment('main', () =>
     // if(gl_FrontFacing == false) {
     //     n = -n;
     // }
-    if_(equals_(v.gl_FrontFacing, false), () =>
+    if_(v.gl_FrontFacing.equals(false), () =>
     {
         assign(n, float(-1.0).multiply(n));
     });

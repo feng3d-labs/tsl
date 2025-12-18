@@ -239,5 +239,31 @@ describe('Float', () =>
             expect(result.toWGSL()).toBe('10.5 % 3.0');
         });
     });
+
+    describe('Float.equals 方法', () =>
+    {
+        it('应该能够比较两个 Float 值', () =>
+        {
+            const f1 = float(1.0);
+            const f2 = float(2.0);
+            const result = f1.equals(f2);
+            
+            expect(result.toGLSL()).toBe('1.0 == 2.0');
+            expect(result.toWGSL()).toBe('1.0 == 2.0');
+            expect(result.glslType).toBe('bool');
+            expect(result.wgslType).toBe('bool');
+        });
+        
+        it('应该能够比较 Float 值和数字字面量', () =>
+        {
+            const f = float(1.0);
+            const result = f.equals(1.0);
+            
+            expect(result.toGLSL()).toBe('1.0 == 1.0');
+            expect(result.toWGSL()).toBe('1.0 == 1.0');
+            expect(result.glslType).toBe('bool');
+            expect(result.wgslType).toBe('bool');
+        });
+    });
 });
 

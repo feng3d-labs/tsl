@@ -1,4 +1,5 @@
 import { Attribute } from './attribute';
+import { Builtin } from './builtin/builtin';
 import { Precision } from './precision';
 import { Sampler } from './sampler';
 import { VaryingStruct } from './varyingStruct';
@@ -8,17 +9,18 @@ import { ShaderValue } from './IElement';
 import { FragmentOutput } from './fragmentOutput';
 
 /**
- * 分析函数依赖中使用的 attributes、uniforms、precision、structs、varyings 和外部变量
+ * 分析函数依赖中使用的 attributes、uniforms、precision、structs、varyings、builtins 和外部变量
  * @param dependencies 函数依赖数组
- * @returns 使用的 Attribute、Uniform、Precision、VaryingStruct、Varying、Sampler、FragmentOutput 和外部变量集合
+ * @returns 使用的 Attribute、Uniform、Precision、VaryingStruct、Varying、Sampler、Builtin、FragmentOutput 和外部变量集合
  */
-export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precisions: Set<Precision>; structs: Set<VaryingStruct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; fragmentOutput?: FragmentOutput<any>; externalVars: Array<{ name: string; expr: ShaderValue }> }
+export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precisions: Set<Precision>; structs: Set<VaryingStruct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; builtins: Set<Builtin>; fragmentOutput?: FragmentOutput<any>; externalVars: Array<{ name: string; expr: ShaderValue }> }
 {
     const attributes = new Set<Attribute>();
     const uniforms = new Set<Uniform>();
     const structs = new Set<VaryingStruct<any>>();
     const varyings = new Set<Varying>();
     const samplers = new Set<Sampler>();
+    const builtins = new Set<Builtin>();
     const externalVars = new Map<string, { name: string; expr: ShaderValue }>();
     const precisions = new Set<Precision>();
     let fragmentOutput: FragmentOutput<any> | undefined;
@@ -76,6 +78,14 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
         if (value instanceof Sampler)
         {
             samplers.add(value);
+
+            return;
+        }
+
+        // 如果是 Builtin 实例，添加到 builtins 集合
+        if (value instanceof Builtin)
+        {
+            builtins.add(value);
 
             return;
         }
@@ -170,6 +180,6 @@ export function analyzeDependencies(dependencies: any[]): { attributes: Set<Attr
         analyzeValue(dep);
     }
 
-    return { attributes, uniforms, precisions, structs, varyings, samplers, fragmentOutput, externalVars: Array.from(externalVars.values()) };
+    return { attributes, uniforms, precisions, structs, varyings, samplers, builtins, fragmentOutput, externalVars: Array.from(externalVars.values()) };
 }
 

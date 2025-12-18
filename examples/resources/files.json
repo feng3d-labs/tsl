@@ -25,8 +25,9 @@
 		"regl-examples/cloth"
 	],
 	"WebGL2Samples": [
+		"WebGL2Samples/draw_image_space",
+		"WebGL2Samples/draw_instanced",
 		"WebGL2Samples/fbo_rtt_texture_array",
-		"WebGL2Samples/buffer_copy",
-		"WebGL2Samples/draw_image_space"
+		"WebGL2Samples/buffer_copy"
 	]
 }

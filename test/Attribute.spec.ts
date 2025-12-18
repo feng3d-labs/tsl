@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { Attribute, attribute } from '../src/Attribute';
+import { Attribute, attribute } from '../src/attribute';
 import { vec2 } from '../src/builtin/types/vec2';
 import { vec4 } from '../src/builtin/types/vec4';
 import { return_ } from '../src/index';
-import { vertex } from '../src/Vertex';
+import { vertex } from '../src/vertex';
 
 describe('Attribute', () =>
 {

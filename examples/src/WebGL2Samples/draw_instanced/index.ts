@@ -1,4 +1,4 @@
-import { RenderObject, RenderPipeline, VertexAttributes } from '@feng3d/render-api';
+import { RenderObject, RenderPipeline, Submit, VertexAttributes } from '@feng3d/render-api';
 import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { autoCompareFirstFrame } from '../../utils/frame-comparison';
@@ -10,13 +10,15 @@ import vertexGlsl from './shaders/vertex.glsl';
 import vertexWgsl from './shaders/vertex.wgsl';
 
 // 辅助函数：初始化画布大小
-function initCanvasSize(canvas: HTMLCanvasElement) {
+function initCanvasSize(canvas: HTMLCanvasElement)
+{
     const devicePixelRatio = window.devicePixelRatio || 1;
     canvas.width = canvas.clientWidth * devicePixelRatio;
     canvas.height = canvas.clientHeight * devicePixelRatio;
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () =>
+{
     // 初始化WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
     initCanvasSize(webgpuCanvas);
@@ -66,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // 渲染提交
-    const submit = {
+    const submit: Submit = {
         commandEncoders: [{
             passEncoders: [
                 {

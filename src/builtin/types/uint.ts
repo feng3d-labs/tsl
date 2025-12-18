@@ -78,6 +78,15 @@ export class UInt implements ShaderValue
         }
     }
 
+    divide(other: number): UInt
+    {
+        const result = new UInt();
+        result.toGLSL = () => `${this.toGLSL()} / ${Math.floor(other)}u`;
+        result.toWGSL = () => `${this.toWGSL()} / ${Math.floor(other)}u`;
+        result.dependencies = [this];
+        return result;
+    }
+
     /**
      * 取模运算
      */
@@ -88,8 +97,8 @@ export class UInt implements ShaderValue
         result.toGLSL = () =>
         {
             const left = formatOperand(this, '%', true, () => this.toGLSL());
-            const right = typeof other === 'number' 
-                ? `${Math.floor(other)}u` 
+            const right = typeof other === 'number'
+                ? `${Math.floor(other)}u`
                 : formatOperand(other, '%', false, () => other.toGLSL());
 
             return `${left} % ${right}`;
@@ -97,13 +106,15 @@ export class UInt implements ShaderValue
         result.toWGSL = () =>
         {
             // 先使用formatOperand处理优先级和括号，然后添加u后缀
-            const formattedLeft = formatOperand(this, '%', true, () => {
+            const formattedLeft = formatOperand(this, '%', true, () =>
+            {
                 const left = this.toWGSL();
                 return left.endsWith('u') ? left : `${left}u`;
             });
-            const formattedRight = typeof other === 'number' 
-                ? `${Math.floor(other)}u` 
-                : formatOperand(other, '%', false, () => {
+            const formattedRight = typeof other === 'number'
+                ? `${Math.floor(other)}u`
+                : formatOperand(other, '%', false, () =>
+                {
                     const right = other.toWGSL();
                     return right.endsWith('u') ? right : `${right}u`;
                 });

@@ -60,6 +60,13 @@ export class Float implements ShaderValue
             this.toWGSL = () => varying.name;
             varying.value = this;
         }
+        else if (args.length === 1 && args[0] instanceof UInt)
+        {
+            const value = args[0] as UInt;
+            this.toGLSL = () => `float(${value.toGLSL()})`;
+            this.toWGSL = () => `f32(${value.toWGSL()})`;
+            this.dependencies = [value];
+        }
         else if (args.length === 1 && typeof args[0] === 'number')
         {
             const value = args[0] as number;

@@ -2,9 +2,8 @@ import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
-import { Float } from './float';
+import { Builtin } from '../builtin';
 import { formatOperand } from '../expressionUtils';
-import { formatNumber } from '../formatNumber';
 
 /**
  * UInt 类，用于表示无符号整数类型（uint/u32）
@@ -23,9 +22,10 @@ export class UInt implements ShaderValue
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(varying: Varying);
+    constructor(builtin: Builtin);
     constructor(value: number);
     constructor(other: IElement);
-    constructor(...args: (number | Uniform | Attribute | Varying | IElement)[])
+    constructor(...args: (number | Uniform | Attribute | Varying | Builtin | IElement)[])
     {
         if (args.length === 0)
         {
@@ -56,6 +56,15 @@ export class UInt implements ShaderValue
             this.toWGSL = () => varying.name;
             varying.value = this;
         }
+        else if (args.length === 1 && args[0] instanceof Builtin)
+        {
+            const builtin = args[0] as Builtin;
+            this.dependencies = [builtin];
+            // gl_VertexID 在 GLSL 中是 int 类型，需要转换为 uint
+            this.toGLSL = () => `uint(${builtin.toGLSL()})`;
+            this.toWGSL = () => builtin.name ?? builtin.defaultName;
+            builtin.value = this;
+        }
         else if (args.length === 1 && typeof args[0] === 'number')
         {
             const value = args[0] as number;
@@ -78,6 +87,15 @@ export class UInt implements ShaderValue
         }
     }
 
+    divide(other: number): UInt
+    {
+        const result = new UInt();
+        result.toGLSL = () => `${this.toGLSL()} / ${Math.floor(other)}u`;
+        result.toWGSL = () => `${this.toWGSL()} / ${Math.floor(other)}u`;
+        result.dependencies = [this];
+        return result;
+    }
+
     /**
      * 取模运算
      */
@@ -88,27 +106,20 @@ export class UInt implements ShaderValue
         result.toGLSL = () =>
         {
             const left = formatOperand(this, '%', true, () => this.toGLSL());
-            const right = typeof other === 'number' 
-                ? `${Math.floor(other)}u` 
+            const right = typeof other === 'number'
+                ? `${Math.floor(other)}u`
                 : formatOperand(other, '%', false, () => other.toGLSL());
 
             return `${left} % ${right}`;
         };
         result.toWGSL = () =>
         {
-            // 先使用formatOperand处理优先级和括号，然后添加u后缀
-            const formattedLeft = formatOperand(this, '%', true, () => {
-                const left = this.toWGSL();
-                return left.endsWith('u') ? left : `${left}u`;
-            });
-            const formattedRight = typeof other === 'number' 
-                ? `${Math.floor(other)}u` 
-                : formatOperand(other, '%', false, () => {
-                    const right = other.toWGSL();
-                    return right.endsWith('u') ? right : `${right}u`;
-                });
+            const left = formatOperand(this, '%', true, () => this.toWGSL());
+            const right = typeof other === 'number'
+                ? `${Math.floor(other)}u`
+                : formatOperand(other, '%', false, () => other.toWGSL());
 
-            return `${formattedLeft} % ${formattedRight}`;
+            return `${left} % ${right}`;
         };
         result.dependencies = typeof other === 'number' ? [this] : [this, other];
 
@@ -122,9 +133,10 @@ export class UInt implements ShaderValue
 export function uint(uniform: Uniform): UInt;
 export function uint(attribute: Attribute): UInt;
 export function uint(varying: Varying): UInt;
+export function uint(builtin: Builtin): UInt;
 export function uint(value: number): UInt;
 export function uint(other: IElement): UInt;
-export function uint(...args: (number | Uniform | Attribute | Varying | IElement)[]): UInt
+export function uint(...args: (number | Uniform | Attribute | Varying | Builtin | IElement)[]): UInt
 {
     return new (UInt as any)(...args);
 }

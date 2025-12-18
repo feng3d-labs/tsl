@@ -2,6 +2,7 @@ import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
+import { Builtin } from '../builtin';
 import { formatOperand } from '../expressionUtils';
 import { formatNumber } from '../formatNumber';
 import { Float } from './float';
@@ -19,11 +20,15 @@ export class Vec2 implements ShaderValue
     toGLSL: () => string;
     toWGSL: () => string;
 
+    /** @internal 存储 Builtin 引用，用于 gl_FragCoord 的 Y 坐标翻转 */
+    private _builtin?: Builtin;
+
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(varying: Varying);
+    constructor(builtin: Builtin);
     constructor(x: number | Float, y: number | Float);
-    constructor(...args: (number | Uniform | Attribute | Varying | Float)[])
+    constructor(...args: (number | Uniform | Attribute | Varying | Float | Builtin)[])
     {
         if (args.length === 0)
         {
@@ -62,6 +67,16 @@ export class Vec2 implements ShaderValue
                 this.dependencies = [varying];
 
                 varying.value = this;
+            }
+            else if (args[0] instanceof Builtin)
+            {
+                const builtin = args[0] as Builtin;
+
+                this.toGLSL = () => builtin.toGLSL();
+                this.toWGSL = () => builtin.name ?? builtin.defaultName;
+                this.dependencies = [builtin];
+                builtin.value = this;
+                this._builtin = builtin; // 记录 builtin 引用，用于 .y 的翻转处理
             }
             else
             {
@@ -122,12 +137,22 @@ export class Vec2 implements ShaderValue
 
     /**
      * 获取 y 分量
+     * 注意：对于 gl_FragCoord，WGSL 中使用 (-fragCoord.y) 来解决 Y 轴翻转问题
      */
     get y(): Float
     {
         const float = new Float();
         float.toGLSL = () => `${this.toGLSL()}.y`;
-        float.toWGSL = () => `${this.toWGSL()}.y`;
+
+        // 对于 gl_FragCoord，WGSL 中使用负值来解决 Y 轴翻转
+        if (this._builtin && this._builtin.isFragCoord)
+        {
+            float.toWGSL = () => `(-${this.toWGSL()}.y)`;
+        }
+        else
+        {
+            float.toWGSL = () => `${this.toWGSL()}.y`;
+        }
         float.dependencies = [this];
 
         return float;
@@ -283,6 +308,7 @@ export class Vec2 implements ShaderValue
 export function vec2(uniform: Uniform): Vec2;
 export function vec2(attribute: Attribute): Vec2;
 export function vec2(varying: Varying): Vec2;
+export function vec2(builtin: Builtin): Vec2;
 export function vec2(x: number | Float, y: number | Float): Vec2;
 export function vec2(...args: any[]): Vec2
 {

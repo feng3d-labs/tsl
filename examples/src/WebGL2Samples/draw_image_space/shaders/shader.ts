@@ -1,4 +1,4 @@
-import { Builtin, builtin, float, fragment, mod, precision, return_, sampler, texture, uint, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
+import { Builtin, builtin, float, fragment, precision, return_, sampler, texture, uint, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
 
 const gl_VertexID = uint(builtin('gl_VertexID'))
 
@@ -7,7 +7,7 @@ export const vertexShader = vertex('main', () =>
     precision('highp', 'float');
     precision('highp', 'int');
 
-    return_(vec4(2.0 * float(gl_VertexID.mod(2u)) - 1.0, 2.0 * float(gl_VertexID.mod(2u)) - 1.0, 0.0, 1.0));
+    return_(vec4(float(2.0).multiply(float(gl_VertexID.mod(2))).subtract(1.0), float(2.0).multiply(float(gl_VertexID.divide(2))).subtract(1.0), 0.0, 1.0));
 });
 
 const diffuse = sampler('diffuse');

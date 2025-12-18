@@ -1,6 +1,7 @@
 import { analyzeDependencies } from './analyzeDependencies';
 import { Attribute } from './attribute';
 import { getBuildParam } from './buildShader';
+import { Builtin } from './builtin/builtin';
 import { IStatement } from './builtin/Statement';
 import { setCurrentFunc } from './currentFunc';
 import { IElement, ShaderValue } from './IElement';
@@ -19,7 +20,7 @@ export class Func
     readonly body: () => any;
     statements: IStatement[] = [];
     dependencies: IElement[] = [];
-    private _analyzedDependencies?: { attributes: Set<Attribute>; uniforms: Set<Uniform>; precisions: Set<Precision>; structs: Set<VaryingStruct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; fragmentOutput?: any; externalVars: Array<{ name: string; expr: ShaderValue }> };
+    private _analyzedDependencies?: { attributes: Set<Attribute>; uniforms: Set<Uniform>; precisions: Set<Precision>; structs: Set<VaryingStruct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; builtins: Set<Builtin>; fragmentOutput?: any; externalVars: Array<{ name: string; expr: ShaderValue }> };
 
     constructor(name: string, body: () => any)
     {
@@ -55,7 +56,7 @@ export class Func
     /**
      * 获取分析后的依赖（只分析一次，后续使用缓存）
      */
-    public getAnalyzedDependencies(): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precisions: Set<Precision>; structs: Set<VaryingStruct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; fragmentOutput?: any; externalVars: Array<{ name: string; expr: ShaderValue }> }
+    public getAnalyzedDependencies(): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precisions: Set<Precision>; structs: Set<VaryingStruct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; builtins: Set<Builtin>; fragmentOutput?: any; externalVars: Array<{ name: string; expr: ShaderValue }> }
     {
         if (!this._analyzedDependencies)
         {
@@ -114,13 +115,23 @@ export class Func
 
         if (shaderType === 'vertex')
         {
-            // Vertex shader - 从 dependencies 中获取 attributes
+            // Vertex shader - 从 dependencies 中获取 attributes 和 builtins
             const dependencies = this.getAnalyzedDependencies();
             const params: string[] = [];
 
             for (const attr of dependencies.attributes)
             {
                 params.push(attr.toWGSL());
+            }
+
+            // 添加 builtins 参数（只添加输入类型的 builtin，如 vertex_index）
+            for (const builtin of dependencies.builtins)
+            {
+                // 只添加输入类型的 builtin（vertex_index、instance_index 等）
+                if (builtin.isVertexIndex || builtin.isInstanceIndex)
+                {
+                    params.push(builtin.toWGSL());
+                }
             }
 
             // 检查是否返回结构体（直接使用收集到的结构体，不重新构建）
@@ -304,16 +315,25 @@ export class Func
             }
 
             // 生成函数参数
-            // Fragment shader 只支持两种参数形式：
-            // 1. 没有参数：()
-            // 2. 使用结构体作为参数：(v: VaryingStruct)
-            // 不再支持单独的 varying 参数
-            let paramStr = '()';
+            const params: string[] = [];
+
+            // 添加结构体参数（如果有）
             if (inputStruct)
             {
                 // 使用结构体作为参数（变量名固定为 v，结构体名称固定为 VaryingStruct）
-                paramStr = `(v: VaryingStruct)`;
+                params.push(`v: VaryingStruct`);
             }
+
+            // 添加 builtins 参数（只添加 fragment shader 输入类型的 builtin，如 position/gl_FragCoord）
+            for (const builtin of dependencies.builtins)
+            {
+                if (builtin.isFragCoord)
+                {
+                    params.push(builtin.toWGSL());
+                }
+            }
+
+            const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
             lines.push(`fn ${this.name}${paramStr} -> @location(0) vec4<f32> {`);
 
             this.statements.forEach(stmt =>

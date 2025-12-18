@@ -24,10 +24,10 @@ function loadImage(url: string, onload: (img: HTMLImageElement) => void): HTMLIm
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    // const vertexGlsl = vertexShader.toGLSL(2);
-    // const fragmentGlsl = fragmentShader.toGLSL(2);
-    // const vertexWgsl = vertexShader.toWGSL();
-    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+    const vertexGlsl = vertexShader.toGLSL(2);
+    const fragmentGlsl = fragmentShader.toGLSL(2);
+    const vertexWgsl = vertexShader.toWGSL();
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 

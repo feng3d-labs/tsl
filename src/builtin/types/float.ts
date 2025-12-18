@@ -28,7 +28,8 @@ export class Float implements ShaderValue
     constructor(attribute: Attribute);
     constructor(varying: Varying);
     constructor(value: number);
-    constructor(...args: (number | Uniform | Attribute | Varying)[])
+    constructor(value: UInt);
+    constructor(...args: (number | Uniform | Attribute | Varying | UInt)[])
     {
         if (args.length === 0)
         {
@@ -58,6 +59,13 @@ export class Float implements ShaderValue
             this.toGLSL = () => varying.name;
             this.toWGSL = () => varying.name;
             varying.value = this;
+        }
+        else if (args.length === 1 && args[0] instanceof UInt)
+        {
+            const value = args[0] as UInt;
+            this.toGLSL = () => `float(${value.toGLSL()})`;
+            this.toWGSL = () => `f32(${value.toWGSL()})`;
+            this.dependencies = [value];
         }
         else if (args.length === 1 && typeof args[0] === 'number')
         {
@@ -410,10 +418,11 @@ export class Float implements ShaderValue
      * 减法运算
      */
     subtract(other: Float): Float;
+    subtract(other: number): Float;
     subtract(other: Vec3): Vec3;
     subtract(other: Vec4): Vec4;
     subtract(other: Vec2): Vec2;
-    subtract(other: Float | Vec2 | Vec3 | Vec4): Float | Vec2 | Vec3 | Vec4
+    subtract(other: Float | Vec2 | Vec3 | Vec4 | number): Float | Vec2 | Vec3 | Vec4
     {
         if (other instanceof Vec3)
         {
@@ -481,23 +490,24 @@ export class Float implements ShaderValue
 
             return result;
         }
+
         const result = new Float();
 
         result.toGLSL = () =>
         {
             const left = formatOperand(this, '-', true, () => this.toGLSL());
-            const right = formatOperand(other, '-', false, () => other.toGLSL());
+            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '-', false, () => other.toGLSL());
 
             return `${left} - ${right}`;
         };
         result.toWGSL = () =>
         {
             const left = formatOperand(this, '-', true, () => this.toWGSL());
-            const right = formatOperand(other, '-', false, () => other.toWGSL());
+            const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '-', false, () => other.toWGSL());
 
             return `${left} - ${right}`;
         };
-        result.dependencies = [this, other];
+        result.dependencies = typeof other === 'number' ? [this] : [this, other];
 
         return result;
     }
@@ -565,11 +575,8 @@ export function float(uniform: Uniform): Float;
 export function float(attribute: Attribute): Float;
 export function float(varying: Varying): Float;
 export function float(value: number): Float;
-export function float(...args: (number | Uniform | Attribute | Varying)[]): Float
+export function float(value: UInt): Float;
+export function float(...args: any[]): Float
 {
-    if (args.length === 0) return new Float();
-
-    if (args.length === 1) return new Float(args[0] as any);
-
-    throw new Error('Invalid arguments for float');
+    return new (Float as any)(...args);
 }

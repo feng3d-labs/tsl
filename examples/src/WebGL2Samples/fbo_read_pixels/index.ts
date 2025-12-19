@@ -211,36 +211,97 @@ document.addEventListener('DOMContentLoaded', async () =>
     webgpu.submit(submit);
     webgl.submit(submit);
 
-    // 使用 readPixels 从画布读取像素数据
-    // 注意：readPixels API 使用 texture 属性，不支持 textureView
-    // 这里演示从三个不同的视口区域（红、绿、蓝）读取像素
+    // 使用 readPixels 从帧缓冲区读取像素数据
+    // 通过 textureView 指定要读取的纹理视图（支持从纹理数组的特定层读取）
+    const webglData = new Uint8Array(w * h * 4 * 3);
+    const webgpuData = new Uint8Array(w * h * 4 * 3);
 
     console.log('=== WebGL readPixels 结果 ===');
 
-    // 从红色区域读取像素（右下角）
-    const redRegion = webgl.readPixels({
-        origin: [Math.floor(viewport[Textures.RED].x), Math.floor(viewport[Textures.RED].y)],
-        copySize: [16, 16],
+    // WebGL: 读取红色层
+    let result = webgl.readPixels({
+        textureView: frameBuffer.colorAttachments![0].view,
+        origin: [0, 0],
+        copySize: [w, h],
     });
-    console.log('红色区域像素数据 (前16个字节):', Array.from(new Uint8Array(redRegion.buffer).slice(0, 16)));
+    webglData.set(new Uint8Array(result.buffer), 0);
+    console.log('红色层像素数据 (前16个字节):', Array.from(webglData.slice(0, 16)));
 
-    // 从绿色区域读取像素（右上角）
-    const greenRegion = webgl.readPixels({
-        origin: [Math.floor(viewport[Textures.GREEN].x), Math.floor(viewport[Textures.GREEN].y)],
-        copySize: [16, 16],
+    // WebGL: 读取绿色层
+    result = webgl.readPixels({
+        textureView: frameBuffer.colorAttachments![1].view,
+        origin: [0, 0],
+        copySize: [w, h],
     });
-    console.log('绿色区域像素数据 (前16个字节):', Array.from(new Uint8Array(greenRegion.buffer).slice(0, 16)));
+    webglData.set(new Uint8Array(result.buffer), w * h * 4);
+    console.log('绿色层像素数据 (前16个字节):', Array.from(webglData.slice(w * h * 4, w * h * 4 + 16)));
 
-    // 从蓝色区域读取像素（左上角）
-    const blueRegion = webgl.readPixels({
-        origin: [Math.floor(viewport[Textures.BLUE].x), Math.floor(viewport[Textures.BLUE].y)],
-        copySize: [16, 16],
+    // WebGL: 读取蓝色层
+    result = webgl.readPixels({
+        textureView: frameBuffer.colorAttachments![2].view,
+        origin: [0, 0],
+        copySize: [w, h],
     });
-    console.log('蓝色区域像素数据 (前16个字节):', Array.from(new Uint8Array(blueRegion.buffer).slice(0, 16)));
+    webglData.set(new Uint8Array(result.buffer), w * h * 4 * 2);
+    console.log('蓝色层像素数据 (前16个字节):', Array.from(webglData.slice(w * h * 4 * 2, w * h * 4 * 2 + 16)));
 
-    console.log('readPixels 演示完成，请在浏览器控制台查看结果');
+    console.log('WebGL 完整像素数据大小:', webglData.length, '字节');
 
-    // 第一帧后进行比较
+    console.log('\n=== WebGPU readPixels 结果 ===');
+
+    // WebGPU: 读取红色层
+    let gpuResult = await webgpu.readPixels({
+        textureView: frameBuffer.colorAttachments![0].view,
+        origin: [0, 0],
+        copySize: [w, h],
+    });
+    webgpuData.set(new Uint8Array(gpuResult.buffer), 0);
+    console.log('红色层像素数据 (前16个字节):', Array.from(webgpuData.slice(0, 16)));
+
+    // WebGPU: 读取绿色层
+    gpuResult = await webgpu.readPixels({
+        textureView: frameBuffer.colorAttachments![1].view,
+        origin: [0, 0],
+        copySize: [w, h],
+    });
+    webgpuData.set(new Uint8Array(gpuResult.buffer), w * h * 4);
+    console.log('绿色层像素数据 (前16个字节):', Array.from(webgpuData.slice(w * h * 4, w * h * 4 + 16)));
+
+    // WebGPU: 读取蓝色层
+    gpuResult = await webgpu.readPixels({
+        textureView: frameBuffer.colorAttachments![2].view,
+        origin: [0, 0],
+        copySize: [w, h],
+    });
+    webgpuData.set(new Uint8Array(gpuResult.buffer), w * h * 4 * 2);
+    console.log('蓝色层像素数据 (前16个字节):', Array.from(webgpuData.slice(w * h * 4 * 2, w * h * 4 * 2 + 16)));
+
+    console.log('WebGPU 完整像素数据大小:', webgpuData.length, '字节');
+
+    // 比较 WebGL 和 WebGPU 读取的像素数据
+    console.log('\n=== WebGL vs WebGPU readPixels 比较 ===');
+    let mismatchCount = 0;
+    for (let i = 0; i < webglData.length; i++)
+    {
+        if (webglData[i] !== webgpuData[i])
+        {
+            mismatchCount++;
+            if (mismatchCount <= 10)
+            {
+                console.log(`像素差异 [${i}]: WebGL=${webglData[i]}, WebGPU=${webgpuData[i]}`);
+            }
+        }
+    }
+    if (mismatchCount === 0)
+    {
+        console.log('✓ WebGL 和 WebGPU 读取的像素数据完全一致！');
+    }
+    else
+    {
+        console.log(`✗ 发现 ${mismatchCount} 个字节不一致（共 ${webglData.length} 字节）`);
+    }
+
+    // 第一帧后进行画布比较
     autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
 
     // 清理资源

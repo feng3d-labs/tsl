@@ -6,6 +6,7 @@ import { Precision } from './precision';
 import { Sampler } from './sampler';
 import { Sampler2DArray } from './sampler2DArray';
 import { Uniform } from './uniform';
+import { Varying } from './varying';
 import { VaryingStruct } from './varyingStruct';
 import { Vertex } from './vertex';
 
@@ -122,17 +123,8 @@ export class Fragment extends Func
                 lines.push(samplerPrecision.toGLSL());
             }
 
-            // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
-            for (const struct of dependencies.structs)
-            {
-                const structVaryingDecl = struct.toGLSLDefinition('fragment');
-                if (structVaryingDecl)
-                {
-                    lines.push(structVaryingDecl);
-                }
-            }
-
-            // 生成其他 varyings（不在结构体中的）
+            // 将独立定义的 varying 合并到 VaryingStruct 中，或者单独生成声明
+            const standaloneVaryings: Varying[] = [];
             for (const varying of dependencies.varyings)
             {
                 // 检查这个 varying 是否已经在结构体中声明了
@@ -156,11 +148,37 @@ export class Fragment extends Func
                     }
                     if (inStruct) break;
                 }
-                // 如果不在结构体中，才单独声明
+                // 如果不在结构体中
                 if (!inStruct)
                 {
-                    lines.push(varying.toGLSL());
+                    const firstStruct = Array.from(dependencies.structs)[0];
+                    if (firstStruct)
+                    {
+                        // 合并到第一个 VaryingStruct
+                        firstStruct.mergeStandaloneVarying(varying);
+                    }
+                    else
+                    {
+                        // 没有结构体，记录为独立 varying
+                        standaloneVaryings.push(varying);
+                    }
                 }
+            }
+
+            // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
+            for (const struct of dependencies.structs)
+            {
+                const structVaryingDecl = struct.toGLSLDefinition('fragment');
+                if (structVaryingDecl)
+                {
+                    lines.push(structVaryingDecl);
+                }
+            }
+
+            // 生成独立 varying 的声明（当没有 VaryingStruct 时）
+            for (const varying of standaloneVaryings)
+            {
+                lines.push(varying.toGLSL());
             }
 
             // 生成 uniforms（只包含实际使用的）
@@ -265,6 +283,95 @@ export class Fragment extends Func
             // 自动分配 binding（对于 binding 缺省的 uniform），考虑顶点着色器的 binding
             this.allocateBindings(dependencies.uniforms, dependencies.samplers, vertexShader);
 
+            // 将独立定义的 varying 合并到 VaryingStruct 中，或者单独处理
+            const standaloneVaryingsWGSL: Varying[] = [];
+            for (const varying of dependencies.varyings)
+            {
+                // 检查这个 varying 是否已经在结构体中声明了
+                let inStruct = false;
+                for (const struct of dependencies.structs)
+                {
+                    for (const fieldValue of Object.values(struct.fields))
+                    {
+                        if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
+                        {
+                            for (const dep of fieldValue.dependencies)
+                            {
+                                if (dep === varying)
+                                {
+                                    inStruct = true;
+                                    break;
+                                }
+                            }
+                            if (inStruct) break;
+                        }
+                    }
+                    if (inStruct) break;
+                }
+                // 如果不在结构体中
+                if (!inStruct)
+                {
+                    const firstStruct = Array.from(dependencies.structs)[0];
+                    if (firstStruct)
+                    {
+                        // 合并到第一个 VaryingStruct
+                        firstStruct.mergeStandaloneVarying(varying);
+                    }
+                    else
+                    {
+                        // 没有结构体，记录为独立 varying
+                        standaloneVaryingsWGSL.push(varying);
+                    }
+                }
+            }
+
+            // 如果有独立 varying 但没有 VaryingStruct，生成一个 VaryingStruct
+            if (standaloneVaryingsWGSL.length > 0)
+            {
+                // 为独立 varying 分配 location
+                const usedLocations = new Set<number>();
+                for (const v of standaloneVaryingsWGSL)
+                {
+                    if (v.location !== undefined)
+                    {
+                        usedLocations.add(v.location);
+                    }
+                }
+                for (const v of standaloneVaryingsWGSL)
+                {
+                    if (v.location === undefined)
+                    {
+                        let nextLocation = 0;
+                        while (usedLocations.has(nextLocation))
+                        {
+                            nextLocation++;
+                        }
+                        v.setAutoLocation(nextLocation);
+                        usedLocations.add(nextLocation);
+                    }
+
+                    // 更新 varying 的 value.toWGSL 方法，使其返回 v.name 格式
+                    if (v.value)
+                    {
+                        const varyingName = v.name;
+                        v.value.toWGSL = () => `v.${varyingName}`;
+                    }
+                }
+
+                // 生成 VaryingStruct 定义
+                const structLines: string[] = ['struct VaryingStruct {'];
+                for (const v of standaloneVaryingsWGSL)
+                {
+                    if (v.value)
+                    {
+                        const loc = v.getEffectiveLocation();
+                        structLines.push(`    @location(${loc}) ${v.name}: ${v.value.wgslType},`);
+                    }
+                }
+                structLines.push('}');
+                lines.push(structLines.join('\n'));
+            }
+
             // 生成结构体定义（包含所有字段，location 分配在 toWGSLDefinition 中完成）
             for (const struct of dependencies.structs)
             {
@@ -335,8 +442,8 @@ export class Fragment extends Func
             // 生成函数参数
             const params: string[] = [];
 
-            // 添加结构体参数（如果有）
-            if (inputStruct)
+            // 添加结构体参数（如果有结构体或独立 varying）
+            if (inputStruct || standaloneVaryingsWGSL.length > 0)
             {
                 params.push(`v: VaryingStruct`);
             }

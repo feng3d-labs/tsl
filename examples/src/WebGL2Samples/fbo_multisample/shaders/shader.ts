@@ -44,7 +44,7 @@ const splashMVP = mat4(uniform('MVP'));
 // Varying
 const vSplash = varyingStruct({
     gl_Position: vec4(builtin('gl_Position')),
-    uv: vec2(varying()),
+    uv: vec2(varying('uv')),
 });
 
 // 顶点着色器

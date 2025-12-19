@@ -3,6 +3,7 @@ import { buildShader } from './buildShader';
 import { Func } from './func';
 import { Sampler } from './sampler';
 import { Uniform } from './uniform';
+import { Varying } from './varying';
 
 /**
  * Vertex 类，继承自 Func
@@ -56,17 +57,7 @@ export class Vertex extends Func
                 lines.push(uniform.toGLSL());
             }
 
-            // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
-            for (const struct of dependencies.structs)
-            {
-                const structVaryingDecl = struct.toGLSLDefinition('vertex');
-                if (structVaryingDecl)
-                {
-                    lines.push(structVaryingDecl);
-                }
-            }
-
-            // 生成其他 varyings（不在结构体中的，在 vertex shader 中作为输出）
+            // 将独立定义的 varying 合并到 VaryingStruct 中
             for (const varying of dependencies.varyings)
             {
                 // 检查这个 varying 是否已经在结构体中声明了
@@ -90,10 +81,24 @@ export class Vertex extends Func
                     }
                     if (inStruct) break;
                 }
-                // 如果不在结构体中，才单独声明
+                // 如果不在结构体中，合并到第一个 VaryingStruct
                 if (!inStruct)
                 {
-                    lines.push(varying.toGLSL());
+                    const firstStruct = Array.from(dependencies.structs)[0];
+                    if (firstStruct)
+                    {
+                        firstStruct.mergeStandaloneVarying(varying);
+                    }
+                }
+            }
+
+            // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
+            for (const struct of dependencies.structs)
+            {
+                const structVaryingDecl = struct.toGLSLDefinition('vertex');
+                if (structVaryingDecl)
+                {
+                    lines.push(structVaryingDecl);
                 }
             }
 
@@ -162,6 +167,41 @@ export class Vertex extends Func
 
             // 自动分配 binding（对于 binding 缺省的 uniform）
             this.allocateBindings(dependencies.uniforms, new Set());
+
+            // 将独立定义的 varying 合并到 VaryingStruct 中
+            for (const varying of dependencies.varyings)
+            {
+                // 检查这个 varying 是否已经在结构体中声明了
+                let inStruct = false;
+                for (const struct of dependencies.structs)
+                {
+                    for (const fieldValue of Object.values(struct.fields))
+                    {
+                        if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
+                        {
+                            for (const dep of fieldValue.dependencies)
+                            {
+                                if (dep === varying)
+                                {
+                                    inStruct = true;
+                                    break;
+                                }
+                            }
+                            if (inStruct) break;
+                        }
+                    }
+                    if (inStruct) break;
+                }
+                // 如果不在结构体中，合并到第一个 VaryingStruct
+                if (!inStruct)
+                {
+                    const firstStruct = Array.from(dependencies.structs)[0];
+                    if (firstStruct)
+                    {
+                        firstStruct.mergeStandaloneVarying(varying);
+                    }
+                }
+            }
 
             // 生成结构体定义（包含所有字段，location 分配在 toWGSLDefinition 中完成）
             for (const struct of dependencies.structs)

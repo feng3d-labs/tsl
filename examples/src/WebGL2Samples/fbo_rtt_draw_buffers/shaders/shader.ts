@@ -1,4 +1,4 @@
-import { attribute, builtin, fragColor, fragment, fragmentOutput, gl_Position, mix, precision, return_, sampler2D, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragColor, fragment, gl_Position, mix, precision, return_, sampler2D, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // ==================== Draw Buffer 着色器 ====================
 // Pass 1: 渲染三角形到两个颜色附件
@@ -36,15 +36,15 @@ const drawTexcoord = vec2(attribute('textureCoordinates'));
 
 const vDraw = varyingStruct({
     vPosition: vec4(builtin('position')),
-    v_st: vec2(varying()),
 });
+const v_st = vec2(varying("v_st"));
 
 export const drawVertexShader = vertex('main', () =>
 {
     precision('highp', 'float');
     precision('highp', 'int');
 
-    vDraw.v_st.assign(drawTexcoord);
+    v_st.assign(drawTexcoord);
     vDraw.vPosition.assign(vec4(drawPosition, 0.0, 1.0));
 });
 
@@ -56,8 +56,8 @@ export const drawFragmentShader = fragment('main', () =>
     precision('highp', 'float');
     precision('highp', 'int');
 
-    const color1 = texture(color1Map, vDraw.v_st);
-    const color2 = texture(color2Map, vDraw.v_st);
+    const color1 = texture(color1Map, v_st);
+    const color2 = texture(color2Map, v_st);
     // 根据 x 坐标混合两个颜色
-    return_(mix(color1, color2, vDraw.v_st.x));
+    return_(mix(color1, color2, v_st.x));
 });

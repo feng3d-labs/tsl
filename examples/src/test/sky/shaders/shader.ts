@@ -16,12 +16,12 @@ const up = vec3(uniform('up'));
 // VaryingStruct 用于在顶点和片段着色器之间传递数据
 const v = varyingStruct({
     gl_Position: vec4(builtin('position')),
-    vWorldPosition: vec3(varying()),
-    vSunDirection: vec3(varying()),
-    vSunfade: float(varying()),
-    vBetaR: vec3(varying()),
-    vBetaM: vec3(varying()),
-    vSunE: float(varying()),
+    vWorldPosition: vec3(varying('vWorldPosition')),
+    vSunDirection: vec3(varying('vSunDirection')),
+    vSunfade: float(varying('vSunfade')),
+    vBetaR: vec3(varying('vBetaR')),
+    vBetaM: vec3(varying('vBetaM')),
+    vSunE: float(varying('vSunE')),
 });
 
 // Vertex shader constants

@@ -15,8 +15,8 @@ const texture = sampler2D(uniform('texture')); // uniform sampler2D texture;
 // VaryingStruct 用于在顶点和片段着色器之间传递数据
 const v = varyingStruct({
     gl_Position: vec4(builtin('position')), // gl_Position
-    vUv: vec2(varying()), // varying vec2 vUv;
-    vNormal: vec3(varying()), // varying vec3 vNormal;
+    vUv: vec2(varying('vUv')), // varying vec2 vUv;
+    vNormal: vec3(varying('vNormal')), // varying vec3 vNormal;
     gl_FrontFacing: bool(builtin('gl_FrontFacing')), // gl_FrontFacing
 });
 

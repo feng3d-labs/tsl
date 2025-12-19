@@ -22,6 +22,11 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
     private _injectedPositionBuiltin?: Builtin;
 
     /**
+     * 独立定义的 varying 列表（会在代码生成时合并到结构体中）
+     */
+    private _standaloneVaryings: Varying[] = [];
+
+    /**
      * 检查结构体是否包含 varying 字段
      */
     hasVarying(): boolean
@@ -96,6 +101,37 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
     }
 
     /**
+     * 合并独立定义的 varying 到结构体中
+     * @param varying 要合并的 varying
+     */
+    mergeStandaloneVarying(varying: Varying): void
+    {
+        // 避免重复添加
+        if (this._standaloneVaryings.includes(varying))
+        {
+            return;
+        }
+
+        this._standaloneVaryings.push(varying);
+
+        // 更新 varying 的 value.toWGSL 方法，使其返回 v.name 格式
+        if (varying.value)
+        {
+            const varName = this.varName;
+            const varyingName = varying.name;
+            varying.value.toWGSL = () => `${varName}.${varyingName}`;
+        }
+    }
+
+    /**
+     * 获取所有独立定义的 varying
+     */
+    getStandaloneVaryings(): Varying[]
+    {
+        return this._standaloneVaryings;
+    }
+
+    /**
      * 生成 GLSL varying 声明
      * @param type 着色器类型（vertex 或 fragment）
      * @returns GLSL varying 声明字符串，例如: 'varying vec4 color; varying vec4 color2;'
@@ -109,22 +145,43 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
         const buildParam = getBuildParam();
         const version = buildParam?.version ?? 1;
 
-        for (const [fieldName, value] of Object.entries(this.fields))
+        // 处理结构体中的 varying 字段
+        for (const [, value] of Object.entries(this.fields))
         {
             const dep = value.dependencies[0];
             if (dep instanceof Varying && dep.value)
             {
                 const glslType = dep.value.glslType;
+                const varName = dep.name; // 使用 varying 自身的名称
                 if (version === 2)
                 {
                     // WebGL 2.0 中，varyings（顶点到片段的变量）不需要 layout(location)
                     // 只需要使用 out（vertex shader）或 in（fragment shader）
                     const inOut = type === 'vertex' ? 'out' : 'in';
-                    varyingDeclarations.push(`${inOut} ${glslType} ${fieldName}`);
+                    varyingDeclarations.push(`${inOut} ${glslType} ${varName}`);
                 }
                 else
                 {
-                    varyingDeclarations.push(`varying ${glslType} ${fieldName}`);
+                    varyingDeclarations.push(`varying ${glslType} ${varName}`);
+                }
+            }
+        }
+
+        // 处理独立定义的 varying
+        for (const varying of this._standaloneVaryings)
+        {
+            if (varying.value)
+            {
+                const glslType = varying.value.glslType;
+                const varName = varying.name;
+                if (version === 2)
+                {
+                    const inOut = type === 'vertex' ? 'out' : 'in';
+                    varyingDeclarations.push(`${inOut} ${glslType} ${varName}`);
+                }
+                else
+                {
+                    varyingDeclarations.push(`varying ${glslType} ${varName}`);
                 }
             }
         }
@@ -175,7 +232,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             {
                 if (!dep.value)
                 {
-                    throw new Error(`Varying '${fieldName}' 没有设置 value，无法生成 WGSL。`);
+                    throw new Error(`Varying '${dep.name}' 没有设置 value，无法生成 WGSL。`);
                 }
                 const wgslType = dep.value.wgslType;
 
@@ -183,13 +240,26 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
                 const effectiveLocation = dep.getEffectiveLocation();
                 const location = `@location(${effectiveLocation})`;
 
-                return `${location} ${fieldName}: ${wgslType}`;
+                // 使用 varying 自身的名称
+                return `${location} ${dep.name}: ${wgslType}`;
             }
             else
             {
                 throw new Error(`不支持的依赖类型`);
             }
         }).filter(Boolean) as string[];
+
+        // 添加独立定义的 varying
+        for (const varying of this._standaloneVaryings)
+        {
+            if (varying.value)
+            {
+                const wgslType = varying.value.wgslType;
+                const effectiveLocation = varying.getEffectiveLocation();
+                const location = `@location(${effectiveLocation})`;
+                fieldDefs.push(`${location} ${varying.name}: ${wgslType}`);
+            }
+        }
 
         // 如果有注入的 position builtin，添加到字段定义中（放在最前面）
         if (this._injectedPositionBuiltin && effectiveStage === 'vertex')
@@ -216,7 +286,7 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
     {
         const usedLocations = new Set<number>();
 
-        // 第一遍：记录所有显式指定的 location
+        // 第一遍：记录所有显式指定的 location（结构体字段）
         for (const [fieldName, value] of Object.entries(this.fields))
         {
             const dep = value.dependencies[0];
@@ -226,7 +296,16 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             }
         }
 
-        // 第二遍：为没有 location 的 varying 自动分配 location
+        // 第一遍：记录所有显式指定的 location（独立 varying）
+        for (const varying of this._standaloneVaryings)
+        {
+            if (varying.location !== undefined)
+            {
+                usedLocations.add(varying.location);
+            }
+        }
+
+        // 第二遍：为没有 location 的 varying 自动分配 location（结构体字段）
         for (const [fieldName, value] of Object.entries(this.fields))
         {
             const dep = value.dependencies[0];
@@ -249,6 +328,31 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
 
                 // 分配 location
                 dep.setAutoLocation(nextLocation);
+                usedLocations.add(nextLocation);
+            }
+        }
+
+        // 第二遍：为没有 location 的 varying 自动分配 location（独立 varying）
+        for (const varying of this._standaloneVaryings)
+        {
+            if (varying.location === undefined)
+            {
+                // 检查是否已经分配了自动 location
+                const currentEffectiveLocation = varying.getEffectiveLocation();
+                if (currentEffectiveLocation !== 0 && usedLocations.has(currentEffectiveLocation))
+                {
+                    continue;
+                }
+
+                // 找到下一个未使用的 location
+                let nextLocation = 0;
+                while (usedLocations.has(nextLocation))
+                {
+                    nextLocation++;
+                }
+
+                // 分配 location
+                varying.setAutoLocation(nextLocation);
                 usedLocations.add(nextLocation);
             }
         }
@@ -307,18 +411,24 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
             throw new Error(`结构体 'VaryingStruct' 的字段 '${fieldName}' 必须是 builtin 或 varying 类型，当前类型不支持。`);
         }
 
-        // 设置变量名为结构体字段名
+        // 设置变量名：Builtin 使用字段名，Varying 保持自身名称
         if (dep instanceof Builtin)
         {
             dep.setName(fieldName);
         }
-        else if (dep instanceof Varying)
-        {
-            dep.setName(fieldName);
-        }
+        // Varying 保持使用构造时的名称
 
-        // 设置字段的 toWGSL 方法：返回 'v.fieldName'
-        value.toWGSL = () => `${this.varName}.${fieldName}`;
+        // 设置字段的 toWGSL 方法
+        if (dep instanceof Varying)
+        {
+            // Varying 使用自身的名称：返回 'v.varyingName'
+            value.toWGSL = () => `${this.varName}.${dep.name}`;
+        }
+        else
+        {
+            // Builtin 使用字段名：返回 'v.fieldName'
+            value.toWGSL = () => `${this.varName}.${fieldName}`;
+        }
 
         // 设置字段的 toGLSL 方法
         this.setupFieldToGLSL(fieldName, value, dep);
@@ -364,8 +474,8 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
         }
         else
         {
-            // Varying 字段：返回字段名（GLSL 中直接使用字段名，不需要结构体前缀）
-            value.toGLSL = () => fieldName;
+            // Varying 字段：使用 varying 自身的名称（GLSL 中直接使用变量名，不需要结构体前缀）
+            value.toGLSL = () => dep.name;
         }
     }
 }

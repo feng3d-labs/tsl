@@ -10,7 +10,7 @@ const uProjectionMatrix = mat4(uniform('uProjectionMatrix'));
 
 // VaryingStruct 用于在顶点和片段着色器之间传递数据
 const v = varyingStruct({
-    vTextureCoord: vec2(varying()),
+    vTextureCoord: vec2(varying('vTextureCoord')),
 });
 
 // Vertex shader 入口函数

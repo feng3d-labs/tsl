@@ -33,7 +33,7 @@ const drawTexcoord = vec2(attribute('textureCoordinates'));
 
 const vDraw = varyingStruct({
     vPosition: vec4(builtin('position')),
-    v_st: vec2(varying()),
+    v_st: vec2(varying('v_st')),
 });
 
 export const drawVertexShader = vertex('main', () =>

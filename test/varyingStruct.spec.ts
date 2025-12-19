@@ -270,7 +270,7 @@ describe('VaryingStruct', () =>
         it('应该能够为 Varying 字段生成正确的 GLSL 代码', () =>
         {
             const v = varyingStruct({
-                color: vec4(varying(1)),
+                color: vec4(varying('color', 1)),
             });
 
             const glsl = v.color.toGLSL();
@@ -280,10 +280,10 @@ describe('VaryingStruct', () =>
         it('应该能够为 varyingStruct 字段生成正确的 GLSL 代码', () =>
         {
             const v = varyingStruct({
-                color: vec4(varying(1)),
-                color2: vec4(varying()),
-                color3: vec4(varying(2)),
-                color4: vec4(varying()),
+                color: vec4(varying('color', 1)),
+                color2: vec4(varying('color2')),
+                color3: vec4(varying('color3', 2)),
+                color4: vec4(varying('color4')),
 
             });
 

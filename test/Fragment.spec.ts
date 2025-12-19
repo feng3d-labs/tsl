@@ -64,8 +64,8 @@ describe('Fragment', () =>
         it('应该能够自动分配 varying 的 location', () =>
         {
             const v = varyingStruct({
-                vColor: vec4(varying()),
-                vTexCoord: vec2(varying()),
+                vColor: vec4(varying('vColor')),
+                vTexCoord: vec2(varying('vTexCoord')),
             });
 
             const frag = fragment('main', () =>
@@ -83,7 +83,7 @@ describe('Fragment', () =>
             const aPos = vec2(attribute('aPos'));
             const v = varyingStruct({
                 position: vec4(builtin('position')),
-                vColor: vec4(varying()),
+                vColor: vec4(varying('vColor')),
             });
 
             const vert = vertex('main', () =>
@@ -112,7 +112,7 @@ describe('Fragment', () =>
         it('应该能够混合显式指定和自动分配的 varying location', () =>
         {
             const v = varyingStruct({
-                vColor: vec4(varying()),
+                vColor: vec4(varying('vColor')),
             });
 
             const frag = fragment('main', () =>

@@ -6,7 +6,6 @@ import { vertex } from '../src/vertex';
 import { fragment } from '../src/fragment';
 import { return_ } from '../src/index';
 import { builtin } from '../src/builtin/builtin';
-import { var_ } from '../src/builtin/var';
 import { varyingStruct } from '../src/varyingStruct';
 import { buildShader } from '../src/buildShader';
 
@@ -16,66 +15,77 @@ describe('Varying', () =>
     {
         it('应该能够创建 Varying 实例', () =>
         {
-            const v = new Varying(0);
-            expect(v.name).toBeUndefined();
+            const v = new Varying('vColor', 0);
+            expect(v.name).toBe('vColor');
             expect(v.location).toBe(0);
         });
 
-        it('应该在没有设置 name 时抛出错误', () =>
+        it('应该能够创建不指定 location 的 Varying', () =>
         {
-            const v = new Varying(0);
-            expect(() => v.toGLSL()).toThrow(/没有设置 name/);
+            const v = new Varying('vColor');
+            expect(v.name).toBe('vColor');
+            expect(v.location).toBeUndefined();
         });
 
-        it('应该在 varyingStruct 中设置 name 并生成 GLSL', () =>
+        it('应该在 varyingStruct 中保持自身名称并生成 GLSL', () =>
         {
             buildShader({ language: 'glsl', stage: 'vertex', version: 1 }, () =>
             {
                 const struct = varyingStruct({
-                    vColor: vec4(varying(0)),
+                    vColor: vec4(varying('v_color', 0)),
                 });
                 const v = struct.fields.vColor.dependencies[0] as Varying;
-                expect(v.name).toBe('vColor');
-                expect(v.toGLSL()).toBe('varying vec4 vColor;');
-                expect(v.toGLSL()).toBe('varying vec4 vColor;');
+                // varyingStruct 不再覆盖 varying 的名称，varying 保持自身名称
+                expect(v.name).toBe('v_color');
+                expect(v.toGLSL()).toBe('varying vec4 v_color;');
             });
         });
 
-        it('应该在 varyingStruct 中设置 name 并生成 WGSL', () =>
+        it('应该在 varyingStruct 中保持自身名称并生成 WGSL', () =>
         {
             const struct = varyingStruct({
-                vColor: vec4(varying(0)),
+                vColor: vec4(varying('v_color', 0)),
             });
             const v = struct.fields.vColor.dependencies[0] as Varying;
-            expect(v.name).toBe('vColor');
-            expect(v.toWGSL()).toBe('@location(0) vColor: vec4<f32>');
+            // varying 保持自身的名称
+            expect(v.name).toBe('v_color');
+            expect(v.toWGSL()).toBe('@location(0) v_color: vec4<f32>');
         });
     });
 
     describe('varying() 函数', () =>
     {
-        it('应该能够创建 varying', () =>
+        it('应该能够创建 varying（指定名称和 location）', () =>
         {
-            const v = varying(0);
+            const v = varying('vColor', 0);
             expect(v).toBeInstanceOf(Varying);
-            expect(v.name).toBeUndefined();
+            expect(v.name).toBe('vColor');
             expect(v.location).toBe(0);
         });
 
-        it('应该在 varyingStruct 中设置 name', () =>
+        it('应该能够创建 varying（只指定名称）', () =>
+        {
+            const v = varying('vColor');
+            expect(v).toBeInstanceOf(Varying);
+            expect(v.name).toBe('vColor');
+            expect(v.location).toBeUndefined();
+        });
+
+        it('应该在 varyingStruct 中保持自身名称', () =>
         {
             const struct = varyingStruct({
-                vColor: vec4(varying(0)),
+                vColor: vec4(varying('v_color', 0)),
             });
             const v = struct.fields.vColor.dependencies[0] as Varying;
-            expect(v.name).toBe('vColor');
+            // varyingStruct 不再覆盖名称，varying 保持自身名称
+            expect(v.name).toBe('v_color');
             expect(v.location).toBe(0);
         });
 
         it('应该支持 vec4(varying(...)) 形式', () =>
         {
             const struct = varyingStruct({
-                vColor: vec4(varying(0)),
+                vColor: vec4(varying('vColor', 0)),
             });
             const vColor = struct.fields.vColor;
 
@@ -96,8 +106,8 @@ describe('Varying', () =>
         {
             const v = varyingStruct({
                 position: vec4(builtin('position')),
-                vColor: vec4(varying()),
-                vTexCoord: vec2(varying()),
+                vColor: vec4(varying('vColor')),
+                vTexCoord: vec2(varying('vTexCoord')),
             });
 
             const vertexShader = vertex('main', () =>
@@ -115,8 +125,8 @@ describe('Varying', () =>
         {
             const v = varyingStruct({
                 position: vec4(builtin('position')),
-                vColor: vec4(varying()),
-                vTexCoord: vec2(varying()),
+                vColor: vec4(varying('vColor')),
+                vTexCoord: vec2(varying('vTexCoord')),
             });
 
             const vertexShader = vertex('main', () =>
@@ -136,8 +146,8 @@ describe('Varying', () =>
         {
             const v = varyingStruct({
                 position: vec4(builtin('position')),
-                vColor: vec4(varying(2)), // 显式指定 location 2
-                vTexCoord: vec2(varying()), // 自动分配
+                vColor: vec4(varying('vColor', 2)), // 显式指定 location 2
+                vTexCoord: vec2(varying('vTexCoord')), // 自动分配
             });
 
             const vertexShader = vertex('main', () =>
@@ -154,8 +164,8 @@ describe('Varying', () =>
 
         it('应该能够获取有效的 location', () =>
         {
-            const v1 = varying();
-            const v2 = varying(1);
+            const v1 = varying('vColor');
+            const v2 = varying('vTexCoord', 1);
 
             const struct = varyingStruct({
                 position: vec4(builtin('position')),
@@ -173,5 +183,50 @@ describe('Varying', () =>
             expect(v2.getEffectiveLocation()).toBe(1); // 显式指定
         });
     });
-});
 
+    describe('独立定义的 varying', () =>
+    {
+        it('应该能够独立定义 varying 并自动合并到 VaryingStruct', () =>
+        {
+            const v_st = vec2(varying('v_st'));
+
+            const v = varyingStruct({
+                position: vec4(builtin('position')),
+            });
+
+            const vertexShader = vertex('main', () =>
+            {
+                v.position.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                v_st.assign(vec2(0.5, 0.5));
+            });
+
+            const wgsl = vertexShader.toWGSL();
+            // 独立的 varying 应该被合并到 VaryingStruct 中
+            expect(wgsl).toContain('@location(0) v_st: vec2<f32>');
+            // 赋值语句应该使用 v.v_st 格式
+            expect(wgsl).toContain('v.v_st = ');
+        });
+
+        it('应该能够在片段着色器中使用独立 varying（无 varyingStruct 引用）', () =>
+        {
+            const v_st = vec2(varying('v_st'));
+
+            const fragmentShader = fragment('main', () =>
+            {
+                return_(vec4(v_st.x, v_st.y, 0.0, 1.0));
+            });
+
+            const glsl = fragmentShader.toGLSL(2);
+            // GLSL 应该声明 varying
+            expect(glsl).toContain('in vec2 v_st;');
+
+            const wgsl = fragmentShader.toWGSL();
+            // WGSL 应该生成 VaryingStruct 并在函数中接收
+            expect(wgsl).toContain('struct VaryingStruct');
+            expect(wgsl).toContain('@location(0) v_st: vec2<f32>');
+            expect(wgsl).toContain('v: VaryingStruct');
+            // 应该使用 v.v_st 访问
+            expect(wgsl).toContain('v.v_st');
+        });
+    });
+});

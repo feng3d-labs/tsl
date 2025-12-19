@@ -5,7 +5,7 @@ const pos = vec2(attribute('pos', 0));
 const color = vec4(attribute('color', 1));
 
 const v = varyingStruct({
-    v_color: vec4(varying()),
+    v_color: vec4(varying('v_color')),
     gl_Position: vec4(builtin('gl_Position')),
 });
 

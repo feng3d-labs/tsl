@@ -11,7 +11,7 @@ const view = mat4(uniform('view'));
 // VaryingStruct 用于在顶点和片段着色器之间传递数据
 const v = varyingStruct({
     gl_Position: vec4(builtin('position')),
-    vUv: vec2(varying()),
+    vUv: vec2(varying('vUv')),
 });
 
 // Vertex shader 入口函数

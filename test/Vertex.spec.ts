@@ -70,7 +70,7 @@ describe('Vertex', () =>
             const aVertexColor = vec4(attribute('aVertexColor', 0));
             const v = varyingStruct({
                 position: vec4(builtin('position')),
-                vColor: vec4(varying(0)),
+                vColor: vec4(varying('vColor', 0)),
             });
 
             const vert = vertex('main', () =>
@@ -108,8 +108,8 @@ describe('Vertex', () =>
         {
             const v = varyingStruct({
                 position: vec4(builtin('position')),
-                vColor: vec4(varying()),
-                vTexCoord: vec2(varying()),
+                vColor: vec4(varying('vColor')),
+                vTexCoord: vec2(varying('vTexCoord')),
             });
 
             const vert = vertex('main', () =>
@@ -130,8 +130,8 @@ describe('Vertex', () =>
             const aColor = vec4(attribute('aColor')); // 自动分配
             const v = varyingStruct({
                 position: vec4(builtin('position')),
-                vColor: vec4(varying(1)), // 显式指定 location 1
-                vTexCoord: vec2(varying()), // 自动分配
+                vColor: vec4(varying('vColor', 1)), // 显式指定 location 1
+                vTexCoord: vec2(varying('vTexCoord')), // 自动分配
             });
 
             const vert = vertex('main', () =>
@@ -242,7 +242,7 @@ describe('Vertex', () =>
             const color = vec4(attribute('color'));
             const v = varyingStruct({
                 vPosition: vec4(builtin('position')),
-                vColor: vec4(varying()),
+                vColor: vec4(varying('vColor')),
             });
 
             const vert = vertex('main', () =>
@@ -287,7 +287,7 @@ describe('Vertex', () =>
             const uProjectionMatrix = mat4(uniform('uProjectionMatrix'));
 
             const v = varyingStruct({
-                vTextureCoord: vec2(varying()),
+                vTextureCoord: vec2(varying('vTextureCoord')),
             });
 
             const vert = vertex('main', () =>

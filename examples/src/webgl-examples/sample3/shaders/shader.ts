@@ -10,7 +10,7 @@ const uProjectionMatrix = mat4(uniform('uProjectionMatrix'));
 
 const v = varyingStruct({
     position_vec4: vec4(builtin('position')),
-    vColor: vec4(varying()),
+    vColor: vec4(varying('vColor')),
 });
 
 // Vertex shader 入口函数

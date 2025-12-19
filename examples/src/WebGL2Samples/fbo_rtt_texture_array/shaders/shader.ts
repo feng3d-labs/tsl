@@ -7,7 +7,7 @@ const mvp = mat4(uniform('mvp'));
 
 const vLayer = varyingStruct({
     vPosition: vec4(builtin('position')),
-    v_st: vec2(varying()),
+    v_st: vec2(varying('v_st')),
 });
 
 export const layerVertexShader = vertex('main', () =>

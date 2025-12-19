@@ -10,7 +10,7 @@ const mvp = mat4(uniform('mvp'));
 // Varying
 const varyings = varyingStruct({
     gl_Position: vec4(builtin('gl_Position')),
-    v_st: vec2(varying()),
+    v_st: vec2(varying('v_st')),
 });
 
 // 顶点着色器

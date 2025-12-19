@@ -1,4 +1,4 @@
-import { assign, attribute, builtin, dot, fragment, mat4, max, normalize, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, dot, fragment, mat4, max, normalize, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes（location 缺省时自动分配）
 const aVertexPosition = vec4(attribute('aVertexPosition'));
@@ -20,8 +20,8 @@ const v = varyingStruct({
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>
 {
-    assign(v.vPosition, uProjectionMatrix.multiply(uModelViewMatrix).multiply(aVertexPosition));
-    assign(v.vTextureCoord, aTextureCoord);
+    v.vPosition.assign(uProjectionMatrix.multiply(uModelViewMatrix).multiply(aVertexPosition));
+    v.vTextureCoord.assign(aTextureCoord);
 
     // 应用光照效果
     const ambientLight = var_('ambientLight', vec3(0.3));
@@ -30,7 +30,7 @@ export const vertexShader = vertex('main', () =>
     const transformedNormal = var_('transformedNormal', uNormalMatrix.multiply(vec4(aVertexNormal, 1.0)));
     const directional = var_('directional', max(dot(transformedNormal.xyz, directionalVector), 0.0));
     const lighting = var_('lighting', ambientLight.add(directionalLightColor.multiply(directional)));
-    assign(v.vLighting, lighting);
+    v.vLighting.assign(lighting);
 });
 
 // sampler 的 binding 会自动分配，因为 vertex shader 的 uniform 已经占用了 0, 1, 2（group 缺省时使用默认值 0）

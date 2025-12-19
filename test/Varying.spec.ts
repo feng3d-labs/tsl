@@ -5,7 +5,6 @@ import { vec4 } from '../src/builtin/types/vec4';
 import { vertex } from '../src/vertex';
 import { fragment } from '../src/fragment';
 import { return_ } from '../src/index';
-import { assign } from '../src/builtin/assign';
 import { builtin } from '../src/builtin/builtin';
 import { var_ } from '../src/builtin/var';
 import { varyingStruct } from '../src/varyingStruct';
@@ -103,8 +102,8 @@ describe('Varying', () =>
 
             const vertexShader = vertex('main', () =>
             {
-                assign(v.position, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(v.vColor, vec4(1.0, 0.0, 0.0, 1.0));
+                v.position.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                v.vColor.assign(vec4(1.0, 0.0, 0.0, 1.0));
             });
 
             const wgsl = vertexShader.toWGSL();
@@ -122,9 +121,9 @@ describe('Varying', () =>
 
             const vertexShader = vertex('main', () =>
             {
-                assign(v.position, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(v.vColor, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(v.vTexCoord, vec2(0.0, 0.0));
+                v.position.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                v.vColor.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                v.vTexCoord.assign(vec2(0.0, 0.0));
             });
 
             const wgsl = vertexShader.toWGSL();
@@ -143,9 +142,9 @@ describe('Varying', () =>
 
             const vertexShader = vertex('main', () =>
             {
-                assign(v.position, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(v.vColor, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(v.vTexCoord, vec2(0.0, 0.0));
+                v.position.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                v.vColor.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                v.vTexCoord.assign(vec2(0.0, 0.0));
             });
 
             const wgsl = vertexShader.toWGSL();
@@ -166,8 +165,8 @@ describe('Varying', () =>
 
             const vertexShader = vertex('main', () =>
             {
-                assign(struct.position, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(struct.vColor, vec4(1.0, 0.0, 0.0, 1.0));
+                struct.position.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                struct.vColor.assign(vec4(1.0, 0.0, 0.0, 1.0));
             });
             vertexShader.toWGSL(); // 触发自动分配
             expect(v1.getEffectiveLocation()).toBe(0); // 自动分配的值

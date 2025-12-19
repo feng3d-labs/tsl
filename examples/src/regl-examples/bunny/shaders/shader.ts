@@ -1,4 +1,4 @@
-import { assign, attribute, builtin, fragment, mat4, return_, uniform, var_, varying, varyingStruct, vec3, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragment, mat4, return_, uniform, var_, varying, varyingStruct, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes
 const position = vec3(attribute('position'));
@@ -16,7 +16,7 @@ const v = varyingStruct({
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>
 {
-    assign(v.gl_Position, projection.multiply(view).multiply(model).multiply(vec4(position, 1.0)));
+    v.gl_Position.assign(projection.multiply(view).multiply(model).multiply(vec4(position, 1.0)));
 });
 
 // Fragment shader 入口函数

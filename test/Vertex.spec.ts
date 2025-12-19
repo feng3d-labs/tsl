@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { assign } from '../src/builtin/assign';
 import { attribute } from '../src/attribute';
 import { builtin } from '../src/builtin/builtin';
 import { var_ } from '../src/builtin/var';
@@ -73,8 +72,8 @@ describe('Vertex', () =>
             const vert = vertex('main', () =>
             {
                 const position = var_('position', vec4(1.0, 0.0, 0.0, 1.0));
-                assign(v.position, position);
-                assign(v.vColor, aVertexColor);
+                v.position.assign(position);
+                v.vColor.assign(aVertexColor);
             });
 
             const glsl = vert.toGLSL();
@@ -111,8 +110,8 @@ describe('Vertex', () =>
 
             const vert = vertex('main', () =>
             {
-                assign(v.position, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(v.vColor, vec4(1.0, 0.0, 0.0, 1.0));
+                v.position.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                v.vColor.assign(vec4(1.0, 0.0, 0.0, 1.0));
             });
 
             const wgsl = vert.toWGSL();
@@ -133,8 +132,8 @@ describe('Vertex', () =>
 
             const vert = vertex('main', () =>
             {
-                assign(v.position, vec4(aPos, 0.0, 1.0));
-                assign(v.vColor, aColor);
+                v.position.assign(vec4(aPos, 0.0, 1.0));
+                v.vColor.assign(aColor);
             });
 
             const wgsl = vert.toWGSL();
@@ -152,7 +151,7 @@ describe('Vertex', () =>
 
             const vert = vertex('main', () =>
             {
-                assign(v.position_vec4.z, v.position_vec4.w);
+                v.position_vec4.z.assign(v.position_vec4.w);
             });
 
             const wgsl = vert.toWGSL();
@@ -173,7 +172,7 @@ describe('Vertex', () =>
 
             const vert = vertex('main', () =>
             {
-                assign(v.vPosition, position);
+                v.vPosition.assign(position);
             });
 
             const wgsl = vert.toWGSL();
@@ -190,7 +189,7 @@ describe('Vertex', () =>
 
             const vert = vertex('main', () =>
             {
-                assign(v.vPosition, position);
+                v.vPosition.assign(position);
             });
 
             const wgsl = vert.toWGSL({ convertDepth: true });
@@ -208,7 +207,7 @@ describe('Vertex', () =>
 
             const vert = vertex('main', () =>
             {
-                assign(v.vPosition, position);
+                v.vPosition.assign(position);
             });
 
             const wgslDefault = vert.toWGSL();
@@ -225,7 +224,7 @@ describe('Vertex', () =>
 
             const vert = vertex('main', () =>
             {
-                assign(v.vPosition, vec4(pos, 0.0, 1.0));
+                v.vPosition.assign(vec4(pos, 0.0, 1.0));
             });
 
             const wgsl = vert.toWGSL({ convertDepth: true });
@@ -244,8 +243,8 @@ describe('Vertex', () =>
 
             const vert = vertex('main', () =>
             {
-                assign(v.vPosition, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(v.vColor, color);
+                v.vPosition.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                v.vColor.assign(color);
             });
 
             const wgsl = vert.toWGSL({ convertDepth: true });
@@ -264,7 +263,7 @@ describe('Vertex', () =>
 
             const vert = vertex('main', () =>
             {
-                assign(v.vPosition, position);
+                v.vPosition.assign(position);
             });
 
             const glsl = vert.toGLSL(2);

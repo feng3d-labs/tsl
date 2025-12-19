@@ -1,4 +1,4 @@
-import { assign, attribute, builtin, fragment, mat4, precision, return_, sampler, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragment, mat4, precision, return_, sampler, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // ============ Render Shader（渲染到多重采样纹理）============
 
@@ -19,7 +19,7 @@ export const renderVertexShader = vertex('main', () =>
     precision('highp', 'float');
     precision('highp', 'int');
 
-    assign(vRender.gl_Position, renderMVP.multiply(vec4(renderPosition, 0.0, 1.0)));
+    vRender.gl_Position.assign(renderMVP.multiply(vec4(renderPosition, 0.0, 1.0)));
 });
 
 // 片段着色器
@@ -53,8 +53,8 @@ export const splashVertexShader = vertex('main', () =>
     precision('highp', 'float');
     precision('highp', 'int');
 
-    assign(vSplash.uv, splashTexcoord);
-    assign(vSplash.gl_Position, splashMVP.multiply(vec4(splashPosition, 0.0, 1.0)));
+    vSplash.uv.assign(splashTexcoord);
+    vSplash.gl_Position.assign(splashMVP.multiply(vec4(splashPosition, 0.0, 1.0)));
 });
 
 // 纹理采样器

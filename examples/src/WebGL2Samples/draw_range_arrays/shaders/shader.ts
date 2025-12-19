@@ -1,4 +1,4 @@
-import { assign, attribute, builtin, fragment, precision, return_, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragment, precision, return_, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
 const position = vec2(attribute('position', 0));
@@ -14,7 +14,7 @@ export const vertexShader = vertex('main', () =>
     precision('highp', 'int');
 
     // 计算位置
-    assign(v.gl_Position, vec4(position, 0.0, 1.0));
+    v.gl_Position.assign(vec4(position, 0.0, 1.0));
 });
 
 // 片段着色器

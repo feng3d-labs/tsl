@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { attribute } from '../src/attribute';
-import { assign } from '../src/builtin/assign';
 import { builtin } from '../src/builtin/builtin';
 import { vec2 } from '../src/builtin/types/vec2';
 import { vec4 } from '../src/builtin/types/vec4';
@@ -89,8 +88,8 @@ describe('Fragment', () =>
 
             const vert = vertex('main', () =>
             {
-                assign(v.position, vec4(aPos, 0.0, 1.0));
-                assign(v.vColor, vec4(1.0, 0.0, 0.0, 1.0)); // 实际使用 varying
+                v.position.assign(vec4(aPos, 0.0, 1.0));
+                v.vColor.assign(vec4(1.0, 0.0, 0.0, 1.0)); // 实际使用 varying
             });
 
             const frag = fragment('main', () =>

@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { assign } from '../src/builtin/assign';
 import { return_ } from '../src/builtin/return';
 import { color } from '../src/builtin/color';
 import { vec4 } from '../src/builtin/types/vec4';
@@ -69,9 +68,9 @@ describe('fragmentOutput', () =>
 
             const frag = fragment('main', () =>
             {
-                assign(f.red, vec4(0.5, 0.0, 0.0, 1.0));
-                assign(f.green, vec4(0.0, 0.3, 0.0, 1.0));
-                assign(f.blue, vec4(0.0, 0.0, 0.8, 1.0));
+                f.red.assign(vec4(0.5, 0.0, 0.0, 1.0));
+                f.green.assign(vec4(0.0, 0.3, 0.0, 1.0));
+                f.blue.assign(vec4(0.0, 0.0, 0.8, 1.0));
             });
 
             const glsl = frag.toGLSL(2);
@@ -96,9 +95,9 @@ describe('fragmentOutput', () =>
 
             const frag = fragment('main', () =>
             {
-                assign(f.red, vec4(0.5, 0.0, 0.0, 1.0));
-                assign(f.green, vec4(0.0, 0.3, 0.0, 1.0));
-                assign(f.blue, vec4(0.0, 0.0, 0.8, 1.0));
+                f.red.assign(vec4(0.5, 0.0, 0.0, 1.0));
+                f.green.assign(vec4(0.0, 0.3, 0.0, 1.0));
+                f.blue.assign(vec4(0.0, 0.0, 0.8, 1.0));
             });
 
             const wgsl = frag.toWGSL();
@@ -117,8 +116,8 @@ describe('fragmentOutput', () =>
 
             const frag = fragment('main', () =>
             {
-                assign(f.red, vec4(0.5, 0.0, 0.0, 1.0));
-                assign(f.green, vec4(0.0, 0.3, 0.0, 1.0));
+                f.red.assign(vec4(0.5, 0.0, 0.0, 1.0));
+                f.green.assign(vec4(0.0, 0.3, 0.0, 1.0));
             });
 
             const wgsl = frag.toWGSL();
@@ -135,9 +134,9 @@ describe('fragmentOutput', () =>
 
             const frag = fragment('main', () =>
             {
-                assign(f.red, vec4(0.5, 0.0, 0.0, 1.0));
-                assign(f.green, vec4(0.0, 0.3, 0.0, 1.0));
-                assign(f.blue, vec4(0.0, 0.0, 0.8, 1.0));
+                f.red.assign(vec4(0.5, 0.0, 0.0, 1.0));
+                f.green.assign(vec4(0.0, 0.3, 0.0, 1.0));
+                f.blue.assign(vec4(0.0, 0.0, 0.8, 1.0));
             });
 
             const wgsl = frag.toWGSL();
@@ -161,9 +160,9 @@ describe('fragmentOutput', () =>
 
             const frag = fragment('main', () =>
             {
-                assign(f.red, vec4(0.5, 0.0, 0.0, 1.0));
-                assign(f.green, vec4(0.0, 0.3, 0.0, 1.0));
-                assign(f.blue, vec4(0.0, 0.0, 0.8, 1.0));
+                f.red.assign(vec4(0.5, 0.0, 0.0, 1.0));
+                f.green.assign(vec4(0.0, 0.3, 0.0, 1.0));
+                f.blue.assign(vec4(0.0, 0.0, 0.8, 1.0));
                 return_(f);
             });
 
@@ -191,9 +190,9 @@ describe('fragmentOutput', () =>
 
             const frag = fragment('main', () =>
             {
-                assign(f.red, vec4(0.5, 0.0, 0.0, 1.0));
-                assign(f.green, vec4(0.0, 0.3, 0.0, 1.0));
-                assign(f.blue, vec4(0.0, 0.0, 0.8, 1.0));
+                f.red.assign(vec4(0.5, 0.0, 0.0, 1.0));
+                f.green.assign(vec4(0.0, 0.3, 0.0, 1.0));
+                f.blue.assign(vec4(0.0, 0.0, 0.8, 1.0));
                 return_(f);
             });
 
@@ -223,8 +222,8 @@ describe('fragmentOutput', () =>
             // 类型检查：return_ 应该能够接受 FragmentOutput 类型（不应该有类型错误）
             const frag = fragment('main', () =>
             {
-                assign(f.red, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(f.green, vec4(0.0, 1.0, 0.0, 1.0));
+                f.red.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                f.green.assign(vec4(0.0, 1.0, 0.0, 1.0));
                 return_(f);
             });
 
@@ -243,8 +242,8 @@ describe('fragmentOutput', () =>
             // 不使用 return_(f)，系统应该自动添加 return output;
             const frag = fragment('main', () =>
             {
-                assign(f.red, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(f.green, vec4(0.0, 1.0, 0.0, 1.0));
+                f.red.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                f.green.assign(vec4(0.0, 1.0, 0.0, 1.0));
                 // 不调用 return_(f)
             });
 
@@ -266,8 +265,8 @@ describe('fragmentOutput', () =>
             // 使用 return_(f)，系统不应该再自动添加 return output;
             const frag = fragment('main', () =>
             {
-                assign(f.red, vec4(1.0, 0.0, 0.0, 1.0));
-                assign(f.green, vec4(0.0, 1.0, 0.0, 1.0));
+                f.red.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                f.green.assign(vec4(0.0, 1.0, 0.0, 1.0));
                 return_(f);
             });
 

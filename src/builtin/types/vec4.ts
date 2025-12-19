@@ -2,6 +2,7 @@ import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
+import { Assign } from '../assign';
 import { Builtin } from '../builtin';
 import { Color } from '../color';
 import { formatOperand } from '../expressionUtils';
@@ -443,6 +444,15 @@ export class Vec4 implements ShaderValue
         }
 
         return result;
+    }
+
+    /**
+     * 赋值操作（用于对内置变量进行赋值）
+     * @param value 要赋值的表达式
+     */
+    assign(value: Vec4): void
+    {
+        new Assign(this, value);
     }
 
 }

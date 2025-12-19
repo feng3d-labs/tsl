@@ -2,13 +2,14 @@ import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
+import { Assign } from '../assign';
 import { formatOperand } from '../expressionUtils';
 import { formatNumber } from '../formatNumber';
+import { Bool } from './bool';
 import { UInt } from './uint';
 import { Vec2 } from './vec2';
 import { Vec3 } from './vec3';
 import { Vec4 } from './vec4';
-import { Bool } from './bool';
 
 /**
  * Float 类，用于表示浮点数类型（float/f32）
@@ -566,6 +567,15 @@ export class Float implements ShaderValue
         result.dependencies = typeof other === 'number' ? [this] : [this, other];
 
         return result;
+    }
+
+    /**
+     * 赋值操作（用于对内置变量进行赋值）
+     * @param value 要赋值的表达式
+     */
+    assign(value: Float): void
+    {
+        new Assign(this, value);
     }
 
 }

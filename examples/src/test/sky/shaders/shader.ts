@@ -1,4 +1,4 @@
-import { acos, assign, atan, attribute, builtin, clamp, cos, dot, exp, float, fragment, mat4, max, mix, normalize, pow, return_, smoothstep, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { acos, atan, attribute, builtin, clamp, cos, dot, exp, float, fragment, mat4, max, mix, normalize, pow, return_, smoothstep, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes
 const position = vec3(attribute('position'));
@@ -36,23 +36,23 @@ export const vertexShader = vertex('main', () =>
 {
 
     const worldPosition = var_('worldPosition', modelMatrix.multiply(vec4(position, 1.0)));
-    assign(v.vWorldPosition, worldPosition.xyz);
-    assign(v.gl_Position, projectionMatrix.multiply(modelViewMatrix).multiply(vec4(position, 1.0)));
-    assign(v.gl_Position.z, v.gl_Position.w);
+    v.vWorldPosition.assign(worldPosition.xyz);
+    v.gl_Position.assign(projectionMatrix.multiply(modelViewMatrix).multiply(vec4(position, 1.0)));
+    v.gl_Position.z.assign(v.gl_Position.w);
 
-    assign(v.vSunDirection, normalize(sunPosition));
+    v.vSunDirection.assign(normalize(sunPosition));
     const zenithAngleCos = var_('zenithAngleCos', dot(v.vSunDirection, up));
     const clamped = var_('clamped', clamp(zenithAngleCos, -1.0, 1.0));
     const acosClamped = var_('acosClamped', acos(clamped));
-    assign(v.vSunE, EE.multiply(max(0.0, float(1.0).subtract(exp(float(-1.0).multiply(cutoffAngle.subtract(acosClamped).divide(steepness)))))));
+    v.vSunE.assign(EE.multiply(max(0.0, float(1.0).subtract(exp(float(-1.0).multiply(cutoffAngle.subtract(acosClamped).divide(steepness)))))));
 
-    assign(v.vSunfade, float(1.0).subtract(clamp(float(1.0).subtract(exp(sunPosition.y.divide(float(450000.0)))), float(0.0), float(1.0))));
+    v.vSunfade.assign(float(1.0).subtract(clamp(float(1.0).subtract(exp(sunPosition.y.divide(float(450000.0)))), float(0.0), float(1.0))));
     const rayleighCoefficient = var_('rayleighCoefficient', rayleigh.subtract(float(1.0).multiply(float(1.0).subtract(v.vSunfade))));
-    assign(v.vBetaR, totalRayleigh.multiply(rayleighCoefficient));
+    v.vBetaR.assign(totalRayleigh.multiply(rayleighCoefficient));
 
     const c = var_('c', float(0.2).multiply(turbidity).multiply(float(10E-18)));
     const totalMieValue = var_('totalMieValue', float(0.434).multiply(c).multiply(MieConst));
-    assign(v.vBetaM, totalMieValue.multiply(mieCoefficient));
+    v.vBetaM.assign(totalMieValue.multiply(mieCoefficient));
 });
 
 // Fragment shader 的 uniforms

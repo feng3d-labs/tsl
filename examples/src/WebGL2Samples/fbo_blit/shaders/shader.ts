@@ -1,4 +1,4 @@
-import { assign, attribute, builtin, fragment, mat4, precision, return_, sampler, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragment, mat4, precision, return_, sampler, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
 const position = vec2(attribute('position', 0));
@@ -19,8 +19,8 @@ export const vertexShader = vertex('main', () =>
     precision('highp', 'float');
     precision('highp', 'int');
 
-    assign(v.v_st, texcoord);
-    assign(v.gl_Position, MVP.multiply(vec4(position, 0.0, 1.0)));
+    v.v_st.assign(texcoord);
+    v.gl_Position.assign(MVP.multiply(vec4(position, 0.0, 1.0)));
 });
 
 // 纹理采样器

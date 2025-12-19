@@ -1,4 +1,4 @@
-import { assign, attribute, builtin, float, fragment, max, mat4, return_, uniform, var_, varying, varyingStruct, vec3, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, float, fragment, max, mat4, return_, uniform, var_, varying, varyingStruct, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes
 const position = vec3(attribute('position'));
@@ -17,8 +17,8 @@ const v = varyingStruct({
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>
 {
-    assign(v.vnormal, normal);
-    assign(v.gl_Position, projection.multiply(view).multiply(vec4(position, 1.0)));
+    v.vnormal.assign(normal);
+    v.gl_Position.assign(projection.multiply(view).multiply(vec4(position, 1.0)));
 });
 
 // Fragment shader 入口函数
@@ -32,9 +32,9 @@ export const fragmentShader = fragment('main', () =>
     const absZ = max(v.vnormal.z as any, negNormal.z as any);
     // 使用 var_ 创建 vec3，因为 vec3 构造函数不支持 (Float, Float, Float)
     const absNormal = var_('absNormal', vec3(0, 0, 0));
-    assign(absNormal.x, absX);
-    assign(absNormal.y, absY);
-    assign(absNormal.z, absZ);
+    absNormal.x.assign(absX);
+    absNormal.y.assign(absY);
+    absNormal.z.assign(absZ);
 
     return_(vec4(absNormal, 1.0));
 });

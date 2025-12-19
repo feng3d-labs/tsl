@@ -1,4 +1,4 @@
-import { assign, attribute, bool, builtin, clamp, dot, float, fragment, if_, mat4, normalize, precision, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { attribute, bool, builtin, clamp, dot, float, fragment, if_, mat4, normalize, precision, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attribute
 const position = vec3(attribute('position')); // attribute vec3 position;
@@ -24,9 +24,9 @@ const v = varyingStruct({
 export const vertexShader = vertex('main', () =>
 {
     precision('mediump', 'float'); // precision mediump float;
-    assign(v.vUv, uv); // vUv = uv;
-    assign(v.vNormal, normal); // vNormal = normal;
-    assign(v.gl_Position, projection.multiply(view).multiply(vec4(position, 1.0))); // gl_Position = projection * view * vec4(position, 1);
+    v.vUv.assign(uv); // vUv = uv;
+    v.vNormal.assign(normal); // vNormal = normal;
+    v.gl_Position.assign(projection.multiply(view).multiply(vec4(position, 1.0))); // gl_Position = projection * view * vec4(position, 1);
 });
 
 // Fragment shader 入口函数
@@ -45,7 +45,7 @@ export const fragmentShader = fragment('main', () =>
     // }
     if_(v.gl_FrontFacing.equals(false), () =>
     {
-        assign(n, float(-1.0).multiply(n));
+        n.assign(float(-1.0).multiply(n));
     });
 
     const dotProduct = var_('dotProduct', dot(n, lightDir)); // float dotProduct = dot(n, lightDir);

@@ -7,7 +7,6 @@ export * from './uniform';
 export * from './varying';
 // 导出 builtin 类型和工具函数
 export { acos } from './builtin/acos';
-export * from './builtin/assign';
 export { atan } from './builtin/atan';
 export * from './builtin/builtin';
 export * from './builtin/builtins';

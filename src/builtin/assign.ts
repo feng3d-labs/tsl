@@ -139,13 +139,3 @@ export class Assign implements IStatement
     }
 }
 
-/**
- * 赋值操作（用于对内置变量进行赋值）
- * @param target 目标变量（Builtin 实例或 Varying）
- * @param value 要赋值的表达式（必须与 target 类型完全相同）
- */
-export function assign<T extends ShaderValue>(target: T, value: T): void
-{
-    new Assign(target, value);
-}
-

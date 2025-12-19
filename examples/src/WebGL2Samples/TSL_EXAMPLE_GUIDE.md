@@ -261,7 +261,7 @@ texture(depthMap, v.v_st).r
 ### 完整示例（带纹理）
 
 ```typescript
-import { assign, attribute, builtin, fragment, mat4, precision, return_, sampler, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragment, mat4, precision, return_, sampler, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
 
 const position = vec2(attribute('position', 0));
 const texcoord = vec2(attribute('texcoord', 4));
@@ -275,8 +275,8 @@ const v = varyingStruct({
 export const vertexShader = vertex('main', () => {
     precision('highp', 'float');
     precision('highp', 'int');
-    assign(v.v_st, texcoord);
-    assign(v.gl_Position, MVP.multiply(vec4(position, 0.0, 1.0)));
+    v.v_st.assign(texcoord);
+    v.gl_Position.assign(MVP.multiply(vec4(position, 0.0, 1.0)));
 });
 
 const diffuse = sampler('diffuse');

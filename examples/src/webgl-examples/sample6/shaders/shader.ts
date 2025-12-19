@@ -1,4 +1,4 @@
-import { assign, attribute, builtin, fragment, mat4, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragment, mat4, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes（location 缺省时自动分配）
 const aVertexPosition = vec3(attribute('aVertexPosition'));
@@ -19,8 +19,8 @@ export const vertexShader = vertex('main', () =>
 {
     const position = var_('position', vec4(aVertexPosition, 1.0));
 
-    assign(v.vPosition, uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
-    assign(v.vTextureCoord, aTextureCoord);
+    v.vPosition.assign(uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
+    v.vTextureCoord.assign(aTextureCoord);
 });
 
 // sampler（group 缺省时使用默认值 0）

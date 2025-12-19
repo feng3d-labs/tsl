@@ -28,15 +28,15 @@ document.addEventListener('DOMContentLoaded', async () =>
 {
     // 生成 TSL 着色器代码（变量名与导入的相同，便于调试切换）
     // 使用 convertDepth: true 自动将深度从 WebGL 的 [-1, 1] 转换为 WebGPU 的 [0, 1]
-    // const depthVertexGlsl = depthVertexShader.toGLSL(2);
-    // const depthFragmentGlsl = depthFragmentShader.toGLSL(2);
-    // const depthVertexWgsl = depthVertexShader.toWGSL({ convertDepth: true });
-    // const depthFragmentWgsl = depthFragmentShader.toWGSL(depthVertexShader);
+    const depthVertexGlsl = depthVertexShader.toGLSL(2);
+    const depthFragmentGlsl = depthFragmentShader.toGLSL(2);
+    const depthVertexWgsl = depthVertexShader.toWGSL({ convertDepth: true });
+    const depthFragmentWgsl = depthFragmentShader.toWGSL(depthVertexShader);
 
-    // const drawVertexGlsl = drawVertexShader.toGLSL(2);
-    // const drawFragmentGlsl = drawFragmentShader.toGLSL(2);
-    // const drawVertexWgsl = drawVertexShader.toWGSL();
-    // const drawFragmentWgsl = drawFragmentShader.toWGSL(drawVertexShader);
+    const drawVertexGlsl = drawVertexShader.toGLSL(2);
+    const drawFragmentGlsl = drawFragmentShader.toGLSL(2);
+    const drawVertexWgsl = drawVertexShader.toWGSL();
+    const drawFragmentWgsl = drawFragmentShader.toWGSL(drawVertexShader);
 
     // 初始化 WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;

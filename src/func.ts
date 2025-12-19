@@ -334,7 +334,19 @@ export class Func
             }
 
             const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
-            lines.push(`fn ${this.name}${paramStr} -> @location(0) vec4<f32> {`);
+
+            // 检查是否有返回语句（判断是否是空片段着色器，如深度-only 渲染）
+            const hasReturn = this.statements.some(stmt => stmt.toWGSL().includes('return'));
+            if (hasReturn)
+            {
+                // 有返回语句，添加返回类型
+                lines.push(`fn ${this.name}${paramStr} -> @location(0) vec4<f32> {`);
+            }
+            else
+            {
+                // 没有返回语句（空片段着色器，仅写深度），不添加返回类型
+                lines.push(`fn ${this.name}${paramStr} {`);
+            }
 
             this.statements.forEach(stmt =>
             {

@@ -330,9 +330,18 @@ export class Fragment extends Func
 
             const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
 
+            // 检查是否有返回语句（判断是否是空片段着色器，如深度-only 渲染）
+            const hasReturn = this.statements.some(stmt => stmt.toWGSL().includes('return'));
+
             // 生成返回类型：如果有 FragmentOutput，使用多个输出；否则使用单个输出
-            let returnType: string;
-            if (dependencies.fragmentOutput)
+            // 如果没有返回语句（空片段着色器），不添加返回类型
+            let returnType: string | null;
+            if (!hasReturn)
+            {
+                // 空片段着色器，仅写深度，不需要返回类型
+                returnType = null;
+            }
+            else if (dependencies.fragmentOutput)
             {
                 returnType = dependencies.fragmentOutput.toWGSLReturnType();
             }
@@ -341,7 +350,14 @@ export class Fragment extends Func
                 returnType = '@location(0) vec4<f32>';
             }
 
-            lines.push(`fn ${this.name}${paramStr} -> ${returnType} {`);
+            if (returnType)
+            {
+                lines.push(`fn ${this.name}${paramStr} -> ${returnType} {`);
+            }
+            else
+            {
+                lines.push(`fn ${this.name}${paramStr} {`);
+            }
 
             // 如果有 FragmentOutput，需要生成结构体变量并修改字段的 toWGSL 方法
             if (dependencies.fragmentOutput)

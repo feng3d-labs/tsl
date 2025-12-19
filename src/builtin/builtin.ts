@@ -34,15 +34,6 @@ export class Builtin implements IElement
     }
 
     /**
-     * 设置变量名（由 vertex.ts 在生成 VaryingStruct 时调用）
-     * @internal
-     */
-    setName(name: string): void
-    {
-        this.name = name;
-    }
-
-    /**
      * 设置结构体变量名前缀（由 vertex.ts 在生成 VaryingStruct 时调用）
      * @internal
      */

@@ -154,7 +154,6 @@ export class Vertex extends Func
                 {
                     if (builtin.isPosition)
                     {
-                        builtin.setName('position');
                         builtin.setStructVarPrefix('v');
                     }
                 }

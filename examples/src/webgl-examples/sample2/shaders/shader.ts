@@ -1,4 +1,4 @@
-import { let_, return_, attribute, fragment, mat4, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
+import { let_, return_, attribute, fragment, mat4, uniform, vec2, vec4, vertex, assign, gl_FragColor } from '@feng3d/tsl';
 
 // Vertex shader 的 attribute（location 缺省时自动分配）
 const aVertexPosition = vec2(attribute('aVertexPosition'));
@@ -18,6 +18,6 @@ export const vertexShader = vertex('main', () =>
 // Fragment shader 入口函数
 export const fragmentShader = fragment('main', () =>
 {
-    return_(vec4(1.0, 0.0, 1.0, 1.0));
+    assign(gl_FragColor, vec4(1.0, 0.0, 1.0, 1.0));
 });
 

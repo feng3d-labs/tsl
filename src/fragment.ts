@@ -330,8 +330,12 @@ export class Fragment extends Func
 
             const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
 
+            // 检测是否使用了 gl_FragColor
+            const hasFragColorBuiltin = Array.from(dependencies.builtins).some(b => b.isFragColorOutput);
+
             // 检查是否有返回语句（判断是否是空片段着色器，如深度-only 渲染）
-            const hasReturn = this.statements.some(stmt => stmt.toWGSL().includes('return'));
+            // 使用 gl_FragColor 时，视为有返回值
+            const hasReturn = hasFragColorBuiltin || this.statements.some(stmt => stmt.toWGSL().includes('return'));
 
             // 生成返回类型：如果有 FragmentOutput，使用多个输出；否则使用单个输出
             // 如果没有返回语句（空片段着色器），不添加返回类型
@@ -390,6 +394,20 @@ export class Fragment extends Func
                 {
                     lines.push(`    return ${outputVarName};`);
                 }
+            }
+            else if (hasFragColorBuiltin)
+            {
+                // 使用 gl_FragColor 时，需要声明 fragColor 变量并返回
+                lines.push('    var fragColor: vec4<f32>;');
+
+                // 生成函数体
+                this.statements.forEach(stmt =>
+                {
+                    lines.push(`    ${stmt.toWGSL()}`);
+                });
+
+                // 在函数体末尾添加 return fragColor; 语句
+                lines.push('    return fragColor;');
             }
             else
             {

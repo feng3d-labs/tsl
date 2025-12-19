@@ -66,6 +66,27 @@ export class Assign implements IStatement
             }
         }
 
+        // 检测是否是 gl_FragColor builtin（直接或通过 Vec4 包装）
+        let isFragColorBuiltin = false;
+        if (this.target instanceof Builtin && this.target.isFragColorOutput)
+        {
+            isFragColorBuiltin = true;
+        }
+        else if (this.target && 'dependencies' in this.target && Array.isArray(this.target.dependencies))
+        {
+            const dep = this.target.dependencies[0];
+            if (dep instanceof Builtin && dep.isFragColorOutput)
+            {
+                isFragColorBuiltin = true;
+            }
+        }
+
+        // 在 WGSL 中，如果是 fragment shader 的 gl_FragColor，需要特殊处理
+        if (isFragColorBuiltin && buildParam.stage === 'fragment')
+        {
+            return `fragColor = ${this.value.toWGSL()};`;
+        }
+
         // 在 WGSL 中，如果是 vertex shader 的 position，需要特殊处理
         if (isPositionBuiltin && buildParam.stage === 'vertex')
         {

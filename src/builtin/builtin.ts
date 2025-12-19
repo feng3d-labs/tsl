@@ -22,7 +22,7 @@ export class Builtin implements IElement
     value: ShaderValue;
     dependencies: IElement[] = [];
 
-    constructor(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing' | 'vertexIndex' | 'gl_VertexID' | 'fragCoord' | 'gl_FragCoord' | 'instance_index' | 'gl_InstanceID')
+    constructor(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing' | 'vertexIndex' | 'gl_VertexID' | 'fragCoord' | 'gl_FragCoord' | 'instance_index' | 'gl_InstanceID' | 'gl_FragColor')
     {
         this.builtinName = builtinName;
     }
@@ -63,6 +63,12 @@ export class Builtin implements IElement
         if (this.isFragCoord)
         {
             return 'fragCoord';
+        }
+
+        // gl_FragColor 使用 fragColor 作为变量名
+        if (this.isFragColorOutput)
+        {
+            return 'fragColor';
         }
 
         return toCamelCase(this.wgslBuiltinName);
@@ -108,6 +114,14 @@ export class Builtin implements IElement
         return this.builtinName === 'instance_index' || this.builtinName === 'gl_InstanceID';
     }
 
+    /**
+     * 检查是否是 gl_FragColor（片段着色器输出颜色）
+     */
+    get isFragColorOutput(): boolean
+    {
+        return this.builtinName === 'gl_FragColor';
+    }
+
     toGLSL(): string
     {
         if (this.isPosition)
@@ -130,12 +144,22 @@ export class Builtin implements IElement
         {
             return 'gl_InstanceID';
         }
+        if (this.isFragColorOutput)
+        {
+            return 'gl_FragColor';
+        }
 
         throw new Error(`Builtin '${this.builtinName}' 不支持 GLSL，无法生成 GLSL 代码。`);
     }
 
     toWGSL(): string
     {
+        // gl_FragColor 不是 WGSL builtin，直接返回变量名
+        if (this.isFragColorOutput)
+        {
+            return this.name ?? this.defaultName;
+        }
+
         // 对于特定的 builtin，强制使用正确的 WGSL 类型
         // 这些类型是 WGSL 规范要求的，不能由用户代码改变
         let wgslType: string;
@@ -174,8 +198,7 @@ export class Builtin implements IElement
  * @param builtinName WGSL 中内置的固定名称（如 'position' 或 'gl_Position'，两者等价；或 'front_facing' 或 'gl_FrontFacing'，两者等价）
  * @returns Builtin 实例
  */
-export function builtin(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing' | 'vertexIndex' | 'gl_VertexID' | 'fragCoord' | 'gl_FragCoord' | 'instance_index' | 'gl_InstanceID'): Builtin
+export function builtin(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing' | 'vertexIndex' | 'gl_VertexID' | 'fragCoord' | 'gl_FragCoord' | 'instance_index' | 'gl_InstanceID' | 'gl_FragColor'): Builtin
 {
     return new Builtin(builtinName);
 }
-

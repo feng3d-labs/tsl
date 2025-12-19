@@ -179,13 +179,22 @@ export class Fragment extends Func
             if (version === 2)
             {
                 lines.push('');
-                // 如果有 FragmentOutput，使用多个输出；否则使用默认的单个输出
+                // 如果有 FragmentOutput，使用多个输出；否则检查是否有 fragColor；最后使用默认的单个输出
                 if (dependencies.fragmentOutput)
                 {
                     const outputDecls = dependencies.fragmentOutput.toGLSLDefinitions();
                     for (const decl of outputDecls)
                     {
                         lines.push(decl);
+                    }
+                }
+                else if (dependencies.fragColors.size > 0)
+                {
+                    // 使用 fragColor 时，生成多个输出声明
+                    const sortedFragColors = Array.from(dependencies.fragColors).sort((a, b) => a.location - b.location);
+                    for (const fc of sortedFragColors)
+                    {
+                        lines.push(`layout(location = ${fc.location}) out vec4 fragColor${fc.location};`);
                     }
                 }
                 else
@@ -267,6 +276,18 @@ export class Fragment extends Func
             {
                 lines.push(dependencies.fragmentOutput.toWGSLDefinition());
             }
+            else if (dependencies.fragColors.size > 0)
+            {
+                // 使用 fragColor 时，生成 FragmentOut 结构体
+                const sortedFragColors = Array.from(dependencies.fragColors).sort((a, b) => a.location - b.location);
+                const structLines: string[] = ['struct FragmentOut {'];
+                for (const fc of sortedFragColors)
+                {
+                    structLines.push(`    @location(${fc.location}) fragColor${fc.location}: vec4<f32>,`);
+                }
+                structLines.push('};');
+                lines.push(structLines.join('\n'));
+            }
 
             // 生成 uniforms（只包含实际使用的）
             for (const uniform of dependencies.uniforms)
@@ -334,13 +355,17 @@ export class Fragment extends Func
             // 检测是否使用了 gl_FragColor
             const hasFragColorBuiltin = Array.from(dependencies.builtins).some(b => b.isFragColorOutput);
 
+            // 检测是否使用了 fragColor（直接使用，不通过 fragmentOutput）
+            const hasFragColors = dependencies.fragColors.size > 0;
+
             // 检查是否有返回语句（判断是否是空片段着色器，如深度-only 渲染）
-            // 使用 gl_FragColor 或 FragmentOutput 时，视为有返回值
+            // 使用 gl_FragColor、FragmentOutput 或 fragColor 时，视为有返回值
             const hasReturn = hasFragColorBuiltin
                 || !!dependencies.fragmentOutput
+                || hasFragColors
                 || this.statements.some(stmt => stmt.toWGSL().includes('return'));
 
-            // 生成返回类型：如果有 FragmentOutput，使用多个输出；否则使用单个输出
+            // 生成返回类型：如果有 FragmentOutput，使用多个输出；否则检查 fragColors；最后使用单个输出
             // 如果没有返回语句（空片段着色器），不添加返回类型
             let returnType: string | null;
             if (!hasReturn)
@@ -351,6 +376,11 @@ export class Fragment extends Func
             else if (dependencies.fragmentOutput)
             {
                 returnType = dependencies.fragmentOutput.toWGSLReturnType();
+            }
+            else if (hasFragColors)
+            {
+                // 使用 fragColor 时，需要生成结构体返回类型
+                returnType = 'FragmentOut';
             }
             else
             {
@@ -397,6 +427,29 @@ export class Fragment extends Func
                 {
                     lines.push(`    return ${outputVarName};`);
                 }
+            }
+            else if (hasFragColors)
+            {
+                // 使用 fragColor 时，需要声明结构体变量并返回
+                lines.push('    var output: FragmentOut;');
+
+                // 生成函数体
+                this.statements.forEach(stmt =>
+                {
+                    // 将 fragColorX 替换为 output.fragColorX
+                    let wgslCode = stmt.toWGSL();
+                    const sortedFragColors = Array.from(dependencies.fragColors).sort((a, b) => a.location - b.location);
+                    for (const fc of sortedFragColors)
+                    {
+                        const fragColorName = `fragColor${fc.location}`;
+                        // 使用正则替换，确保只替换独立的变量名
+                        wgslCode = wgslCode.replace(new RegExp(`\\b${fragColorName}\\b`, 'g'), `output.${fragColorName}`);
+                    }
+                    lines.push(`    ${wgslCode}`);
+                });
+
+                // 在函数体末尾添加 return output; 语句
+                lines.push('    return output;');
             }
             else if (hasFragColorBuiltin)
             {

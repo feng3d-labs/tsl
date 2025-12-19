@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { return_ } from '../src/builtin/return';
-import { color } from '../src/builtin/color';
+import { fragColor } from '../src/builtin/fragColor';
 import { vec4 } from '../src/builtin/types/vec4';
 import { Fragment, fragment } from '../src/fragment';
 import { fragmentOutput } from '../src/fragmentOutput';
@@ -12,8 +12,8 @@ describe('fragmentOutput', () =>
         it('应该能够创建 FragmentOutput 实例', () =>
         {
             const f = fragmentOutput({
-                red: vec4(color(0)),
-                green: vec4(color(1)),
+                red: vec4(fragColor(0)),
+                green: vec4(fragColor(1)),
             });
 
             expect(f).toBeDefined();
@@ -24,9 +24,9 @@ describe('fragmentOutput', () =>
         it('应该能够访问 FragmentOutput 的字段', () =>
         {
             const f = fragmentOutput({
-                red: vec4(color(0)),
-                green: vec4(color(1)),
-                blue: vec4(color(2)),
+                red: vec4(fragColor(0)),
+                green: vec4(fragColor(1)),
+                blue: vec4(fragColor(2)),
             });
 
             expect(f.red).toBeDefined();
@@ -40,7 +40,7 @@ describe('fragmentOutput', () =>
             {
                 fragmentOutput({
                     // @ts-expect-error - 测试错误情况
-                    red: color(0),
+                    red: fragColor(0),
                 });
             }).toThrow(/必须是 Vec4 类型/);
         });
@@ -61,9 +61,9 @@ describe('fragmentOutput', () =>
         it('应该能够生成 GLSL 多输出声明', () =>
         {
             const f = fragmentOutput({
-                red: vec4(color(0)),
-                green: vec4(color(1)),
-                blue: vec4(color(2)),
+                red: vec4(fragColor(0)),
+                green: vec4(fragColor(1)),
+                blue: vec4(fragColor(2)),
             });
 
             const frag = fragment('main', () =>
@@ -88,9 +88,9 @@ describe('fragmentOutput', () =>
         it('应该能够生成 WGSL 结构体定义', () =>
         {
             const f = fragmentOutput({
-                red: vec4(color(0)),
-                green: vec4(color(1)),
-                blue: vec4(color(2)),
+                red: vec4(fragColor(0)),
+                green: vec4(fragColor(1)),
+                blue: vec4(fragColor(2)),
             });
 
             const frag = fragment('main', () =>
@@ -110,8 +110,8 @@ describe('fragmentOutput', () =>
         it('应该能够生成 WGSL 函数返回类型', () =>
         {
             const f = fragmentOutput({
-                red: vec4(color(0)),
-                green: vec4(color(1)),
+                red: vec4(fragColor(0)),
+                green: vec4(fragColor(1)),
             });
 
             const frag = fragment('main', () =>
@@ -127,9 +127,9 @@ describe('fragmentOutput', () =>
         it('应该能够生成 WGSL 函数体中的结构体变量和返回语句', () =>
         {
             const f = fragmentOutput({
-                red: vec4(color(0)),
-                green: vec4(color(1)),
-                blue: vec4(color(2)),
+                red: vec4(fragColor(0)),
+                green: vec4(fragColor(1)),
+                blue: vec4(fragColor(2)),
             });
 
             const frag = fragment('main', () =>
@@ -153,9 +153,9 @@ describe('fragmentOutput', () =>
         it('应该在 GLSL 中生成 return; 语句（当使用 return_(f) 时）', () =>
         {
             const f = fragmentOutput({
-                red: vec4(color(0)),
-                green: vec4(color(1)),
-                blue: vec4(color(2)),
+                red: vec4(fragColor(0)),
+                green: vec4(fragColor(1)),
+                blue: vec4(fragColor(2)),
             });
 
             const frag = fragment('main', () =>
@@ -183,9 +183,9 @@ describe('fragmentOutput', () =>
         it('应该在 WGSL 中生成 return output; 语句（当使用 return_(f) 时）', () =>
         {
             const f = fragmentOutput({
-                red: vec4(color(0)),
-                green: vec4(color(1)),
-                blue: vec4(color(2)),
+                red: vec4(fragColor(0)),
+                green: vec4(fragColor(1)),
+                blue: vec4(fragColor(2)),
             });
 
             const frag = fragment('main', () =>
@@ -215,8 +215,8 @@ describe('fragmentOutput', () =>
         it('应该能够正确识别 FragmentOutput 类型', () =>
         {
             const f = fragmentOutput({
-                red: vec4(color(0)),
-                green: vec4(color(1)),
+                red: vec4(fragColor(0)),
+                green: vec4(fragColor(1)),
             });
 
             // 类型检查：return_ 应该能够接受 FragmentOutput 类型（不应该有类型错误）
@@ -235,8 +235,8 @@ describe('fragmentOutput', () =>
         it('应该在不使用 return_(f) 时也能正常工作（自动添加 return）', () =>
         {
             const f = fragmentOutput({
-                red: vec4(color(0)),
-                green: vec4(color(1)),
+                red: vec4(fragColor(0)),
+                green: vec4(fragColor(1)),
             });
 
             // 不使用 return_(f)，系统应该自动添加 return output;
@@ -258,8 +258,8 @@ describe('fragmentOutput', () =>
         it('应该在使用 return_(f) 时不会重复生成 return 语句', () =>
         {
             const f = fragmentOutput({
-                red: vec4(color(0)),
-                green: vec4(color(1)),
+                red: vec4(fragColor(0)),
+                green: vec4(fragColor(1)),
             });
 
             // 使用 return_(f)，系统不应该再自动添加 return output;

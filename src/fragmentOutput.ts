@@ -1,5 +1,5 @@
 import { IElement, ShaderValue } from './IElement';
-import { Color } from './builtin/color';
+import { FragColor } from './builtin/fragColor';
 import { Vec4 } from './builtin/types/vec4';
 
 /**
@@ -17,7 +17,7 @@ export class FragmentOutput<T extends { [key: string]: ShaderValue }> implements
         // 初始化所有字段
         for (const [fieldName, value] of Object.entries(this.fields))
         {
-            // 验证字段值必须是 Vec4，且依赖项必须是 Color
+            // 验证字段值必须是 Vec4，且依赖项必须是 FragColor
             if (!(value instanceof Vec4))
             {
                 throw new Error(`FragmentOutput 的字段 '${fieldName}' 必须是 Vec4 类型`);
@@ -29,9 +29,9 @@ export class FragmentOutput<T extends { [key: string]: ShaderValue }> implements
             }
 
             const dep = value.dependencies[0];
-            if (!(dep instanceof Color))
+            if (!(dep instanceof FragColor))
             {
-                throw new Error(`FragmentOutput 的字段 '${fieldName}' 的依赖项必须是 Color 类型`);
+                throw new Error(`FragmentOutput 的字段 '${fieldName}' 的依赖项必须是 FragColor 类型`);
             }
 
             // 设置字段的 toGLSL 和 toWGSL 方法，返回字段名
@@ -60,7 +60,7 @@ export class FragmentOutput<T extends { [key: string]: ShaderValue }> implements
 
         for (const [fieldName, value] of Object.entries(this.fields))
         {
-            const dep = value.dependencies[0] as Color;
+            const dep = value.dependencies[0] as FragColor;
             declarations.push(`layout(location = ${dep.location}) out vec4 ${fieldName};`);
         }
 
@@ -78,7 +78,7 @@ export class FragmentOutput<T extends { [key: string]: ShaderValue }> implements
 
         for (const [fieldName, value] of Object.entries(this.fields))
         {
-            const dep = value.dependencies[0] as Color;
+            const dep = value.dependencies[0] as FragColor;
             fields.push(`    @location(${dep.location}) ${fieldName}: vec4<f32>,`);
         }
 

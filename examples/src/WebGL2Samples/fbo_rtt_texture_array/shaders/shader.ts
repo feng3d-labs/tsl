@@ -1,4 +1,4 @@
-import { attribute, builtin, color, fragment, fragmentOutput, int, mat4, precision, return_, sampler2DArray, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragColor, fragment, fragmentOutput, int, mat4, precision, return_, sampler2DArray, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
 
 const position = vec2(attribute('position'));
 const textureCoordinates = vec2(attribute('textureCoordinates'));
@@ -38,9 +38,9 @@ export const multipleOutputVertexShader = vertex('main', () =>
 });
 
 const f = fragmentOutput({
-    red: vec4(color(0)),
-    green: vec4(color(1)),
-    blue: vec4(color(2)),
+    red: vec4(fragColor(0)),
+    green: vec4(fragColor(1)),
+    blue: vec4(fragColor(2)),
 });
 
 export const multipleOutputFragmentShader = fragment('main', () =>

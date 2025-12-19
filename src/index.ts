@@ -14,7 +14,7 @@ export { atan } from './builtin/atan';
 export * from './builtin/builtin';
 export * from './builtin/builtins';
 export { clamp } from './builtin/clamp';
-export { color } from './builtin/color';
+export { fragColor } from './builtin/fragColor';
 export { cos } from './builtin/cos';
 export { dot } from './builtin/dot';
 export { exp } from './builtin/exp';

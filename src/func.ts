@@ -1,14 +1,8 @@
-import { analyzeDependencies } from './analyzeDependencies';
-import { Attribute } from './attribute';
+import { analyzeDependencies, AnalyzedDependencies } from './analyzeDependencies';
 import { getBuildParam } from './buildShader';
-import { Builtin } from './builtin/builtin';
 import { IStatement } from './builtin/Statement';
 import { setCurrentFunc } from './currentFunc';
-import { IElement, ShaderValue } from './IElement';
-import { Precision } from './precision';
-import { Sampler } from './sampler';
-import { Uniform } from './uniform';
-import { Varying } from './varying';
+import { IElement } from './IElement';
 import { VaryingStruct } from './varyingStruct';
 
 /**
@@ -20,7 +14,7 @@ export class Func
     readonly body: () => any;
     statements: IStatement[] = [];
     dependencies: IElement[] = [];
-    private _analyzedDependencies?: { attributes: Set<Attribute>; uniforms: Set<Uniform>; precisions: Set<Precision>; structs: Set<VaryingStruct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; builtins: Set<Builtin>; fragmentOutput?: any; externalVars: Array<{ name: string; expr: ShaderValue }> };
+    private _analyzedDependencies?: AnalyzedDependencies;
 
     constructor(name: string, body: () => any)
     {
@@ -56,7 +50,7 @@ export class Func
     /**
      * 获取分析后的依赖（只分析一次，后续使用缓存）
      */
-    public getAnalyzedDependencies(): { attributes: Set<Attribute>; uniforms: Set<Uniform>; precisions: Set<Precision>; structs: Set<VaryingStruct<any>>; varyings: Set<Varying>; samplers: Set<Sampler>; builtins: Set<Builtin>; fragmentOutput?: any; externalVars: Array<{ name: string; expr: ShaderValue }> }
+    public getAnalyzedDependencies(): AnalyzedDependencies
     {
         if (!this._analyzedDependencies)
         {

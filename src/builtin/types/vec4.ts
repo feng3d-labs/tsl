@@ -4,7 +4,7 @@ import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
 import { Assign } from '../assign';
 import { Builtin } from '../builtin';
-import { Color } from '../color';
+import { FragColor } from '../fragColor';
 import { formatOperand } from '../expressionUtils';
 import { formatNumber } from '../formatNumber';
 import { Float } from './float';
@@ -29,12 +29,12 @@ export class Vec4 implements ShaderValue
     constructor(attribute: Attribute);
     constructor(builtin: Builtin);
     constructor(varying: Varying);
-    constructor(color: Color);
+    constructor(color: FragColor);
     constructor(vec4: Vec4);
     constructor(xy: Vec2, z: number, w: number);
     constructor(xyz: Vec3, w: number | Float);
     constructor(x: number | Float, y: number | Float, z: number | Float, w: number | Float);
-    constructor(...args: (number | Uniform | Attribute | Builtin | Varying | Color | Vec2 | Vec3 | Float | Vec4)[])
+    constructor(...args: (number | Uniform | Attribute | Builtin | Varying | FragColor | Vec2 | Vec3 | Float | Vec4)[])
     {
         if (args.length === 0) return;
         if (args.length === 1)
@@ -76,11 +76,11 @@ export class Vec4 implements ShaderValue
                 this.dependencies = [varying];
                 varying.value = this;
             }
-            else if (args[0] instanceof Color)
+            else if (args[0] instanceof FragColor)
             {
-                const color = args[0] as Color;
+                const color = args[0] as FragColor;
 
-                // Color 的 toGLSL 和 toWGSL 会在 fragmentOutput 中被重写为字段名
+                // FragColor 的 toGLSL 和 toWGSL 会在 fragmentOutput 中被重写为字段名
                 // 这里先使用 color 的默认实现，后续会被 fragmentOutput 覆盖
                 this.toGLSL = () => color.toGLSL();
                 this.toWGSL = () => color.toWGSL();
@@ -464,7 +464,7 @@ export function vec4(uniform: Uniform): Vec4;
 export function vec4(attribute: Attribute): Vec4;
 export function vec4(builtin: Builtin): Vec4;
 export function vec4(varying: Varying): Vec4;
-export function vec4(color: Color): Vec4;
+export function vec4(color: FragColor): Vec4;
 export function vec4(value: number | Float): Vec4;
 export function vec4(xy: Vec2, z: number, w: number): Vec4;
 export function vec4(xyz: Vec3, w: number | Float): Vec4;

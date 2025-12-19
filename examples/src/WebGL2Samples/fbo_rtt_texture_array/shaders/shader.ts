@@ -1,4 +1,4 @@
-import { attribute, builtin, color, fragment, fragmentOutput, int, mat4, precision, return_, sampler, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, color, fragment, fragmentOutput, int, mat4, precision, return_, sampler2DArray, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
 
 const position = vec2(attribute('position'));
 const textureCoordinates = vec2(attribute('textureCoordinates'));
@@ -16,7 +16,7 @@ export const layerVertexShader = vertex('main', () =>
     vLayer.vPosition.assign(mvp.multiply(vec4(position, 0.0, 1.0)));
 });
 
-const diffuse = sampler('diffuse');
+const diffuse = sampler2DArray('diffuse');
 const layer = int(uniform('layer'));
 
 export const layerFragmentShader = fragment('main', () =>

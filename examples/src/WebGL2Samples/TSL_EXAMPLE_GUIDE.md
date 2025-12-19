@@ -232,7 +232,7 @@ const texcoord = vec2(attribute('texcoord', 4));  // location 4
 
 // Uniform
 const MVP = mat4(uniform('MVP'));
-const diffuse = sampler('diffuse');       // 普通纹理：用 sampler
+const diffuse = sampler2D('diffuse');       // 普通纹理：用 sampler2D
 const depth = depthSampler('depthMap');   // 深度纹理：用 depthSampler
 
 // Varying（必须用 varyingStruct 包装）
@@ -261,7 +261,7 @@ texture(depthMap, v.v_st).r
 ### 完整示例（带纹理）
 
 ```typescript
-import { attribute, builtin, fragment, mat4, precision, return_, sampler, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragment, mat4, precision, return_, sampler2D, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
 
 const position = vec2(attribute('position', 0));
 const texcoord = vec2(attribute('texcoord', 4));
@@ -279,7 +279,7 @@ export const vertexShader = vertex('main', () => {
     v.gl_Position.assign(MVP.multiply(vec4(position, 0.0, 1.0)));
 });
 
-const diffuse = sampler('diffuse');
+const diffuse = sampler2D('diffuse');
 
 export const fragmentShader = fragment('main', () => {
     precision('highp', 'float');

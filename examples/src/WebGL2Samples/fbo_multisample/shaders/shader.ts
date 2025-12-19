@@ -1,4 +1,4 @@
-import { attribute, builtin, fragment, mat4, precision, return_, sampler, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragment, mat4, precision, return_, sampler2D, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // ============ Render Shader（渲染到多重采样纹理）============
 
@@ -58,7 +58,7 @@ export const splashVertexShader = vertex('main', () =>
 });
 
 // 纹理采样器
-const diffuse = sampler('diffuse');
+const diffuse = sampler2D('diffuse');
 
 // 片段着色器
 export const splashFragmentShader = fragment('main', () =>

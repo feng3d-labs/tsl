@@ -1,4 +1,4 @@
-import { attribute, builtin, fragment, mat4, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragment, mat4, return_, sampler2D, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes
 const position = vec3(attribute('position'));
@@ -22,7 +22,7 @@ export const vertexShader = vertex('main', () =>
 });
 
 // Fragment shader 的 sampler
-const tex = sampler('tex');
+const tex = sampler2D('tex');
 
 // Fragment shader 入口函数
 export const fragmentShader = fragment('main', () =>

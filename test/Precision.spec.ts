@@ -3,7 +3,7 @@ import { Precision, precision } from '../src/precision';
 import { fragment } from '../src/fragment';
 import { vec4 } from '../src/builtin/types/vec4';
 import { uniform } from '../src/uniform';
-import { sampler } from '../src/sampler';
+import { sampler2D, sampler2DArray } from '../src/sampler';
 import { texture } from '../src/builtin/texture';
 import { int } from '../src/builtin/types/int';
 import { vec2 } from '../src/builtin/types/vec2';
@@ -163,7 +163,7 @@ describe('Precision', () =>
 
         it('应该支持 precision 函数指定类型（但只有在使用相应类型时才生成 precision）', () =>
         {
-            const diffuse = sampler('diffuse');
+            const diffuse = sampler2DArray('diffuse');
             const coord = vec2(0.5, 0.5);
             const layer = int(uniform('layer')); // 使用 int 类型
 
@@ -201,7 +201,7 @@ describe('Precision', () =>
 
         it('应该在没有设置 sampler2DArray precision 时使用默认值（如果存在 sampler2DArray）', () =>
         {
-            const diffuse = sampler('diffuse');
+            const diffuse = sampler2DArray('diffuse');
             const coord = vec3(0.5, 0.5, 1.0);
 
             const fragmentShader = fragment('main', () =>
@@ -220,7 +220,7 @@ describe('Precision', () =>
 
         it('应该在没有使用纹理数组时不生成 sampler2DArray precision（即使显式设置）', () =>
         {
-            const diffuse = sampler('diffuse');
+            const diffuse = sampler2D('diffuse');
             const coord = vec2(0.5, 0.5);
 
             const fragmentShader = fragment('main', () =>

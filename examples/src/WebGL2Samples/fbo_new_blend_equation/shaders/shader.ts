@@ -1,4 +1,4 @@
-import { attribute, builtin, fragment, mat4, precision, return_, sampler, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragment, mat4, precision, return_, sampler2D, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
 const position = vec2(attribute('position', 0));
@@ -24,7 +24,7 @@ export const vertexShader = vertex('main', () =>
 });
 
 // 纹理采样器
-const diffuse = sampler('diffuse');
+const diffuse = sampler2D('diffuse');
 
 // 片段着色器
 export const fragmentShader = fragment('main', () =>

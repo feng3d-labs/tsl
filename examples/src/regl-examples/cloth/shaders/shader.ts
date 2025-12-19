@@ -1,4 +1,4 @@
-import { attribute, bool, builtin, clamp, dot, float, fragment, if_, mat4, normalize, precision, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { attribute, bool, builtin, clamp, dot, float, fragment, if_, mat4, normalize, precision, return_, sampler2D, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attribute
 const position = vec3(attribute('position')); // attribute vec3 position;
@@ -10,7 +10,7 @@ const projection = mat4(uniform('projection')); // uniform mat4 projection;
 const view = mat4(uniform('view')); // uniform mat4 view;
 
 // Fragment shader 的 uniform
-const texture = sampler('texture'); // uniform sampler2D texture;
+const texture = sampler2D('texture'); // uniform sampler2D texture;
 
 // VaryingStruct 用于在顶点和片段着色器之间传递数据
 const v = varyingStruct({

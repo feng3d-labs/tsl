@@ -115,15 +115,33 @@ export class Sampler implements IElement
 }
 
 /**
- * 定义 sampler 变量
+ * 定义 sampler2D 变量（2D 纹理采样器）
  * @param name 变量名
  * @param group WGSL 绑定组（可选）
  * @param binding WGSL 绑定位置（可选）
  * @returns Sampler 实例
  */
-export function sampler(name: string, group?: number, binding?: number): Sampler
+export function sampler2D(name: string, group?: number, binding?: number): Sampler
 {
-    return new Sampler(name, group, binding);
+    const s = new Sampler(name, group, binding);
+    s.setSamplerType('2D');
+
+    return s;
+}
+
+/**
+ * 定义 sampler2DArray 变量（2D 纹理数组采样器）
+ * @param name 变量名
+ * @param group WGSL 绑定组（可选）
+ * @param binding WGSL 绑定位置（可选）
+ * @returns Sampler 实例（已标记为 2DArray 类型）
+ */
+export function sampler2DArray(name: string, group?: number, binding?: number): Sampler
+{
+    const s = new Sampler(name, group, binding);
+    s.setSamplerType('2DArray');
+
+    return s;
 }
 
 /**

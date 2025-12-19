@@ -1,4 +1,4 @@
-import { attribute, builtin, dot, fragment, mat4, max, normalize, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, dot, fragment, mat4, max, normalize, return_, sampler2D, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes（location 缺省时自动分配）
 const aVertexPosition = vec4(attribute('aVertexPosition'));
@@ -34,7 +34,7 @@ export const vertexShader = vertex('main', () =>
 });
 
 // sampler 的 binding 会自动分配，因为 vertex shader 的 uniform 已经占用了 0, 1, 2（group 缺省时使用默认值 0）
-const uSampler = sampler('uSampler');
+const uSampler = sampler2D('uSampler');
 
 // Fragment shader 入口函数
 export const fragmentShader = fragment('main', () =>

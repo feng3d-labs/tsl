@@ -213,11 +213,14 @@ webgl.submit(submit);
 
 ### 步骤 5: 编译验证
 
-完成所有文件创建后，必须运行编译命令验证代码正确性：
+完成所有文件创建后，必须在 `packages/tsl/examples` 目录下运行编译命令验证代码正确性：
 
 ```bash
+cd packages/tsl/examples
 npm run build
 ```
+
+**注意**：必须在 `packages/tsl/examples` 目录下运行，该目录包含 TypeScript 配置和所有示例代码的类型检查。
 
 如果有编译错误，需要修复后再次编译，直到编译通过。
 

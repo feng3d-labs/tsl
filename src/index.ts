@@ -3,6 +3,9 @@ export * from './fragment';
 export * from './func';
 export * from './precision';
 export * from './sampler';
+export * from './sampler2D';
+export * from './sampler2DArray';
+export * from './depthSampler';
 export * from './uniform';
 export * from './varying';
 // 导出 builtin 类型和工具函数

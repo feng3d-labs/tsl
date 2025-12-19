@@ -4,6 +4,7 @@ import { Func } from './func';
 import { ShaderValue } from './IElement';
 import { Precision } from './precision';
 import { Sampler } from './sampler';
+import { Sampler2DArray } from './sampler2DArray';
 import { Uniform } from './uniform';
 import { VaryingStruct } from './varyingStruct';
 import { Vertex } from './vertex';
@@ -113,7 +114,7 @@ export class Fragment extends Func
 
             // 检查是否有 sampler2DArray，如果有则需要添加 precision 声明（如果没有设置，默认使用 lowp）
             const hasSampler2DArray = Array.from(dependencies.samplers).some(s =>
-                s.getSamplerType() === '2DArray',
+                s instanceof Sampler2DArray,
             );
             if (hasSampler2DArray)
             {

@@ -1,5 +1,6 @@
 import { getBuildParam } from '../buildShader';
 import { Sampler } from '../sampler';
+import { Sampler2DArray } from '../sampler2DArray';
 import { Float } from './types/float';
 import { Vec2 } from './types/vec2';
 import { Vec3 } from './types/vec3';
@@ -58,17 +59,11 @@ export function texture(sampler: Sampler, coord: Vec2 | Vec3): Vec4;
 export function texture(sampler: Sampler, coord: Vec2, layer: Int): Vec4;
 export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4
 {
-    const isTextureArray = coord instanceof Vec3 || layer !== undefined;
+    const isTextureArray = sampler instanceof Sampler2DArray;
     const isDepthTexture = sampler.isDepthTexture();
 
     // 根据是否是深度纹理创建不同的结果类型
     const result = isDepthTexture ? new DepthTextureResult() : new Vec4();
-
-    // 如果使用 Vec3 坐标或 vec2 + int，需要将 sampler 的 GLSL 类型改为 sampler2DArray
-    if (isTextureArray)
-    {
-        sampler.setSamplerType('2DArray');
-    }
 
     result.toGLSL = () =>
     {

@@ -1,10 +1,10 @@
 import { IElement } from './IElement';
 
 /**
- * Sampler 类，表示纹理采样器
- * @internal 库外部不应直接使用 `new Sampler()`，应使用 `sampler()` 函数
+ * Sampler 抽象基类，表示纹理采样器
+ * @internal 库外部不应直接使用，应使用具体子类 Sampler2D、Sampler2DArray 或 DepthSampler
  */
-export class Sampler implements IElement
+export abstract class Sampler implements IElement
 {
     dependencies: IElement[] = [];
 
@@ -12,7 +12,6 @@ export class Sampler implements IElement
     readonly binding?: number;
     readonly group?: number;
     private _autoBinding?: number; // 自动分配的 binding
-    private _samplerType?: '2D' | '2DArray' | 'depth'; // sampler 类型：2D、2DArray 或 depth
 
     constructor(name: string, group?: number, binding?: number)
     {
@@ -46,40 +45,29 @@ export class Sampler implements IElement
     }
 
     /**
-     * 设置 sampler 类型（内部使用）
-     * @param type sampler 类型：'2D'、'2DArray' 或 'depth'
-     */
-    setSamplerType(type: '2D' | '2DArray' | 'depth'): void
-    {
-        this._samplerType = type;
-    }
-
-    /**
-     * 获取 sampler 类型
-     * @returns sampler 类型：'2D'、'2DArray' 或 'depth'，如果未设置则返回 undefined
-     */
-    getSamplerType(): '2D' | '2DArray' | 'depth' | undefined
-    {
-        return this._samplerType;
-    }
-
-    /**
      * 检查是否是深度纹理
      */
     isDepthTexture(): boolean
     {
-        return this._samplerType === 'depth';
+        return false;
     }
+
+    /**
+     * 获取 GLSL 中的 sampler 类型名称
+     */
+    protected abstract getGLSLSamplerType(): string;
+
+    /**
+     * 获取 WGSL 中的 texture 类型名称
+     */
+    protected abstract getWGSLTextureType(): string;
 
     /**
      * 转换为 GLSL 代码
      */
     toGLSL(): string
     {
-        // 深度纹理在 GLSL 中也使用 sampler2D（WebGL2 支持深度纹理采样）
-        const samplerType = this._samplerType === '2DArray' ? 'sampler2DArray' : 'sampler2D';
-
-        return `uniform ${samplerType} ${this.name};`;
+        return `uniform ${this.getGLSLSamplerType()} ${this.name};`;
     }
 
     /**
@@ -95,68 +83,6 @@ export class Sampler implements IElement
         const textureBinding = `@binding(${effectiveBinding}) @group(${effectiveGroup})`;
         const samplerBinding = `@binding(${effectiveBinding + 1}) @group(${effectiveGroup})`;
 
-        // 根据 sampler 类型决定使用的纹理类型
-        let textureType: string;
-        if (this._samplerType === 'depth')
-        {
-            textureType = 'texture_depth_2d';
-        }
-        else if (this._samplerType === '2DArray')
-        {
-            textureType = 'texture_2d_array<f32>';
-        }
-        else
-        {
-            textureType = 'texture_2d<f32>';
-        }
-
-        return `${textureBinding} var ${this.name}_texture: ${textureType};\n${samplerBinding} var ${this.name}: sampler;`;
+        return `${textureBinding} var ${this.name}_texture: ${this.getWGSLTextureType()};\n${samplerBinding} var ${this.name}: sampler;`;
     }
 }
-
-/**
- * 定义 sampler2D 变量（2D 纹理采样器）
- * @param name 变量名
- * @param group WGSL 绑定组（可选）
- * @param binding WGSL 绑定位置（可选）
- * @returns Sampler 实例
- */
-export function sampler2D(name: string, group?: number, binding?: number): Sampler
-{
-    const s = new Sampler(name, group, binding);
-    s.setSamplerType('2D');
-
-    return s;
-}
-
-/**
- * 定义 sampler2DArray 变量（2D 纹理数组采样器）
- * @param name 变量名
- * @param group WGSL 绑定组（可选）
- * @param binding WGSL 绑定位置（可选）
- * @returns Sampler 实例（已标记为 2DArray 类型）
- */
-export function sampler2DArray(name: string, group?: number, binding?: number): Sampler
-{
-    const s = new Sampler(name, group, binding);
-    s.setSamplerType('2DArray');
-
-    return s;
-}
-
-/**
- * 定义深度纹理 sampler 变量
- * 深度纹理在 WGSL 中使用 texture_depth_2d 类型，需要使用 textureLoad 读取
- * @param name 变量名
- * @param group WGSL 绑定组（可选）
- * @param binding WGSL 绑定位置（可选）
- * @returns Sampler 实例（已标记为深度纹理）
- */
-export function depthSampler(name: string, group?: number, binding?: number): Sampler
-{
-    const s = new Sampler(name, group, binding);
-    s.setSamplerType('depth');
-
-    return s;
-}
-

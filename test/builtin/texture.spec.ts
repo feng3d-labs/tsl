@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fragment } from '../../src/fragment';
-import { sampler2D, sampler2DArray } from '../../src/sampler';
+import { sampler2D } from '../../src/sampler2D';
+import { sampler2DArray } from '../../src/sampler2DArray';
 import { texture } from '../../src/builtin/texture';
 import { int } from '../../src/builtin/types/int';
 import { vec2 } from '../../src/builtin/types/vec2';

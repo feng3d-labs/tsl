@@ -80,6 +80,66 @@ output.position = uniforms.MVP * vec4<f32>(input.position, 0.0, 1.0);
 - 采样器变量名 = `bindingResources` 中的 key（如 `diffuse`）
 - 片段着色器的 `@binding` 索引必须与顶点着色器错开，避免冲突
 
+#### 深度纹理处理规则（重要）
+
+深度纹理在 WebGL 和 WebGPU 中的处理方式不同：
+
+**TSL 着色器中使用 `depthSampler` 替代 `sampler`：**
+
+```typescript
+import { depthSampler, texture } from '@feng3d/tsl';
+
+// 使用 depthSampler 声明深度纹理
+const depthMap = depthSampler('depthMap');
+
+// 采样深度值（返回 f32，可直接使用或通过 .r 访问）
+const depth = texture(depthMap, uv).r;
+```
+
+**WGSL 手动着色器中的处理：**
+
+```wgsl
+// ✅ 正确：使用 texture_depth_2d 类型
+@group(0) @binding(0) var depthMap_texture: texture_depth_2d;
+@group(0) @binding(1) var depthMap: sampler;
+
+@fragment
+fn main(input: FragmentInput) -> @location(0) vec4<f32> {
+    // 使用 textureLoad 而不是 textureSample（深度纹理不支持过滤采样）
+    let texSize = textureDimensions(depthMap_texture);
+    let texCoord = vec2<i32>(input.v_st * vec2<f32>(texSize));
+    let depth = textureLoad(depthMap_texture, texCoord, 0);
+    return vec4<f32>(vec3<f32>(1.0 - depth), 1.0);
+}
+```
+
+**关键区别：**
+
+| 特性 | 普通纹理 | 深度纹理 |
+|-----|---------|---------|
+| TSL 声明 | `sampler('name')` | `depthSampler('name')` |
+| WGSL 类型 | `texture_2d<f32>` | `texture_depth_2d` |
+| WGSL 采样 | `textureSample(...)` | `textureLoad(...)` |
+| 返回类型 | `vec4<f32>` | `f32` |
+
+**空片段着色器（仅写深度）：**
+
+```typescript
+// TSL：不返回任何值即可
+export const depthFragmentShader = fragment('main', () => {
+    precision('highp', 'float');
+    // 不调用 return_()，仅写入深度
+});
+```
+
+```wgsl
+// WGSL：函数不需要返回类型
+@fragment
+fn main() {
+    // 空函数体，仅写入深度
+}
+```
+
 ### 步骤 3: 创建 `index.ts`
 
 参考 `draw_primitive_restart/index.ts`，关键代码结构：
@@ -172,7 +232,8 @@ const texcoord = vec2(attribute('texcoord', 4));  // location 4
 
 // Uniform
 const MVP = mat4(uniform('MVP'));
-const diffuse = sampler('diffuse');  // 注意：用 sampler，不是 sampler2D
+const diffuse = sampler('diffuse');       // 普通纹理：用 sampler
+const depth = depthSampler('depthMap');   // 深度纹理：用 depthSampler
 
 // Varying（必须用 varyingStruct 包装）
 const v = varyingStruct({
@@ -190,8 +251,11 @@ MVP.multiply(vec4(position, 0.0, 1.0))
 // 链式调用
 uProjectionMatrix.multiply(uModelViewMatrix).multiply(position)
 
-// 纹理采样
+// 普通纹理采样
 texture(diffuse, v.v_st)
+
+// 深度纹理采样（返回 f32）
+texture(depthMap, v.v_st).r
 ```
 
 ### 完整示例（带纹理）
@@ -231,6 +295,9 @@ export const fragmentShader = fragment('main', () => {
 | `mul(a, b)` | `a.multiply(b)` | 矩阵/向量乘法 |
 | `sampler2D('name')` | `sampler('name')` | 纹理采样器 |
 | `varying('name')` | `varyingStruct({ name: vec2(varying()) })` | varying 变量 |
+| `sampler('depth')` 用于深度纹理 | `depthSampler('depth')` | 深度纹理需要特殊类型 |
+| WGSL 深度纹理用 `textureSample` | 用 `textureLoad` | 深度纹理不支持过滤采样 |
+| WGSL 深度纹理用 `texture_2d<f32>` | 用 `texture_depth_2d` | 深度纹理有专用类型 |
 
 ## 参考示例
 
@@ -239,6 +306,7 @@ export const fragmentShader = fragment('main', () => {
 - `draw_range_arrays/` - 视口分割绘制（双渲染）
 - `draw_image_space/` - 纹理采样（双渲染）
 - `fbo_multisample/` - 多重采样 + 两阶段渲染（双渲染）
+- `fbo_rtt_depth_texture/` - 深度纹理渲染（双渲染，深度纹理处理）
 - `fbo_blit/` - 仅 WebGL 支持（BlitFramebuffer）
 - `webgl-examples/sample5/` - 完整 MVP 变换
 

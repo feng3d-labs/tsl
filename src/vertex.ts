@@ -1,5 +1,6 @@
 import { Attribute } from './attribute';
-import { buildShader } from './buildShader';
+import { buildShader, getBuildParam } from './buildShader';
+import { Builtin } from './builtin/builtin';
 import { Func } from './func';
 import { Sampler } from './sampler';
 import { Uniform } from './uniform';
@@ -57,49 +58,10 @@ export class Vertex extends Func
                 lines.push(uniform.toGLSL());
             }
 
-            // 将独立定义的 varying 合并到 VaryingStruct 中
+            // 生成 varying 声明
             for (const varying of dependencies.varyings)
             {
-                // 检查这个 varying 是否已经在结构体中声明了
-                let inStruct = false;
-                for (const struct of dependencies.structs)
-                {
-                    for (const fieldValue of Object.values(struct.fields))
-                    {
-                        if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
-                        {
-                            for (const dep of fieldValue.dependencies)
-                            {
-                                if (dep === varying)
-                                {
-                                    inStruct = true;
-                                    break;
-                                }
-                            }
-                            if (inStruct) break;
-                        }
-                    }
-                    if (inStruct) break;
-                }
-                // 如果不在结构体中，合并到第一个 VaryingStruct
-                if (!inStruct)
-                {
-                    const firstStruct = Array.from(dependencies.structs)[0];
-                    if (firstStruct)
-                    {
-                        firstStruct.mergeStandaloneVarying(varying);
-                    }
-                }
-            }
-
-            // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
-            for (const struct of dependencies.structs)
-            {
-                const structVaryingDecl = struct.toGLSLDefinition('vertex');
-                if (structVaryingDecl)
-                {
-                    lines.push(structVaryingDecl);
-                }
+                lines.push(varying.toGLSL());
             }
 
             // 生成外部定义的var_变量（作为全局const）
@@ -159,7 +121,7 @@ export class Vertex extends Func
             // 这里只为了收集依赖，不生成完整代码
             super.toWGSL();
 
-            // 从函数的 dependencies 中分析获取 attributes、uniforms 和 structs（使用缓存）
+            // 从函数的 dependencies 中分析获取 attributes、uniforms（使用缓存）
             const dependencies = this.getAnalyzedDependencies();
 
             // 自动分配 location（对于 location 缺省的 attribute）
@@ -168,45 +130,38 @@ export class Vertex extends Func
             // 自动分配 binding（对于 binding 缺省的 uniform）
             this.allocateBindings(dependencies.uniforms, new Set());
 
-            // 将独立定义的 varying 合并到 VaryingStruct 中
-            for (const varying of dependencies.varyings)
-            {
-                // 检查这个 varying 是否已经在结构体中声明了
-                let inStruct = false;
-                for (const struct of dependencies.structs)
-                {
-                    for (const fieldValue of Object.values(struct.fields))
-                    {
-                        if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
-                        {
-                            for (const dep of fieldValue.dependencies)
-                            {
-                                if (dep === varying)
-                                {
-                                    inStruct = true;
-                                    break;
-                                }
-                            }
-                            if (inStruct) break;
-                        }
-                    }
-                    if (inStruct) break;
-                }
-                // 如果不在结构体中，合并到第一个 VaryingStruct
-                if (!inStruct)
-                {
-                    const firstStruct = Array.from(dependencies.structs)[0];
-                    if (firstStruct)
-                    {
-                        firstStruct.mergeStandaloneVarying(varying);
-                    }
-                }
-            }
+            // 检查是否有 position builtin（gl_Position）
+            const hasPositionBuiltin = Array.from(dependencies.builtins).some(b => b.isPosition);
 
-            // 生成结构体定义（包含所有字段，location 分配在 toWGSLDefinition 中完成）
-            for (const struct of dependencies.structs)
+            // 如果有 varying 或 position builtin，需要生成 VaryingStruct
+            if (dependencies.varyings.size > 0 || hasPositionBuiltin)
             {
-                lines.push(struct.toWGSLDefinition());
+                // 为 varying 分配 location
+                this.allocateVaryingLocations(dependencies.varyings);
+
+                // 设置 varying 的 toWGSL 方法返回 v.varyingName 格式
+                for (const v of dependencies.varyings)
+                {
+                    if (v.value)
+                    {
+                        const varyingName = v.name;
+                        v.value.toWGSL = () => `v.${varyingName}`;
+                    }
+                }
+
+                // 设置 position builtin 的结构体前缀
+                for (const builtin of dependencies.builtins)
+                {
+                    if (builtin.isPosition)
+                    {
+                        builtin.setName('position');
+                        builtin.setStructVarPrefix('v');
+                    }
+                }
+
+                // 生成 VaryingStruct 定义
+                const structDef = this.generateVaryingStructDefinition(dependencies.varyings, dependencies.builtins);
+                lines.push(structDef);
             }
 
             // 生成 uniforms（只包含实际使用的）
@@ -236,6 +191,74 @@ export class Vertex extends Func
 
             return resultStr;
         });
+    }
+
+    /**
+     * 生成 VaryingStruct 定义
+     * @param varyings varying 集合
+     * @param builtins builtin 集合
+     * @returns VaryingStruct 定义字符串
+     */
+    private generateVaryingStructDefinition(varyings: Set<Varying>, builtins: Set<Builtin>): string
+    {
+        const structLines: string[] = ['struct VaryingStruct {'];
+
+        // 添加 position builtin
+        for (const builtin of builtins)
+        {
+            if (builtin.isPosition)
+            {
+                structLines.push('    @builtin(position) position: vec4<f32>,');
+                break; // 只添加一个 position
+            }
+        }
+
+        // 添加所有 varying
+        for (const v of varyings)
+        {
+            if (v.value)
+            {
+                const loc = v.getEffectiveLocation();
+                structLines.push(`    @location(${loc}) ${v.name}: ${v.value.wgslType},`);
+            }
+        }
+
+        structLines.push('}');
+
+        return structLines.join('\n');
+    }
+
+    /**
+     * 为 varying 分配 location
+     * @param varyings varying 集合
+     */
+    private allocateVaryingLocations(varyings: Set<Varying>): void
+    {
+        const usedLocations = new Set<number>();
+
+        // 收集已显式指定的 location
+        for (const v of varyings)
+        {
+            if (v.location !== undefined)
+            {
+                usedLocations.add(v.location);
+            }
+        }
+
+        // 为 location 缺省的 varying 自动分配 location
+        for (const v of varyings)
+        {
+            if (v.location === undefined)
+            {
+                let nextLocation = 0;
+                while (usedLocations.has(nextLocation))
+                {
+                    nextLocation++;
+                }
+                v.setAutoLocation(nextLocation);
+                usedLocations.add(nextLocation);
+            }
+        }
     }
 
     /**

@@ -54,7 +54,8 @@ export class Bool implements ShaderValue
             const builtin = args[0] as Builtin;
             this.dependencies = [builtin];
             this.toGLSL = () => builtin.toGLSL();
-            this.toWGSL = () => builtin.toWGSL();
+            // 对于 builtin，在表达式中使用完整变量名（包括结构体前缀）
+            this.toWGSL = () => builtin.getFullWGSLVarName();
             builtin.value = this;
         }
         else if (args.length === 1 && typeof args[0] === 'boolean')

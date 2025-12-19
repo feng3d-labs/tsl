@@ -1,19 +1,16 @@
-import { attribute, builtin, fragColor, fragment, fragmentOutput, int, mat4, precision, return_, sampler2DArray, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, fragColor, fragment, fragmentOutput, gl_Position, int, mat4, precision, return_, sampler2DArray, texture, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 const position = vec2(attribute('position'));
 const textureCoordinates = vec2(attribute('textureCoordinates'));
 
 const mvp = mat4(uniform('mvp'));
 
-const vLayer = varyingStruct({
-    vPosition: vec4(builtin('position')),
-    v_st: vec2(varying('v_st')),
-});
+const v_st = vec2(varying('v_st'));
 
 export const layerVertexShader = vertex('main', () =>
 {
-    vLayer.v_st.assign(textureCoordinates);
-    vLayer.vPosition.assign(mvp.multiply(vec4(position, 0.0, 1.0)));
+    v_st.assign(textureCoordinates);
+    gl_Position.assign(mvp.multiply(vec4(position, 0.0, 1.0)));
 });
 
 const diffuse = sampler2DArray(uniform('diffuse'));
@@ -25,16 +22,12 @@ export const layerFragmentShader = fragment('main', () =>
     precision('highp', 'int');
     precision('lowp', 'sampler2DArray');
 
-    return_(texture(diffuse, vLayer.v_st, layer));
-});
-
-const vMultipleOutput = varyingStruct({
-    vPosition: vec4(builtin('position')),
+    return_(texture(diffuse, v_st, layer));
 });
 
 export const multipleOutputVertexShader = vertex('main', () =>
 {
-    vMultipleOutput.vPosition.assign(mvp.multiply(vec4(position, 0.0, 1.0)));
+    gl_Position.assign(mvp.multiply(vec4(position, 0.0, 1.0)));
 });
 
 const f = fragmentOutput({
@@ -51,4 +44,3 @@ export const multipleOutputFragmentShader = fragment('main', () =>
 
     return_(f);
 });
-

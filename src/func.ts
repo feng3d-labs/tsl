@@ -3,7 +3,6 @@ import { getBuildParam } from './buildShader';
 import { IStatement } from './builtin/Statement';
 import { setCurrentFunc } from './currentFunc';
 import { IElement } from './IElement';
-import { VaryingStruct } from './varyingStruct';
 
 /**
  * Func 类
@@ -128,80 +127,14 @@ export class Func
                 }
             }
 
-            // 检查是否返回结构体（直接使用收集到的结构体，不重新构建）
-            let returnStruct: VaryingStruct<any> | undefined;
+            // 检查是否需要返回 VaryingStruct（有 varying 或 position builtin）
+            const hasPositionBuiltin = Array.from(dependencies.builtins).some(b => b.isPosition);
+            const hasVaryings = dependencies.varyings.size > 0;
+            const needsVaryingStruct = hasPositionBuiltin || hasVaryings;
 
-            // 从依赖分析中查找结构体
-            // 1. 检查是否是直接使用的结构体实例
-            for (const dep of this.dependencies)
+            // 如果需要 VaryingStruct，添加 var v: VaryingStruct; 声明和 return v;
+            if (needsVaryingStruct)
             {
-                if (dep instanceof VaryingStruct)
-                {
-                    returnStruct = dep;
-                    break;
-                }
-            }
-
-            // 2. 检查是否是结构体变量（结构体变量的 dependencies 包含 VaryingStruct）
-            if (!returnStruct)
-            {
-                for (const dep of this.dependencies)
-                {
-                    if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
-                    {
-                        for (const subDep of dep.dependencies)
-                        {
-                            if (subDep instanceof VaryingStruct)
-                            {
-                                returnStruct = subDep;
-                                break;
-                            }
-                        }
-                        if (returnStruct)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // 3. 从字段值中查找结构体（通过 _varyingStruct 属性）
-            if (!returnStruct)
-            {
-                for (const dep of this.dependencies)
-                {
-                    if (dep && typeof dep === 'object' && (dep as any)._varyingStruct instanceof VaryingStruct)
-                    {
-                        returnStruct = (dep as any)._varyingStruct;
-                        break;
-                    }
-                }
-            }
-
-            // 4. 从依赖分析的 structs 集合中获取（如果只有一个结构体）
-            if (!returnStruct)
-            {
-                const dependencies = this.getAnalyzedDependencies();
-                if (dependencies.structs.size === 1)
-                {
-                    returnStruct = Array.from(dependencies.structs)[0];
-                }
-            }
-
-            // 如果找到了结构体变量（直接使用 varyingStruct），需要添加 var v: VaryingStruct; 声明
-            if (returnStruct)
-            {
-                // 检查是否有直接使用的 gl_Position（没有通过 VaryingStruct 字段）
-                // 如果有，需要将 gl_Position 注入到 VaryingStruct 中
-                for (const builtin of dependencies.builtins)
-                {
-                    if (builtin.isPosition && !builtin.name)
-                    {
-                        // 直接使用的 gl_Position，注入到 VaryingStruct 中
-                        returnStruct.injectPositionBuiltin(builtin);
-                    }
-                }
-
                 // 检查是否已经添加了 var v: VaryingStruct; 声明
                 const hasVarDeclaration = this.statements.some(stmt => stmt.toWGSL().includes('var v: VaryingStruct'));
                 if (!hasVarDeclaration)
@@ -220,11 +153,9 @@ export class Func
                     this.statements = newStatements;
                 }
 
-                // 如果没有找到 return 语句，但存在结构体变量且有赋值操作，也认为返回结构体
-                // 需要在最后添加 return 语句
+                // 如果没有找到 return 语句，添加 return v;
                 if (!this.statements.some(stmt => stmt.toWGSL().includes('return')))
                 {
-                    // 添加 return 语句（变量名固定为 v）
                     this.statements.push({
                         toGLSL: () => '',
                         toWGSL: () => `return v;`,
@@ -233,126 +164,34 @@ export class Func
             }
 
             const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
-            // 如果返回结构体，使用结构体类型；否则使用默认的 vec4<f32>
-            const returnType = returnStruct ? 'VaryingStruct' : '@builtin(position) vec4<f32>';
+            // 如果需要 VaryingStruct，使用结构体类型；否则使用默认的 vec4<f32>
+            const returnType = needsVaryingStruct ? 'VaryingStruct' : '@builtin(position) vec4<f32>';
             lines.push(`fn ${this.name}${paramStr} -> ${returnType} {`);
 
-            // 检测是否使用了 gl_Position builtin (通过 assign)
-            const hasPositionBuiltin = Array.from(dependencies.builtins).some(b => b.isPosition && !b.name);
-
-            // 如果没有返回结构体，但使用了 gl_Position，需要声明输出变量并返回
-            if (!returnStruct && hasPositionBuiltin)
+            // 生成函数体
+            this.statements.forEach(stmt =>
             {
-                // 使用 _gl_Position 作为输出变量名，避免与用户变量冲突
-                lines.push('    var _gl_Position: vec4<f32>;');
-
-                this.statements.forEach(stmt =>
-                {
-                    lines.push(`    ${stmt.toWGSL()}`);
-                });
-
-                // 添加 return _gl_Position; 语句
-                lines.push('    return _gl_Position;');
-            }
-            else
-            {
-                this.statements.forEach(stmt =>
-                {
-                    lines.push(`    ${stmt.toWGSL()}`);
-                });
-            }
+                lines.push(`    ${stmt.toWGSL()}`);
+            });
         }
         else
         {
             // Fragment shader
-            // 检查是否有包含 varying 的结构体变量作为输入参数
-            // 函数中最多只会出现一个 VaryingStruct
             const dependencies = this.getAnalyzedDependencies();
-            let inputStruct: { varName: string; struct: VaryingStruct<any> } | undefined;
-
-            // 查找第一个包含 varying 的结构体（函数中最多只有一个）
-            for (const struct of dependencies.structs)
-            {
-                if (struct.hasVarying())
-                {
-                    // 递归查找使用该结构体的变量名
-                    const findStructInDependencies = (deps: any[]): boolean =>
-                    {
-                        for (const dep of deps)
-                        {
-                            // 检查 dep 本身是否是 VaryingStruct 实例
-                            if (dep === struct)
-                            {
-                                // 找到直接使用的结构体变量
-                                if (typeof dep.toWGSL === 'function')
-                                {
-                                    const varName = dep.toWGSL();
-
-                                    inputStruct = { varName, struct };
-
-                                    return true;
-                                }
-                            }
-                            // 检查是否是结构体字段值（通过 _varyingStruct 属性）
-                            else if (dep && typeof dep === 'object' && (dep as any)._varyingStruct === struct)
-                            {
-                                // 找到使用该结构体的字段值，使用结构体的变量名
-                                const varName = struct.toWGSL();
-
-                                inputStruct = { varName, struct };
-
-                                return true;
-                            }
-                            // 递归检查依赖的 dependencies
-                            else if (dep && typeof dep === 'object' && 'dependencies' in dep && Array.isArray(dep.dependencies))
-                            {
-                                // 先检查 dependencies 中是否包含结构体本身
-                                if (dep.dependencies.includes(struct))
-                                {
-                                    // 找到使用该结构体的变量
-                                    if (typeof dep.toWGSL === 'function')
-                                    {
-                                        const varName = dep.toWGSL();
-
-                                        inputStruct = { varName, struct };
-
-                                        return true;
-                                    }
-                                }
-                                // 递归检查嵌套的 dependencies
-                                if (findStructInDependencies(dep.dependencies))
-                                {
-                                    return true;
-                                }
-                            }
-                        }
-
-                        return false;
-                    };
-
-                    // 从顶层依赖开始查找
-                    if (findStructInDependencies(this.dependencies))
-                    {
-                        // 找到第一个包含 varying 的结构体后直接退出
-                        break;
-                    }
-                }
-            }
 
             // 生成函数参数
             const params: string[] = [];
 
-            // 添加结构体参数（如果有）
-            if (inputStruct)
+            // 如果有 varying，添加结构体参数
+            if (dependencies.varyings.size > 0)
             {
-                // 使用结构体作为参数（变量名固定为 v，结构体名称固定为 VaryingStruct）
                 params.push(`v: VaryingStruct`);
             }
 
-            // 添加 builtins 参数（只添加 fragment shader 输入类型的 builtin，如 position/gl_FragCoord）
+            // 添加 builtins 参数（只添加 fragment shader 输入类型的 builtin，如 gl_FragCoord 和 gl_FrontFacing）
             for (const builtin of dependencies.builtins)
             {
-                if (builtin.isFragCoord)
+                if (builtin.isFragCoord || builtin.isFrontFacing)
                 {
                     params.push(builtin.toWGSL());
                 }

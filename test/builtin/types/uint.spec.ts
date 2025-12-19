@@ -1,7 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { uint, UInt } from '../../../src/builtin/types/uint';
 import { builtin } from '../../../src/builtin/builtin';
-import { varyingStruct } from '../../../src/varyingStruct';
 import { vec3 } from '../../../src/builtin/types/vec3';
 import { vertex } from '../../../src/vertex';
 import { fragment } from '../../../src/fragment';
@@ -77,24 +76,15 @@ describe('UInt', () => {
             const u = uint(builtin('gl_VertexID'));
             expect(u.glslType).toBe('uint');
             expect(u.wgslType).toBe('u32');
-
-            // 测试varyingStruct中的使用
-            const struct = varyingStruct({
-                gl_VertexID: u,
-            });
-            const v = struct.fields.gl_VertexID;
-            expect(v.dependencies.length).toBeGreaterThan(0);
+            expect(u.dependencies.length).toBeGreaterThan(0);
         });
     });
 
     describe('toGLSL', () => {
         it('应该生成正确的 gl_VertexID GLSL 代码', () => {
-            const struct = varyingStruct({
-                gl_VertexID: uint(builtin('gl_VertexID')),
-            });
-            const v = struct.fields.gl_VertexID;
+            const u = uint(builtin('gl_VertexID'));
             // GLSL 中 gl_VertexID 是 int 类型，需要转换为 uint
-            expect(v.toGLSL()).toBe('uint(gl_VertexID)');
+            expect(u.toGLSL()).toBe('uint(gl_VertexID)');
         });
 
         it('应该生成正确的 uint 字面量 GLSL 代码', () => {
@@ -108,11 +98,8 @@ describe('UInt', () => {
 
     describe('toWGSL', () => {
         it('应该生成正确的 vertex_index WGSL 代码', () => {
-            const struct = varyingStruct({
-                gl_VertexID: uint(builtin('gl_VertexID')),
-            });
-            const v = struct.fields.gl_VertexID;
-            expect(v.toWGSL()).toBe('v.gl_VertexID');
+            const u = uint(builtin('gl_VertexID'));
+            expect(u.toWGSL()).toBe('vertexIndex');
         });
 
         it('应该生成正确的 uint 字面量 WGSL 代码', () => {
@@ -167,20 +154,14 @@ describe('UInt', () => {
         });
 
         it('gl_VertexID 应该生成正确的 GLSL 代码', () => {
-            const struct = varyingStruct({
-                gl_VertexID: uint(builtin('gl_VertexID')),
-            });
-            const v = struct.fields.gl_VertexID;
+            const u = uint(builtin('gl_VertexID'));
             // GLSL 中 gl_VertexID 是 int 类型，需要转换为 uint
-            expect(v.toGLSL()).toBe('uint(gl_VertexID)');
+            expect(u.toGLSL()).toBe('uint(gl_VertexID)');
         });
 
         it('gl_VertexID 应该生成正确的 WGSL 代码', () => {
-            const struct = varyingStruct({
-                gl_VertexID: uint(builtin('gl_VertexID')),
-            });
-            const v = struct.fields.gl_VertexID;
-            expect(v.toWGSL()).toBe('v.gl_VertexID');
+            const u = uint(builtin('gl_VertexID'));
+            expect(u.toWGSL()).toBe('vertexIndex');
         });
     });
 

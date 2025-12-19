@@ -235,11 +235,8 @@ const MVP = mat4(uniform('MVP'));
 const diffuse = sampler2D(uniform('diffuse'));       // 普通纹理：用 sampler2D
 const depth = depthSampler(uniform('depthMap'));   // 深度纹理：用 depthSampler
 
-// Varying（必须用 varyingStruct 包装）
-const v = varyingStruct({
-    gl_Position: vec4(builtin('gl_Position')),
-    v_st: vec2(varying()),  // varying() 不带参数
-});
+// Varying（独立声明，WGSL 生成时自动创建 VaryingStruct）
+const v_st = vec2(varying('v_st'));
 ```
 
 ### 运算操作
@@ -261,22 +258,20 @@ texture(depthMap, v.v_st).r
 ### 完整示例（带纹理）
 
 ```typescript
-import { attribute, builtin, fragment, mat4, precision, return_, sampler2D, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, fragment, gl_Position, mat4, precision, return_, sampler2D, texture, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 const position = vec2(attribute('position', 0));
 const texcoord = vec2(attribute('texcoord', 4));
 const MVP = mat4(uniform('MVP'));
 
-const v = varyingStruct({
-    gl_Position: vec4(builtin('gl_Position')),
-    v_st: vec2(varying()),
-});
+// Varying 变量独立声明
+const v_st = vec2(varying('v_st'));
 
 export const vertexShader = vertex('main', () => {
     precision('highp', 'float');
     precision('highp', 'int');
-    v.v_st.assign(texcoord);
-    v.gl_Position.assign(MVP.multiply(vec4(position, 0.0, 1.0)));
+    v_st.assign(texcoord);
+    gl_Position.assign(MVP.multiply(vec4(position, 0.0, 1.0)));
 });
 
 const diffuse = sampler2D(uniform('diffuse'));
@@ -284,7 +279,7 @@ const diffuse = sampler2D(uniform('diffuse'));
 export const fragmentShader = fragment('main', () => {
     precision('highp', 'float');
     precision('highp', 'int');
-    return_(texture(diffuse, v.v_st));
+    return_(texture(diffuse, v_st));
 });
 ```
 
@@ -294,7 +289,6 @@ export const fragmentShader = fragment('main', () => {
 |---------|---------|------|
 | `mul(a, b)` | `a.multiply(b)` | 矩阵/向量乘法 |
 | `sampler2D(uniform('name'))` | 旧写法 `sampler2D('name')` | 纹理采样器 |
-| `varying('name')` | `varyingStruct({ name: vec2(varying()) })` | varying 变量 |
 | 普通 sampler 用于深度纹理 | `depthSampler(uniform('depth'))` | 深度纹理需要特殊类型 |
 | WGSL 深度纹理用 `textureSample` | 用 `textureLoad` | 深度纹理不支持过滤采样 |
 | WGSL 深度纹理用 `texture_2d<f32>` | 用 `texture_depth_2d` | 深度纹理有专用类型 |

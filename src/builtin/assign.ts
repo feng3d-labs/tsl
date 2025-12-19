@@ -108,23 +108,14 @@ export class Assign implements IStatement
                 }
             }
 
-            // 检查是否是直接使用 gl_Position（而非通过 varyingStruct 的结构体字段）
-            // 直接使用时，Builtin 的 name 为 undefined；通过结构体字段或注入时，name 会被设置
-            const isDirectBuiltin = positionBuiltin && !positionBuiltin.name;
-
             // 获取目标变量名
-            // 如果 builtin 被注入到 VaryingStruct（通过 injectPositionBuiltin），使用 getFullWGSLVarName()（如 'v.position'）
-            // 如果是直接使用 gl_Position，使用 '_gl_Position'
-            // 否则使用 target.toWGSL()（用于显式在 VaryingStruct 中定义的字段，如 v.vPosition）
+            // 如果 builtin 有结构体前缀（auto-generated VaryingStruct），使用 getFullWGSLVarName()（如 'v.position'）
+            // 否则使用 target.toWGSL()
             const getTargetWGSL = (): string =>
             {
-                if (isDirectBuiltin)
-                {
-                    return '_gl_Position';
-                }
                 if (positionBuiltin && positionBuiltin.hasStructVarPrefix())
                 {
-                    // builtin 是通过 injectPositionBuiltin 注入到 VaryingStruct 的
+                    // builtin 通过 vertex.ts 自动设置了结构体前缀
                     return positionBuiltin.getFullWGSLVarName();
                 }
 

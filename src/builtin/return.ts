@@ -2,7 +2,6 @@ import { getBuildParam } from '../buildShader';
 import { IElement, ShaderValue } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
 import { FragmentOutput } from '../fragmentOutput';
-import { VaryingStruct } from '../varyingStruct';
 
 /**
  * 创建一个 return 语句（用于函数返回值）
@@ -14,9 +13,6 @@ export function return_<T extends ShaderValue | FragmentOutput<any>>(expr: T): v
     const currentFunc = getCurrentFunc();
     if (currentFunc)
     {
-        // 检查是否是结构体变量（通过检查 dependencies 中是否包含 VaryingStruct 实例）
-        const isStructVar = expr.dependencies && expr.dependencies.some(dep => dep instanceof VaryingStruct);
-
         // 检查是否是 FragmentOutput 实例
         const isFragmentOutput = expr instanceof FragmentOutput ||
             (typeof expr === 'object' && expr !== null && (expr as any)._fragmentOutput instanceof FragmentOutput);
@@ -24,8 +20,8 @@ export function return_<T extends ShaderValue | FragmentOutput<any>>(expr: T): v
         const stmt: any = {
             toGLSL: () =>
             {
-                // 如果是结构体变量或 FragmentOutput，在 GLSL 中只生成 return;（输出已通过 assign 设置）
-                if (isStructVar || isFragmentOutput)
+                // 如果是 FragmentOutput，在 GLSL 中只生成 return;（输出已通过 assign 设置）
+                if (isFragmentOutput)
                 {
                     return 'return;';
                 }

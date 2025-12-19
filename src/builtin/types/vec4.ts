@@ -63,7 +63,7 @@ export class Vec4 implements ShaderValue
                 const builtin = args[0] as Builtin;
 
                 this.toGLSL = () => builtin.toGLSL();
-                this.toWGSL = () => builtin.name ?? builtin.defaultName;
+                this.toWGSL = () => builtin.getFullWGSLVarName();
                 this.dependencies = [builtin];
                 builtin.value = this;
             }

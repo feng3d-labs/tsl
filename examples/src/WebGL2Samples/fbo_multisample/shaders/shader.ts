@@ -1,4 +1,4 @@
-import { attribute, builtin, fragment, mat4, precision, return_, sampler2D, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, fragment, gl_Position, mat4, precision, return_, sampler2D, texture, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // ============ Render Shader（渲染到多重采样纹理）============
 
@@ -8,18 +8,13 @@ const renderPosition = vec2(attribute('position', 0));
 // Uniform
 const renderMVP = mat4(uniform('MVP'));
 
-// Varying
-const vRender = varyingStruct({
-    gl_Position: vec4(builtin('gl_Position')),
-});
-
 // 顶点着色器
 export const renderVertexShader = vertex('main', () =>
 {
     precision('highp', 'float');
     precision('highp', 'int');
 
-    vRender.gl_Position.assign(renderMVP.multiply(vec4(renderPosition, 0.0, 1.0)));
+    gl_Position.assign(renderMVP.multiply(vec4(renderPosition, 0.0, 1.0)));
 });
 
 // 片段着色器
@@ -42,10 +37,7 @@ const splashTexcoord = vec2(attribute('texcoord', 1));
 const splashMVP = mat4(uniform('MVP'));
 
 // Varying
-const vSplash = varyingStruct({
-    gl_Position: vec4(builtin('gl_Position')),
-    uv: vec2(varying('uv')),
-});
+const uv = vec2(varying('uv'));
 
 // 顶点着色器
 export const splashVertexShader = vertex('main', () =>
@@ -53,8 +45,8 @@ export const splashVertexShader = vertex('main', () =>
     precision('highp', 'float');
     precision('highp', 'int');
 
-    vSplash.uv.assign(splashTexcoord);
-    vSplash.gl_Position.assign(splashMVP.multiply(vec4(splashPosition, 0.0, 1.0)));
+    uv.assign(splashTexcoord);
+    gl_Position.assign(splashMVP.multiply(vec4(splashPosition, 0.0, 1.0)));
 });
 
 // 纹理采样器
@@ -66,5 +58,5 @@ export const splashFragmentShader = fragment('main', () =>
     precision('highp', 'float');
     precision('highp', 'int');
 
-    return_(texture(diffuse, vSplash.uv));
+    return_(texture(diffuse, uv));
 });

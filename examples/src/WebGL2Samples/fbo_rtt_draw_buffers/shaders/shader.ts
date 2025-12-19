@@ -1,4 +1,4 @@
-import { attribute, builtin, fragColor, fragment, gl_Position, mix, precision, return_, sampler2D, texture, uniform, varying, varyingStruct, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, fragColor, fragment, gl_Position, mix, precision, return_, sampler2D, texture, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // ==================== Draw Buffer 着色器 ====================
 // Pass 1: 渲染三角形到两个颜色附件
@@ -34,9 +34,6 @@ export const drawBufferFragmentShader = fragment('main', () =>
 const drawPosition = vec2(attribute('position'));
 const drawTexcoord = vec2(attribute('textureCoordinates'));
 
-const vDraw = varyingStruct({
-    vPosition: vec4(builtin('position')),
-});
 const v_st = vec2(varying("v_st"));
 
 export const drawVertexShader = vertex('main', () =>
@@ -45,7 +42,7 @@ export const drawVertexShader = vertex('main', () =>
     precision('highp', 'int');
 
     v_st.assign(drawTexcoord);
-    vDraw.vPosition.assign(vec4(drawPosition, 0.0, 1.0));
+    gl_Position.assign(vec4(drawPosition, 0.0, 1.0));
 });
 
 const color1Map = sampler2D(uniform('color1Map'));

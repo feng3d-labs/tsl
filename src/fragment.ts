@@ -7,7 +7,6 @@ import { Sampler } from './sampler';
 import { Sampler2DArray } from './sampler2DArray';
 import { Uniform } from './uniform';
 import { Varying } from './varying';
-import { VaryingStruct } from './varyingStruct';
 import { Vertex } from './vertex';
 
 /**
@@ -123,60 +122,8 @@ export class Fragment extends Func
                 lines.push(samplerPrecision.toGLSL());
             }
 
-            // 将独立定义的 varying 合并到 VaryingStruct 中，或者单独生成声明
-            const standaloneVaryings: Varying[] = [];
+            // 生成 varying 声明
             for (const varying of dependencies.varyings)
-            {
-                // 检查这个 varying 是否已经在结构体中声明了
-                let inStruct = false;
-                for (const struct of dependencies.structs)
-                {
-                    for (const fieldValue of Object.values(struct.fields))
-                    {
-                        if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
-                        {
-                            for (const dep of fieldValue.dependencies)
-                            {
-                                if (dep === varying)
-                                {
-                                    inStruct = true;
-                                    break;
-                                }
-                            }
-                            if (inStruct) break;
-                        }
-                    }
-                    if (inStruct) break;
-                }
-                // 如果不在结构体中
-                if (!inStruct)
-                {
-                    const firstStruct = Array.from(dependencies.structs)[0];
-                    if (firstStruct)
-                    {
-                        // 合并到第一个 VaryingStruct
-                        firstStruct.mergeStandaloneVarying(varying);
-                    }
-                    else
-                    {
-                        // 没有结构体，记录为独立 varying
-                        standaloneVaryings.push(varying);
-                    }
-                }
-            }
-
-            // 生成结构体的 varying 声明（GLSL 中不支持结构体作为 varying，需要展开为单独的 varying）
-            for (const struct of dependencies.structs)
-            {
-                const structVaryingDecl = struct.toGLSLDefinition('fragment');
-                if (structVaryingDecl)
-                {
-                    lines.push(structVaryingDecl);
-                }
-            }
-
-            // 生成独立 varying 的声明（当没有 VaryingStruct 时）
-            for (const varying of standaloneVaryings)
             {
                 lines.push(varying.toGLSL());
             }
@@ -283,74 +230,16 @@ export class Fragment extends Func
             // 自动分配 binding（对于 binding 缺省的 uniform），考虑顶点着色器的 binding
             this.allocateBindings(dependencies.uniforms, dependencies.samplers, vertexShader);
 
-            // 将独立定义的 varying 合并到 VaryingStruct 中，或者单独处理
-            const standaloneVaryingsWGSL: Varying[] = [];
-            for (const varying of dependencies.varyings)
+            // 如果有 varying，生成 VaryingStruct
+            const hasVaryings = dependencies.varyings.size > 0;
+            if (hasVaryings)
             {
-                // 检查这个 varying 是否已经在结构体中声明了
-                let inStruct = false;
-                for (const struct of dependencies.structs)
-                {
-                    for (const fieldValue of Object.values(struct.fields))
-                    {
-                        if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
-                        {
-                            for (const dep of fieldValue.dependencies)
-                            {
-                                if (dep === varying)
-                                {
-                                    inStruct = true;
-                                    break;
-                                }
-                            }
-                            if (inStruct) break;
-                        }
-                    }
-                    if (inStruct) break;
-                }
-                // 如果不在结构体中
-                if (!inStruct)
-                {
-                    const firstStruct = Array.from(dependencies.structs)[0];
-                    if (firstStruct)
-                    {
-                        // 合并到第一个 VaryingStruct
-                        firstStruct.mergeStandaloneVarying(varying);
-                    }
-                    else
-                    {
-                        // 没有结构体，记录为独立 varying
-                        standaloneVaryingsWGSL.push(varying);
-                    }
-                }
-            }
+                // 为 varying 分配 location（从 vertexShader 获取已分配的 location）
+                this.allocateVaryingLocations(dependencies.varyings, vertexShader);
 
-            // 如果有独立 varying 但没有 VaryingStruct，生成一个 VaryingStruct
-            if (standaloneVaryingsWGSL.length > 0)
-            {
-                // 为独立 varying 分配 location
-                const usedLocations = new Set<number>();
-                for (const v of standaloneVaryingsWGSL)
+                // 更新 varying 的 value.toWGSL 方法，使其返回 v.name 格式
+                for (const v of dependencies.varyings)
                 {
-                    if (v.location !== undefined)
-                    {
-                        usedLocations.add(v.location);
-                    }
-                }
-                for (const v of standaloneVaryingsWGSL)
-                {
-                    if (v.location === undefined)
-                    {
-                        let nextLocation = 0;
-                        while (usedLocations.has(nextLocation))
-                        {
-                            nextLocation++;
-                        }
-                        v.setAutoLocation(nextLocation);
-                        usedLocations.add(nextLocation);
-                    }
-
-                    // 更新 varying 的 value.toWGSL 方法，使其返回 v.name 格式
                     if (v.value)
                     {
                         const varyingName = v.name;
@@ -360,7 +249,7 @@ export class Fragment extends Func
 
                 // 生成 VaryingStruct 定义
                 const structLines: string[] = ['struct VaryingStruct {'];
-                for (const v of standaloneVaryingsWGSL)
+                for (const v of dependencies.varyings)
                 {
                     if (v.value)
                     {
@@ -370,12 +259,6 @@ export class Fragment extends Func
                 }
                 structLines.push('}');
                 lines.push(structLines.join('\n'));
-            }
-
-            // 生成结构体定义（包含所有字段，location 分配在 toWGSLDefinition 中完成）
-            for (const struct of dependencies.structs)
-            {
-                lines.push(struct.toWGSLDefinition());
             }
 
             // 生成 FragmentOutput 结构体定义（如果有）
@@ -426,32 +309,19 @@ export class Fragment extends Func
             // 添加 @fragment 标记
             lines.push('@fragment');
 
-            // 生成函数签名和函数体
-            // 查找输入结构体（VaryingStruct）
-            let inputStruct: { varName: string; struct: VaryingStruct<any> } | undefined;
-            for (const struct of dependencies.structs)
-            {
-                if (struct.hasVarying())
-                {
-                    inputStruct = { varName: 'v', struct };
-                    // 函数中最多只会出现一个 VaryingStruct
-                    break;
-                }
-            }
-
             // 生成函数参数
             const params: string[] = [];
 
-            // 添加结构体参数（如果有结构体或独立 varying）
-            if (inputStruct || standaloneVaryingsWGSL.length > 0)
+            // 添加结构体参数（如果有 varying）
+            if (hasVaryings)
             {
                 params.push(`v: VaryingStruct`);
             }
 
-            // 添加 builtins 参数（只添加 fragment shader 输入类型的 builtin，如 position/gl_FragCoord）
+            // 添加 builtins 参数（只添加 fragment shader 输入类型的 builtin，如 gl_FragCoord 和 gl_FrontFacing）
             for (const builtin of dependencies.builtins)
             {
-                if (builtin.isFragCoord)
+                if (builtin.isFragCoord || builtin.isFrontFacing)
                 {
                     params.push(builtin.toWGSL());
                 }
@@ -716,6 +586,73 @@ export class Fragment extends Func
                 sampler.uniform.setAutoBinding(nextBinding);
                 usedBindings.add(nextBinding);
                 usedBindings.add(nextBinding + 1);
+            }
+        }
+    }
+
+    /**
+     * 为 varying 分配 location
+     * @param varyings varying 集合
+     * @param vertexShader 可选的顶点着色器，用于获取已分配的 location
+     */
+    private allocateVaryingLocations(varyings: Set<Varying>, vertexShader?: Vertex): void
+    {
+        // 如果传入了 vertexShader，从顶点着色器获取已分配的 location
+        if (vertexShader)
+        {
+            const vertexDeps = vertexShader.getAnalyzedDependencies();
+            const vertexVaryingMap = new Map<string, number>();
+
+            // 构建顶点着色器 varying 名称到 location 的映射
+            for (const v of vertexDeps.varyings)
+            {
+                const loc = v.getEffectiveLocation();
+                if (loc !== undefined)
+                {
+                    vertexVaryingMap.set(v.name, loc);
+                }
+            }
+
+            // 为片段着色器的 varying 设置与顶点着色器相同的 location
+            for (const v of varyings)
+            {
+                if (v.location === undefined)
+                {
+                    const vertexLoc = vertexVaryingMap.get(v.name);
+                    if (vertexLoc !== undefined)
+                    {
+                        v.setAutoLocation(vertexLoc);
+                    }
+                }
+            }
+
+            return;
+        }
+
+        // 如果没有传入 vertexShader，自己分配 location
+        const usedLocations = new Set<number>();
+
+        // 收集已显式指定的 location
+        for (const v of varyings)
+        {
+            if (v.location !== undefined)
+            {
+                usedLocations.add(v.location);
+            }
+        }
+
+        // 为 location 缺省的 varying 自动分配 location
+        for (const v of varyings)
+        {
+            if (v.location === undefined)
+            {
+                let nextLocation = 0;
+                while (usedLocations.has(nextLocation))
+                {
+                    nextLocation++;
+                }
+                v.setAutoLocation(nextLocation);
+                usedLocations.add(nextLocation);
             }
         }
     }

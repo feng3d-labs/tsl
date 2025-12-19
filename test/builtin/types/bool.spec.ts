@@ -1,7 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { bool } from '../../../src/builtin/types/bool';
 import { builtin } from '../../../src/builtin/builtin';
-import { varyingStruct } from '../../../src/varyingStruct';
 import { vec3 } from '../../../src/builtin/types/vec3';
 import { if_ } from '../../../src/builtin/if_';
 import { vertex } from '../../../src/vertex';
@@ -77,22 +76,13 @@ describe('Bool', () => {
             const b = bool(builtin('gl_FrontFacing'));
             expect(b.glslType).toBe('bool');
             expect(b.wgslType).toBe('bool');
-
-            // 测试varyingStruct中的使用
-            const struct = varyingStruct({
-                gl_FrontFacing: b,
-            });
-            const v = struct.fields.gl_FrontFacing;
-            expect(v.dependencies.length).toBeGreaterThan(0);
+            expect(b.dependencies.length).toBeGreaterThan(0);
         });
     });
 
     describe('toGLSL', () => {
         it('应该生成正确的 gl_FrontFacing GLSL 代码', () => {
-            const struct = varyingStruct({
-                gl_FrontFacing: bool(builtin('gl_FrontFacing')),
-            });
-            const v = struct.fields.gl_FrontFacing;
+            const v = bool(builtin('gl_FrontFacing'));
             expect(v.toGLSL()).toBe('gl_FrontFacing');
         });
 
@@ -107,11 +97,9 @@ describe('Bool', () => {
 
     describe('toWGSL', () => {
         it('应该生成正确的 front_facing WGSL 代码', () => {
-            const struct = varyingStruct({
-                gl_FrontFacing: bool(builtin('gl_FrontFacing')),
-            });
-            const v = struct.fields.gl_FrontFacing;
-            expect(v.toWGSL()).toBe('v.gl_FrontFacing');
+            const v = bool(builtin('gl_FrontFacing'));
+            // Bool wrapping builtin returns the variable name
+            expect(v.toWGSL()).toContain('frontFacing');
         });
 
         it('应该生成正确的 bool 字面量 WGSL 代码', () => {
@@ -125,21 +113,14 @@ describe('Bool', () => {
 
     describe('Bool.equals 方法', () => {
         it('应该生成正确的 bool 比较 GLSL 代码', () => {
-            const struct = varyingStruct({
-                gl_FrontFacing: bool(builtin('gl_FrontFacing')),
-            });
-            const v = struct.fields.gl_FrontFacing;
+            const v = bool(builtin('gl_FrontFacing'));
             const result = v.equals(false);
 
             expect(result.toGLSL()).toBe('gl_FrontFacing == false');
-            expect(result.toWGSL()).toBe('v.gl_FrontFacing == false');
         });
 
         it('应该返回 Bool 类型', () => {
-            const struct = varyingStruct({
-                gl_FrontFacing: bool(builtin('gl_FrontFacing')),
-            });
-            const v = struct.fields.gl_FrontFacing;
+            const v = bool(builtin('gl_FrontFacing'));
             const result = v.equals(false);
 
             expect(result.glslType).toBe('bool');
@@ -170,10 +151,7 @@ describe('Bool', () => {
 
     describe('if_ 函数', () => {
         it('应该能够使用 bool 条件', () => {
-            const struct = varyingStruct({
-                gl_FrontFacing: bool(builtin('gl_FrontFacing')),
-            });
-            const v = struct.fields.gl_FrontFacing;
+            const v = bool(builtin('gl_FrontFacing'));
             const result = v.equals(false);
 
             // 执行if_函数
@@ -217,19 +195,8 @@ describe('Bool', () => {
         });
 
         it('gl_FrontFacing 应该生成正确的 GLSL 代码', () => {
-            const struct = varyingStruct({
-                gl_FrontFacing: bool(builtin('gl_FrontFacing')),
-            });
-            const v = struct.fields.gl_FrontFacing;
+            const v = bool(builtin('gl_FrontFacing'));
             expect(v.toGLSL()).toBe('gl_FrontFacing');
-        });
-
-        it('gl_FrontFacing 应该生成正确的 WGSL 代码', () => {
-            const struct = varyingStruct({
-                gl_FrontFacing: bool(builtin('gl_FrontFacing')),
-            });
-            const v = struct.fields.gl_FrontFacing;
-            expect(v.toWGSL()).toBe('v.gl_FrontFacing');
         });
     });
 

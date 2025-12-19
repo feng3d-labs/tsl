@@ -12,18 +12,18 @@ function toCamelCase(name: string): string
 
 /**
  * Builtin 类，表示内置变量（如 position）
- * 只能在 varyingStruct 中使用，变量名从结构体字段名获取
+ * 可以独立使用（如 gl_Position.assign(...)），WGSL 生成时会自动创建 VaryingStruct
  * @internal 库外部不应直接使用 `new Builtin()`，应使用 `builtin()` 函数
  */
 export class Builtin implements IElement
 {
     readonly builtinName: string; // WGSL 中内置的固定名称（如 "position" 或 "gl_Position"）
-    name?: string; // 变量名称（从结构体字段名获取，在 varyingStruct 中设置）
+    name?: string; // 变量名称（在生成 VaryingStruct 时自动设置）
     value: ShaderValue;
     dependencies: IElement[] = [];
 
     /**
-     * 结构体变量名前缀（当 builtin 被注入到 VaryingStruct 时设置）
+     * 结构体变量名前缀（当 builtin 被加入到自动生成的 VaryingStruct 时设置）
      * 用于在 toWGSL() 中生成正确的字段访问路径（如 'v.position'）
      */
     private _structVarPrefix?: string;
@@ -34,7 +34,7 @@ export class Builtin implements IElement
     }
 
     /**
-     * 设置变量名（由 varyingStruct 调用）
+     * 设置变量名（由 vertex.ts 在生成 VaryingStruct 时调用）
      * @internal
      */
     setName(name: string): void
@@ -43,7 +43,7 @@ export class Builtin implements IElement
     }
 
     /**
-     * 设置结构体变量名前缀（由 varyingStruct.injectPositionBuiltin 调用）
+     * 设置结构体变量名前缀（由 vertex.ts 在生成 VaryingStruct 时调用）
      * @internal
      */
     setStructVarPrefix(prefix: string): void
@@ -67,7 +67,7 @@ export class Builtin implements IElement
     }
 
     /**
-     * 检查是否已被注入到 VaryingStruct 中（通过 injectPositionBuiltin）
+     * 检查是否已被加入到自动生成的 VaryingStruct 中
      * 用于在 assign 中判断是否需要使用 getFullWGSLVarName()
      */
     hasStructVarPrefix(): boolean
@@ -233,7 +233,7 @@ export class Builtin implements IElement
 
 /**
  * 创建内置变量引用
- * 只能在 varyingStruct 中使用，变量名从结构体字段名获取
+ * 可以独立使用（如 gl_Position.assign(...)），WGSL 生成时会自动创建 VaryingStruct
  * @param builtinName WGSL 中内置的固定名称（如 'position' 或 'gl_Position'，两者等价；或 'front_facing' 或 'gl_FrontFacing'，两者等价）
  * @returns Builtin 实例
  */

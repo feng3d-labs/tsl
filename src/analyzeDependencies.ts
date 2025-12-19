@@ -3,7 +3,6 @@ import { FragColor } from './builtin/fragColor';
 import { Builtin } from './builtin/builtin';
 import { Precision } from './precision';
 import { Sampler } from './sampler';
-import { VaryingStruct } from './varyingStruct';
 import { Uniform } from './uniform';
 import { Varying } from './varying';
 import { ShaderValue } from './IElement';
@@ -17,7 +16,6 @@ export interface AnalyzedDependencies
     attributes: Set<Attribute>;
     uniforms: Set<Uniform>;
     precisions: Set<Precision>;
-    structs: Set<VaryingStruct<any>>;
     varyings: Set<Varying>;
     samplers: Set<Sampler>;
     builtins: Set<Builtin>;
@@ -35,7 +33,6 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
 {
     const attributes = new Set<Attribute>();
     const uniforms = new Set<Uniform>();
-    const structs = new Set<VaryingStruct<any>>();
     const varyings = new Set<Varying>();
     const samplers = new Set<Sampler>();
     const builtins = new Set<Builtin>();
@@ -128,41 +125,6 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
             return;
         }
 
-        // 如果是 VaryingStruct 实例，添加到 structs 集合
-        if (value instanceof VaryingStruct)
-        {
-            structs.add(value);
-
-            // 继续分析结构体的依赖，提取其中的 Varying
-            if (typeof value === 'object' && 'dependencies' in value && Array.isArray(value.dependencies))
-            {
-                for (const dep of value.dependencies)
-                {
-                    analyzeValue(dep);
-                }
-            }
-
-            // 分析结构体字段中的 Varying
-            if (typeof value === 'object' && 'fields' in value)
-            {
-                for (const fieldValue of Object.values((value as any).fields))
-                {
-                    if (fieldValue && typeof fieldValue === 'object' && 'dependencies' in fieldValue && Array.isArray(fieldValue.dependencies))
-                    {
-                        for (const dep of fieldValue.dependencies)
-                        {
-                            if (dep instanceof Varying)
-                            {
-                                varyings.add(dep);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return;
-        }
-
         // 如果是外部定义的var_变量，收集它
         if (typeof value === 'object' && (value as any)._isExternalVar)
         {
@@ -172,13 +134,6 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
             {
                 externalVars.set(varName, { name: varName, expr: varExpr });
             }
-        }
-
-        // 检查是否是 VaryingStruct 的字段值（通过 _varyingStruct 属性）
-        if (typeof value === 'object' && (value as any)._varyingStruct instanceof VaryingStruct)
-        {
-            const struct = (value as any)._varyingStruct;
-            structs.add(struct);
         }
 
         // 检查是否是 FragmentOutput 的字段值（通过 _fragmentOutput 属性）
@@ -207,6 +162,6 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
         analyzeValue(dep);
     }
 
-    return { attributes, uniforms, precisions, structs, varyings, samplers, builtins, fragmentOutput, fragColors, externalVars: Array.from(externalVars.values()) };
+    return { attributes, uniforms, precisions, varyings, samplers, builtins, fragmentOutput, fragColors, externalVars: Array.from(externalVars.values()) };
 }
 

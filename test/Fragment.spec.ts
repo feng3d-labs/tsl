@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { attribute } from '../src/attribute';
-import { builtin } from '../src/builtin/builtin';
+import { gl_Position } from '../src/builtin/builtins';
 import { vec2 } from '../src/builtin/types/vec2';
 import { vec4 } from '../src/builtin/types/vec4';
 import { Fragment, fragment } from '../src/fragment';
 import { return_ } from '../src/index';
 import { varying } from '../src/varying';
-import { varyingStruct } from '../src/varyingStruct';
 import { vertex } from '../src/vertex';
 
 describe('Fragment', () =>
@@ -63,14 +62,12 @@ describe('Fragment', () =>
     {
         it('应该能够自动分配 varying 的 location', () =>
         {
-            const v = varyingStruct({
-                vColor: vec4(varying('vColor')),
-                vTexCoord: vec2(varying('vTexCoord')),
-            });
+            const vColor = vec4(varying('vColor'));
+            const vTexCoord = vec2(varying('vTexCoord'));
 
             const frag = fragment('main', () =>
             {
-                return_(v.vColor);
+                return_(vColor);
             });
 
             const wgsl = frag.toWGSL();
@@ -81,20 +78,17 @@ describe('Fragment', () =>
         it('应该能够与 vertex shader 的 varying location 保持一致', () =>
         {
             const aPos = vec2(attribute('aPos'));
-            const v = varyingStruct({
-                position: vec4(builtin('position')),
-                vColor: vec4(varying('vColor')),
-            });
+            const vColor = vec4(varying('vColor'));
 
             const vert = vertex('main', () =>
             {
-                v.position.assign(vec4(aPos, 0.0, 1.0));
-                v.vColor.assign(vec4(1.0, 0.0, 0.0, 1.0)); // 实际使用 varying
+                gl_Position.assign(vec4(aPos, 0.0, 1.0));
+                vColor.assign(vec4(1.0, 0.0, 0.0, 1.0)); // 实际使用 varying
             });
 
             const frag = fragment('main', () =>
             {
-                return_(v.vColor);
+                return_(vColor);
             });
 
             const vertexWgsl = vert.toWGSL();
@@ -109,25 +103,25 @@ describe('Fragment', () =>
             expect(vertexLocationMatch![1]).toBe(fragmentLocationMatch![1]);
         });
 
-        it('应该能够混合显式指定和自动分配的 varying location', () =>
+        it('应该能够生成包含 varying 的 VaryingStruct', () =>
         {
-            const v = varyingStruct({
-                vColor: vec4(varying('vColor')),
-            });
+            const vColor = vec4(varying('vColor'));
 
             const frag = fragment('main', () =>
             {
-                return_(v.vColor);
+                return_(vColor);
             });
 
             const wgsl = frag.toWGSL();
-            expect(wgsl).toContain(v.toWGSLDefinition());
-            expect(wgsl).toContain(v.toWGSLParam());
+            // 验证生成了 VaryingStruct
+            expect(wgsl).toContain('struct VaryingStruct');
+            expect(wgsl).toContain('@location(0) vColor: vec4<f32>');
+            // 验证函数接收 VaryingStruct 参数
+            expect(wgsl).toContain('v: VaryingStruct');
 
             const glsl = frag.toGLSL();
-            expect(glsl).toContain(v.toGLSLDefinition());
+            expect(glsl).toContain('varying vec4 vColor;');
             expect(glsl).toContain('gl_FragColor = vColor;');
         });
     });
 });
-

@@ -2,7 +2,6 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { if_ } from '../../src/builtin/if_';
 import { bool } from '../../src/builtin/types/bool';
 import { builtin } from '../../src/builtin/builtin';
-import { varyingStruct } from '../../src/varyingStruct';
 import { vec3 } from '../../src/builtin/types/vec3';
 import { vertex } from '../../src/vertex';
 import { fragment } from '../../src/fragment';
@@ -80,10 +79,7 @@ describe('if_', () => {
 
     describe('if_ 函数', () => {
         it('应该能够使用 bool 条件', () => {
-            const struct = varyingStruct({
-                gl_FrontFacing: bool(builtin('gl_FrontFacing')),
-            });
-            const v = struct.fields.gl_FrontFacing;
+            const v = bool(builtin('gl_FrontFacing'));
             const result = v.equals(false);
 
             // 执行if_函数

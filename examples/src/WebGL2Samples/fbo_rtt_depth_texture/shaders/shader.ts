@@ -1,20 +1,16 @@
-import { attribute, builtin, depthSampler, fragment, precision, return_, texture, uniform, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { attribute, depthSampler, fragment, gl_Position, precision, return_, texture, uniform, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // ==================== Depth 着色器 ====================
 // Pass 1: 渲染三角形到深度纹理（仅写入深度，无颜色输出）
 
 const depthPosition = vec4(attribute('position'));
 
-const vDepth = varyingStruct({
-    vPosition: vec4(builtin('position')),
-});
-
 export const depthVertexShader = vertex('main', () =>
 {
     precision('highp', 'float');
     precision('highp', 'int');
 
-    vDepth.vPosition.assign(depthPosition);
+    gl_Position.assign(depthPosition);
 });
 
 export const depthFragmentShader = fragment('main', () =>
@@ -31,18 +27,16 @@ export const depthFragmentShader = fragment('main', () =>
 const drawPosition = vec2(attribute('position'));
 const drawTexcoord = vec2(attribute('textureCoordinates'));
 
-const vDraw = varyingStruct({
-    vPosition: vec4(builtin('position')),
-    v_st: vec2(varying('v_st')),
-});
+// Varying 变量独立声明
+const v_st = vec2(varying('v_st'));
 
 export const drawVertexShader = vertex('main', () =>
 {
     precision('highp', 'float');
     precision('highp', 'int');
 
-    vDraw.v_st.assign(drawTexcoord);
-    vDraw.vPosition.assign(vec4(drawPosition, 0.0, 1.0));
+    v_st.assign(drawTexcoord);
+    gl_Position.assign(vec4(drawPosition, 0.0, 1.0));
 });
 
 // 使用 depthSampler 声明深度纹理
@@ -55,7 +49,7 @@ export const drawFragmentShader = fragment('main', () =>
     precision('highp', 'int');
 
     // 从深度纹理采样深度值
-    const depth = vec3(texture(depthMap, vDraw.v_st).r);
+    const depth = vec3(texture(depthMap, v_st).r);
     // 反转深度值：越近越白（1-depth），越远越黑
     return_(vec4(vec3(1.0).subtract(depth), 1.0));
 });

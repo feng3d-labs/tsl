@@ -74,7 +74,7 @@ export class Vec2 implements ShaderValue
                 const builtin = args[0] as Builtin;
 
                 this.toGLSL = () => builtin.toGLSL();
-                this.toWGSL = () => builtin.name ?? builtin.defaultName;
+                this.toWGSL = () => builtin.getFullWGSLVarName();
                 this.dependencies = [builtin];
                 builtin.value = this;
                 this._builtin = builtin; // 记录 builtin 引用，用于 .y 的翻转处理

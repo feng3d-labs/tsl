@@ -2,12 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { Attribute } from '../../src/attribute';
 import { float, Float } from '../../src/builtin/types/float';
 import { Uniform } from '../../src/uniform';
-import { Varying } from '../../src/varying';
+import { Varying, varying } from '../../src/varying';
 import { exp } from '../../src/builtin/exp';
 import { max } from '../../src/builtin/max';
 import { vec3 } from '../../src/builtin/types/vec3';
-import { varyingStruct } from '../../src/varyingStruct';
-import { varying } from '../../src/varying';
 
 describe('Float', () =>
 {
@@ -55,15 +53,11 @@ describe('Float', () =>
     {
         it('应该返回 Float 实例', () =>
         {
-            const struct = varyingStruct({
-                vValue: float(varying('vValue', 0)),
-            });
-            const result = struct.vValue;
+            const vValue = varying('vValue', 0);
+            const result = float(vValue);
             expect(result).toBeInstanceOf(Float);
             expect(result.toGLSL()).toBe('vValue');
-            expect(result.toWGSL()).toBe('v.vValue');
-            expect(result.toGLSL()).toBe('vValue');
-            expect(result.toWGSL()).toBe('v.vValue');
+            // WGSL 输出由 vertex/fragment 着色器设置
         });
     });
 

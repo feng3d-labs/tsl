@@ -1,4 +1,4 @@
-import { assign, attribute, builtin, fragment, precision, return_, sampler, sub, texture, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { assign, attribute, builtin, fragment, precision, return_, sampler, texture, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // ==================== Depth 着色器 ====================
 // Pass 1: 渲染三角形到深度纹理（仅写入深度，无颜色输出）
@@ -55,5 +55,5 @@ export const drawFragmentShader = fragment('main', () =>
     // 从深度纹理采样深度值
     const depth = vec3(texture(depthMap, vDraw.v_st).r);
     // 反转深度值：越近越白（1-depth），越远越黑
-    return_(vec4(sub(1.0, depth), 1.0));
+    return_(vec4(vec3(1.0).subtract(depth), 1.0));
 });

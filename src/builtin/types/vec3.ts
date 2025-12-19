@@ -152,6 +152,45 @@ export class Vec3 implements ShaderValue
     }
 
     /**
+     * 获取 r 分量（返回 Float，等同于 x）
+     */
+    get r(): Float
+    {
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.r`;
+        float.toWGSL = () => `${this.toWGSL()}.r`;
+        float.dependencies = [this];
+
+        return float;
+    }
+
+    /**
+     * 获取 g 分量（返回 Float，等同于 y）
+     */
+    get g(): Float
+    {
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.g`;
+        float.toWGSL = () => `${this.toWGSL()}.g`;
+        float.dependencies = [this];
+
+        return float;
+    }
+
+    /**
+     * 获取 b 分量（返回 Float，等同于 z）
+     */
+    get b(): Float
+    {
+        const float = new Float();
+        float.toGLSL = () => `${this.toGLSL()}.b`;
+        float.toWGSL = () => `${this.toWGSL()}.b`;
+        float.dependencies = [this];
+
+        return float;
+    }
+
+    /**
      * 乘法运算
      */
     multiply(other: Vec3 | Float | number): Vec3

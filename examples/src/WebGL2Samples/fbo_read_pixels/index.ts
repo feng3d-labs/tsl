@@ -211,6 +211,9 @@ document.addEventListener('DOMContentLoaded', async () =>
     webgpu.submit(submit);
     webgl.submit(submit);
 
+    // 第一帧后进行画布比较（必须在 submit 之后、异步操作之前执行，否则画布纹理会过期）
+    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
+
     // 使用 readPixels 从帧缓冲区读取像素数据
     // 通过 textureView 指定要读取的纹理视图（支持从纹理数组的特定层读取）
     const webglData = new Uint8Array(w * h * 4 * 3);
@@ -300,9 +303,6 @@ document.addEventListener('DOMContentLoaded', async () =>
     {
         console.log(`✗ 发现 ${mismatchCount} 个字节不一致（共 ${webglData.length} 字节）`);
     }
-
-    // 第一帧后进行画布比较
-    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
 
     // 清理资源
     // webgpu.deleteFramebuffer(frameBuffer);

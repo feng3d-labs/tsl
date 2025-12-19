@@ -232,10 +232,30 @@ export class Func
             const returnType = returnStruct ? 'VaryingStruct' : '@builtin(position) vec4<f32>';
             lines.push(`fn ${this.name}${paramStr} -> ${returnType} {`);
 
-            this.statements.forEach(stmt =>
+            // 检测是否使用了 gl_Position builtin (通过 assign)
+            const hasPositionBuiltin = Array.from(dependencies.builtins).some(b => b.isPosition && !b.name);
+
+            // 如果没有返回结构体，但使用了 gl_Position，需要声明输出变量并返回
+            if (!returnStruct && hasPositionBuiltin)
             {
-                lines.push(`    ${stmt.toWGSL()}`);
-            });
+                // 使用 _gl_Position 作为输出变量名，避免与用户变量冲突
+                lines.push('    var _gl_Position: vec4<f32>;');
+
+                this.statements.forEach(stmt =>
+                {
+                    lines.push(`    ${stmt.toWGSL()}`);
+                });
+
+                // 添加 return _gl_Position; 语句
+                lines.push('    return _gl_Position;');
+            }
+            else
+            {
+                this.statements.forEach(stmt =>
+                {
+                    lines.push(`    ${stmt.toWGSL()}`);
+                });
+            }
         }
         else
         {

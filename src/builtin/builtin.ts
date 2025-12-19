@@ -11,9 +11,8 @@ function toCamelCase(name: string): string
 }
 
 /**
- * Builtin 类，表示内置变量（如 position）
- * 可以独立使用（如 gl_Position.assign(...)），WGSL 生成时会自动创建 VaryingStruct
- * @internal 库外部不应直接使用 `new Builtin()`，应使用 `builtin()` 函数
+ * Builtin 类，表示 GLSL 内置变量（如 gl_Position）
+ * @internal 库外部不应直接使用 `new Builtin()`
  */
 export class Builtin implements IElement
 {
@@ -230,7 +229,6 @@ export class Builtin implements IElement
 
 /**
  * 创建内置变量引用
- * 可以独立使用（如 gl_Position.assign(...)），WGSL 生成时会自动创建 VaryingStruct
  * @param builtinName GLSL 中内置变量名称（如 'gl_Position'、'gl_FragCoord' 等）
  * @returns Builtin 实例
  * @internal 仅供 builtins.ts 内部使用

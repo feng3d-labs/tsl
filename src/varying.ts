@@ -5,7 +5,6 @@ import { IElement, ShaderValue } from './IElement';
  * Varying 类，表示在 vertex 和 fragment shader 之间传递的变量
  *
  * 使用方式：`const v_uv = vec2(varying('v_uv'))`
- * WGSL 生成时会自动创建 VaryingStruct
  *
  * @internal 库外部不应直接使用 `new Varying()`，应使用 `varying()` 函数
  */
@@ -104,7 +103,6 @@ export class Varying implements IElement
  * 定义 varying 变量
  *
  * 使用方式：`const v_uv = vec2(varying('v_uv'))`
- * WGSL 生成时会自动创建 VaryingStruct
  *
  * @param name 变量名称（必需）
  * @param location WGSL location（可选，不指定则自动分配）

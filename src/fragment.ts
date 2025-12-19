@@ -334,8 +334,10 @@ export class Fragment extends Func
             const hasFragColorBuiltin = Array.from(dependencies.builtins).some(b => b.isFragColorOutput);
 
             // 检查是否有返回语句（判断是否是空片段着色器，如深度-only 渲染）
-            // 使用 gl_FragColor 时，视为有返回值
-            const hasReturn = hasFragColorBuiltin || this.statements.some(stmt => stmt.toWGSL().includes('return'));
+            // 使用 gl_FragColor 或 FragmentOutput 时，视为有返回值
+            const hasReturn = hasFragColorBuiltin
+                || !!dependencies.fragmentOutput
+                || this.statements.some(stmt => stmt.toWGSL().includes('return'));
 
             // 生成返回类型：如果有 FragmentOutput，使用多个输出；否则使用单个输出
             // 如果没有返回语句（空片段着色器），不添加返回类型

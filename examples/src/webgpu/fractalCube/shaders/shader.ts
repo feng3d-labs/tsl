@@ -30,7 +30,7 @@ export const vertexShader = vertex('main', () =>
 export const fragmentShader = fragment('main', () =>
 {
     // sampler 的 binding 会自动分配
-    const uSampler = sampler2D('uSampler');
+    const uSampler = sampler2D(uniform('uSampler'));
 
     const color = var_('color1', texture2D(uSampler, v.vTextureCoord).multiply(v.vFragPosition));
     return_(color);

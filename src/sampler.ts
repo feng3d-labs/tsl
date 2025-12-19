@@ -1,4 +1,5 @@
 import { IElement } from './IElement';
+import { Uniform } from './uniform';
 
 /**
  * Sampler 抽象基类，表示纹理采样器
@@ -8,40 +9,11 @@ export abstract class Sampler implements IElement
 {
     dependencies: IElement[] = [];
 
-    readonly name: string;
-    readonly binding?: number;
-    readonly group?: number;
-    private _autoBinding?: number; // 自动分配的 binding
+    readonly uniform: Uniform;
 
-    constructor(name: string, group?: number, binding?: number)
+    constructor(uniform: Uniform)
     {
-        this.name = name;
-        this.group = group;
-        this.binding = binding;
-    }
-
-    /**
-     * 设置自动分配的 binding（内部使用）
-     */
-    setAutoBinding(binding: number): void
-    {
-        this._autoBinding = binding;
-    }
-
-    /**
-     * 获取实际使用的 binding（优先使用显式指定的，否则使用自动分配的）
-     */
-    getEffectiveBinding(): number
-    {
-        return this.binding !== undefined ? this.binding : (this._autoBinding ?? 0);
-    }
-
-    /**
-     * 获取实际使用的 group（缺省时使用默认值 0）
-     */
-    getEffectiveGroup(): number
-    {
-        return this.group ?? 0;
+        this.uniform = uniform;
     }
 
     /**
@@ -67,7 +39,7 @@ export abstract class Sampler implements IElement
      */
     toGLSL(): string
     {
-        return `uniform ${this.getGLSLSamplerType()} ${this.name};`;
+        return `uniform ${this.getGLSLSamplerType()} ${this.uniform.name};`;
     }
 
     /**
@@ -76,13 +48,13 @@ export abstract class Sampler implements IElement
      */
     toWGSL(): string
     {
-        const effectiveBinding = this.getEffectiveBinding();
-        const effectiveGroup = this.getEffectiveGroup();
+        const effectiveBinding = this.uniform.getEffectiveBinding() ?? 0;
+        const effectiveGroup = this.uniform.getEffectiveGroup();
         // 在 WGSL 中，texture 和 sampler 需要分别声明
         // texture 在 binding，sampler 在 binding+1
         const textureBinding = `@binding(${effectiveBinding}) @group(${effectiveGroup})`;
         const samplerBinding = `@binding(${effectiveBinding + 1}) @group(${effectiveGroup})`;
 
-        return `${textureBinding} var ${this.name}_texture: ${this.getWGSLTextureType()};\n${samplerBinding} var ${this.name}: sampler;`;
+        return `${textureBinding} var ${this.uniform.name}_texture: ${this.getWGSLTextureType()};\n${samplerBinding} var ${this.uniform.name}: sampler;`;
     }
 }

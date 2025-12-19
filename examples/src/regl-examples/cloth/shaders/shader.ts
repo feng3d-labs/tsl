@@ -10,7 +10,7 @@ const projection = mat4(uniform('projection')); // uniform mat4 projection;
 const view = mat4(uniform('view')); // uniform mat4 view;
 
 // Fragment shader 的 uniform
-const texture = sampler2D('texture'); // uniform sampler2D texture;
+const texture = sampler2D(uniform('texture')); // uniform sampler2D texture;
 
 // VaryingStruct 用于在顶点和片段着色器之间传递数据
 const v = varyingStruct({

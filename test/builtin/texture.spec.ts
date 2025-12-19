@@ -16,7 +16,7 @@ describe('texture', () =>
     {
         it('应该能够使用 vec2 坐标采样2D纹理', () =>
         {
-            const diffuse = sampler2D('diffuse');
+            const diffuse = sampler2D(uniform('diffuse'));
             const coord = vec2(0.5, 0.5);
 
             const frag = fragment('main', () =>
@@ -35,7 +35,7 @@ describe('texture', () =>
 
         it('应该在 WebGL 1.0 中使用 texture2D', () =>
         {
-            const diffuse = sampler2D('diffuse');
+            const diffuse = sampler2D(uniform('diffuse'));
             const coord = vec2(0.5, 0.5);
 
             const frag = fragment('main', () =>
@@ -52,7 +52,7 @@ describe('texture', () =>
     {
         it('应该能够使用 vec3 坐标采样纹理数组', () =>
         {
-            const diffuse = sampler2DArray('diffuse');
+            const diffuse = sampler2DArray(uniform('diffuse'));
             const coord = vec3(0.5, 0.5, 1.0);
 
             const frag = fragment('main', () =>
@@ -74,7 +74,7 @@ describe('texture', () =>
     {
         it('应该能够使用 vec2 和 int 参数采样纹理数组', () =>
         {
-            const diffuse = sampler2DArray('diffuse');
+            const diffuse = sampler2DArray(uniform('diffuse'));
             const coord = vec2(0.5, 0.5);
             const layer = int(uniform('layer'));
 
@@ -96,7 +96,7 @@ describe('texture', () =>
 
         it('应该能够使用 vec2 和 int 字面量采样纹理数组', () =>
         {
-            const diffuse = sampler2DArray('diffuse');
+            const diffuse = sampler2DArray(uniform('diffuse'));
             const coord = vec2(0.5, 0.5);
             const layer = int(2);
 

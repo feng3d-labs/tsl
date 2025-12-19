@@ -267,12 +267,12 @@ export class Vertex extends Func
         // 收集已显式指定的 sampler binding（sampler 占用两个 binding：texture 和 sampler）
         for (const sampler of samplers)
         {
-            if (sampler.binding !== undefined)
+            if (sampler.uniform.binding !== undefined)
             {
-                const effectiveGroup = sampler.getEffectiveGroup();
+                const effectiveGroup = sampler.uniform.getEffectiveGroup();
                 const usedBindings = getUsedBindings(effectiveGroup);
-                usedBindings.add(sampler.binding);
-                usedBindings.add(sampler.binding + 1);
+                usedBindings.add(sampler.uniform.binding);
+                usedBindings.add(sampler.uniform.binding + 1);
             }
         }
 
@@ -300,9 +300,9 @@ export class Vertex extends Func
         // 为 binding 缺省的 sampler 自动分配 binding（sampler 占用两个 binding）
         for (const sampler of samplers)
         {
-            if (sampler.binding === undefined)
+            if (sampler.uniform.binding === undefined)
             {
-                const effectiveGroup = sampler.getEffectiveGroup();
+                const effectiveGroup = sampler.uniform.getEffectiveGroup();
                 const usedBindings = getUsedBindings(effectiveGroup);
 
                 // 找到下一个未使用的 binding（需要连续两个 binding）
@@ -313,7 +313,7 @@ export class Vertex extends Func
                 }
 
                 // 分配 binding
-                sampler.setAutoBinding(nextBinding);
+                sampler.uniform.setAutoBinding(nextBinding);
                 usedBindings.add(nextBinding);
                 usedBindings.add(nextBinding + 1);
             }

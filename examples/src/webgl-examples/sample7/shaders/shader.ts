@@ -34,7 +34,7 @@ export const vertexShader = vertex('main', () =>
 });
 
 // sampler 的 binding 会自动分配，因为 vertex shader 的 uniform 已经占用了 0, 1, 2（group 缺省时使用默认值 0）
-const uSampler = sampler2D('uSampler');
+const uSampler = sampler2D(uniform('uSampler'));
 
 // Fragment shader 入口函数
 export const fragmentShader = fragment('main', () =>

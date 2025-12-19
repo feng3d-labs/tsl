@@ -76,17 +76,17 @@ export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4
         if (layer !== undefined)
         {
             // 纹理数组：vec2 + int -> vec3(coord, float(layer))
-            return `${textureFunc}(${sampler.name}, vec3(${coord.toGLSL()}, float(${layer.toGLSL()})))`;
+            return `${textureFunc}(${sampler.uniform.name}, vec3(${coord.toGLSL()}, float(${layer.toGLSL()})))`;
         }
         else if (coord instanceof Vec3)
         {
             // 纹理数组：vec3 坐标
-            return `${textureFunc}(${sampler.name}, ${coord.toGLSL()})`;
+            return `${textureFunc}(${sampler.uniform.name}, ${coord.toGLSL()})`;
         }
         else
         {
             // 普通纹理：vec2 坐标（包括深度纹理，GLSL 中深度纹理也使用 texture() 函数）
-            return `${textureFunc}(${sampler.name}, ${coord.toGLSL()})`;
+            return `${textureFunc}(${sampler.uniform.name}, ${coord.toGLSL()})`;
         }
     };
 
@@ -96,7 +96,7 @@ export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4
         // 深度纹理采样：使用 textureLoad
         // 需要将 UV 坐标转换为像素坐标
         // 生成：textureLoad(name_texture, vec2<i32>(coord * vec2<f32>(textureDimensions(name_texture))), 0)
-        const texName = `${sampler.name}_texture`;
+        const texName = `${sampler.uniform.name}_texture`;
 
         return `textureLoad(${texName}, vec2<i32>(${coord.toWGSL()} * vec2<f32>(textureDimensions(${texName}))), 0)`;
     };
@@ -118,17 +118,17 @@ export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4
         else if (layer !== undefined)
         {
             // 纹理数组采样：vec2 + int
-            return `textureSample(${sampler.name}_texture, ${sampler.name}, ${coord.toWGSL()}, ${layer.toWGSL()})`;
+            return `textureSample(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()}, ${layer.toWGSL()})`;
         }
         else if (coord instanceof Vec3)
         {
             // 纹理数组采样：vec3 坐标
-            return `textureSample(${sampler.name}_texture, ${sampler.name}, ${coord.toWGSL()})`;
+            return `textureSample(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()})`;
         }
         else
         {
             // 普通纹理采样：vec2 坐标
-            return `textureSample(${sampler.name}_texture, ${sampler.name}, ${coord.toWGSL()})`;
+            return `textureSample(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()})`;
         }
     };
     result.dependencies = layer !== undefined ? [sampler, coord, layer] : [sampler, coord];

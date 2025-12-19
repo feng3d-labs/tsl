@@ -58,7 +58,7 @@ export const splashVertexShader = vertex('main', () =>
 });
 
 // 纹理采样器
-const diffuse = sampler2D('diffuse');
+const diffuse = sampler2D(uniform('diffuse'));
 
 // 片段着色器
 export const splashFragmentShader = fragment('main', () =>

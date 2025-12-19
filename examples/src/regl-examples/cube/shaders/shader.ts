@@ -22,7 +22,7 @@ export const vertexShader = vertex('main', () =>
 });
 
 // Fragment shader 的 sampler
-const tex = sampler2D('tex');
+const tex = sampler2D(uniform('tex'));
 
 // Fragment shader 入口函数
 export const fragmentShader = fragment('main', () =>

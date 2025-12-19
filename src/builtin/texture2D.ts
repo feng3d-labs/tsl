@@ -19,10 +19,10 @@ export function texture2D(sampler: Sampler, coord: Vec2): Vec4
         // 在 WebGL 2.0 中，必须使用 texture 而不是 texture2D
         const textureFunc = version === 2 ? 'texture' : 'texture2D';
 
-        return `${textureFunc}(${sampler.name}, ${coord.toGLSL()})`;
+        return `${textureFunc}(${sampler.uniform.name}, ${coord.toGLSL()})`;
     };
     // 在 WGSL 中，texture 和 sampler 是分离的
-    result.toWGSL = () => `textureSample(${sampler.name}_texture, ${sampler.name}, ${coord.toWGSL()})`;
+    result.toWGSL = () => `textureSample(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()})`;
     result.dependencies = [sampler, coord];
 
     return result;

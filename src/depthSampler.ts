@@ -1,4 +1,5 @@
 import { Sampler } from './sampler';
+import { Uniform } from './uniform';
 
 /**
  * DepthSampler 类，表示深度纹理采样器
@@ -29,12 +30,10 @@ export class DepthSampler extends Sampler
 /**
  * 定义深度纹理 sampler 变量
  * 深度纹理在 WGSL 中使用 texture_depth_2d 类型，需要使用 textureLoad 读取
- * @param name 变量名
- * @param group WGSL 绑定组（可选）
- * @param binding WGSL 绑定位置（可选）
+ * @param uniform uniform 变量
  * @returns DepthSampler 实例
  */
-export function depthSampler(name: string, group?: number, binding?: number): DepthSampler
+export function depthSampler(uniform: Uniform): DepthSampler
 {
-    return new DepthSampler(name, group, binding);
+    return new DepthSampler(uniform);
 }

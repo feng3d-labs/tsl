@@ -90,7 +90,7 @@ output.position = uniforms.MVP * vec4<f32>(input.position, 0.0, 1.0);
 import { depthSampler, texture } from '@feng3d/tsl';
 
 // 使用 depthSampler 声明深度纹理
-const depthMap = depthSampler('depthMap');
+const depthMap = depthSampler(uniform('depthMap'));
 
 // 采样深度值（返回 f32，可直接使用或通过 .r 访问）
 const depth = texture(depthMap, uv).r;
@@ -117,7 +117,7 @@ fn main(input: FragmentInput) -> @location(0) vec4<f32> {
 
 | 特性 | 普通纹理 | 深度纹理 |
 |-----|---------|---------|
-| TSL 声明 | `sampler('name')` | `depthSampler('name')` |
+| TSL 声明 | `sampler2D(uniform('name'))` | `depthSampler(uniform('name'))` |
 | WGSL 类型 | `texture_2d<f32>` | `texture_depth_2d` |
 | WGSL 采样 | `textureSample(...)` | `textureLoad(...)` |
 | 返回类型 | `vec4<f32>` | `f32` |
@@ -232,8 +232,8 @@ const texcoord = vec2(attribute('texcoord', 4));  // location 4
 
 // Uniform
 const MVP = mat4(uniform('MVP'));
-const diffuse = sampler2D('diffuse');       // 普通纹理：用 sampler2D
-const depth = depthSampler('depthMap');   // 深度纹理：用 depthSampler
+const diffuse = sampler2D(uniform('diffuse'));       // 普通纹理：用 sampler2D
+const depth = depthSampler(uniform('depthMap'));   // 深度纹理：用 depthSampler
 
 // Varying（必须用 varyingStruct 包装）
 const v = varyingStruct({
@@ -279,7 +279,7 @@ export const vertexShader = vertex('main', () => {
     v.gl_Position.assign(MVP.multiply(vec4(position, 0.0, 1.0)));
 });
 
-const diffuse = sampler2D('diffuse');
+const diffuse = sampler2D(uniform('diffuse'));
 
 export const fragmentShader = fragment('main', () => {
     precision('highp', 'float');
@@ -293,9 +293,9 @@ export const fragmentShader = fragment('main', () => {
 | 错误写法 | 正确写法 | 说明 |
 |---------|---------|------|
 | `mul(a, b)` | `a.multiply(b)` | 矩阵/向量乘法 |
-| `sampler2D('name')` | `sampler('name')` | 纹理采样器 |
+| `sampler2D(uniform('name'))` | 旧写法 `sampler2D('name')` | 纹理采样器 |
 | `varying('name')` | `varyingStruct({ name: vec2(varying()) })` | varying 变量 |
-| `sampler('depth')` 用于深度纹理 | `depthSampler('depth')` | 深度纹理需要特殊类型 |
+| 普通 sampler 用于深度纹理 | `depthSampler(uniform('depth'))` | 深度纹理需要特殊类型 |
 | WGSL 深度纹理用 `textureSample` | 用 `textureLoad` | 深度纹理不支持过滤采样 |
 | WGSL 深度纹理用 `texture_2d<f32>` | 用 `texture_depth_2d` | 深度纹理有专用类型 |
 

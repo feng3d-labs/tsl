@@ -23,7 +23,7 @@ export const vertexShader = vertex('main', () =>
 });
 
 // sampler（group 缺省时使用默认值 0）
-const uSampler = sampler2D('uSampler');
+const uSampler = sampler2D(uniform('uSampler'));
 
 // Fragment shader 入口函数
 export const fragmentShader = fragment('main', () =>

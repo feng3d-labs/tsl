@@ -1,4 +1,4 @@
-import { attribute, builtin, depthSampler, fragment, precision, return_, texture, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, depthSampler, fragment, precision, return_, texture, uniform, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // ==================== Depth 着色器 ====================
 // Pass 1: 渲染三角形到深度纹理（仅写入深度，无颜色输出）
@@ -47,7 +47,7 @@ export const drawVertexShader = vertex('main', () =>
 
 // 使用 depthSampler 声明深度纹理
 // 深度纹理在 WGSL 中使用 texture_depth_2d 类型和 textureLoad 函数
-const depthMap = depthSampler('depthMap');
+const depthMap = depthSampler(uniform('depthMap'));
 
 export const drawFragmentShader = fragment('main', () =>
 {

@@ -16,7 +16,7 @@ export const layerVertexShader = vertex('main', () =>
     vLayer.vPosition.assign(mvp.multiply(vec4(position, 0.0, 1.0)));
 });
 
-const diffuse = sampler2DArray('diffuse');
+const diffuse = sampler2DArray(uniform('diffuse'));
 const layer = int(uniform('layer'));
 
 export const layerFragmentShader = fragment('main', () =>

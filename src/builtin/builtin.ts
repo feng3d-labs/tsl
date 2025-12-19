@@ -22,6 +22,12 @@ export class Builtin implements IElement
     value: ShaderValue;
     dependencies: IElement[] = [];
 
+    /**
+     * 结构体变量名前缀（当 builtin 被注入到 VaryingStruct 时设置）
+     * 用于在 toWGSL() 中生成正确的字段访问路径（如 'v.position'）
+     */
+    private _structVarPrefix?: string;
+
     constructor(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing' | 'vertexIndex' | 'gl_VertexID' | 'fragCoord' | 'gl_FragCoord' | 'instance_index' | 'gl_InstanceID' | 'gl_FragColor')
     {
         this.builtinName = builtinName;
@@ -34,6 +40,39 @@ export class Builtin implements IElement
     setName(name: string): void
     {
         this.name = name;
+    }
+
+    /**
+     * 设置结构体变量名前缀（由 varyingStruct.injectPositionBuiltin 调用）
+     * @internal
+     */
+    setStructVarPrefix(prefix: string): void
+    {
+        this._structVarPrefix = prefix;
+    }
+
+    /**
+     * 获取完整的 WGSL 变量名（包括结构体前缀，如果有的话）
+     * 用于在赋值语句中生成正确的变量名
+     */
+    getFullWGSLVarName(): string
+    {
+        const varName = this.name ?? this.defaultName;
+        if (this._structVarPrefix)
+        {
+            return `${this._structVarPrefix}.${varName}`;
+        }
+
+        return varName;
+    }
+
+    /**
+     * 检查是否已被注入到 VaryingStruct 中（通过 injectPositionBuiltin）
+     * 用于在 assign 中判断是否需要使用 getFullWGSLVarName()
+     */
+    hasStructVarPrefix(): boolean
+    {
+        return this._structVarPrefix !== undefined;
     }
 
     /**

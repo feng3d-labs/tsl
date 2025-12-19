@@ -73,10 +73,6 @@ document.addEventListener('DOMContentLoaded', async () =>
         },
         indices: buffers.indices,
         draw: { __type__: 'DrawIndexed', firstIndex: 0, indexCount: 36 },
-        // bindingResources: {
-        //     uSampler_texture: { texture: texture.texture },
-        //     uSampler: texture.sampler
-        // },
         bindingResources: { uSampler: texture },
     };
 

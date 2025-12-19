@@ -1,4 +1,4 @@
-import { attribute, builtin, fragment, mat4, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { attribute, builtin, fragment, gl_Position, mat4, return_, sampler, texture2D, uniform, var_, varying, varyingStruct, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes（location 缺省时自动分配）
 const aVertexPosition = vec3(attribute('aVertexPosition'));
@@ -10,7 +10,6 @@ const uProjectionMatrix = mat4(uniform('uProjectionMatrix'));
 
 // VaryingStruct 用于在顶点和片段着色器之间传递数据
 const v = varyingStruct({
-    vPosition: vec4(builtin('position')),
     vTextureCoord: vec2(varying()),
 });
 
@@ -19,7 +18,7 @@ export const vertexShader = vertex('main', () =>
 {
     const position = var_('position', vec4(aVertexPosition, 1.0));
 
-    v.vPosition.assign(uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
+    gl_Position.assign(uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
     v.vTextureCoord.assign(aTextureCoord);
 });
 

@@ -197,6 +197,17 @@ export class Func
             // 如果找到了结构体变量（直接使用 varyingStruct），需要添加 var v: VaryingStruct; 声明
             if (returnStruct)
             {
+                // 检查是否有直接使用的 gl_Position（没有通过 VaryingStruct 字段）
+                // 如果有，需要将 gl_Position 注入到 VaryingStruct 中
+                for (const builtin of dependencies.builtins)
+                {
+                    if (builtin.isPosition && !builtin.name)
+                    {
+                        // 直接使用的 gl_Position，注入到 VaryingStruct 中
+                        returnStruct.injectPositionBuiltin(builtin);
+                    }
+                }
+
                 // 检查是否已经添加了 var v: VaryingStruct; 声明
                 const hasVarDeclaration = this.statements.some(stmt => stmt.toWGSL().includes('var v: VaryingStruct'));
                 if (!hasVarDeclaration)

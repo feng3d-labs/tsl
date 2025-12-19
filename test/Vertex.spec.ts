@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { attribute } from '../src/attribute';
 import { builtin } from '../src/builtin/builtin';
+import { gl_Position } from '../src/builtin/builtins';
+import { mat4 } from '../src/builtin/types/mat4';
 import { var_ } from '../src/builtin/var';
 import { vec2 } from '../src/builtin/types/vec2';
+import { vec3 } from '../src/builtin/types/vec3';
 import { vec4 } from '../src/builtin/types/vec4';
+import { uniform } from '../src/uniform';
 import { varying } from '../src/varying';
 import { Vertex, vertex } from '../src/vertex';
 import { return_ } from '../src/index';
@@ -270,6 +274,65 @@ describe('Vertex', () =>
             // GLSL 不需要深度转换，应该保持原样
             expect(glsl).toContain('gl_Position = position;');
             expect(glsl).not.toContain('_pos_temp');
+        });
+    });
+
+    describe('gl_Position 与 varyingStruct 同时使用', () =>
+    {
+        it('当同时使用 gl_Position 和 varyingStruct 时，应该自动将 gl_Position 注入到结构体中', () =>
+        {
+            const aVertexPosition = vec3(attribute('aVertexPosition'));
+            const aTextureCoord = vec2(attribute('aTextureCoord'));
+            const uModelViewMatrix = mat4(uniform('uModelViewMatrix'));
+            const uProjectionMatrix = mat4(uniform('uProjectionMatrix'));
+
+            const v = varyingStruct({
+                vTextureCoord: vec2(varying()),
+            });
+
+            const vert = vertex('main', () =>
+            {
+                const position = var_('position', vec4(aVertexPosition, 1.0));
+                gl_Position.assign(uProjectionMatrix.multiply(uModelViewMatrix).multiply(position));
+                v.vTextureCoord.assign(aTextureCoord);
+            });
+
+            const wgsl = vert.toWGSL();
+
+            // 验证结构体定义包含 position builtin
+            expect(wgsl).toContain('@builtin(position) position: vec4<f32>');
+            // 验证 varying 字段也在结构体中
+            expect(wgsl).toContain('@location(0) vTextureCoord: vec2<f32>');
+            // 验证 gl_Position 的赋值使用结构体字段
+            expect(wgsl).toContain('v.position = uProjectionMatrix * uModelViewMatrix * position');
+            // 验证 varying 的赋值也使用结构体字段
+            expect(wgsl).toContain('v.vTextureCoord = aTextureCoord');
+            // 验证返回结构体
+            expect(wgsl).toContain('return v;');
+            // 验证没有未声明的 _gl_Position 变量
+            expect(wgsl).not.toContain('_gl_Position');
+        });
+
+        it('当 varyingStruct 已包含 position builtin 时，不应重复注入', () =>
+        {
+            const aVertexPosition = vec3(attribute('aVertexPosition'));
+
+            const v = varyingStruct({
+                vPosition: vec4(builtin('position')),
+            });
+
+            const vert = vertex('main', () =>
+            {
+                v.vPosition.assign(vec4(aVertexPosition, 1.0));
+            });
+
+            const wgsl = vert.toWGSL();
+
+            // 验证只有一个 position builtin 字段
+            const positionMatches = wgsl.match(/@builtin\(position\)/g);
+            expect(positionMatches).toHaveLength(1);
+            // 验证使用 vPosition 字段名
+            expect(wgsl).toContain('v.vPosition =');
         });
     });
 });

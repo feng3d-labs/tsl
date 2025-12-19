@@ -93,21 +93,43 @@ export class Assign implements IStatement
             // 获取值的 WGSL 表示
             const valueWGSL = this.value.toWGSL();
 
-            // 检查是否是直接使用 gl_Position（而非通过 varyingStruct 的结构体字段）
-            // 直接使用时，Builtin 的 name 为 undefined；通过结构体字段时，name 会被设置
-            let isDirectBuiltin = false;
-            if (this.target instanceof Builtin && this.target.isPosition && !this.target.name)
+            // 获取 position builtin 实例
+            let positionBuiltin: Builtin | undefined;
+            if (this.target instanceof Builtin && this.target.isPosition)
             {
-                isDirectBuiltin = true;
+                positionBuiltin = this.target;
             }
             else if (this.target && 'dependencies' in this.target && Array.isArray(this.target.dependencies))
             {
                 const dep = this.target.dependencies[0];
-                if (dep instanceof Builtin && dep.isPosition && !dep.name)
+                if (dep instanceof Builtin && dep.isPosition)
                 {
-                    isDirectBuiltin = true;
+                    positionBuiltin = dep;
                 }
             }
+
+            // 检查是否是直接使用 gl_Position（而非通过 varyingStruct 的结构体字段）
+            // 直接使用时，Builtin 的 name 为 undefined；通过结构体字段或注入时，name 会被设置
+            const isDirectBuiltin = positionBuiltin && !positionBuiltin.name;
+
+            // 获取目标变量名
+            // 如果 builtin 被注入到 VaryingStruct（通过 injectPositionBuiltin），使用 getFullWGSLVarName()（如 'v.position'）
+            // 如果是直接使用 gl_Position，使用 '_gl_Position'
+            // 否则使用 target.toWGSL()（用于显式在 VaryingStruct 中定义的字段，如 v.vPosition）
+            const getTargetWGSL = (): string =>
+            {
+                if (isDirectBuiltin)
+                {
+                    return '_gl_Position';
+                }
+                if (positionBuiltin && positionBuiltin.hasStructVarPrefix())
+                {
+                    // builtin 是通过 injectPositionBuiltin 注入到 VaryingStruct 的
+                    return positionBuiltin.getFullWGSLVarName();
+                }
+
+                return this.target.toWGSL();
+            };
 
             // 如果启用了深度转换，将深度从 WebGL 的 [-1, 1] 转换为 WebGPU 的 [0, 1]
             if (buildParam.convertDepth)
@@ -116,21 +138,14 @@ export class Assign implements IStatement
                 // 生成: vec4<f32>(pos.xy, (pos.z + 1.0) * 0.5, pos.w)
                 // 使用临时变量避免重复计算
                 const tempVar = '_pos_temp';
-                // 使用 _gl_Position 作为输出变量名，避免与用户变量冲突
-                const targetWGSL = isDirectBuiltin ? '_gl_Position' : this.target.toWGSL();
+                const targetWGSL = getTargetWGSL();
                 const depthConversion = `let ${tempVar} = ${valueWGSL}; ${targetWGSL} = vec4<f32>(${tempVar}.xy, (${tempVar}.z + 1.0) * 0.5, ${tempVar}.w);`;
 
                 return depthConversion;
             }
 
             // 普通赋值
-            if (isDirectBuiltin)
-            {
-                // 使用 _gl_Position 作为输出变量名，避免与用户变量冲突
-                return `_gl_Position = ${valueWGSL};`;
-            }
-
-            return `${this.target.toWGSL()} = ${valueWGSL};`;
+            return `${getTargetWGSL()} = ${valueWGSL};`;
         }
         else
         {

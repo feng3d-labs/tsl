@@ -17,6 +17,11 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
     private readonly varName = 'v';
 
     /**
+     * 动态注入的 position builtin（当直接使用 gl_Position 且同时存在 varyingStruct 时使用）
+     */
+    private _injectedPositionBuiltin?: Builtin;
+
+    /**
      * 检查结构体是否包含 varying 字段
      */
     hasVarying(): boolean
@@ -30,6 +35,64 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
 
             return false;
         });
+    }
+
+    /**
+     * 检查结构体是否已包含 position builtin 字段
+     */
+    hasPositionBuiltin(): boolean
+    {
+        // 检查显式定义的字段
+        for (const value of Object.values(this.fields))
+        {
+            if (value.dependencies && value.dependencies.length > 0)
+            {
+                const dep = value.dependencies[0];
+                if (dep instanceof Builtin && dep.isPosition)
+                {
+                    return true;
+                }
+            }
+        }
+
+        // 检查注入的 position
+        return this._injectedPositionBuiltin !== undefined;
+    }
+
+    /**
+     * 注入 position builtin 到结构体中
+     * 当直接使用 gl_Position 且同时存在 varyingStruct 时调用
+     * @param builtin 要注入的 position builtin
+     */
+    injectPositionBuiltin(builtin: Builtin): void
+    {
+        if (!builtin.isPosition)
+        {
+            throw new Error('只能注入 position 类型的 builtin');
+        }
+
+        // 如果已经有 position 字段，跳过
+        if (this.hasPositionBuiltin())
+        {
+            return;
+        }
+
+        // 设置 builtin 的名称为 'position'
+        builtin.setName('position');
+
+        // 设置结构体变量名前缀，这样 builtin.getFullWGSLVarName() 会返回 'v.position'
+        builtin.setStructVarPrefix(this.varName);
+
+        // 保存注入的 builtin
+        this._injectedPositionBuiltin = builtin;
+    }
+
+    /**
+     * 获取注入的 position builtin
+     */
+    getInjectedPositionBuiltin(): Builtin | undefined
+    {
+        return this._injectedPositionBuiltin;
     }
 
     /**
@@ -127,6 +190,14 @@ export class VaryingStruct<T extends { [key: string]: IElement }> implements IEl
                 throw new Error(`不支持的依赖类型`);
             }
         }).filter(Boolean) as string[];
+
+        // 如果有注入的 position builtin，添加到字段定义中（放在最前面）
+        if (this._injectedPositionBuiltin && effectiveStage === 'vertex')
+        {
+            const positionDef = '@builtin(position) position: vec4<f32>';
+            fieldDefs.unshift(positionDef);
+        }
+
         // 格式化结构体定义，每个字段占一行，使用逗号分隔（所有字段后面都有逗号）
         if (fieldDefs.length === 0)
         {

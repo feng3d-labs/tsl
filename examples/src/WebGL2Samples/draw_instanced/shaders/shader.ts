@@ -1,4 +1,4 @@
-import { attribute, float, fragment, gl_Position, precision, return_, uint, varying, vec2, vec4, vertex, builtin } from '@feng3d/tsl';
+import { attribute, float, fragment, gl_InstanceID, gl_Position, precision, return_, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
 const pos = vec2(attribute('pos', 0));
@@ -6,9 +6,6 @@ const color = vec4(attribute('color', 1));
 
 // varying 变量
 const v_color = vec4(varying('v_color'));
-
-// 内置变量
-const gl_InstanceID = uint(builtin('gl_InstanceID'));
 
 // 顶点着色器
 export const vertexShader = vertex('main', () =>

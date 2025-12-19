@@ -28,7 +28,7 @@ export class Builtin implements IElement
      */
     private _structVarPrefix?: string;
 
-    constructor(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing' | 'vertexIndex' | 'gl_VertexID' | 'fragCoord' | 'gl_FragCoord' | 'instance_index' | 'gl_InstanceID' | 'gl_FragColor')
+    constructor(builtinName: 'gl_Position' | 'gl_FrontFacing' | 'gl_VertexID' | 'gl_FragCoord' | 'gl_InstanceID' | 'gl_FragColor')
     {
         this.builtinName = builtinName;
     }
@@ -83,11 +83,8 @@ export class Builtin implements IElement
         if (this.builtinName === 'gl_Position') return 'position';
         if (this.builtinName === 'gl_FrontFacing') return 'front_facing';
         if (this.builtinName === 'gl_VertexID') return 'vertex_index';
-        if (this.builtinName === 'vertexIndex') return 'vertex_index';
         if (this.builtinName === 'gl_FragCoord') return 'position';
-        if (this.builtinName === 'fragCoord') return 'position';
         if (this.builtinName === 'gl_InstanceID') return 'instance_index';
-        if (this.builtinName === 'instance_index') return 'instance_index';
 
         return this.builtinName;
     }
@@ -98,7 +95,7 @@ export class Builtin implements IElement
      */
     get defaultName(): string
     {
-        // gl_FragCoord/fragCoord 特殊处理，使用 fragCoord 作为变量名
+        // gl_FragCoord 特殊处理，使用 fragCoord 作为变量名
         if (this.isFragCoord)
         {
             return 'fragCoord';
@@ -118,7 +115,7 @@ export class Builtin implements IElement
      */
     get isPosition(): boolean
     {
-        return this.builtinName === 'position' || this.builtinName === 'gl_Position';
+        return this.builtinName === 'gl_Position';
     }
 
     /**
@@ -126,7 +123,7 @@ export class Builtin implements IElement
      */
     get isFrontFacing(): boolean
     {
-        return this.builtinName === 'front_facing' || this.builtinName === 'gl_FrontFacing';
+        return this.builtinName === 'gl_FrontFacing';
     }
 
     /**
@@ -134,7 +131,7 @@ export class Builtin implements IElement
      */
     get isVertexIndex(): boolean
     {
-        return this.builtinName === 'vertexIndex' || this.builtinName === 'gl_VertexID';
+        return this.builtinName === 'gl_VertexID';
     }
 
     /**
@@ -142,7 +139,7 @@ export class Builtin implements IElement
      */
     get isFragCoord(): boolean
     {
-        return this.builtinName === 'fragCoord' || this.builtinName === 'gl_FragCoord';
+        return this.builtinName === 'gl_FragCoord';
     }
 
     /**
@@ -150,7 +147,7 @@ export class Builtin implements IElement
      */
     get isInstanceIndex(): boolean
     {
-        return this.builtinName === 'instance_index' || this.builtinName === 'gl_InstanceID';
+        return this.builtinName === 'gl_InstanceID';
     }
 
     /**
@@ -234,10 +231,11 @@ export class Builtin implements IElement
 /**
  * 创建内置变量引用
  * 可以独立使用（如 gl_Position.assign(...)），WGSL 生成时会自动创建 VaryingStruct
- * @param builtinName WGSL 中内置的固定名称（如 'position' 或 'gl_Position'，两者等价；或 'front_facing' 或 'gl_FrontFacing'，两者等价）
+ * @param builtinName GLSL 中内置变量名称（如 'gl_Position'、'gl_FragCoord' 等）
  * @returns Builtin 实例
+ * @internal 仅供 builtins.ts 内部使用
  */
-export function builtin(builtinName: 'position' | 'gl_Position' | 'front_facing' | 'gl_FrontFacing' | 'vertexIndex' | 'gl_VertexID' | 'fragCoord' | 'gl_FragCoord' | 'instance_index' | 'gl_InstanceID' | 'gl_FragColor'): Builtin
+export function builtin(builtinName: 'gl_Position' | 'gl_FrontFacing' | 'gl_VertexID' | 'gl_FragCoord' | 'gl_InstanceID' | 'gl_FragColor'): Builtin
 {
     return new Builtin(builtinName);
 }

@@ -1,4 +1,4 @@
-import { attribute, bool, builtin, clamp, dot, float, fragment, gl_Position, if_, mat4, normalize, precision, return_, sampler2D, texture2D, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { attribute, clamp, dot, float, fragment, gl_FrontFacing, gl_Position, if_, mat4, normalize, precision, return_, sampler2D, texture2D, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attribute
 const position = vec3(attribute('position')); // attribute vec3 position;
@@ -15,9 +15,6 @@ const texture = sampler2D(uniform('texture')); // uniform sampler2D texture;
 // Varying 变量
 const vUv = vec2(varying('vUv')); // varying vec2 vUv;
 const vNormal = vec3(varying('vNormal')); // varying vec3 vNormal;
-
-// Front facing builtin
-const gl_FrontFacing = bool(builtin('gl_FrontFacing')); // gl_FrontFacing
 
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>

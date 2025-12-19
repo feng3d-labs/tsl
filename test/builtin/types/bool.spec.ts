@@ -5,6 +5,7 @@ import { vec3 } from '../../../src/builtin/types/vec3';
 import { if_ } from '../../../src/builtin/if_';
 import { vertex } from '../../../src/vertex';
 import { fragment } from '../../../src/fragment';
+import { gl_FrontFacing } from '../../../src/builtin/builtins';
 
 // 模拟函数
 let currentFunc = {
@@ -73,7 +74,7 @@ describe('Bool', () => {
         });
 
         it('应该能够创建 bool builtin 实例', () => {
-            const b = bool(builtin('gl_FrontFacing'));
+            const b = gl_FrontFacing;
             expect(b.glslType).toBe('bool');
             expect(b.wgslType).toBe('bool');
             expect(b.dependencies.length).toBeGreaterThan(0);
@@ -82,7 +83,7 @@ describe('Bool', () => {
 
     describe('toGLSL', () => {
         it('应该生成正确的 gl_FrontFacing GLSL 代码', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
             expect(v.toGLSL()).toBe('gl_FrontFacing');
         });
 
@@ -97,7 +98,7 @@ describe('Bool', () => {
 
     describe('toWGSL', () => {
         it('应该生成正确的 front_facing WGSL 代码', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
             // Bool wrapping builtin returns the variable name
             expect(v.toWGSL()).toContain('frontFacing');
         });
@@ -113,14 +114,14 @@ describe('Bool', () => {
 
     describe('Bool.equals 方法', () => {
         it('应该生成正确的 bool 比较 GLSL 代码', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
             const result = v.equals(false);
 
             expect(result.toGLSL()).toBe('gl_FrontFacing == false');
         });
 
         it('应该返回 Bool 类型', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
             const result = v.equals(false);
 
             expect(result.glslType).toBe('bool');
@@ -151,7 +152,7 @@ describe('Bool', () => {
 
     describe('if_ 函数', () => {
         it('应该能够使用 bool 条件', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
             const result = v.equals(false);
 
             // 执行if_函数
@@ -162,7 +163,7 @@ describe('Bool', () => {
         });
 
         it('应该能够在顶点着色器中使用', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
 
             // 创建顶点着色器
             const vShader = vertex('main', () => {
@@ -175,7 +176,7 @@ describe('Bool', () => {
         });
 
         it('应该能够在片段着色器中使用', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
 
             // 创建片段着色器
             const fShader = fragment('main', () => {
@@ -195,14 +196,14 @@ describe('Bool', () => {
         });
 
         it('gl_FrontFacing 应该生成正确的 GLSL 代码', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
             expect(v.toGLSL()).toBe('gl_FrontFacing');
         });
     });
 
     describe('bool 类型与其他类型的交互', () => {
         it('应该能够与 vec3 类型一起使用', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
             const n = vec3(1.0, 2.0, 3.0);
 
             // 创建片段着色器

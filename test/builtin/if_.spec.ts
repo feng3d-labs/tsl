@@ -5,6 +5,7 @@ import { builtin } from '../../src/builtin/builtin';
 import { vec3 } from '../../src/builtin/types/vec3';
 import { vertex } from '../../src/vertex';
 import { fragment } from '../../src/fragment';
+import { gl_FrontFacing } from '../../src/builtin/builtins';
 
 // 模拟函数
 let currentFunc = {
@@ -79,7 +80,7 @@ describe('if_', () => {
 
     describe('if_ 函数', () => {
         it('应该能够使用 bool 条件', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
             const result = v.equals(false);
 
             // 执行if_函数
@@ -90,7 +91,7 @@ describe('if_', () => {
         });
 
         it('应该能够在顶点着色器中使用', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
 
             // 创建顶点着色器
             const vShader = vertex('main', () => {
@@ -103,7 +104,7 @@ describe('if_', () => {
         });
 
         it('应该能够在片段着色器中使用', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
 
             // 创建片段着色器
             const fShader = fragment('main', () => {
@@ -116,7 +117,7 @@ describe('if_', () => {
         });
 
         it('应该能够与 vec3 类型一起使用', () => {
-            const v = bool(builtin('gl_FrontFacing'));
+            const v = gl_FrontFacing;
             const n = vec3(1.0, 2.0, 3.0);
 
             // 创建片段着色器

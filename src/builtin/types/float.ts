@@ -82,6 +82,55 @@ export class Float implements ShaderValue
     }
 
     /**
+     * 小于比较运算
+     */
+    lessThan(other: Float | number): Bool
+    {
+        const result = new Bool();
+
+        if (typeof other === 'number')
+        {
+            result.toGLSL = () =>
+            {
+                const thisStr = this.toGLSL();
+
+                return `${thisStr} < ${formatNumber(other)}`;
+            };
+
+            result.toWGSL = () =>
+            {
+                const thisStr = this.toWGSL();
+
+                return `${thisStr} < ${formatNumber(other)}`;
+            };
+
+            result.dependencies = [...this.dependencies];
+        }
+        else
+        {
+            result.toGLSL = () =>
+            {
+                const thisStr = this.toGLSL();
+                const otherStr = other.toGLSL();
+
+                return `${thisStr} < ${otherStr}`;
+            };
+
+            result.toWGSL = () =>
+            {
+                const thisStr = this.toWGSL();
+                const otherStr = other.toWGSL();
+
+                return `${thisStr} < ${otherStr}`;
+            };
+
+            result.dependencies = [...this.dependencies, ...other.dependencies];
+        }
+
+        return result;
+    }
+
+    /**
      * 比较两个值是否相等
      */
     equals(other: Float | number): Bool

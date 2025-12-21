@@ -144,16 +144,8 @@ export class Fragment extends Func
             if (version === 2)
             {
                 lines.push('');
-                // 如果有 FragmentOutput，使用多个输出；否则检查是否有 fragColor；最后使用默认的单个输出
-                if (dependencies.fragmentOutput)
-                {
-                    const outputDecls = dependencies.fragmentOutput.toGLSLDefinitions();
-                    for (const decl of outputDecls)
-                    {
-                        lines.push(decl);
-                    }
-                }
-                else if (dependencies.fragColors.size > 0)
+                // 检查是否有 fragColor；如果有则生成多个输出声明；否则使用默认的单个输出
+                if (dependencies.fragColors.size > 0)
                 {
                     // 使用 fragColor 时，生成多个输出声明
                     const sortedFragColors = Array.from(dependencies.fragColors).sort((a, b) => a.location - b.location);
@@ -261,12 +253,8 @@ export class Fragment extends Func
                 lines.push(structLines.join('\n'));
             }
 
-            // 生成 FragmentOutput 结构体定义（如果有）
-            if (dependencies.fragmentOutput)
-            {
-                lines.push(dependencies.fragmentOutput.toWGSLDefinition());
-            }
-            else if (dependencies.fragColors.size > 0)
+            // 生成 FragmentOut 结构体定义（如果有 fragColor）
+            if (dependencies.fragColors.size > 0)
             {
                 // 使用 fragColor 时，生成 FragmentOut 结构体
                 const sortedFragColors = Array.from(dependencies.fragColors).sort((a, b) => a.location - b.location);
@@ -332,27 +320,22 @@ export class Fragment extends Func
             // 检测是否使用了 gl_FragColor
             const hasFragColorBuiltin = Array.from(dependencies.builtins).some(b => b.isFragColorOutput);
 
-            // 检测是否使用了 fragColor（直接使用，不通过 fragmentOutput）
+            // 检测是否使用了 fragColor
             const hasFragColors = dependencies.fragColors.size > 0;
 
             // 检查是否有返回语句（判断是否是空片段着色器，如深度-only 渲染）
-            // 使用 gl_FragColor、FragmentOutput 或 fragColor 时，视为有返回值
+            // 使用 gl_FragColor 或 fragColor 时，视为有返回值
             const hasReturn = hasFragColorBuiltin
-                || !!dependencies.fragmentOutput
                 || hasFragColors
                 || this.statements.some(stmt => stmt.toWGSL().includes('return'));
 
-            // 生成返回类型：如果有 FragmentOutput，使用多个输出；否则检查 fragColors；最后使用单个输出
+            // 生成返回类型：检查 fragColors；否则使用单个输出
             // 如果没有返回语句（空片段着色器），不添加返回类型
             let returnType: string | null;
             if (!hasReturn)
             {
                 // 空片段着色器，仅写深度，不需要返回类型
                 returnType = null;
-            }
-            else if (dependencies.fragmentOutput)
-            {
-                returnType = dependencies.fragmentOutput.toWGSLReturnType();
             }
             else if (hasFragColors)
             {
@@ -373,45 +356,8 @@ export class Fragment extends Func
                 lines.push(`fn ${this.name}${paramStr} {`);
             }
 
-            // 如果有 FragmentOutput，需要生成结构体变量并修改字段的 toWGSL 方法
-            if (dependencies.fragmentOutput)
-            {
-                const fragmentOutput = dependencies.fragmentOutput;
-                const structName = fragmentOutput.getStructName();
-                const outputVarName = 'output';
-
-                // 重写字段的 toWGSL 方法，使其返回 output.fieldName
-                for (const [fieldName, value] of Object.entries(fragmentOutput.fields))
-                {
-                    const shaderValue = value as ShaderValue;
-                    shaderValue.toWGSL = () => `${outputVarName}.${fieldName}`;
-                }
-
-                // 在函数体开头添加 var output: FragmentOut; 声明
-                lines.push(`    var ${outputVarName}: ${structName};`);
-
-                // 检查是否已经有 return 语句
-                const hasReturn = this.statements.some(stmt => (stmt as any)._isReturn);
-
-                // 生成函数体
-                this.statements.forEach(stmt =>
-                {
-                    const wgsl = stmt.toWGSL();
-                    // 处理多行语句，为每行添加缩进
-                    const stmtLines = wgsl.split('\n');
-                    for (const line of stmtLines)
-                    {
-                        lines.push(`    ${line}`);
-                    }
-                });
-
-                // 如果没有 return 语句，在函数体末尾添加 return output; 语句
-                if (!hasReturn)
-                {
-                    lines.push(`    return ${outputVarName};`);
-                }
-            }
-            else if (hasFragColors)
+            // 如果使用了 fragColor，需要生成结构体变量并返回
+            if (hasFragColors)
             {
                 // 使用 fragColor 时，需要声明结构体变量并返回
                 lines.push('    var output: FragmentOut;');

@@ -80,8 +80,7 @@ export class Vec4 implements ShaderValue
             {
                 const color = args[0] as FragColor;
 
-                // FragColor 的 toGLSL 和 toWGSL 会在 fragmentOutput 中被重写为字段名
-                // 这里先使用 color 的默认实现，后续会被 fragmentOutput 覆盖
+                // FragColor 的 toGLSL 和 toWGSL 使用 fragColor 定义的名称
                 this.toGLSL = () => color.toGLSL();
                 this.toWGSL = () => color.toWGSL();
                 this.dependencies = [color];

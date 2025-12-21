@@ -32,7 +32,6 @@ export { texture } from './builtin/texture';
 export { texture2D } from './builtin/texture2D';
 export { var_ } from './builtin/var';
 
-export * from './fragmentOutput';
 // 导出向量类型
 export { Bool } from './builtin/types/bool';
 export { Float } from './builtin/types/float';

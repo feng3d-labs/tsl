@@ -173,12 +173,65 @@ export class IfStatement implements IStatement
     toWGSL(): string
     {
         const conditionStr = this.condition.toWGSL();
-        // 为每个语句生成代码，并处理多行语句的缩进
-        const bodyLines: string[] = [];
+
+        // 收集所有语句的 WGSL 代码
+        const ifBodyStmts: string[] = [];
         for (const statement of this.statements)
         {
-            const stmtStr = statement.toWGSL();
-            // 如果语句包含多行，为每行添加缩进
+            ifBodyStmts.push(statement.toWGSL());
+        }
+
+        const elseBodyStmts: string[] = [];
+        for (const statement of this.elseStatements)
+        {
+            elseBodyStmts.push(statement.toWGSL());
+        }
+
+        // 检测并提取 textureSample 调用（WGSL 限制：textureSample 必须在 uniform control flow 中）
+        const textureSampleRegex = /textureSample\s*\([^)]+\)/g;
+        const hoistedSamples: Map<string, string> = new Map(); // textureSample 调用 -> 临时变量名
+        let sampleIndex = 0;
+
+        const extractTextureSamples = (code: string): string =>
+        {
+            return code.replace(textureSampleRegex, (match) =>
+            {
+                // 检查是否已经提取过相同的调用
+                if (hoistedSamples.has(match))
+                {
+                    return hoistedSamples.get(match)!;
+                }
+                // 创建新的临时变量
+                const tempVar = `_ts${sampleIndex++}`;
+                hoistedSamples.set(match, tempVar);
+
+                return tempVar;
+            });
+        };
+
+        // 处理 if 体和 else 体中的 textureSample 调用
+        const processedIfStmts = ifBodyStmts.map(stmt => extractTextureSamples(stmt));
+        const processedElseStmts = elseBodyStmts.map(stmt => extractTextureSamples(stmt));
+
+        // 如果有 textureSample 被提取，输出警告
+        if (hoistedSamples.size > 0)
+        {
+            console.warn(`[TSL] WGSL 限制：if 语句中检测到 ${hoistedSamples.size} 个 textureSample 调用，已自动移至 if 语句前。`);
+        }
+
+        // 构建结果
+        const resultLines: string[] = [];
+
+        // 添加提取的 textureSample 声明
+        for (const [sampleCall, varName] of hoistedSamples)
+        {
+            resultLines.push(`let ${varName} = ${sampleCall};`);
+        }
+
+        // 生成 if 体代码
+        const bodyLines: string[] = [];
+        for (const stmtStr of processedIfStmts)
+        {
             const lines = stmtStr.split('\n');
             for (const line of lines)
             {
@@ -186,24 +239,25 @@ export class IfStatement implements IStatement
             }
         }
 
-        let result = `if (${conditionStr}) {\n${bodyLines.join('\n')}\n}`;
+        let ifCode = `if (${conditionStr}) {\n${bodyLines.join('\n')}\n}`;
 
         // 生成 else 分支代码
-        if (this.elseStatements.length > 0)
+        if (processedElseStmts.length > 0)
         {
             const elseLines: string[] = [];
-            for (const statement of this.elseStatements)
+            for (const stmtStr of processedElseStmts)
             {
-                const stmtStr = statement.toWGSL();
                 const lines = stmtStr.split('\n');
                 for (const line of lines)
                 {
                     elseLines.push(`    ${line}`);
                 }
             }
-            result += ` else {\n${elseLines.join('\n')}\n}`;
+            ifCode += ` else {\n${elseLines.join('\n')}\n}`;
         }
 
-        return result;
+        resultLines.push(ifCode);
+
+        return resultLines.join('\n');
     }
 }

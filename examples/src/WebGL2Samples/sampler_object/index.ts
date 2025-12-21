@@ -40,8 +40,8 @@ document.addEventListener('DOMContentLoaded', async () =>
     // TSL 生成着色器代码
     const vertexGlsl = vertexShader.toGLSL(2);
     const fragmentGlsl = fragmentShader.toGLSL(2);
-    // const vertexWgsl = vertexShader.toWGSL();
-    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+    const vertexWgsl = vertexShader.toWGSL();
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     // 初始化 WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;

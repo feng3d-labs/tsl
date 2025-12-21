@@ -66,7 +66,8 @@ export class Array<T extends ShaderValue> implements ShaderValue
 
         result.toGLSL = () => `${this.toGLSL()}[${idxGLSL}]`;
         result.toWGSL = () => `${this.toWGSL()}[${idxWGSL}]`;
-        result.dependencies = typeof idx === 'number' ? [] : [idx];
+        // 将数组自身和索引添加到依赖中，以便依赖分析能够找到结构体定义
+        result.dependencies = typeof idx === 'number' ? [...this.dependencies] : [...this.dependencies, idx];
 
         return result;
     }

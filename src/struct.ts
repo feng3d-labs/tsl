@@ -114,6 +114,8 @@ export class Struct<T extends StructMembers>
                 {
                     // 数组成员
                     instance._setAccessPath(instanceName, instanceName, memberName);
+                    // 将 uniform 添加到依赖中，以便依赖分析能够找到结构体定义
+                    instance.dependencies = [uniformVar];
                     this[memberName] = instance;
                 }
                 else
@@ -121,7 +123,8 @@ export class Struct<T extends StructMembers>
                     // 普通类型函数（如 vec4、mat4）
                     instance.toGLSL = () => `${instanceName}.${memberName}`;
                     instance.toWGSL = () => `${instanceName}.${memberName}`;
-                    instance.dependencies = [];
+                    // 将 uniform 添加到依赖中，以便依赖分析能够找到结构体定义
+                    instance.dependencies = [uniformVar];
                     this[memberName] = instance;
                 }
                 continue;

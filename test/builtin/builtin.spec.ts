@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { gl_FragCoord, gl_FrontFacing, gl_InstanceID, gl_Position, gl_VertexID } from '../../src/builtin/builtins';
+import { int } from '../../src/builtin/types/int';
 
 describe('预定义 Builtins', () =>
 {
@@ -15,7 +16,8 @@ describe('预定义 Builtins', () =>
     {
         it('应该生成正确的 GLSL 代码', () =>
         {
-            expect(gl_VertexID.toGLSL()).toBe('uint(gl_VertexID)');
+            // gl_VertexID 在 GLSL 中是 int 类型，可以直接作为数组索引使用
+            expect(gl_VertexID.toGLSL()).toBe('gl_VertexID');
         });
 
         it('应该生成正确的 WGSL 代码', () =>
@@ -45,12 +47,27 @@ describe('预定义 Builtins', () =>
     {
         it('应该生成正确的 GLSL 代码', () =>
         {
-            expect(gl_InstanceID.toGLSL()).toBe('uint(gl_InstanceID)');
+            // gl_InstanceID 在 GLSL 中是 int 类型，可以直接作为数组索引使用
+            expect(gl_InstanceID.toGLSL()).toBe('gl_InstanceID');
         });
 
         it('应该生成正确的 WGSL 代码', () =>
         {
             expect(gl_InstanceID.toWGSL()).toBe('instanceIndex');
+        });
+
+        it('int(gl_InstanceID) 在 GLSL 中不需要类型转换', () =>
+        {
+            // gl_InstanceID 在 GLSL 中本身就是 int 类型，所以不需要 int() 转换
+            const instanceInt = int(gl_InstanceID);
+            expect(instanceInt.toGLSL()).toBe('gl_InstanceID');
+        });
+
+        it('int(gl_InstanceID) 在 WGSL 中需要 i32() 转换', () =>
+        {
+            // instance_index 在 WGSL 中是 u32 类型，需要转换为 i32
+            const instanceInt = int(gl_InstanceID);
+            expect(instanceInt.toWGSL()).toBe('i32(instanceIndex)');
         });
     });
 

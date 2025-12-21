@@ -84,8 +84,8 @@ describe('UInt', () => {
     describe('toGLSL', () => {
         it('应该生成正确的 gl_VertexID GLSL 代码', () => {
             const u = gl_VertexID;
-            // GLSL 中 gl_VertexID 是 int 类型，需要转换为 uint
-            expect(u.toGLSL()).toBe('uint(gl_VertexID)');
+            // gl_VertexID 在 GLSL 中是 int 类型，可以直接作为数组索引使用
+            expect(u.toGLSL()).toBe('gl_VertexID');
         });
 
         it('应该生成正确的 uint 字面量 GLSL 代码', () => {
@@ -156,8 +156,8 @@ describe('UInt', () => {
 
         it('gl_VertexID 应该生成正确的 GLSL 代码', () => {
             const u = gl_VertexID;
-            // GLSL 中 gl_VertexID 是 int 类型，需要转换为 uint
-            expect(u.toGLSL()).toBe('uint(gl_VertexID)');
+            // gl_VertexID 在 GLSL 中是 int 类型，可以直接作为数组索引使用
+            expect(u.toGLSL()).toBe('gl_VertexID');
         });
 
         it('gl_VertexID 应该生成正确的 WGSL 代码', () => {

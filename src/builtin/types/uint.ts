@@ -61,8 +61,16 @@ export class UInt implements ShaderValue
         {
             const builtin = args[0] as Builtin;
             this.dependencies = [builtin];
-            // gl_VertexID 在 GLSL 中是 int 类型，需要转换为 uint
-            this.toGLSL = () => `uint(${builtin.toGLSL()})`;
+            // gl_InstanceID 在 GLSL 中是 int 类型，可以直接作为数组索引使用
+            // gl_VertexID 在 GLSL 中也是 int 类型
+            if (builtin.isInstanceIndex || builtin.isVertexIndex)
+            {
+                this.toGLSL = () => builtin.toGLSL();
+            }
+            else
+            {
+                this.toGLSL = () => `uint(${builtin.toGLSL()})`;
+            }
             this.toWGSL = () => builtin.getFullWGSLVarName();
             builtin.value = this;
         }

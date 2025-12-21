@@ -79,8 +79,24 @@ export class Int implements ShaderValue
             // 从 UInt 转换为 Int
             const other = args[0] as UInt;
             this.dependencies = [other];
-            this.toGLSL = () => `int(${other.toGLSL()})`;
-            this.toWGSL = () => `i32(${other.toWGSL()})`;
+
+            // 检查是否来自 gl_InstanceID builtin（在 GLSL 中本身就是 int 类型）
+            const isFromInstanceIDBuiltin = other.dependencies?.some(
+                (dep) => dep instanceof Builtin && dep.isInstanceIndex
+            );
+
+            if (isFromInstanceIDBuiltin)
+            {
+                // gl_InstanceID 在 GLSL 中本身就是 int，不需要转换
+                const builtin = other.dependencies.find((dep) => dep instanceof Builtin) as Builtin;
+                this.toGLSL = () => builtin.toGLSL();
+                this.toWGSL = () => `i32(${other.toWGSL()})`;
+            }
+            else
+            {
+                this.toGLSL = () => `int(${other.toGLSL()})`;
+                this.toWGSL = () => `i32(${other.toWGSL()})`;
+            }
         }
         else
         {
@@ -137,14 +153,14 @@ export class Int implements ShaderValue
         if (typeof other === 'number')
         {
             const intValue = Math.floor(other);
-            result.toGLSL = () => `(${this.toGLSL()} % ${intValue})`;
-            result.toWGSL = () => `(${this.toWGSL()} % ${intValue})`;
+            result.toGLSL = () => `${this.toGLSL()} % ${intValue}`;
+            result.toWGSL = () => `${this.toWGSL()} % ${intValue}`;
             result.dependencies = [this];
         }
         else
         {
-            result.toGLSL = () => `(${this.toGLSL()} % ${other.toGLSL()})`;
-            result.toWGSL = () => `(${this.toWGSL()} % ${other.toWGSL()})`;
+            result.toGLSL = () => `${this.toGLSL()} % ${other.toGLSL()}`;
+            result.toWGSL = () => `${this.toWGSL()} % ${other.toWGSL()}`;
             result.dependencies = [this, other];
         }
 

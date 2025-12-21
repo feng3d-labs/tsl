@@ -1,136 +1,292 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { if_ } from '../../src/builtin/if_';
-import { bool } from '../../src/builtin/types/bool';
-import { builtin } from '../../src/builtin/builtin';
 import { vec3 } from '../../src/builtin/types/vec3';
+import { vec4 } from '../../src/builtin/types/vec4';
+import { vec2 } from '../../src/builtin/types/vec2';
+import { float } from '../../src/builtin/types/float';
 import { vertex } from '../../src/vertex';
 import { fragment } from '../../src/fragment';
 import { gl_FrontFacing } from '../../src/builtin/builtins';
+import { fragColor } from '../../src/builtin/fragColor';
+import { precision } from '../../src/precision';
+import { varying } from '../../src/varying';
+import { uniform } from '../../src/uniform';
+import { sampler2D } from '../../src/sampler2D';
+import { texture } from '../../src/builtin/texture';
 
-// 模拟函数
-let currentFunc = {
-    statements: [],
-    dependencies: [],
-};
-
-// 在vi.mock之前定义MockIfStatement，解决提升问题
-class MockIfStatement {
-    condition: any;
-    statements: any[];
-
-    constructor(condition: any) {
-        this.condition = condition;
-        this.statements = [];
-    }
-
-    beginBody(): void {}
-    endBody(): void {}
-}
-
-// 预先定义mock，解决提升问题
-vi.mock('../../src/currentFunc', () => ({
-    getCurrentFunc: () => currentFunc,
-}));
-
-vi.mock('../../src/ifStack', () => ({
-    pushIfStatement: () => {},
-    popIfStatement: () => {},
-    getCurrentIfStatement: () => null,
-}));
-
-// 使用内联定义的方式解决MockIfStatement未定义问题
-vi.mock('../../src/builtin/if_', async () => {
-    // 导入实际的模块
-    const actual = await vi.importActual('../../src/builtin/if_') as any;
-
-    // 在内联中重新定义MockIfStatement，避免提升问题
-    class MockIfStatement {
-        condition: any;
-        statements: any[];
-
-        constructor(condition: any) {
-            this.condition = condition;
-            this.statements = [];
-        }
-
-        beginBody(): void {}
-        endBody(): void {}
-    }
-
-    return {
-        ...actual,
-        IfStatement: MockIfStatement,
-        if_: actual.if_,
-    };
-});
-
-describe('if_', () => {
-    beforeEach(() => {
-        // 重置currentFunc
-        currentFunc = {
-            statements: [],
-            dependencies: [],
-        };
-    });
-
-    afterEach(() => {
-        // 清除所有模拟
-        vi.clearAllMocks();
-    });
-
-    describe('if_ 函数', () => {
-        it('应该能够使用 bool 条件', () => {
-            const v = gl_FrontFacing;
-            const result = v.equals(false);
-
-            // 执行if_函数
-            if_(result, () => {});
-
-            // 检查条件是否被正确添加到dependencies
-            expect(currentFunc.dependencies).toContain(result);
-        });
-
-        it('应该能够在顶点着色器中使用', () => {
+describe('if_', () =>
+{
+    describe('if_ 基本功能', () =>
+    {
+        it('应该能够在顶点着色器中使用', () =>
+        {
             const v = gl_FrontFacing;
 
-            // 创建顶点着色器
-            const vShader = vertex('main', () => {
+            const vShader = vertex('main', () =>
+            {
                 const result = v.equals(false);
                 if_(result, () => {});
             });
 
-            // 检查着色器是否成功创建
             expect(vShader).toBeDefined();
         });
 
-        it('应该能够在片段着色器中使用', () => {
+        it('应该能够在片段着色器中使用', () =>
+        {
             const v = gl_FrontFacing;
 
-            // 创建片段着色器
-            const fShader = fragment('main', () => {
+            const fShader = fragment('main', () =>
+            {
                 const result = v.equals(false);
                 if_(result, () => {});
             });
 
-            // 检查着色器是否成功创建
             expect(fShader).toBeDefined();
         });
 
-        it('应该能够与 vec3 类型一起使用', () => {
+        it('应该能够与 vec3 类型一起使用', () =>
+        {
             const v = gl_FrontFacing;
             const n = vec3(1.0, 2.0, 3.0);
 
-            // 创建片段着色器
-            const fShader = fragment('main', () => {
+            const fShader = fragment('main', () =>
+            {
                 const result = v.equals(false);
-                if_(result, () => {
+                if_(result, () =>
+                {
                     // 模拟对n的操作
-                    // assign(n, n.multiply(float(-1.0)));
                 });
             });
 
-            // 检查着色器是否成功创建
             expect(fShader).toBeDefined();
+        });
+    });
+
+    describe('if_.else() 链式调用', () =>
+    {
+        it('应该生成正确的 GLSL if-else 代码', () =>
+        {
+            const color = vec4(fragColor(0, 'color'));
+            const v_st = vec2(varying('v_st'));
+
+            const fShader = fragment('main', () =>
+            {
+                precision('highp', 'float');
+
+                if_(v_st.y.divide(v_st.x).lessThan(float(1.0)), () =>
+                {
+                    color.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                }).else(() =>
+                {
+                    color.assign(vec4(0.0, 0.0, 1.0, 1.0));
+                });
+            });
+
+            const glsl = fShader.toGLSL(2);
+
+            // 验证 if-else 结构
+            expect(glsl).toContain('if (');
+            expect(glsl).toContain('} else {');
+            expect(glsl).toContain('color = vec4(1.0, 0.0, 0.0, 1.0);');
+            expect(glsl).toContain('color = vec4(0.0, 0.0, 1.0, 1.0);');
+        });
+
+        it('应该生成正确的 WGSL if-else 代码', () =>
+        {
+            const color = vec4(fragColor(0, 'color'));
+            const v_st = vec2(varying('v_st'));
+
+            const fShader = fragment('main', () =>
+            {
+                precision('highp', 'float');
+
+                if_(v_st.y.divide(v_st.x).lessThan(float(1.0)), () =>
+                {
+                    color.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                }).else(() =>
+                {
+                    color.assign(vec4(0.0, 0.0, 1.0, 1.0));
+                });
+            });
+
+            const wgsl = fShader.toWGSL();
+
+            // 验证 if-else 结构
+            expect(wgsl).toContain('if (');
+            expect(wgsl).toContain('} else {');
+            expect(wgsl).toContain('output.color = vec4<f32>(1.0, 0.0, 0.0, 1.0);');
+            expect(wgsl).toContain('output.color = vec4<f32>(0.0, 0.0, 1.0, 1.0);');
+        });
+    });
+
+    describe('if 语句内纹理采样 (WGSL textureSample 自动提升)', () =>
+    {
+        it('应该在 WGSL 中将 textureSample 调用移至 if 语句前', () =>
+        {
+            const color = vec4(fragColor(0, 'color'));
+            const v_st = vec2(varying('v_st'));
+            const materialDiffuse0 = sampler2D(uniform('materialDiffuse0'));
+            const materialDiffuse1 = sampler2D(uniform('materialDiffuse1'));
+
+            // 模拟控制台警告
+            const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const fShader = fragment('main', () =>
+            {
+                precision('highp', 'float');
+
+                if_(v_st.y.divide(v_st.x).lessThan(float(1.0)), () =>
+                {
+                    color.assign(texture(materialDiffuse0, v_st));
+                }).else(() =>
+                {
+                    color.assign(texture(materialDiffuse1, v_st).multiply(0.77));
+                });
+            });
+
+            const wgsl = fShader.toWGSL();
+
+            // 验证 textureSample 被提升到 if 语句前
+            expect(wgsl).toContain('let _ts0 = textureSample(');
+            expect(wgsl).toContain('let _ts1 = textureSample(');
+
+            // 验证 if 语句内使用的是临时变量而不是 textureSample 调用
+            const ifIndex = wgsl.indexOf('if (');
+            const letIndex = wgsl.indexOf('let _ts0');
+            expect(letIndex).toBeLessThan(ifIndex);
+
+            // 验证 if 块内使用的是临时变量
+            expect(wgsl).toContain('output.color = _ts0;');
+            expect(wgsl).toContain('output.color = _ts1 * 0.77;');
+
+            // 验证发出了警告
+            expect(warnSpy).toHaveBeenCalledWith(
+                expect.stringContaining('[TSL] WGSL 限制'),
+            );
+
+            warnSpy.mockRestore();
+        });
+
+        it('GLSL 中 texture 调用应该保留在 if 语句内', () =>
+        {
+            const color = vec4(fragColor(0, 'color'));
+            const v_st = vec2(varying('v_st'));
+            const materialDiffuse0 = sampler2D(uniform('materialDiffuse0'));
+            const materialDiffuse1 = sampler2D(uniform('materialDiffuse1'));
+
+            const fShader = fragment('main', () =>
+            {
+                precision('highp', 'float');
+
+                if_(v_st.y.divide(v_st.x).lessThan(float(1.0)), () =>
+                {
+                    color.assign(texture(materialDiffuse0, v_st));
+                }).else(() =>
+                {
+                    color.assign(texture(materialDiffuse1, v_st).multiply(0.77));
+                });
+            });
+
+            const glsl = fShader.toGLSL(2);
+
+            // GLSL 中 texture 调用应该在 if 语句内
+            expect(glsl).toContain('color = texture(materialDiffuse0, v_st);');
+            expect(glsl).toContain('color = texture(materialDiffuse1, v_st) * 0.77;');
+
+            // 验证 texture 调用在 if 块内
+            const ifIndex = glsl.indexOf('if (');
+            const texture0Index = glsl.indexOf('texture(materialDiffuse0');
+            const texture1Index = glsl.indexOf('texture(materialDiffuse1');
+
+            expect(texture0Index).toBeGreaterThan(ifIndex);
+            expect(texture1Index).toBeGreaterThan(ifIndex);
+        });
+
+        it('WGSL textureSample 提升应该只警告一次（缓存机制）', () =>
+        {
+            const color = vec4(fragColor(0, 'color'));
+            const v_st = vec2(varying('v_st'));
+            const materialDiffuse0 = sampler2D(uniform('materialDiffuse0'));
+
+            const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const fShader = fragment('main', () =>
+            {
+                precision('highp', 'float');
+
+                if_(v_st.y.divide(v_st.x).lessThan(float(1.0)), () =>
+                {
+                    color.assign(texture(materialDiffuse0, v_st));
+                });
+            });
+
+            // 多次调用 toWGSL
+            fShader.toWGSL();
+            fShader.toWGSL();
+            fShader.toWGSL();
+
+            // 由于缓存机制，警告应该只出现一次
+            const warnCalls = warnSpy.mock.calls.filter(
+                call => call[0]?.includes?.('[TSL] WGSL 限制'),
+            );
+            expect(warnCalls.length).toBe(1);
+
+            warnSpy.mockRestore();
+        });
+    });
+
+    describe('if 语句代码缩进', () =>
+    {
+        it('GLSL if-else 代码应该正确缩进', () =>
+        {
+            const color = vec4(fragColor(0, 'color'));
+            const v_st = vec2(varying('v_st'));
+
+            const fShader = fragment('main', () =>
+            {
+                precision('highp', 'float');
+
+                if_(v_st.y.lessThan(float(0.5)), () =>
+                {
+                    color.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                }).else(() =>
+                {
+                    color.assign(vec4(0.0, 0.0, 1.0, 1.0));
+                });
+            });
+
+            const glsl = fShader.toGLSL(2);
+
+            // 验证函数体内的代码有正确缩进
+            expect(glsl).toContain('    if (');
+            expect(glsl).toContain('    } else {');
+            expect(glsl).toContain('    }');
+        });
+
+        it('WGSL if-else 代码应该正确缩进', () =>
+        {
+            const color = vec4(fragColor(0, 'color'));
+            const v_st = vec2(varying('v_st'));
+
+            const fShader = fragment('main', () =>
+            {
+                precision('highp', 'float');
+
+                if_(v_st.y.lessThan(float(0.5)), () =>
+                {
+                    color.assign(vec4(1.0, 0.0, 0.0, 1.0));
+                }).else(() =>
+                {
+                    color.assign(vec4(0.0, 0.0, 1.0, 1.0));
+                });
+            });
+
+            const wgsl = fShader.toWGSL();
+
+            // 验证函数体内的代码有正确缩进
+            expect(wgsl).toContain('    if (');
+            expect(wgsl).toContain('    } else {');
+            expect(wgsl).toContain('    }');
         });
     });
 });

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { array } from '../src/array';
-import { Array as TSLArray } from '../src/array';
-import { mat4 } from '../src/builtin/types/mat4';
-import { vec4 } from '../src/builtin/types/vec4';
+import { int, uniform, var_, vertex } from '../src';
+import { gl_Position } from '../src/builtin/builtins';
+import { array, Array as TSLArray } from '../src/array';
+import { Mat4, mat4 } from '../src/builtin/types/mat4';
+import { Vec4, vec4 } from '../src/builtin/types/vec4';
 import { struct } from '../src/struct';
-import { uniform } from '../src/uniform';
 
 describe('Array', () =>
 {
@@ -12,7 +12,8 @@ describe('Array', () =>
     {
         it('应该能够使用 mat4 函数创建数组类型', () =>
         {
-            const arr = array(mat4, 2);
+            const arr = var_('arr', array(mat4, 2));
+
             expect(arr).toBeInstanceOf(TSLArray);
             expect(arr.length).toBe(2);
             expect(arr.glslType).toBe('mat4');
@@ -21,7 +22,8 @@ describe('Array', () =>
 
         it('应该能够使用 vec4 函数创建数组类型', () =>
         {
-            const arr = array(vec4, 4);
+            const arr = var_('colors', array(vec4, 4));
+
             expect(arr).toBeInstanceOf(TSLArray);
             expect(arr.length).toBe(4);
             expect(arr.glslType).toBe('vec4');
@@ -31,47 +33,66 @@ describe('Array', () =>
 
     describe('Array.index()', () =>
     {
-        it('应该能够使用 index() 访问数组元素', () =>
+        it('应该能够使用数字索引访问数组元素', () =>
+        {
+            const arr = var_('arr', array(mat4, 2));
+
+            expect(arr.index(0)).toBeInstanceOf(Mat4);
+            expect(arr.index(1)).toBeInstanceOf(Mat4);
+            expect(arr.index(0).toGLSL()).toBe('arr[0]');
+            expect(arr.index(1).toGLSL()).toBe('arr[1]');
+            expect(arr.index(0).toWGSL()).toBe('arr[0]');
+            expect(arr.index(1).toWGSL()).toBe('arr[1]');
+        });
+
+        it('应该能够使用 Int 类型索引访问数组元素', () =>
+        {
+            const arr = var_('arr', array(vec4, 4));
+            const i = int(uniform('i'));
+
+            const element = arr.index(i);
+
+            expect(element).toBeInstanceOf(Vec4);
+            expect(element.toGLSL()).toBe('arr[i]');
+            expect(element.toWGSL()).toBe('arr[i]');
+            expect(element.dependencies).toContain(i);
+        });
+    });
+
+    describe('在 struct 中使用', () =>
+    {
+        it('应该能够作为 struct 成员使用', () =>
         {
             const Transform = struct('Transform', {
                 MVP: array(mat4, 2),
             });
 
             const transform = Transform(uniform('transform'));
-            const mvp0 = transform.MVP.index(0);
 
-            expect(mvp0.toGLSL()).toBe('transform.MVP[0]');
-            expect(mvp0.toWGSL()).toBe('Transform.MVP[0]');
+            expect(transform.MVP).toBeInstanceOf(TSLArray);
+            expect(transform.MVP.index(0).toGLSL()).toBe('transform.MVP[0]');
+            expect(transform.MVP.index(0).toWGSL()).toBe('Transform.MVP[0]');
+            expect(transform.MVP.index(1).toGLSL()).toBe('transform.MVP[1]');
+            expect(transform.MVP.index(1).toWGSL()).toBe('Transform.MVP[1]');
         });
-
-        it('应该能够访问不同索引的元素', () =>
-        {
-            const Material = struct('Material', {
-                colors: array(vec4, 4),
-            });
-
-            const material = Material(uniform('material'));
-
-            expect(material.colors.index(0).toGLSL()).toBe('material.colors[0]');
-            expect(material.colors.index(1).toGLSL()).toBe('material.colors[1]');
-            expect(material.colors.index(2).toGLSL()).toBe('material.colors[2]');
-            expect(material.colors.index(3).toGLSL()).toBe('material.colors[3]');
-        });
-
     });
 
-    describe('mat4 和 vec4 的静态类型属性', () =>
+    describe('着色器代码生成', () =>
     {
-        it('mat4 应该有 glslType 和 wgslType 属性', () =>
+        it('应该在顶点着色器中生成正确的数组声明', () =>
         {
-            expect(mat4.glslType).toBe('mat4');
-            expect(mat4.wgslType).toBe('mat4x4<f32>');
-        });
+            const shader = vertex('main', () =>
+            {
+                const positions = var_('positions', array(vec4, 3));
+                gl_Position.assign(positions.index(0));
+            });
 
-        it('vec4 应该有 glslType 和 wgslType 属性', () =>
-        {
-            expect(vec4.glslType).toBe('vec4');
-            expect(vec4.wgslType).toBe('vec4<f32>');
+            const glsl = shader.toGLSL();
+            expect(glsl).toContain('vec4 positions[3];');
+            expect(glsl).toContain('gl_Position = positions[0];');
+
+            const wgsl = shader.toWGSL();
+            expect(wgsl).toContain('var positions: array<vec4<f32>, 3>;');
         });
     });
 });

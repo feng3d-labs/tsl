@@ -1,6 +1,11 @@
+import { Array } from './array';
 import { IElement, ShaderValue } from './IElement';
 import { Uniform } from './uniform';
-import { Array } from './array';
+
+/**
+ * 数组工厂函数类型
+ */
+type ArrayFactory<T extends ShaderValue = any> = () => Array<T>;
 
 /**
  * 结构体成员类型
@@ -8,7 +13,7 @@ import { Array } from './array';
 export type StructMemberType = {
     glslType: string;
     wgslType: string;
-} | Array<any>;
+} | ArrayFactory;
 
 /**
  * 结构体成员定义
@@ -36,12 +41,13 @@ export class StructDefinition<T extends StructMembers>
     {
         const memberLines = Object.entries(this.members).map(([name, type]) =>
         {
-            if (type instanceof Array)
+            const arrayInstance = this._getArrayInstance(type);
+            if (arrayInstance)
             {
-                return `    ${type.glslType} ${name}[${type.length}];`;
+                return `    ${arrayInstance.glslType} ${name}[${arrayInstance.length}];`;
             }
 
-            return `    ${type.glslType} ${name};`;
+            return `    ${(type as any).glslType} ${name};`;
         });
 
         return `layout(std140, column_major) uniform;\nuniform ${this.name}\n{\n${memberLines.join('\n')}\n} ${instanceName};`;
@@ -54,15 +60,33 @@ export class StructDefinition<T extends StructMembers>
     {
         const memberLines = Object.entries(this.members).map(([name, type]) =>
         {
-            if (type instanceof Array)
+            const arrayInstance = this._getArrayInstance(type);
+            if (arrayInstance)
             {
-                return `    ${name}: array<${type.wgslType}, ${type.length}>`;
+                return `    ${name}: array<${arrayInstance.wgslType}, ${arrayInstance.length}>`;
             }
 
-            return `    ${name}: ${type.wgslType}`;
+            return `    ${name}: ${(type as any).wgslType}`;
         });
 
         return `struct ${this.name}Data\n{\n${memberLines.join(',\n')}\n}`;
+    }
+
+    /**
+     * 检查成员类型是否是数组工厂函数，并返回数组实例
+     */
+    private _getArrayInstance(type: StructMemberType): Array<any> | null
+    {
+        if (typeof type === 'function')
+        {
+            const instance = type();
+            if (instance instanceof Array)
+            {
+                return instance;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -95,22 +119,25 @@ export class Struct<T extends StructMembers>
         // 为每个成员创建访问器
         for (const [memberName, memberType] of Object.entries(definition.members))
         {
-            if (memberType instanceof Array)
+            // 检查是否是数组工厂函数
+            if (typeof memberType === 'function')
             {
-                // 创建新的 Array 实例并设置访问路径
-                const arrayInstance = new Array(memberType.elementType, memberType.length);
-                arrayInstance._setAccessPath(instanceName, definition.name, memberName);
-                this[memberName] = arrayInstance;
+                const arrayInstance = memberType();
+                if (arrayInstance instanceof Array)
+                {
+                    arrayInstance._setAccessPath(instanceName, definition.name, memberName);
+                    this[memberName] = arrayInstance;
+                    continue;
+                }
             }
-            else
-            {
-                this[memberName] = this._createMemberValue(
-                    instanceName,
-                    definition.name,
-                    memberName,
-                    memberType
-                );
-            }
+
+            // 普通成员
+            this[memberName] = this._createMemberValue(
+                instanceName,
+                definition.name,
+                memberName,
+                memberType as { glslType: string; wgslType: string },
+            );
         }
 
         // 设置 uniform 的 value 为特殊的结构体类型
@@ -129,7 +156,7 @@ export class Struct<T extends StructMembers>
     /**
      * 创建简单的 ShaderValue 成员
      */
-    private _createMemberValue(parentGLSL: string, parentWGSL: string, memberName: string, memberType: StructMemberType): ShaderValue
+    private _createMemberValue(parentGLSL: string, parentWGSL: string, memberName: string, memberType: { glslType: string; wgslType: string }): ShaderValue
     {
         return {
             glslType: memberType.glslType,
@@ -142,31 +169,20 @@ export class Struct<T extends StructMembers>
 }
 
 /**
- * 结构体构造函数类型
- */
-export type StructConstructor<T extends StructMembers> = {
-    (uniform: Uniform): T;
-    readonly _definition: StructDefinition<T>;
-};
-
-/**
  * 创建结构体定义
  * @param name 结构体名称
  * @param members 成员定义
  * @returns 结构体构造函数
  */
-export function struct<T extends StructMembers>(name: string, members: T): StructConstructor<T>
+export function struct<T extends StructMembers>(name: string, members: T): (uniform: Uniform) => (Struct<T> & T)
 {
     const definition = new StructDefinition(name, members);
 
     // 创建结构体构造函数
-    const constructor = ((uniformVar: Uniform): T =>
+    const constructor = ((uniformVar: Uniform): (Struct<T> & T) =>
     {
-        return new Struct<T>(uniformVar, definition) as unknown as T;
-    }) as StructConstructor<T>;
-
-    // 添加定义属性
-    (constructor as any)._definition = definition;
+        return new Struct<T>(uniformVar, definition) as unknown as (Struct<T> & T);
+    }) as (uniform: Uniform) => (Struct<T> & T);
 
     return constructor;
 }

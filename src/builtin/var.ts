@@ -2,6 +2,7 @@ import { ShaderValue } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
 import { getCurrentIfStatement } from '../ifStack';
 import { Float } from './types/float';
+import { Array } from '../array';
 
 /**
  * 创建一个带变量名的表达式（用于 WGSL 中的 var 语句）
@@ -37,8 +38,16 @@ export function var_(...args: any[]): any
         result = arg1();
         isTypeOnly = true;
 
-        result.toGLSL = () => `${name}`;
-        result.toWGSL = () => `${name}`;
+        // 如果是 Array 实例，设置变量名
+        if (result instanceof Array)
+        {
+            result._setVarName(name);
+        }
+        else
+        {
+            result.toGLSL = () => `${name}`;
+            result.toWGSL = () => `${name}`;
+        }
         result.dependencies = [];
 
         addStatement(name, result, result, true);
@@ -47,12 +56,21 @@ export function var_(...args: any[]): any
     else
     {
         const expr = arg1 as ShaderValue;
-        const cls = expr.constructor;
-        result = new (cls as any)();
 
-        result.toGLSL = () => `${name}`;
-        result.toWGSL = () => `${name}`;
-        result.dependencies = [expr];
+        // 如果是 Array 实例，直接使用并设置变量名
+        if (expr instanceof Array)
+        {
+            result = expr;
+            (result as Array<any>)._setVarName(name);
+        }
+        else
+        {
+            const cls = expr.constructor;
+            result = new (cls as any)();
+            result.toGLSL = () => `${name}`;
+            result.toWGSL = () => `${name}`;
+            result.dependencies = [expr];
+        }
 
         addStatement(name, result, expr, false);
     }
@@ -65,15 +83,34 @@ function addStatement(name: string, result: ShaderValue, expr: ShaderValue, isTy
     const currentFunc = getCurrentFunc();
     if (currentFunc)
     {
-        const stmt = isTypeOnly
-            ? {
-                toGLSL: () => `${expr.glslType} ${name};`,
-                toWGSL: () => `var ${name}: ${expr.wgslType};`,
-            }
-            : {
-                toGLSL: () => `${expr.glslType} ${name} = ${expr.toGLSL()};`,
-                toWGSL: () => `var ${name} = ${expr.toWGSL()};`,
-            };
+        let stmt: { toGLSL: () => string; toWGSL: () => string };
+
+        // 如果是数组类型
+        if (expr instanceof Array)
+        {
+            const arrLength = expr.length;
+            stmt = isTypeOnly
+                ? {
+                    toGLSL: () => `${expr.glslType} ${name}[${arrLength}];`,
+                    toWGSL: () => `var ${name}: array<${expr.wgslType}, ${arrLength}>;`,
+                }
+                : {
+                    toGLSL: () => `${expr.glslType} ${name}[${arrLength}];`,
+                    toWGSL: () => `var ${name}: array<${expr.wgslType}, ${arrLength}>;`,
+                };
+        }
+        else
+        {
+            stmt = isTypeOnly
+                ? {
+                    toGLSL: () => `${expr.glslType} ${name};`,
+                    toWGSL: () => `var ${name}: ${expr.wgslType};`,
+                }
+                : {
+                    toGLSL: () => `${expr.glslType} ${name} = ${expr.toGLSL()};`,
+                    toWGSL: () => `var ${name} = ${expr.toWGSL()};`,
+                };
+        }
 
         // 检查是否在 if 语句体中
         const currentIfStatement = getCurrentIfStatement();

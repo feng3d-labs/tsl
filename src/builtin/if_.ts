@@ -80,6 +80,7 @@ export class IfStatement implements IStatement
     readonly elseStatements: IStatement[] = [];
     private isBodyActive = false;
     private isElseBodyActive = false;
+    private _wgslCache?: string; // 缓存 WGSL 结果，避免重复计算和警告
 
     constructor(condition: Bool)
     {
@@ -172,6 +173,12 @@ export class IfStatement implements IStatement
 
     toWGSL(): string
     {
+        // 使用缓存避免重复计算和警告
+        if (this._wgslCache !== undefined)
+        {
+            return this._wgslCache;
+        }
+
         const conditionStr = this.condition.toWGSL();
 
         // 收集所有语句的 WGSL 代码
@@ -258,6 +265,8 @@ export class IfStatement implements IStatement
 
         resultLines.push(ifCode);
 
-        return resultLines.join('\n');
+        this._wgslCache = resultLines.join('\n');
+
+        return this._wgslCache;
     }
 }

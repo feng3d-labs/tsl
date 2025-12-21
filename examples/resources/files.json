@@ -41,6 +41,7 @@
 		"WebGL2Samples/sampler_filter",
 		"WebGL2Samples/sampler_wrap",
 		"WebGL2Samples/glsl_centroid",
-		"WebGL2Samples/glsl_flat_smooth_interpolators"
+		"WebGL2Samples/glsl_flat_smooth_interpolators",
+		"WebGL2Samples/glsl_non_square_matrix"
 	]
 }

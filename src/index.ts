@@ -48,6 +48,7 @@ export { ivec2 } from './builtin/types/ivec2';
 export { ivec3 } from './builtin/types/ivec3';
 export { ivec4 } from './builtin/types/ivec4';
 export { mat4 } from './builtin/types/mat4';
+export { mat4x3 } from './builtin/types/mat4x3';
 export { uint } from './builtin/types/uint';
 export { uvec2 } from './builtin/types/uvec2';
 export { uvec3 } from './builtin/types/uvec3';

@@ -1,6 +1,11 @@
 import { IElement, ShaderValue } from './IElement';
 
 /**
+ * 需要对齐的矩阵类型（在 WebGPU uniform buffer 中每列 vec3 需要按 vec4 对齐）
+ */
+const ALIGNED_MATRIX_TYPES = new Set(['mat2x3<f32>', 'mat3x3<f32>', 'mat4x3<f32>']);
+
+/**
  * Uniform 类
  * @internal 库外部不应直接使用 `new Uniform()`，应使用 `uniform()` 函数
  */
@@ -69,6 +74,17 @@ export class Uniform implements IElement
             throw new Error(`Uniform '${this.name}' 没有设置 value，无法生成 WGSL。`);
         }
         const wgslType = this.value.wgslType;
+
+        // 检测需要对齐的矩阵类型并显示警告
+        if (ALIGNED_MATRIX_TYPES.has(wgslType))
+        {
+            console.warn(
+                `[TSL] ${wgslType} uniform "${this.name}" 在 WebGPU uniform buffer 中需要对齐，建议避免使用。\n`
+                + `WebGPU uniform buffer 要求每列按 vec4 对齐（16 字节），会造成额外的内存开销和数据转换。\n`
+                + `建议使用 mat4 代替，或将数据拆分为多个 vec3/vec4 uniform。`
+            );
+        }
+
         const effectiveBinding = this.getEffectiveBinding();
         const effectiveGroup = this.getEffectiveGroup();
         const binding = effectiveBinding !== undefined ? `@binding(${effectiveBinding})` : '';

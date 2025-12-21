@@ -91,7 +91,7 @@ export class Bool implements ShaderValue
             return `${thisStr} == ${otherStr}`;
         };
 
-        result.dependencies = [...this.dependencies, ...(otherIsBool ? other.dependencies : [])];
+        result.dependencies = otherIsBool ? [this, other] : [this];
 
         return result;
     }

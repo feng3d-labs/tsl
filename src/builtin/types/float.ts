@@ -104,7 +104,7 @@ export class Float implements ShaderValue
                 return `${thisStr} < ${formatNumber(other)}`;
             };
 
-            result.dependencies = [...this.dependencies];
+            result.dependencies = [this];
         }
         else
         {
@@ -124,7 +124,7 @@ export class Float implements ShaderValue
                 return `${thisStr} < ${otherStr}`;
             };
 
-            result.dependencies = [...this.dependencies, ...other.dependencies];
+            result.dependencies = [this, other];
         }
 
         return result;
@@ -141,13 +141,13 @@ export class Float implements ShaderValue
         {
             result.toGLSL = () => `${this.toGLSL()} <= ${formatNumber(other)}`;
             result.toWGSL = () => `${this.toWGSL()} <= ${formatNumber(other)}`;
-            result.dependencies = [...this.dependencies];
+            result.dependencies = [this];
         }
         else
         {
             result.toGLSL = () => `${this.toGLSL()} <= ${other.toGLSL()}`;
             result.toWGSL = () => `${this.toWGSL()} <= ${other.toWGSL()}`;
-            result.dependencies = [...this.dependencies, ...other.dependencies];
+            result.dependencies = [this, other];
         }
 
         return result;
@@ -164,13 +164,13 @@ export class Float implements ShaderValue
         {
             result.toGLSL = () => `${this.toGLSL()} > ${formatNumber(other)}`;
             result.toWGSL = () => `${this.toWGSL()} > ${formatNumber(other)}`;
-            result.dependencies = [...this.dependencies];
+            result.dependencies = [this];
         }
         else
         {
             result.toGLSL = () => `${this.toGLSL()} > ${other.toGLSL()}`;
             result.toWGSL = () => `${this.toWGSL()} > ${other.toWGSL()}`;
-            result.dependencies = [...this.dependencies, ...other.dependencies];
+            result.dependencies = [this, other];
         }
 
         return result;
@@ -187,13 +187,13 @@ export class Float implements ShaderValue
         {
             result.toGLSL = () => `${this.toGLSL()} >= ${formatNumber(other)}`;
             result.toWGSL = () => `${this.toWGSL()} >= ${formatNumber(other)}`;
-            result.dependencies = [...this.dependencies];
+            result.dependencies = [this];
         }
         else
         {
             result.toGLSL = () => `${this.toGLSL()} >= ${other.toGLSL()}`;
             result.toWGSL = () => `${this.toWGSL()} >= ${other.toWGSL()}`;
-            result.dependencies = [...this.dependencies, ...other.dependencies];
+            result.dependencies = [this, other];
         }
 
         return result;
@@ -224,7 +224,7 @@ export class Float implements ShaderValue
                 return `${thisStr} == ${formatNumber(other)}`;
             };
 
-            result.dependencies = [...this.dependencies];
+            result.dependencies = [this];
         }
         else if (otherIsFloat)
         {
@@ -245,7 +245,7 @@ export class Float implements ShaderValue
                 return `${thisStr} == ${otherStr}`;
             };
 
-            result.dependencies = [...this.dependencies, ...other.dependencies];
+            result.dependencies = [this, other];
         }
         else
         {

@@ -291,7 +291,8 @@ import { select } from '@feng3d/tsl';
 
 // 三元条件选择
 // 生成 GLSL: (condition ? trueValue : falseValue)
-// 生成 WGSL: (condition ? trueValue : falseValue)
+// 生成 WGSL: select(falseValue, trueValue, condition)
+// 注意：WGSL 不支持三元运算符 ? :
 const result = select(condition, trueValue, falseValue);
 
 // 示例：v_attr >= 0 时使用插值颜色，否则使用黄色

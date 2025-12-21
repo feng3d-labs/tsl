@@ -13,9 +13,9 @@ import { formatNumber } from './formatNumber';
  * - 条件为 false 时返回 falseValue
  *
  * GLSL: 生成三元运算符 `(condition ? trueValue : falseValue)`
- * WGSL: 生成三元运算符 `(condition ? trueValue : falseValue)`
+ * WGSL: 生成内置函数 `select(falseValue, trueValue, condition)`
  *
- * 用于替代 GLSL/WGSL 中的 `cond ? a : b` 语法
+ * 注意：WGSL 不支持三元运算符 `? :`，必须使用 select() 内置函数
  *
  * @example
  * ```ts
@@ -42,7 +42,7 @@ export function select<T extends Float | Vec2 | Vec3 | Vec4>(
         const falseStrWGSL = () => typeof falseValue === 'number' ? `vec4<f32>(${formatNumber(falseValue)})` : falseValue.toWGSL();
 
         result.toGLSL = () => `(${condition.toGLSL()} ? ${trueStr()} : ${falseStr()})`;
-        result.toWGSL = () => `(${condition.toWGSL()} ? ${trueStrWGSL()} : ${falseStrWGSL()})`;
+        result.toWGSL = () => `select(${falseStrWGSL()}, ${trueStrWGSL()}, ${condition.toWGSL()})`;
         result.dependencies = [
             condition,
             ...(typeof trueValue === 'number' ? [] : [trueValue]),
@@ -61,7 +61,7 @@ export function select<T extends Float | Vec2 | Vec3 | Vec4>(
         const falseStrWGSL = () => typeof falseValue === 'number' ? `vec3<f32>(${formatNumber(falseValue)})` : falseValue.toWGSL();
 
         result.toGLSL = () => `(${condition.toGLSL()} ? ${trueStr()} : ${falseStr()})`;
-        result.toWGSL = () => `(${condition.toWGSL()} ? ${trueStrWGSL()} : ${falseStrWGSL()})`;
+        result.toWGSL = () => `select(${falseStrWGSL()}, ${trueStrWGSL()}, ${condition.toWGSL()})`;
         result.dependencies = [
             condition,
             ...(typeof trueValue === 'number' ? [] : [trueValue]),
@@ -80,7 +80,7 @@ export function select<T extends Float | Vec2 | Vec3 | Vec4>(
         const falseStrWGSL = () => typeof falseValue === 'number' ? `vec2<f32>(${formatNumber(falseValue)})` : falseValue.toWGSL();
 
         result.toGLSL = () => `(${condition.toGLSL()} ? ${trueStr()} : ${falseStr()})`;
-        result.toWGSL = () => `(${condition.toWGSL()} ? ${trueStrWGSL()} : ${falseStrWGSL()})`;
+        result.toWGSL = () => `select(${falseStrWGSL()}, ${trueStrWGSL()}, ${condition.toWGSL()})`;
         result.dependencies = [
             condition,
             ...(typeof trueValue === 'number' ? [] : [trueValue]),
@@ -98,7 +98,7 @@ export function select<T extends Float | Vec2 | Vec3 | Vec4>(
     const falseStrWGSL = () => typeof falseValue === 'number' ? formatNumber(falseValue) : falseValue.toWGSL();
 
     result.toGLSL = () => `(${condition.toGLSL()} ? ${trueStr()} : ${falseStr()})`;
-    result.toWGSL = () => `(${condition.toWGSL()} ? ${trueStrWGSL()} : ${falseStrWGSL()})`;
+    result.toWGSL = () => `select(${falseStrWGSL()}, ${trueStrWGSL()}, ${condition.toWGSL()})`;
     result.dependencies = [
         condition,
         ...(typeof trueValue === 'number' ? [] : [trueValue]),

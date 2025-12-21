@@ -69,20 +69,20 @@ document.addEventListener('DOMContentLoaded', async () =>
 {
     // TSL 生成着色器代码（变量名与导入的相同，便于调试切换）
     // 调试时：注释下面的 TSL 生成代码，取消上面原始着色器导入的注释
-    // const renderVertGlsl = renderVertexShader.toGLSL(2);
-    // const renderFragGlsl = renderFragmentShader.toGLSL(2);
-    // const renderVertWgsl = renderVertexShader.toWGSL();
-    // const renderFragWgsl = renderFragmentShader.toWGSL(renderVertexShader);
+    const renderVertGlsl = renderVertexShader.toGLSL(2);
+    const renderFragGlsl = renderFragmentShader.toGLSL(2);
+    const renderVertWgsl = renderVertexShader.toWGSL();
+    const renderFragWgsl = renderFragmentShader.toWGSL(renderVertexShader);
 
-    // const renderCentroidVertGlsl = renderCentroidVertexShader.toGLSL(2);
-    // const renderCentroidFragGlsl = renderCentroidFragmentShader.toGLSL(2);
-    // const renderCentroidVertWgsl = renderCentroidVertexShader.toWGSL();
-    // const renderCentroidFragWgsl = renderCentroidFragmentShader.toWGSL(renderCentroidVertexShader);
+    const renderCentroidVertGlsl = renderCentroidVertexShader.toGLSL(2);
+    const renderCentroidFragGlsl = renderCentroidFragmentShader.toGLSL(2);
+    const renderCentroidVertWgsl = renderCentroidVertexShader.toWGSL();
+    const renderCentroidFragWgsl = renderCentroidFragmentShader.toWGSL(renderCentroidVertexShader);
 
-    // const splashVertGlsl = splashVertexShader.toGLSL(2);
-    // const splashFragGlsl = splashFragmentShader.toGLSL(2);
-    // const splashVertWgsl = splashVertexShader.toWGSL();
-    // const splashFragWgsl = splashFragmentShader.toWGSL(splashVertexShader);
+    const splashVertGlsl = splashVertexShader.toGLSL(2);
+    const splashFragGlsl = splashFragmentShader.toGLSL(2);
+    const splashVertWgsl = splashVertexShader.toWGSL();
+    const splashFragWgsl = splashFragmentShader.toWGSL(splashVertexShader);
 
     // 初始化 WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;

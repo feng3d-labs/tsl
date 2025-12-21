@@ -3,22 +3,26 @@ import { IElement, ShaderValue } from './IElement';
 import { Uniform } from './uniform';
 
 /**
- * 数组工厂函数类型
+ * 类型工厂函数（如 vec4、mat4、array(mat4, 2) 等）
  */
-type ArrayFactory<T extends ShaderValue = any> = () => Array<T>;
+type TypeFactory<T extends ShaderValue = any> = (...args: any[]) => T;
 
 /**
  * 结构体成员类型
  */
-export type StructMemberType = {
-    glslType: string;
-    wgslType: string;
-} | ArrayFactory;
+export type StructMemberType = TypeFactory;
 
 /**
  * 结构体成员定义
  */
 export type StructMembers = Record<string, StructMemberType>;
+
+/**
+ * 将成员工厂函数类型映射为其返回值类型
+ */
+type ResolveMembers<T extends StructMembers> = {
+    [K in keyof T]: T[K] extends (...args: any[]) => infer R ? R : never;
+};
 
 /**
  * 结构体定义
@@ -41,13 +45,13 @@ export class StructDefinition<T extends StructMembers>
     {
         const memberLines = Object.entries(this.members).map(([name, type]) =>
         {
-            const arrayInstance = this._getArrayInstance(type);
-            if (arrayInstance)
+            const instance = type();
+            if (instance instanceof Array)
             {
-                return `    ${arrayInstance.glslType} ${name}[${arrayInstance.length}];`;
+                return `    ${instance.glslType} ${name}[${instance.length}];`;
             }
 
-            return `    ${(type as any).glslType} ${name};`;
+            return `    ${instance.glslType} ${name};`;
         });
 
         return `layout(std140, column_major) uniform;\nuniform ${this.name}\n{\n${memberLines.join('\n')}\n} ${instanceName};`;
@@ -60,33 +64,16 @@ export class StructDefinition<T extends StructMembers>
     {
         const memberLines = Object.entries(this.members).map(([name, type]) =>
         {
-            const arrayInstance = this._getArrayInstance(type);
-            if (arrayInstance)
-            {
-                return `    ${name}: array<${arrayInstance.wgslType}, ${arrayInstance.length}>`;
-            }
-
-            return `    ${name}: ${(type as any).wgslType}`;
-        });
-
-        return `struct ${this.name}Data\n{\n${memberLines.join(',\n')}\n}`;
-    }
-
-    /**
-     * 检查成员类型是否是数组工厂函数，并返回数组实例
-     */
-    private _getArrayInstance(type: StructMemberType): Array<any> | null
-    {
-        if (typeof type === 'function')
-        {
             const instance = type();
             if (instance instanceof Array)
             {
-                return instance;
+                return `    ${name}: array<${instance.wgslType}, ${instance.length}>`;
             }
-        }
 
-        return null;
+            return `    ${name}: ${instance.wgslType}`;
+        });
+
+        return `struct ${this.name}Data\n{\n${memberLines.join(',\n')}\n}`;
     }
 
     /**
@@ -119,22 +106,30 @@ export class Struct<T extends StructMembers>
         // 为每个成员创建访问器
         for (const [memberName, memberType] of Object.entries(definition.members))
         {
-            // 检查是否是数组工厂函数
+            // 检查是否是函数类型
             if (typeof memberType === 'function')
             {
-                const arrayInstance = memberType();
-                if (arrayInstance instanceof Array)
+                const instance = memberType();
+                if (instance instanceof Array)
                 {
-                    arrayInstance._setAccessPath(instanceName, definition.name, memberName);
-                    this[memberName] = arrayInstance;
-                    continue;
+                    // 数组成员
+                    instance._setAccessPath(instanceName, instanceName, memberName);
+                    this[memberName] = instance;
                 }
+                else
+                {
+                    // 普通类型函数（如 vec4、mat4）
+                    instance.toGLSL = () => `${instanceName}.${memberName}`;
+                    instance.toWGSL = () => `${instanceName}.${memberName}`;
+                    instance.dependencies = [];
+                    this[memberName] = instance;
+                }
+                continue;
             }
 
-            // 普通成员
+            // 普通成员（对象类型）
             this[memberName] = this._createMemberValue(
                 instanceName,
-                definition.name,
                 memberName,
                 memberType as { glslType: string; wgslType: string },
             );
@@ -156,14 +151,14 @@ export class Struct<T extends StructMembers>
     /**
      * 创建简单的 ShaderValue 成员
      */
-    private _createMemberValue(parentGLSL: string, parentWGSL: string, memberName: string, memberType: { glslType: string; wgslType: string }): ShaderValue
+    private _createMemberValue(instanceName: string, memberName: string, memberType: { glslType: string; wgslType: string }): ShaderValue
     {
         return {
             glslType: memberType.glslType,
             wgslType: memberType.wgslType,
             dependencies: [] as IElement[],
-            toGLSL: () => `${parentGLSL}.${memberName}`,
-            toWGSL: () => `${parentWGSL}.${memberName}`,
+            toGLSL: () => `${instanceName}.${memberName}`,
+            toWGSL: () => `${instanceName}.${memberName}`,
         };
     }
 }
@@ -174,15 +169,15 @@ export class Struct<T extends StructMembers>
  * @param members 成员定义
  * @returns 结构体构造函数
  */
-export function struct<T extends StructMembers>(name: string, members: T): (uniform: Uniform) => (Struct<T> & T)
+export function struct<T extends StructMembers>(name: string, members: T): (uniform: Uniform) => ResolveMembers<T>
 {
     const definition = new StructDefinition(name, members);
 
     // 创建结构体构造函数
-    const constructor = ((uniformVar: Uniform): (Struct<T> & T) =>
+    const constructor = ((uniformVar: Uniform): ResolveMembers<T> =>
     {
-        return new Struct<T>(uniformVar, definition) as unknown as (Struct<T> & T);
-    }) as (uniform: Uniform) => (Struct<T> & T);
+        return new Struct<T>(uniformVar, definition) as unknown as ResolveMembers<T>;
+    }) as (uniform: Uniform) => ResolveMembers<T>;
 
     return constructor;
 }

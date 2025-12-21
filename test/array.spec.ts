@@ -71,9 +71,9 @@ describe('Array', () =>
 
             expect(transform.MVP).toBeInstanceOf(TSLArray);
             expect(transform.MVP.index(0).toGLSL()).toBe('transform.MVP[0]');
-            expect(transform.MVP.index(0).toWGSL()).toBe('Transform.MVP[0]');
+            expect(transform.MVP.index(0).toWGSL()).toBe('transform.MVP[0]');
             expect(transform.MVP.index(1).toGLSL()).toBe('transform.MVP[1]');
-            expect(transform.MVP.index(1).toWGSL()).toBe('Transform.MVP[1]');
+            expect(transform.MVP.index(1).toWGSL()).toBe('transform.MVP[1]');
         });
     });
 

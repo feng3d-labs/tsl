@@ -17,8 +17,6 @@ import { Vec3 } from './vec3';
  */
 export class Vec4 implements ShaderValue
 {
-    static readonly glslType = 'vec4';
-    static readonly wgslType = 'vec4<f32>';
     readonly glslType = 'vec4';
     readonly wgslType = 'vec4<f32>';
 
@@ -474,10 +472,3 @@ export function vec4(...args: any[]): Vec4
 {
     return new (Vec4 as any)(...args);
 }
-
-// 添加静态类型信息，使 vec4 可以作为 array() 的参数
-vec4.glslType = 'vec4';
-vec4.wgslType = 'vec4<f32>';
-
-// 添加 new() 支持，使 vec4 可以作为类型构造函数使用
-(vec4 as any).prototype = Vec4.prototype;

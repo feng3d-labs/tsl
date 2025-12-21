@@ -131,6 +131,75 @@ export class Float implements ShaderValue
     }
 
     /**
+     * 小于等于比较运算
+     */
+    lessThanOrEqual(other: Float | number): Bool
+    {
+        const result = new Bool();
+
+        if (typeof other === 'number')
+        {
+            result.toGLSL = () => `${this.toGLSL()} <= ${formatNumber(other)}`;
+            result.toWGSL = () => `${this.toWGSL()} <= ${formatNumber(other)}`;
+            result.dependencies = [...this.dependencies];
+        }
+        else
+        {
+            result.toGLSL = () => `${this.toGLSL()} <= ${other.toGLSL()}`;
+            result.toWGSL = () => `${this.toWGSL()} <= ${other.toWGSL()}`;
+            result.dependencies = [...this.dependencies, ...other.dependencies];
+        }
+
+        return result;
+    }
+
+    /**
+     * 大于比较运算
+     */
+    greaterThan(other: Float | number): Bool
+    {
+        const result = new Bool();
+
+        if (typeof other === 'number')
+        {
+            result.toGLSL = () => `${this.toGLSL()} > ${formatNumber(other)}`;
+            result.toWGSL = () => `${this.toWGSL()} > ${formatNumber(other)}`;
+            result.dependencies = [...this.dependencies];
+        }
+        else
+        {
+            result.toGLSL = () => `${this.toGLSL()} > ${other.toGLSL()}`;
+            result.toWGSL = () => `${this.toWGSL()} > ${other.toWGSL()}`;
+            result.dependencies = [...this.dependencies, ...other.dependencies];
+        }
+
+        return result;
+    }
+
+    /**
+     * 大于等于比较运算
+     */
+    greaterThanOrEqual(other: Float | number): Bool
+    {
+        const result = new Bool();
+
+        if (typeof other === 'number')
+        {
+            result.toGLSL = () => `${this.toGLSL()} >= ${formatNumber(other)}`;
+            result.toWGSL = () => `${this.toWGSL()} >= ${formatNumber(other)}`;
+            result.dependencies = [...this.dependencies];
+        }
+        else
+        {
+            result.toGLSL = () => `${this.toGLSL()} >= ${other.toGLSL()}`;
+            result.toWGSL = () => `${this.toWGSL()} >= ${other.toWGSL()}`;
+            result.dependencies = [...this.dependencies, ...other.dependencies];
+        }
+
+        return result;
+    }
+
+    /**
      * 比较两个值是否相等
      */
     equals(other: Float | number): Bool

@@ -258,6 +258,126 @@ texture(diffuse, v.v_st)
 texture(depthMap, v.v_st).r
 ```
 
+### 数学函数
+
+```typescript
+import { sqrt, pow, sin, cos, mix, clamp, step, smoothstep, normalize, dot, max, exp } from '@feng3d/tsl';
+
+// 平方根
+const len = sqrt(x);
+
+// 幂运算
+const squared = pow(x, 2.0);
+
+// 线性插值
+const color = mix(colorA, colorB, t);  // 注意：使用函数而非方法
+
+// 钳制
+const clamped = clamp(value, 0.0, 1.0);
+
+// 阶跃
+const s = step(edge, x);
+
+// 平滑阶跃
+const ss = smoothstep(0.0, 1.0, x);
+```
+
+### 条件语句（if/else）
+
+**优先使用 `if_`/`else` 结构**，与原始 GLSL/WGSL 着色器保持一致：
+
+```typescript
+import { if_ } from '@feng3d/tsl';
+
+// if/else 条件判断
+// 生成 GLSL: if (condition) { ... } else { ... }
+// 生成 WGSL: if (condition) { ... } else { ... }
+if_(condition, () => {
+    // 条件满足时执行
+    color.assign(trueValue);
+}).else(() => {
+    // 条件不满足时执行
+    color.assign(falseValue);
+});
+
+// 示例：v_attr >= 0 时使用插值颜色，否则使用黄色
+const blue = vec4(0.0, 0.0, 1.0, 1.0);
+const yellow = vec4(1.0, 1.0, 0.0, 1.0);
+if_(v_attr.greaterThanOrEqual(0.0), () => {
+    color.assign(mix(blue, yellow, sqrt(v_attr)));
+}).else(() => {
+    color.assign(yellow);
+});
+```
+
+**仅 if 分支（无 else）：**
+
+```typescript
+if_(condition, () => {
+    // 仅在条件满足时执行
+    color.assign(red);
+});
+```
+
+**select 函数（简单三元运算）：**
+
+`select` 适用于简单的值选择场景，但为保持与原始着色器一致，建议优先使用 `if_`/`else`：
+
+```typescript
+import { select } from '@feng3d/tsl';
+
+// 生成 GLSL: condition ? trueValue : falseValue
+// 生成 WGSL: select(falseValue, trueValue, condition)
+const result = select(condition, trueValue, falseValue);
+```
+
+### 比较运算
+
+```typescript
+// Float 类型的比较方法
+const a = float(1.0);
+const b = float(2.0);
+
+a.lessThan(b)           // a < b
+a.lessThanOrEqual(b)    // a <= b
+a.greaterThan(b)        // a > b
+a.greaterThanOrEqual(b) // a >= b
+a.equals(b)             // a == b
+
+// 与数字比较
+a.greaterThanOrEqual(0.0)  // a >= 0.0
+```
+
+### Varying 插值选项
+
+```typescript
+// 普通 varying（默认 perspective + center 插值）
+const v_attr = float(varying('v_attr'));
+
+// 指定 location
+const v_color = vec4(varying('v_color', { location: 0 }));
+// 或使用简写形式（向后兼容）
+const v_color = vec4(varying('v_color', 0));
+
+// centroid 插值（避免多重采样时的边缘外推）
+const v_attr = float(varying('v_attr', { sampling: 'centroid' }));
+// 生成 GLSL: centroid in/out float v_attr;
+// 生成 WGSL: @location(0) @interpolate(perspective, centroid) v_attr: f32
+
+// flat 插值（不进行插值，使用第一个顶点的值）
+const v_id = int(varying('v_id', { interpolation: 'flat' }));
+
+// linear 插值（无透视校正）
+const v_ndc = vec2(varying('v_ndc', { interpolation: 'linear' }));
+
+// 完整选项
+const v_attr = float(varying('v_attr', {
+    location: 0,                    // WGSL location
+    interpolation: 'perspective',   // 'perspective' | 'linear' | 'flat'
+    sampling: 'centroid'            // 'center' | 'centroid' | 'sample'
+}));
+```
+
 ### 完整示例（带纹理）
 
 ```typescript
@@ -291,6 +411,10 @@ export const fragmentShader = fragment('main', () => {
 | 错误写法 | 正确写法 | 说明 |
 |---------|---------|------|
 | `mul(a, b)` | `a.multiply(b)` | 矩阵/向量乘法 |
+| `vec4.mix(other, t)` | `mix(a, b, t)` | 插值使用函数，非方法 |
+| `value >= 0.0` | `value.greaterThanOrEqual(0.0)` | 比较运算使用方法 |
+| `cond ? a : b` | `if_(cond, () => {...}).else(...)` | 条件判断优先用 if_/else |
+| `select(cond, a, b)` 用于复杂逻辑 | `if_(cond, ...).else(...)` | if/else 与原着色器一致 |
 | `sampler2D(uniform('name'))` | 旧写法 `sampler2D('name')` | 纹理采样器 |
 | 普通 sampler 用于深度纹理 | `depthSampler(uniform('depth'))` | 深度纹理需要特殊类型 |
 | WGSL 深度纹理用 `textureSample` | 用 `textureLoad` | 深度纹理不支持过滤采样 |
@@ -302,8 +426,11 @@ export const fragmentShader = fragment('main', () => {
 - `draw_primitive_restart/` - 基础模板（无纹理，双渲染）
 - `draw_range_arrays/` - 视口分割绘制（双渲染）
 - `draw_image_space/` - 纹理采样（双渲染）
+- `sampler_filter/` - 纹理过滤模式（4视口，双渲染）
+- `sampler_wrap/` - 纹理包裹模式（4视口，双渲染）
 - `fbo_multisample/` - 多重采样 + 两阶段渲染（双渲染）
 - `fbo_rtt_depth_texture/` - 深度纹理渲染（双渲染，深度纹理处理）
+- `glsl_centroid/` - centroid 插值（varying 插值选项，if_/else 条件语句）
 - `fbo_blit/` - 仅 WebGL 支持（BlitFramebuffer）
 - `webgl-examples/sample5/` - 完整 MVP 变换
 

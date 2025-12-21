@@ -61,12 +61,22 @@ export class Varying implements IElement
     /** 自动分配的 location */
     private _autoLocation?: number;
 
-    constructor(name: string, options?: VaryingOptions)
+    constructor(name: string, options?: VaryingOptions | number)
     {
         this.name = name;
-        this.location = options?.location;
-        this.interpolation = options?.interpolation ?? 'perspective';
-        this.sampling = options?.sampling ?? 'center';
+        // 兼容旧 API：如果第二个参数是数字，视为 location
+        if (typeof options === 'number')
+        {
+            this.location = options;
+            this.interpolation = 'perspective';
+            this.sampling = 'center';
+        }
+        else
+        {
+            this.location = options?.location;
+            this.interpolation = options?.interpolation ?? 'perspective';
+            this.sampling = options?.sampling ?? 'center';
+        }
     }
 
     /**

@@ -216,20 +216,16 @@ export class Varying implements IElement
  *
  * 使用方式：
  * - 基本用法：`const v_uv = vec2(varying('v_uv'))`
- * - 指定 location：`const v_uv = vec2(varying('v_uv', { location: 0 }))`
+ * - 指定 location：`const v_uv = vec2(varying('v_uv', 0))`
+ * - 使用选项对象：`const v_uv = vec2(varying('v_uv', { location: 0 }))`
  * - 使用 centroid 插值：`const v_attr = float(varying('v_attr', { sampling: 'centroid' }))`
  * - 使用 flat 插值：`const v_id = int(varying('v_id', { interpolation: 'flat' }))`
- *
- * @param name 变量名称（必需）
- * @param options 选项（可选）
- *   - location: WGSL location（可选，不指定则自动分配）
- *   - interpolation: 插值类型（'perspective' | 'linear' | 'flat'，默认 'perspective'）
- *   - sampling: 采样方式（'center' | 'centroid' | 'sample'，默认 'center'）
- * @returns Varying 实例
  */
+export function varying(name: string): Varying;
+export function varying(name: string, location: number): Varying;
+export function varying(name: string, options: VaryingOptions): Varying;
 export function varying(name: string, options?: VaryingOptions | number): Varying
 {
-    // 兼容旧 API：如果第二个参数是数字，视为 location
     if (typeof options === 'number')
     {
         return new Varying(name, { location: options });

@@ -219,14 +219,15 @@ export class Builtin implements IElement
     }
 }
 
+type BuiltinName = 'gl_Position' | 'gl_FrontFacing' | 'gl_VertexID' | 'gl_FragCoord' | 'gl_InstanceID' | 'gl_FragColor';
+
 /**
  * 创建内置变量引用
- * @param builtinName GLSL 中内置变量名称（如 'gl_Position'、'gl_FragCoord' 等）
- * @param varName WGSL 中使用的变量名称，同时也是生成结构体时的字段名称
- * @returns Builtin 实例
  * @internal 仅供 builtins.ts 内部使用
  */
-export function builtin(builtinName: 'gl_Position' | 'gl_FrontFacing' | 'gl_VertexID' | 'gl_FragCoord' | 'gl_InstanceID' | 'gl_FragColor', varName?: string): Builtin
+export function builtin(builtinName: BuiltinName): Builtin;
+export function builtin(builtinName: BuiltinName, varName: string): Builtin;
+export function builtin(builtinName: BuiltinName, varName?: string): Builtin
 {
     return new Builtin(builtinName, varName);
 }

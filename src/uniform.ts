@@ -100,11 +100,9 @@ export class Uniform implements IElement
 /**
  * 定义 uniform 变量
  * 类型通过 vec4()、vec3()、vec2() 等函数自动推断
- * @param name 变量名
- * @param group WGSL 绑定组（可选）
- * @param binding WGSL 绑定位置（可选）
- * @returns Uniform 实例
  */
+export function uniform(name: string): Uniform;
+export function uniform(name: string, group: number, binding: number): Uniform;
 export function uniform(name: string, group?: number, binding?: number): Uniform
 {
     return new Uniform(name, group, binding);

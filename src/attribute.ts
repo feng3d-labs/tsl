@@ -81,10 +81,9 @@ export class Attribute implements IElement
 /**
  * 定义 attribute 变量
  * 类型通过 vec2()、vec3()、vec4() 等函数自动推断
- * @param name 变量名
- * @param location WGSL location（可选）
- * @returns Attribute 实例
  */
+export function attribute(name: string): Attribute;
+export function attribute(name: string, location: number): Attribute;
 export function attribute(name: string, location?: number): Attribute
 {
     return new Attribute(name, location);

@@ -59,15 +59,15 @@ document.addEventListener('DOMContentLoaded', async () =>
 {
     // TSL 生成着色器代码（变量名与导入的相同，便于调试切换）
     // 调试时：注释下面的 TSL 生成代码，取消上面原始着色器导入的注释
-    // const flatVertGlsl = flatVertexShader.toGLSL(2);
-    // const flatFragGlsl = flatFragmentShader.toGLSL(2);
-    // const flatVertWgsl = flatVertexShader.toWGSL();
-    // const flatFragWgsl = flatFragmentShader.toWGSL(flatVertexShader);
+    const flatVertGlsl = flatVertexShader.toGLSL(2);
+    const flatFragGlsl = flatFragmentShader.toGLSL(2);
+    const flatVertWgsl = flatVertexShader.toWGSL();
+    const flatFragWgsl = flatFragmentShader.toWGSL(flatVertexShader);
 
-    // const smoothVertGlsl = smoothVertexShader.toGLSL(2);
-    // const smoothFragGlsl = smoothFragmentShader.toGLSL(2);
-    // const smoothVertWgsl = smoothVertexShader.toWGSL();
-    // const smoothFragWgsl = smoothFragmentShader.toWGSL(smoothVertexShader);
+    const smoothVertGlsl = smoothVertexShader.toGLSL(2);
+    const smoothFragGlsl = smoothFragmentShader.toGLSL(2);
+    const smoothVertWgsl = smoothVertexShader.toWGSL();
+    const smoothFragWgsl = smoothFragmentShader.toWGSL(smoothVertexShader);
 
     // 初始化 WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;

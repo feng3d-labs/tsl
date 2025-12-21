@@ -1,6 +1,86 @@
 import { ShaderValue } from '../IElement';
 
 /**
+ * 为 swizzle 操作包裹括号（如果需要）
+ * 规则：如果表达式包含运算符（非函数调用），则需要括号
+ * 例如：`mvNormal * vec4(normal, 0.0)` -> `(mvNormal * vec4(normal, 0.0))`
+ */
+export function wrapForSwizzle(expr: string): string
+{
+    // 如果是简单标识符，不需要括号
+    if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(expr))
+    {
+        return expr;
+    }
+
+    // 如果已经被括号包裹，不需要额外括号
+    if (expr.startsWith('(') && expr.endsWith(')'))
+    {
+        // 验证括号是否匹配（整个表达式被一对括号包裹）
+        let depth = 0;
+        for (let i = 0; i < expr.length; i++)
+        {
+            if (expr[i] === '(') depth++;
+            else if (expr[i] === ')') depth--;
+            // 如果在最后一个字符前深度就变为0，说明括号没有包裹整个表达式
+            if (depth === 0 && i < expr.length - 1)
+            {
+                break;
+            }
+        }
+        if (depth === 0)
+        {
+            return expr;
+        }
+    }
+
+    // 如果是函数调用（如 vec4(...), normalize(...)），不需要括号
+    const functionCallMatch = /^[a-zA-Z_][a-zA-Z0-9_<>]*\s*\(/.exec(expr);
+    if (functionCallMatch)
+    {
+        let depth = 0;
+        let i = functionCallMatch[0].length - 1;
+        for (; i < expr.length; i++)
+        {
+            if (expr[i] === '(') depth++;
+            else if (expr[i] === ')') depth--;
+            if (depth === 0)
+            {
+                // 如果到达表达式末尾，说明是纯函数调用
+                if (i === expr.length - 1)
+                {
+                    return expr;
+                }
+                break;
+            }
+        }
+    }
+
+    // 如果包含运算符，需要括号
+    // 检查是否有顶层运算符（不在括号内的运算符）
+    let depth = 0;
+    for (let i = 0; i < expr.length; i++)
+    {
+        const char = expr[i];
+        if (char === '(' || char === '[') depth++;
+        else if (char === ')' || char === ']') depth--;
+        else if (depth === 0 && (char === '+' || char === '-' || char === '*' || char === '/' || char === '%'))
+        {
+            // 排除负数的情况（如果 - 在表达式开头或在运算符后面）
+            if (char === '-' && (i === 0 || /[+\-*/%(\[]/.test(expr[i - 1])))
+            {
+                continue;
+            }
+
+            // 发现顶层运算符，需要括号
+            return `(${expr})`;
+        }
+    }
+
+    return expr;
+}
+
+/**
  * 检测表达式字符串是否包含运算符
  */
 function hasOperator(expr: string): boolean

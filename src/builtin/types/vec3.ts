@@ -3,7 +3,7 @@ import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
 import { Assign } from '../assign';
-import { formatOperand } from '../expressionUtils';
+import { formatOperand, wrapForSwizzle } from '../expressionUtils';
 import { formatNumber } from '../formatNumber';
 import { Float } from './float';
 import { Vec2 } from './vec2';
@@ -119,8 +119,8 @@ export class Vec3 implements ShaderValue
     get x(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.x`;
-        float.toWGSL = () => `${this.toWGSL()}.x`;
+        float.toGLSL = () => `${wrapForSwizzle(this.toGLSL())}.x`;
+        float.toWGSL = () => `${wrapForSwizzle(this.toWGSL())}.x`;
         float.dependencies = [this];
 
         return float;
@@ -132,8 +132,8 @@ export class Vec3 implements ShaderValue
     get y(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.y`;
-        float.toWGSL = () => `${this.toWGSL()}.y`;
+        float.toGLSL = () => `${wrapForSwizzle(this.toGLSL())}.y`;
+        float.toWGSL = () => `${wrapForSwizzle(this.toWGSL())}.y`;
         float.dependencies = [this];
 
         return float;
@@ -145,8 +145,8 @@ export class Vec3 implements ShaderValue
     get z(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.z`;
-        float.toWGSL = () => `${this.toWGSL()}.z`;
+        float.toGLSL = () => `${wrapForSwizzle(this.toGLSL())}.z`;
+        float.toWGSL = () => `${wrapForSwizzle(this.toWGSL())}.z`;
         float.dependencies = [this];
 
         return float;
@@ -158,8 +158,8 @@ export class Vec3 implements ShaderValue
     get r(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.r`;
-        float.toWGSL = () => `${this.toWGSL()}.r`;
+        float.toGLSL = () => `${wrapForSwizzle(this.toGLSL())}.r`;
+        float.toWGSL = () => `${wrapForSwizzle(this.toWGSL())}.r`;
         float.dependencies = [this];
 
         return float;
@@ -171,8 +171,8 @@ export class Vec3 implements ShaderValue
     get g(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.g`;
-        float.toWGSL = () => `${this.toWGSL()}.g`;
+        float.toGLSL = () => `${wrapForSwizzle(this.toGLSL())}.g`;
+        float.toWGSL = () => `${wrapForSwizzle(this.toWGSL())}.g`;
         float.dependencies = [this];
 
         return float;
@@ -184,8 +184,8 @@ export class Vec3 implements ShaderValue
     get b(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.b`;
-        float.toWGSL = () => `${this.toWGSL()}.b`;
+        float.toGLSL = () => `${wrapForSwizzle(this.toGLSL())}.b`;
+        float.toWGSL = () => `${wrapForSwizzle(this.toWGSL())}.b`;
         float.dependencies = [this];
 
         return float;

@@ -4,7 +4,7 @@ import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
 import { Assign } from '../assign';
 import { Builtin } from '../builtin';
-import { formatOperand } from '../expressionUtils';
+import { formatOperand, wrapForSwizzle } from '../expressionUtils';
 import { formatNumber } from '../formatNumber';
 import { Float } from './float';
 
@@ -129,8 +129,8 @@ export class Vec2 implements ShaderValue
     get x(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.x`;
-        float.toWGSL = () => `${this.toWGSL()}.x`;
+        float.toGLSL = () => `${wrapForSwizzle(this.toGLSL())}.x`;
+        float.toWGSL = () => `${wrapForSwizzle(this.toWGSL())}.x`;
         float.dependencies = [this];
 
         return float;
@@ -143,16 +143,16 @@ export class Vec2 implements ShaderValue
     get y(): Float
     {
         const float = new Float();
-        float.toGLSL = () => `${this.toGLSL()}.y`;
+        float.toGLSL = () => `${wrapForSwizzle(this.toGLSL())}.y`;
 
         // 对于 gl_FragCoord，WGSL 中使用负值来解决 Y 轴翻转
         if (this._builtin && this._builtin.isFragCoord)
         {
-            float.toWGSL = () => `(-${this.toWGSL()}.y)`;
+            float.toWGSL = () => `(-${wrapForSwizzle(this.toWGSL())}.y)`;
         }
         else
         {
-            float.toWGSL = () => `${this.toWGSL()}.y`;
+            float.toWGSL = () => `${wrapForSwizzle(this.toWGSL())}.y`;
         }
         float.dependencies = [this];
 

@@ -65,10 +65,10 @@ document.addEventListener('DOMContentLoaded', async () =>
     };
 
     // 生成着色器代码
-    const vertexGlsl = vertexShader.toGLSL(2);
-    const fragmentGlsl = fragmentShader.toGLSL(2);
-    const vertexWgsl = vertexShader.toWGSL();
-    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+    // const vertexGlsl = vertexShader.toGLSL(2);
+    // const fragmentGlsl = fragmentShader.toGLSL(2);
+    // const vertexWgsl = vertexShader.toWGSL();
+    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     // 渲染管线 - 使用生成的着色器代码
     const program: RenderPipeline = {

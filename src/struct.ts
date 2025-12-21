@@ -73,15 +73,15 @@ export class StructDefinition<T extends StructMembers>
             return `    ${name}: ${instance.wgslType}`;
         });
 
-        return `struct ${this.name}Data\n{\n${memberLines.join(',\n')}\n}`;
+        return `struct ${this.name}\n{\n${memberLines.join(',\n')}\n}`;
     }
 
     /**
      * 生成 WGSL uniform 声明
      */
-    toWGSLUniform(uniformName: string, group: number, binding: number): string
+    toWGSLUniform(instanceName: string, group: number, binding: number): string
     {
-        return `@group(${group}) @binding(${binding}) var<uniform> ${this.name}: ${this.name}Data;`;
+        return `@group(${group}) @binding(${binding}) var<uniform> ${instanceName}: ${this.name};`;
     }
 }
 
@@ -138,9 +138,9 @@ export class Struct<T extends StructMembers>
         // 设置 uniform 的 value 为特殊的结构体类型
         uniformVar.value = {
             glslType: definition.name,
-            wgslType: `${definition.name}Data`,
+            wgslType: definition.name,
             toGLSL: () => instanceName,
-            toWGSL: () => definition.name,
+            toWGSL: () => instanceName,
             dependencies: [],
             _isStruct: true,
             _structDef: definition,

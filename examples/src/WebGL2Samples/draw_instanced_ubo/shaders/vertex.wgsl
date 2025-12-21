@@ -1,8 +1,8 @@
 // Transform UBO - 与 bindingResources 的 key 对应
-struct TransformData {
+struct Transform {
     MVP: array<mat4x4<f32>, 2>
 }
-@group(0) @binding(0) var<uniform> Transform: TransformData;
+@group(0) @binding(0) var<uniform> transform: Transform;
 
 struct VertexInput {
     @location(0) pos: vec2<f32>,
@@ -19,7 +19,7 @@ fn main(input: VertexInput) -> VertexOutput {
     var output: VertexOutput;
     
     output.instance = i32(input.instance_index);
-    output.position = Transform.MVP[input.instance_index] * vec4<f32>(input.pos, 0.0, 1.0);
+    output.position = transform.MVP[input.instance_index] * vec4<f32>(input.pos, 0.0, 1.0);
     
     return output;
 }

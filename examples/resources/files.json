@@ -39,6 +39,7 @@
 		"WebGL2Samples/buffer_copy",
 		"WebGL2Samples/sampler_object",
 		"WebGL2Samples/sampler_filter",
-		"WebGL2Samples/sampler_wrap"
+		"WebGL2Samples/sampler_wrap",
+		"WebGL2Samples/glsl_centroid"
 	]
 }

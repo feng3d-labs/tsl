@@ -7,6 +7,7 @@ export * from './sampler2D';
 export * from './sampler2DArray';
 export * from './depthSampler';
 export * from './uniform';
+export * from './uniformBlock';
 export * from './varying';
 // 导出 builtin 类型和工具函数
 export { acos } from './builtin/acos';

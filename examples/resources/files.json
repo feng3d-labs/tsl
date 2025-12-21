@@ -43,6 +43,7 @@
 		"WebGL2Samples/glsl_centroid",
 		"WebGL2Samples/glsl_flat_smooth_interpolators",
 		"WebGL2Samples/glsl_non_square_matrix",
-		"WebGL2Samples/query_occlusion"
+		"WebGL2Samples/query_occlusion",
+		"WebGL2Samples/draw_instanced_ubo"
 	]
 }

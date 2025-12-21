@@ -346,6 +346,109 @@ a.equals(b)             // a == b
 a.greaterThanOrEqual(0.0)  // a >= 0.0
 ```
 
+### Uniform Buffer Object (UBO) 和数组索引
+
+**使用 `uniformBlock` 定义包含数组的 UBO：**
+
+```typescript
+import { uniformBlock, gl_InstanceID, int, Mat4ArrayMember, Vec4ArrayMember, varying, vec4 } from '@feng3d/tsl';
+
+// 定义 Transform UBO（包含 MVP 矩阵数组）
+const Transform = uniformBlock({
+    blockName: 'Transform',
+    instanceName: 'transform',
+    members: [
+        { name: 'MVP', type: 'mat4', length: 2 }
+    ]
+});
+
+// 定义 Material UBO（包含颜色数组）
+const Material = uniformBlock({
+    blockName: 'Material',
+    instanceName: 'material',
+    members: [
+        { name: 'Diffuse', type: 'vec4', length: 2 }
+    ]
+});
+
+// flat varying 传递实例 ID
+const v_instance = int(varying('v_instance', { interpolation: 'flat' }));
+
+// 在顶点着色器中使用数组索引（需要类型断言）
+v_instance.assign(int(gl_InstanceID));
+const mvp = (Transform.MVP as Mat4ArrayMember).index(gl_InstanceID);  // 根据实例 ID 索引 MVP
+gl_Position.assign(mvp.multiply(vec4(pos, 0.0, 1.0)));
+
+// 在片段着色器中使用数组索引（需要类型断言）
+const color = (Material.Diffuse as Vec4ArrayMember).index(v_instance);  // 根据实例 ID 索引颜色
+return_(color);
+```
+
+**类型断言说明**：由于 `UniformBlock` 的动态属性使用 `[key: string]: any` 索引签名，TypeScript 无法自动推断成员类型，因此需要手动添加类型断言：
+- `mat4` 数组成员使用 `as Mat4ArrayMember`
+- `vec4` 数组成员使用 `as Vec4ArrayMember`
+
+**绑定资源传递 UBO 数据：**
+
+```typescript
+const renderObject = {
+    bindingResources: {
+        Transform: {
+            value: {
+                MVP: [mvp0Float32Array, mvp1Float32Array]
+            }
+        },
+        Material: {
+            value: {
+                Diffuse: [
+                    [1.0, 0.5, 0.0, 1.0],  // 橙色
+                    [0.0, 0.5, 1.0, 1.0]   // 蓝色
+                ]
+            }
+        }
+    },
+    // ...
+};
+```
+
+**GLSL 生成代码：**
+
+```glsl
+layout(std140, column_major) uniform;
+uniform Transform {
+    mat4 MVP[2];
+} transform;
+// 使用: transform.MVP[gl_InstanceID]
+```
+
+**WGSL 生成代码：**
+
+```wgsl
+@group(0) @binding(0) var<uniform> MVP: array<mat4x4<f32>, 2>;
+// 使用: MVP[input.instance_index]
+```
+
+**支持的数组元素类型：**
+- `mat4` - 4x4 矩阵
+- `vec4` - 4 维向量
+
+### 整数类型操作
+
+```typescript
+// Int 类型
+const v_instance = int(varying('v_instance', { interpolation: 'flat' }));
+
+// 赋值
+v_instance.assign(int(gl_InstanceID));
+v_instance.assign(0);
+
+// 比较
+v_instance.equals(0)  // v_instance == 0
+
+// 从 UInt 转换为 Int
+const intVal = int(gl_InstanceID);  // gl_InstanceID 是 UInt
+```
+
 ### Varying 插值选项
 
 ```typescript
@@ -424,6 +527,8 @@ export const fragmentShader = fragment('main', () => {
 - `draw_primitive_restart/` - 基础模板（无纹理，双渲染）
 - `draw_range_arrays/` - 视口分割绘制（双渲染）
 - `draw_image_space/` - 纹理采样（双渲染）
+- `draw_instanced_ubo/` - UBO 和数组索引（uniformBlock，gl_InstanceID）
+- `query_occlusion/` - 遮挡查询（OcclusionQuery）
 - `sampler_filter/` - 纹理过滤模式（4视口，双渲染）
 - `sampler_wrap/` - 纹理包裹模式（4视口，双渲染）
 - `fbo_multisample/` - 多重采样 + 两阶段渲染（双渲染）

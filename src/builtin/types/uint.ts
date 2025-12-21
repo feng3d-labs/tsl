@@ -4,6 +4,7 @@ import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
 import { Builtin } from '../builtin';
 import { formatOperand } from '../expressionUtils';
+import { Bool } from './bool';
 
 /**
  * UInt 类，用于表示无符号整数类型（uint/u32）
@@ -131,6 +132,29 @@ export class UInt implements ShaderValue
             return `${left} % ${right}`;
         };
         result.dependencies = typeof other === 'number' ? [this] : [this, other];
+
+        return result;
+    }
+
+    /**
+     * 等于比较
+     */
+    equals(other: UInt | number): Bool
+    {
+        const result = new Bool();
+        if (typeof other === 'number')
+        {
+            const uintValue = Math.floor(other);
+            result.toGLSL = () => `(${this.toGLSL()} == ${uintValue}u)`;
+            result.toWGSL = () => `(${this.toWGSL()} == ${uintValue}u)`;
+            result.dependencies = [this];
+        }
+        else
+        {
+            result.toGLSL = () => `(${this.toGLSL()} == ${other.toGLSL()})`;
+            result.toWGSL = () => `(${this.toWGSL()} == ${other.toWGSL()})`;
+            result.dependencies = [this, other];
+        }
 
         return result;
     }

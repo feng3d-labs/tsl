@@ -2,7 +2,10 @@ import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
 import { Varying } from '../../varying';
+import { Assign } from '../assign';
 import { Builtin } from '../builtin';
+import { Bool } from './bool';
+import { UInt } from './uint';
 
 /**
  * Int 类，用于表示整数类型（int/i32）
@@ -23,7 +26,8 @@ export class Int implements ShaderValue
     constructor(varying: Varying);
     constructor(builtin: Builtin);
     constructor(value: number);
-    constructor(...args: (number | Uniform | Attribute | Varying | Builtin)[])
+    constructor(other: UInt);
+    constructor(...args: (number | Uniform | Attribute | Varying | Builtin | UInt)[])
     {
         if (args.length === 0)
         {
@@ -70,10 +74,58 @@ export class Int implements ShaderValue
             this.toWGSL = () => `${intValue}`;
             this.dependencies = [];
         }
+        else if (args.length === 1 && args[0] instanceof UInt)
+        {
+            // 从 UInt 转换为 Int
+            const other = args[0] as UInt;
+            this.dependencies = [other];
+            this.toGLSL = () => `int(${other.toGLSL()})`;
+            this.toWGSL = () => `i32(${other.toWGSL()})`;
+        }
         else
         {
             throw new Error('Invalid arguments for Int');
         }
+    }
+
+    /**
+     * 赋值操作
+     * @param value 要赋值的表达式
+     */
+    assign(value: Int | number): void
+    {
+        if (typeof value === 'number')
+        {
+            const intVal = new Int(value);
+            new Assign(this, intVal);
+        }
+        else
+        {
+            new Assign(this, value);
+        }
+    }
+
+    /**
+     * 等于比较
+     */
+    equals(other: Int | number): Bool
+    {
+        const result = new Bool();
+        if (typeof other === 'number')
+        {
+            const intValue = Math.floor(other);
+            result.toGLSL = () => `(${this.toGLSL()} == ${intValue})`;
+            result.toWGSL = () => `(${this.toWGSL()} == ${intValue})`;
+            result.dependencies = [this];
+        }
+        else
+        {
+            result.toGLSL = () => `(${this.toGLSL()} == ${other.toGLSL()})`;
+            result.toWGSL = () => `(${this.toWGSL()} == ${other.toWGSL()})`;
+            result.dependencies = [this, other];
+        }
+
+        return result;
     }
 }
 
@@ -85,7 +137,8 @@ export function int(attribute: Attribute): Int;
 export function int(varying: Varying): Int;
 export function int(builtin: Builtin): Int;
 export function int(value: number): Int;
-export function int(...args: (number | Uniform | Attribute | Varying | Builtin)[]): Int
+export function int(other: UInt): Int;
+export function int(...args: (number | Uniform | Attribute | Varying | Builtin | UInt)[]): Int
 {
     return new (Int as any)(...args);
 }

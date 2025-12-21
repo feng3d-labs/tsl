@@ -128,10 +128,22 @@ export class Fragment extends Func
                 lines.push(varying.toGLSL());
             }
 
-            // 生成 uniforms（只包含实际使用的）
+            // 收集结构体 uniform 的名称
+            const structUniformNames = new Set(dependencies.structUniforms.map(s => s.uniform.name));
+
+            // 生成结构体 uniform（UBO 声明）
+            for (const structInfo of dependencies.structUniforms)
+            {
+                lines.push(structInfo.structDef.toGLSLBlock(structInfo.instanceName));
+            }
+
+            // 生成普通 uniforms（排除结构体 uniform）
             for (const uniform of dependencies.uniforms)
             {
-                lines.push(uniform.toGLSL());
+                if (!structUniformNames.has(uniform.name))
+                {
+                    lines.push(uniform.toGLSL());
+                }
             }
 
             // 生成 samplers（只包含实际使用的）
@@ -267,10 +279,30 @@ export class Fragment extends Func
                 lines.push(structLines.join('\n'));
             }
 
-            // 生成 uniforms（只包含实际使用的）
+            // 收集结构体 uniform 的名称
+            const structUniformNames = new Set(dependencies.structUniforms.map(s => s.uniform.name));
+
+            // 生成结构体定义
+            for (const structInfo of dependencies.structUniforms)
+            {
+                lines.push(structInfo.structDef.toWGSLStruct());
+            }
+
+            // 生成结构体 uniform 声明
+            for (const structInfo of dependencies.structUniforms)
+            {
+                const effectiveBinding = structInfo.uniform.getEffectiveBinding() ?? 0;
+                const effectiveGroup = structInfo.uniform.getEffectiveGroup();
+                lines.push(structInfo.structDef.toWGSLUniform(structInfo.instanceName, effectiveGroup, effectiveBinding));
+            }
+
+            // 生成普通 uniforms（排除结构体 uniform）
             for (const uniform of dependencies.uniforms)
             {
-                lines.push(uniform.toWGSL());
+                if (!structUniformNames.has(uniform.name))
+                {
+                    lines.push(uniform.toWGSL());
+                }
             }
 
             // 生成 samplers（只包含实际使用的）

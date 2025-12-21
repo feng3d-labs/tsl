@@ -3,9 +3,22 @@ import { FragColor } from './builtin/fragColor';
 import { Builtin } from './builtin/builtin';
 import { Precision } from './precision';
 import { Sampler } from './sampler';
+import { StructDefinition } from './struct';
 import { Uniform } from './uniform';
 import { Varying } from './varying';
 import { ShaderValue } from './IElement';
+
+// 注意：不能直接导入 Array，因为会与全局 Array 冲突，使用 StructDefinition 中的类型
+
+/**
+ * 结构体 uniform 信息
+ */
+export interface StructUniformInfo
+{
+    uniform: Uniform;
+    structDef: StructDefinition<any>;
+    instanceName: string;
+}
 
 /**
  * 分析后的依赖结果接口
@@ -20,6 +33,7 @@ export interface AnalyzedDependencies
     builtins: Set<Builtin>;
     fragColors: Set<FragColor>;
     externalVars: Array<{ name: string; expr: ShaderValue }>;
+    structUniforms: StructUniformInfo[];
 }
 
 /**
@@ -37,6 +51,7 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
     const fragColors = new Set<FragColor>();
     const externalVars = new Map<string, { name: string; expr: ShaderValue }>();
     const precisions = new Set<Precision>();
+    const structUniformsMap = new Map<Uniform, StructUniformInfo>();
     const visited = new WeakSet();
 
     const analyzeValue = (value: any): void =>
@@ -60,6 +75,17 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
         if (value instanceof Uniform)
         {
             uniforms.add(value);
+
+            // 检查是否是结构体 uniform
+            if (value.value && (value.value as any)._isStruct)
+            {
+                const structValue = value.value as any;
+                structUniformsMap.set(value, {
+                    uniform: value,
+                    structDef: structValue._structDef,
+                    instanceName: structValue._instanceName,
+                });
+            }
 
             return;
         }
@@ -138,6 +164,16 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
         analyzeValue(dep);
     }
 
-    return { attributes, uniforms, precisions, varyings, samplers, builtins, fragColors, externalVars: Array.from(externalVars.values()) };
+    return {
+        attributes,
+        uniforms,
+        precisions,
+        varyings,
+        samplers,
+        builtins,
+        fragColors,
+        externalVars: Array.from(externalVars.values()),
+        structUniforms: Array.from(structUniformsMap.values()),
+    };
 }
 

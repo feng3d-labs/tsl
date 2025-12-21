@@ -127,6 +127,29 @@ export class Int implements ShaderValue
 
         return result;
     }
+
+    /**
+     * 取模运算
+     */
+    mod(other: Int | number): Int
+    {
+        const result = new Int();
+        if (typeof other === 'number')
+        {
+            const intValue = Math.floor(other);
+            result.toGLSL = () => `(${this.toGLSL()} % ${intValue})`;
+            result.toWGSL = () => `(${this.toWGSL()} % ${intValue})`;
+            result.dependencies = [this];
+        }
+        else
+        {
+            result.toGLSL = () => `(${this.toGLSL()} % ${other.toGLSL()})`;
+            result.toWGSL = () => `(${this.toWGSL()} % ${other.toWGSL()})`;
+            result.dependencies = [this, other];
+        }
+
+        return result;
+    }
 }
 
 /**

@@ -9,6 +9,8 @@ import { Vec4 } from './vec4';
  */
 export class Mat4 implements ShaderValue
 {
+    static readonly glslType = 'mat4';
+    static readonly wgslType = 'mat4x4<f32>';
     readonly glslType = 'mat4';
     readonly wgslType = 'mat4x4<f32>';
 

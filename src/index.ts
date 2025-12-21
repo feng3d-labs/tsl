@@ -1,3 +1,5 @@
+// 只导出 array 函数，Array 类与全局 Array 冲突
+export { array, Array as TSLArray } from './array';
 export * from './attribute';
 export * from './fragment';
 export * from './func';
@@ -6,8 +8,9 @@ export * from './sampler';
 export * from './sampler2D';
 export * from './sampler2DArray';
 export * from './depthSampler';
+export { struct, Struct, StructDefinition } from './struct';
+export type { StructMembers, StructMemberType, StructConstructor } from './struct';
 export * from './uniform';
-export * from './uniformBlock';
 export * from './varying';
 // 导出 builtin 类型和工具函数
 export { acos } from './builtin/acos';
@@ -44,11 +47,11 @@ export { Vec4 } from './builtin/types/vec4';
 // 导出向量构造函数
 export { bool } from './builtin/types/bool';
 export { float } from './builtin/types/float';
-export { int } from './builtin/types/int';
+export { int, Int } from './builtin/types/int';
 export { ivec2 } from './builtin/types/ivec2';
 export { ivec3 } from './builtin/types/ivec3';
 export { ivec4 } from './builtin/types/ivec4';
-export { mat4 } from './builtin/types/mat4';
+export { mat4, Mat4 } from './builtin/types/mat4';
 export { mat4x3 } from './builtin/types/mat4x3';
 export { uint } from './builtin/types/uint';
 export { uvec2 } from './builtin/types/uvec2';

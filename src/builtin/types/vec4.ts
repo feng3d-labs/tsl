@@ -17,6 +17,8 @@ import { Vec3 } from './vec3';
  */
 export class Vec4 implements ShaderValue
 {
+    static readonly glslType = 'vec4';
+    static readonly wgslType = 'vec4<f32>';
     readonly glslType = 'vec4';
     readonly wgslType = 'vec4<f32>';
 

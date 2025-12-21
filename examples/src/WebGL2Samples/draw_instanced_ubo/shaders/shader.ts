@@ -1,25 +1,21 @@
-import { attribute, fragment, gl_InstanceID, gl_Position, int, Mat4ArrayMember, precision, return_, uniformBlock, varying, vec2, vec4, Vec4ArrayMember, vertex } from '@feng3d/tsl';
+import { array, attribute, fragment, gl_FragColor, gl_InstanceID, gl_Position, int, Mat4, precision, struct, uniform, varying, vec2, vec4, Vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
 const pos = vec2(attribute('pos', 0));
 
 // 定义 Transform UBO（包含 MVP 矩阵数组）
-const Transform = uniformBlock({
-    blockName: 'Transform',
-    instanceName: 'transform',
-    members: [
-        { name: 'MVP', type: 'mat4', length: 2 }
-    ]
+const Transform = struct('Transform', {
+    MVP: array(Mat4, 2),
 });
 
+const transform = Transform(uniform('transform'));
+
 // 定义 Material UBO（包含颜色数组）
-const Material = uniformBlock({
-    blockName: 'Material',
-    instanceName: 'material',
-    members: [
-        { name: 'Diffuse', type: 'vec4', length: 2 }
-    ]
+const Material = struct('Material', {
+    Diffuse: array(Vec4, 2),
 });
+
+const material = Material(uniform('material'));
 
 // varying 变量 - flat 插值（与原示例一致使用 instance 命名）
 const instance = int(varying('instance', { interpolation: 'flat' }));
@@ -33,11 +29,8 @@ export const vertexShader = vertex('main', () =>
     // 传递实例 ID 到片段着色器
     instance.assign(int(gl_InstanceID));
 
-    // 根据实例 ID 索引对应的 MVP 矩阵（使用类型断言）
-    const mvp = (Transform.MVP as Mat4ArrayMember).index(gl_InstanceID);
-
     // 计算位置
-    gl_Position.assign(mvp.multiply(vec4(pos, 0.0, 1.0)));
+    gl_Position.assign(transform.MVP.index(gl_InstanceID).multiply(vec4(pos, 0.0, 1.0)));
 });
 
 // 片段着色器
@@ -47,10 +40,5 @@ export const fragmentShader = fragment('main', () =>
     precision('highp', 'int');
 
     // 根据实例 ID 索引对应的颜色（使用类型断言）
-    const color = (Material.Diffuse as Vec4ArrayMember).index(instance);
-
-    return_(color);
+    gl_FragColor.assign(material.Diffuse.index(instance.mod(2)));
 });
-
-// 导出 UBO 定义，供 index.ts 使用
-export { Transform, Material };

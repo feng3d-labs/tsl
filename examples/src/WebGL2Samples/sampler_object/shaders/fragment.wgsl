@@ -9,9 +9,16 @@ struct FragmentInput {
 
 @fragment
 fn main(input: FragmentInput) -> @location(0) vec4<f32> {
-    if (input.v_st.y / input.v_st.x < 1.0) {
-        return textureSample(materialDiffuse0_texture, materialDiffuse0, input.v_st);
+    // 在 uniform control flow 中先采样两个纹理
+    let color0 = textureSample(materialDiffuse0_texture, materialDiffuse0, input.v_st);
+    let color1 = textureSample(materialDiffuse1_texture, materialDiffuse1, input.v_st) * 0.77;
+    
+    // 使用 select 根据条件选择结果
+    var color: vec4<f32>;
+    if(input.v_st.y / input.v_st.x < 1.0){
+        color = color0;
     } else {
-        return textureSample(materialDiffuse1_texture, materialDiffuse1, input.v_st) * 0.77;
+        color = color1;
     }
+    return color;
 }

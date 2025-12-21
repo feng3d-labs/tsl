@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { int, uniform, var_, vertex } from '../src';
-import { gl_Position } from '../src/builtin/builtins';
+import { attribute, fragment, int, uniform, var_, varying, vertex } from '../src';
+import { gl_FragColor, gl_InstanceID, gl_Position } from '../src/builtin/builtins';
 import { array, Array as TSLArray } from '../src/array';
 import { Mat4, mat4 } from '../src/builtin/types/mat4';
 import { Vec4, vec4 } from '../src/builtin/types/vec4';
+import { vec2 } from '../src/builtin/types/vec2';
 import { struct } from '../src/struct';
 
 describe('Array', () =>
@@ -93,6 +94,51 @@ describe('Array', () =>
 
             const wgsl = shader.toWGSL();
             expect(wgsl).toContain('var positions: array<vec4<f32>, 3>;');
+        });
+    });
+
+    describe('动态索引', () =>
+    {
+        it('应该支持使用 gl_InstanceID 作为数组索引', () =>
+        {
+            const pos = vec2(attribute('pos', 0));
+
+            const Transform = struct('Transform', {
+                MVP: array(mat4, 2),
+            });
+            const transform = Transform(uniform('transform'));
+
+            const vertexShader = vertex('main', () =>
+            {
+                gl_Position.assign(transform.MVP.index(gl_InstanceID).multiply(vec4(pos, 0.0, 1.0)));
+            });
+
+            const glsl = vertexShader.toGLSL(2);
+            expect(glsl).toContain('transform.MVP[gl_InstanceID]');
+
+            const wgsl = vertexShader.toWGSL();
+            expect(wgsl).toContain('transform.MVP[instanceIndex]');
+        });
+
+        it('应该在索引计算中正确处理表达式', () =>
+        {
+            const Material = struct('Material', {
+                Diffuse: array(vec4, 4),
+            });
+            const material = Material(uniform('material'));
+
+            const instance = int(varying('instance', { interpolation: 'flat' }));
+
+            const fragmentShader = fragment('main', () =>
+            {
+                gl_FragColor.assign(material.Diffuse.index(instance.mod(4)));
+            });
+
+            const glsl = fragmentShader.toGLSL(2);
+            expect(glsl).toContain('material.Diffuse[instance % 4]');
+
+            const wgsl = fragmentShader.toWGSL();
+            expect(wgsl).toContain('material.Diffuse[v.instance % 4]');
         });
     });
 });

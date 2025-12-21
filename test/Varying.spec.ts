@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { Varying, varying } from '../src/varying';
 import { vec2 } from '../src/builtin/types/vec2';
 import { vec4 } from '../src/builtin/types/vec4';
+import { int } from '../src/builtin/types/int';
 import { vertex } from '../src/vertex';
 import { fragment } from '../src/fragment';
-import { return_ } from '../src/index';
-import { gl_Position } from '../src/builtin/builtins';
+import { array, int as intFunc, return_, struct, uniform } from '../src/index';
+import { gl_FragColor, gl_InstanceID, gl_Position } from '../src/builtin/builtins';
 import { buildShader } from '../src/buildShader';
 
 describe('Varying', () =>
@@ -191,6 +192,109 @@ describe('Varying', () =>
             expect(wgsl).toContain('v: VaryingStruct');
             // 应该使用 v.v_st 访问
             expect(wgsl).toContain('v.v_st');
+        });
+    });
+
+    describe('WGSL @interpolate(flat) 属性', () =>
+    {
+        it('应该为整数类型 varying 添加 @interpolate(flat) 属性', () =>
+        {
+            const instance = intFunc(varying('instance', { interpolation: 'flat' }));
+
+            const vertexShader = vertex('main', () =>
+            {
+                instance.assign(intFunc(gl_InstanceID));
+                gl_Position.assign(vec4(0.0, 0.0, 0.0, 1.0));
+            });
+
+            const wgsl = vertexShader.toWGSL();
+
+            expect(wgsl).toContain('@location(0) @interpolate(flat) instance: i32');
+        });
+
+        it('应该在片段着色器中也包含 @interpolate(flat) 属性', () =>
+        {
+            const Material = struct('Material', {
+                Diffuse: array(vec4, 2),
+            });
+            const material = Material(uniform('material'));
+
+            const instance = intFunc(varying('instance', { interpolation: 'flat' }));
+
+            const vertexShader = vertex('main', () =>
+            {
+                instance.assign(intFunc(gl_InstanceID));
+                gl_Position.assign(vec4(0.0, 0.0, 0.0, 1.0));
+            });
+
+            const fragmentShader = fragment('main', () =>
+            {
+                gl_FragColor.assign(material.Diffuse.index(instance.mod(2)));
+            });
+
+            vertexShader.toWGSL();
+
+            const wgsl = fragmentShader.toWGSL(vertexShader);
+
+            expect(wgsl).toContain('@location(0) @interpolate(flat) instance: i32');
+        });
+    });
+
+    describe('Fragment shader 中 varying 访问路径', () =>
+    {
+        it('应该在片段着色器中使用 v.xxx 格式访问 varying', () =>
+        {
+            const Material = struct('Material', {
+                Diffuse: array(vec4, 2),
+            });
+            const material = Material(uniform('material'));
+
+            const instance = intFunc(varying('instance', { interpolation: 'flat' }));
+
+            const vertexShader = vertex('main', () =>
+            {
+                instance.assign(intFunc(gl_InstanceID));
+                gl_Position.assign(vec4(0.0, 0.0, 0.0, 1.0));
+            });
+
+            const fragmentShader = fragment('main', () =>
+            {
+                gl_FragColor.assign(material.Diffuse.index(instance.mod(2)));
+            });
+
+            vertexShader.toWGSL();
+
+            const wgsl = fragmentShader.toWGSL(vertexShader);
+
+            expect(wgsl).toContain('v: VaryingStruct');
+            expect(wgsl).toContain('v.instance');
+        });
+
+        it('应该在数组索引中正确使用 v.xxx 格式', () =>
+        {
+            const Material = struct('Material', {
+                Diffuse: array(vec4, 2),
+            });
+            const material = Material(uniform('material'));
+
+            const instance = intFunc(varying('instance', { interpolation: 'flat' }));
+
+            const vertexShader = vertex('main', () =>
+            {
+                instance.assign(intFunc(gl_InstanceID));
+                gl_Position.assign(vec4(0.0, 0.0, 0.0, 1.0));
+            });
+
+            const fragmentShader = fragment('main', () =>
+            {
+                gl_FragColor.assign(material.Diffuse.index(instance.mod(2)));
+            });
+
+            vertexShader.toWGSL();
+
+            const wgsl = fragmentShader.toWGSL(vertexShader);
+
+            expect(wgsl).toContain('material.Diffuse[v.instance % 2]');
         });
     });
 });

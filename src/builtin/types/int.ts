@@ -82,7 +82,7 @@ export class Int implements ShaderValue
 
             // 检查是否来自 gl_InstanceID builtin（在 GLSL 中本身就是 int 类型）
             const isFromInstanceIDBuiltin = other.dependencies?.some(
-                (dep) => dep instanceof Builtin && dep.isInstanceIndex
+                (dep) => dep instanceof Builtin && dep.isInstanceIndex,
             );
 
             if (isFromInstanceIDBuiltin)

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { fragColor, FragColor } from '../src/builtin/fragColor';
+import { gl_FragColor } from '../src/builtin/builtins';
 import { vec4 } from '../src/builtin/types/vec4';
 import { fragment } from '../src/fragment';
 import { precision } from '../src/precision';
@@ -232,6 +233,35 @@ describe('fragColor', () =>
             expect(wgsl).toContain('struct FragmentOut');
             expect(wgsl).toContain('-> FragmentOut');
             expect(wgsl).toContain('return output;');
+        });
+    });
+
+    describe('WebGL 2.0 gl_FragColor 处理', () =>
+    {
+        it('应该在 WebGL 2.0 中将 gl_FragColor 替换为 color', () =>
+        {
+            const fragmentShader = fragment('main', () =>
+            {
+                gl_FragColor.assign(vec4(1.0, 0.0, 0.0, 1.0));
+            });
+
+            const glsl = fragmentShader.toGLSL(2);
+
+            expect(glsl).toContain('layout(location = 0) out vec4 color;');
+            expect(glsl).toContain('color = vec4(1.0, 0.0, 0.0, 1.0);');
+            expect(glsl).not.toContain('gl_FragColor');
+        });
+
+        it('应该在 WebGL 1.0 中保留 gl_FragColor', () =>
+        {
+            const fragmentShader = fragment('main', () =>
+            {
+                gl_FragColor.assign(vec4(1.0, 0.0, 0.0, 1.0));
+            });
+
+            const glsl = fragmentShader.toGLSL(1);
+
+            expect(glsl).toContain('gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);');
         });
     });
 });

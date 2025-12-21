@@ -27,7 +27,7 @@ export const vertexShader = vertex('main', () =>
 const materialDiffuse0 = sampler2D(uniform('materialDiffuse0'));
 const materialDiffuse1 = sampler2D(uniform('materialDiffuse1'));
 
-const color = vec4(fragColor(0));
+const color = vec4(fragColor(0, 'color'));
 
 /**
  * 片段着色器

@@ -159,7 +159,7 @@ export class Fragment extends Func
                     const sortedFragColors = Array.from(dependencies.fragColors).sort((a, b) => a.location - b.location);
                     for (const fc of sortedFragColors)
                     {
-                        lines.push(`layout(location = ${fc.location}) out vec4 fragColor${fc.location};`);
+                        lines.push(`layout(location = ${fc.location}) out vec4 ${fc.name};`);
                     }
                 }
                 else
@@ -273,7 +273,7 @@ export class Fragment extends Func
                 const structLines: string[] = ['struct FragmentOut {'];
                 for (const fc of sortedFragColors)
                 {
-                    structLines.push(`    @location(${fc.location}) fragColor${fc.location}: vec4<f32>,`);
+                    structLines.push(`    @location(${fc.location}) ${fc.name}: vec4<f32>,`);
                 }
                 structLines.push('};');
                 lines.push(structLines.join('\n'));
@@ -424,9 +424,8 @@ export class Fragment extends Func
                     const sortedFragColors = Array.from(dependencies.fragColors).sort((a, b) => a.location - b.location);
                     for (const fc of sortedFragColors)
                     {
-                        const fragColorName = `fragColor${fc.location}`;
                         // 使用正则替换，确保只替换独立的变量名
-                        wgslCode = wgslCode.replace(new RegExp(`\\b${fragColorName}\\b`, 'g'), `output.${fragColorName}`);
+                        wgslCode = wgslCode.replace(new RegExp(`\\b${fc.name}\\b`, 'g'), `output.${fc.name}`);
                     }
                     // 处理多行语句，为每行添加缩进
                     const stmtLines = wgslCode.split('\n');

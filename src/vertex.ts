@@ -244,13 +244,12 @@ export class Vertex extends Func
             }
         }
 
-        // 添加所有 varying
+        // 添加所有 varying（使用 toWGSL() 以包含 @interpolate 属性）
         for (const v of varyings)
         {
             if (v.value)
             {
-                const loc = v.getEffectiveLocation();
-                structLines.push(`    @location(${loc}) ${v.name}: ${v.value.wgslType},`);
+                structLines.push(`    ${v.toWGSL()},`);
             }
         }
 

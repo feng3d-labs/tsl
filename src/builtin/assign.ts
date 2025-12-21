@@ -43,6 +43,29 @@ export class Assign implements IStatement
 
     toGLSL(): string
     {
+        const buildParam = getBuildParam();
+
+        // 检测是否是 gl_FragColor builtin（直接或通过 Vec4 包装）
+        let isFragColorBuiltin = false;
+        if (this.target instanceof Builtin && this.target.isFragColorOutput)
+        {
+            isFragColorBuiltin = true;
+        }
+        else if (this.target && 'dependencies' in this.target && Array.isArray(this.target.dependencies))
+        {
+            const dep = this.target.dependencies[0];
+            if (dep instanceof Builtin && dep.isFragColorOutput)
+            {
+                isFragColorBuiltin = true;
+            }
+        }
+
+        // 在 WebGL 2.0 中，gl_FragColor 被替换为声明的 out 变量 color
+        if (isFragColorBuiltin && buildParam?.version === 2)
+        {
+            return `color = ${this.value.toGLSL()};`;
+        }
+
         return `${this.target.toGLSL()} = ${this.value.toGLSL()};`;
     }
 

@@ -24,7 +24,7 @@ export class Func
     /**
      * 执行函数体并收集语句和依赖（如果尚未收集）
      */
-    private executeBodyIfNeeded(): void
+    protected executeBodyIfNeeded(): void
     {
         // 如果已经有依赖，说明已经执行过 body，不需要重复执行
         if (this.dependencies.length > 0 || this.statements.length > 0)

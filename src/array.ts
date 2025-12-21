@@ -61,11 +61,20 @@ export class Array<T extends ShaderValue> implements ShaderValue
     index(idx: number | Int | UInt): T
     {
         const result = this.elementType();
-        const idxGLSL = typeof idx === 'number' ? `${idx}` : idx.toGLSL();
-        const idxWGSL = typeof idx === 'number' ? `${idx}` : idx.toWGSL();
 
-        result.toGLSL = () => `${this.toGLSL()}[${idxGLSL}]`;
-        result.toWGSL = () => `${this.toWGSL()}[${idxWGSL}]`;
+        // 动态计算索引字符串，确保在 toGLSL/toWGSL 调用时获取最新值
+        result.toGLSL = () =>
+        {
+            const idxGLSL = typeof idx === 'number' ? `${idx}` : idx.toGLSL();
+
+            return `${this.toGLSL()}[${idxGLSL}]`;
+        };
+        result.toWGSL = () =>
+        {
+            const idxWGSL = typeof idx === 'number' ? `${idx}` : idx.toWGSL();
+
+            return `${this.toWGSL()}[${idxWGSL}]`;
+        };
         // 将数组自身和索引添加到依赖中，以便依赖分析能够找到结构体定义
         result.dependencies = typeof idx === 'number' ? [...this.dependencies] : [...this.dependencies, idx];
 

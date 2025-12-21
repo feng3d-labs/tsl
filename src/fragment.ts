@@ -224,9 +224,8 @@ export class Fragment extends Func
 
             const lines: string[] = [];
 
-            // 先执行 body 收集依赖（通过调用父类的 toWGSL 来触发，它会执行 body 并填充 dependencies）
-            // 这里只为了收集依赖，不生成完整代码
-            super.toWGSL();
+            // 先执行 body 收集依赖（只收集依赖，不生成代码）
+            this.executeBodyIfNeeded();
 
             // 从函数的 dependencies 中分析获取 uniforms 和 structs（使用缓存）
             const dependencies = this.getAnalyzedDependencies();
@@ -242,6 +241,7 @@ export class Fragment extends Func
                 this.allocateVaryingLocations(dependencies.varyings, vertexShader);
 
                 // 更新 varying 的 value.toWGSL 方法，使其返回 v.name 格式
+                // 必须在生成函数体代码之前更新，否则生成的代码会使用旧的路径
                 for (const v of dependencies.varyings)
                 {
                     if (v.value)
@@ -251,14 +251,13 @@ export class Fragment extends Func
                     }
                 }
 
-                // 生成 VaryingStruct 定义
+                // 生成 VaryingStruct 定义（使用 toWGSL() 以包含 @interpolate 属性）
                 const structLines: string[] = ['struct VaryingStruct {'];
                 for (const v of dependencies.varyings)
                 {
                     if (v.value)
                     {
-                        const loc = v.getEffectiveLocation();
-                        structLines.push(`    @location(${loc}) ${v.name}: ${v.value.wgslType},`);
+                        structLines.push(`    ${v.toWGSL()},`);
                     }
                 }
                 structLines.push('}');

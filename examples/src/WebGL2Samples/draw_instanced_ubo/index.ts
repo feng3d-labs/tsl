@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () =>
     };
 
     // 执行渲染
-    // webgpu.submit(submit);
+    webgpu.submit(submit);
     webgl.submit(submit);
 
     // 第一帧后进行比较

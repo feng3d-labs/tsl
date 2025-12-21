@@ -9,8 +9,8 @@
  */
 
 import {
-    attribute, fragColor, fragment, gl_Position, if_, mat4, mix, precision,
-    sampler2D, sqrt, texture, uniform, varying, vec2, vec4, vertex
+    attribute, fragColor, fragment, gl_Position, mat4, mix, precision,
+    sampler2D, select, sqrt, texture, uniform, varying, vec2, vec4, vertex
 } from '@feng3d/tsl';
 import { float } from '@feng3d/tsl';
 
@@ -42,16 +42,10 @@ export const renderFragmentShader = fragment('main', () =>
     const blue = vec4(0.0, 0.0, 1.0, 1.0);
     const yellow = vec4(1.0, 1.0, 0.0, 1.0);
 
-    // 使用 if/else 进行条件判断
+    // 使用 select 进行三元条件选择（对应 GLSL 的 cond ? a : b）
     // v_attribute >= 0 时使用 mix(blue, yellow, sqrt(v_attribute))，否则使用 yellow
     // 注意：当普通插值导致 v_attribute 外推为负值时，会显示黄色（表示错误）
-    if_(v_attribute.greaterThanOrEqual(0.0), () =>
-    {
-        color.assign(mix(blue, yellow, sqrt(v_attribute)));
-    }).else(() =>
-    {
-        color.assign(yellow);
-    });
+    color.assign(select(v_attribute.greaterThanOrEqual(0.0), mix(blue, yellow, sqrt(v_attribute)), yellow));
 });
 
 // ==================== 渲染着色器（centroid 插值）====================
@@ -75,14 +69,8 @@ export const renderCentroidFragmentShader = fragment('main', () =>
     const blue = vec4(0.0, 0.0, 1.0, 1.0);
     const yellow = vec4(1.0, 1.0, 0.0, 1.0);
 
-    // 使用 if/else 进行条件判断（与原始着色器保持一致）
-    if_(v_attribute_centroid.greaterThanOrEqual(0.0), () =>
-    {
-        color.assign(mix(blue, yellow, sqrt(v_attribute_centroid)));
-    }).else(() =>
-    {
-        color.assign(yellow);
-    });
+    // 使用 select 进行三元条件选择（对应 GLSL 的 cond ? a : b）
+    color.assign(select(v_attribute_centroid.greaterThanOrEqual(0.0), mix(blue, yellow, sqrt(v_attribute_centroid)), yellow));
 });
 
 // ==================== Splash 着色器（显示纹理）====================

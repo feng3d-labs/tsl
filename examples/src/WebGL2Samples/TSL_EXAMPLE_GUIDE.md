@@ -282,9 +282,27 @@ const s = step(edge, x);
 const ss = smoothstep(0.0, 1.0, x);
 ```
 
+### 三元条件选择（select）
+
+**遇到 GLSL 中的 `cond ? a : b` 三元运算符，使用 `select` 函数**：
+
+```typescript
+import { select } from '@feng3d/tsl';
+
+// 三元条件选择
+// 生成 GLSL: (condition ? trueValue : falseValue)
+// 生成 WGSL: (condition ? trueValue : falseValue)
+const result = select(condition, trueValue, falseValue);
+
+// 示例：v_attr >= 0 时使用插值颜色，否则使用黄色
+const blue = vec4(0.0, 0.0, 1.0, 1.0);
+const yellow = vec4(1.0, 1.0, 0.0, 1.0);
+color.assign(select(v_attr.greaterThanOrEqual(0.0), mix(blue, yellow, sqrt(v_attr)), yellow));
+```
+
 ### 条件语句（if/else）
 
-**优先使用 `if_`/`else` 结构**，与原始 GLSL/WGSL 着色器保持一致：
+**遇到 GLSL 中的 `if (cond) { ... } else { ... }` 语句，使用 `if_`/`else` 结构**：
 
 ```typescript
 import { if_ } from '@feng3d/tsl';
@@ -299,15 +317,6 @@ if_(condition, () => {
     // 条件不满足时执行
     color.assign(falseValue);
 });
-
-// 示例：v_attr >= 0 时使用插值颜色，否则使用黄色
-const blue = vec4(0.0, 0.0, 1.0, 1.0);
-const yellow = vec4(1.0, 1.0, 0.0, 1.0);
-if_(v_attr.greaterThanOrEqual(0.0), () => {
-    color.assign(mix(blue, yellow, sqrt(v_attr)));
-}).else(() => {
-    color.assign(yellow);
-});
 ```
 
 **仅 if 分支（无 else）：**
@@ -317,18 +326,6 @@ if_(condition, () => {
     // 仅在条件满足时执行
     color.assign(red);
 });
-```
-
-**select 函数（简单三元运算）：**
-
-`select` 适用于简单的值选择场景，但为保持与原始着色器一致，建议优先使用 `if_`/`else`：
-
-```typescript
-import { select } from '@feng3d/tsl';
-
-// 生成 GLSL: condition ? trueValue : falseValue
-// 生成 WGSL: select(falseValue, trueValue, condition)
-const result = select(condition, trueValue, falseValue);
 ```
 
 ### 比较运算
@@ -413,8 +410,8 @@ export const fragmentShader = fragment('main', () => {
 | `mul(a, b)` | `a.multiply(b)` | 矩阵/向量乘法 |
 | `vec4.mix(other, t)` | `mix(a, b, t)` | 插值使用函数，非方法 |
 | `value >= 0.0` | `value.greaterThanOrEqual(0.0)` | 比较运算使用方法 |
-| `cond ? a : b` | `if_(cond, () => {...}).else(...)` | 条件判断优先用 if_/else |
-| `select(cond, a, b)` 用于复杂逻辑 | `if_(cond, ...).else(...)` | if/else 与原着色器一致 |
+| `cond ? a : b` | `select(cond, a, b)` | 三元运算符用 select |
+| `if (cond) {...}` | `if_(cond, () => {...})` | if 语句用 if_ |
 | `sampler2D(uniform('name'))` | 旧写法 `sampler2D('name')` | 纹理采样器 |
 | 普通 sampler 用于深度纹理 | `depthSampler(uniform('depth'))` | 深度纹理需要特殊类型 |
 | WGSL 深度纹理用 `textureSample` | 用 `textureLoad` | 深度纹理不支持过滤采样 |
@@ -430,7 +427,7 @@ export const fragmentShader = fragment('main', () => {
 - `sampler_wrap/` - 纹理包裹模式（4视口，双渲染）
 - `fbo_multisample/` - 多重采样 + 两阶段渲染（双渲染）
 - `fbo_rtt_depth_texture/` - 深度纹理渲染（双渲染，深度纹理处理）
-- `glsl_centroid/` - centroid 插值（varying 插值选项，if_/else 条件语句）
+- `glsl_centroid/` - centroid 插值（varying 插值选项，select 三元条件选择）
 - `fbo_blit/` - 仅 WebGL 支持（BlitFramebuffer）
 - `webgl-examples/sample5/` - 完整 MVP 变换
 

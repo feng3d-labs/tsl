@@ -20,18 +20,18 @@ import { mat4, vec3 } from 'gl-matrix';
 import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 // 导入原始着色器（调试用，取消注释可切换到手动着色器）
-// import renderVertGlsl from './shaders/render.vert.glsl';
-// import renderFragGlsl from './shaders/render.frag.glsl';
-// import renderCentroidVertGlsl from './shaders/render-centroid.vert.glsl';
-// import renderCentroidFragGlsl from './shaders/render-centroid.frag.glsl';
-// import splashVertGlsl from './shaders/splash.vert.glsl';
-// import splashFragGlsl from './shaders/splash.frag.glsl';
-// import renderVertWgsl from './shaders/render.vert.wgsl';
-// import renderFragWgsl from './shaders/render.frag.wgsl';
-// import renderCentroidVertWgsl from './shaders/render-centroid.vert.wgsl';
-// import renderCentroidFragWgsl from './shaders/render-centroid.frag.wgsl';
-// import splashVertWgsl from './shaders/splash.vert.wgsl';
-// import splashFragWgsl from './shaders/splash.frag.wgsl';
+import renderVertGlsl from './shaders/render.vert.glsl';
+import renderFragGlsl from './shaders/render.frag.glsl';
+import renderCentroidVertGlsl from './shaders/render-centroid.vert.glsl';
+import renderCentroidFragGlsl from './shaders/render-centroid.frag.glsl';
+import splashVertGlsl from './shaders/splash.vert.glsl';
+import splashFragGlsl from './shaders/splash.frag.glsl';
+import renderVertWgsl from './shaders/render.vert.wgsl';
+import renderFragWgsl from './shaders/render.frag.wgsl';
+import renderCentroidVertWgsl from './shaders/render-centroid.vert.wgsl';
+import renderCentroidFragWgsl from './shaders/render-centroid.frag.wgsl';
+import splashVertWgsl from './shaders/splash.vert.wgsl';
+import splashFragWgsl from './shaders/splash.frag.wgsl';
 
 // 导入 TSL 着色器
 import {
@@ -69,20 +69,20 @@ document.addEventListener('DOMContentLoaded', async () =>
 {
     // TSL 生成着色器代码（变量名与导入的相同，便于调试切换）
     // 调试时：注释下面的 TSL 生成代码，取消上面原始着色器导入的注释
-    const renderVertGlsl = renderVertexShader.toGLSL(2);
-    const renderFragGlsl = renderFragmentShader.toGLSL(2);
-    const renderVertWgsl = renderVertexShader.toWGSL();
-    const renderFragWgsl = renderFragmentShader.toWGSL(renderVertexShader);
+    // const renderVertGlsl = renderVertexShader.toGLSL(2);
+    // const renderFragGlsl = renderFragmentShader.toGLSL(2);
+    // const renderVertWgsl = renderVertexShader.toWGSL();
+    // const renderFragWgsl = renderFragmentShader.toWGSL(renderVertexShader);
 
-    const renderCentroidVertGlsl = renderCentroidVertexShader.toGLSL(2);
-    const renderCentroidFragGlsl = renderCentroidFragmentShader.toGLSL(2);
-    const renderCentroidVertWgsl = renderCentroidVertexShader.toWGSL();
-    const renderCentroidFragWgsl = renderCentroidFragmentShader.toWGSL(renderCentroidVertexShader);
+    // const renderCentroidVertGlsl = renderCentroidVertexShader.toGLSL(2);
+    // const renderCentroidFragGlsl = renderCentroidFragmentShader.toGLSL(2);
+    // const renderCentroidVertWgsl = renderCentroidVertexShader.toWGSL();
+    // const renderCentroidFragWgsl = renderCentroidFragmentShader.toWGSL(renderCentroidVertexShader);
 
-    const splashVertGlsl = splashVertexShader.toGLSL(2);
-    const splashFragGlsl = splashFragmentShader.toGLSL(2);
-    const splashVertWgsl = splashVertexShader.toWGSL();
-    const splashFragWgsl = splashFragmentShader.toWGSL(splashVertexShader);
+    // const splashVertGlsl = splashVertexShader.toGLSL(2);
+    // const splashFragGlsl = splashFragmentShader.toGLSL(2);
+    // const splashVertWgsl = splashVertexShader.toWGSL();
+    // const splashFragWgsl = splashFragmentShader.toWGSL(splashVertexShader);
 
     // 初始化 WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;

@@ -1,18 +1,18 @@
-import { array, attribute, fragment, gl_FragColor, gl_InstanceID, gl_Position, int, Mat4, precision, struct, uniform, varying, vec2, vec4, Vec4, vertex } from '@feng3d/tsl';
+import { array, attribute, fragment, gl_FragColor, gl_InstanceID, gl_Position, int, mat4, Mat4, precision, struct, uniform, varying, vec2, vec4, Vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
 const pos = vec2(attribute('pos', 0));
 
 // 定义 Transform UBO（包含 MVP 矩阵数组）
 const Transform = struct('Transform', {
-    MVP: array(Mat4, 2),
+    MVP: array(mat4, 2),
 });
 
 const transform = Transform(uniform('transform'));
 
 // 定义 Material UBO（包含颜色数组）
 const Material = struct('Material', {
-    Diffuse: array(Vec4, 2),
+    Diffuse: array(vec4, 2),
 });
 
 const material = Material(uniform('material'));

@@ -91,3 +91,10 @@ export function mat4(...args: any[]): Mat4
     return new (Mat4 as any)(...args);
 }
 
+// 添加静态类型信息，使 mat4 可以作为 array() 的参数
+mat4.glslType = 'mat4';
+mat4.wgslType = 'mat4x4<f32>';
+
+// 添加 new() 支持，使 mat4 可以作为类型构造函数使用
+(mat4 as any).prototype = Mat4.prototype;
+

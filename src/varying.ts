@@ -2,9 +2,40 @@ import { getBuildParam } from './buildShader';
 import { IElement, ShaderValue } from './IElement';
 
 /**
+ * 插值类型
+ * - 'perspective': 透视校正插值（默认）
+ * - 'linear': 线性插值（无透视校正）
+ * - 'flat': 平面插值（不插值，使用第一个顶点的值）
+ */
+export type InterpolationType = 'perspective' | 'linear' | 'flat';
+
+/**
+ * 插值采样方式
+ * - 'center': 在像素中心采样（默认）
+ * - 'centroid': 在图元覆盖区域的质心采样，避免边缘外推
+ * - 'sample': 每个采样点独立采样
+ */
+export type InterpolationSampling = 'center' | 'centroid' | 'sample';
+
+/**
+ * Varying 选项
+ */
+export interface VaryingOptions
+{
+    /** WGSL location（可选，不指定则自动分配） */
+    location?: number;
+    /** 插值类型（默认 'perspective'） */
+    interpolation?: InterpolationType;
+    /** 插值采样方式（默认 'center'） */
+    sampling?: InterpolationSampling;
+}
+
+/**
  * Varying 类，表示在 vertex 和 fragment shader 之间传递的变量
  *
  * 使用方式：`const v_uv = vec2(varying('v_uv'))`
+ *
+ * 使用 centroid 插值：`const v_attr = float(varying('v_attr', { sampling: 'centroid' }))`
  *
  * @internal 库外部不应直接使用 `new Varying()`，应使用 `varying()` 函数
  */
@@ -21,13 +52,21 @@ export class Varying implements IElement
     /** 显式指定的 location */
     readonly location?: number;
 
+    /** 插值类型 */
+    readonly interpolation: InterpolationType;
+
+    /** 插值采样方式 */
+    readonly sampling: InterpolationSampling;
+
     /** 自动分配的 location */
     private _autoLocation?: number;
 
-    constructor(name: string, location?: number)
+    constructor(name: string, options?: VaryingOptions)
     {
         this.name = name;
-        this.location = location;
+        this.location = options?.location;
+        this.interpolation = options?.interpolation ?? 'perspective';
+        this.sampling = options?.sampling ?? 'center';
     }
 
     /**
@@ -44,6 +83,40 @@ export class Varying implements IElement
     getEffectiveLocation(): number
     {
         return this.location !== undefined ? this.location : (this._autoLocation ?? 0);
+    }
+
+    /**
+     * 获取 GLSL 插值限定符
+     */
+    private getGLSLInterpolationQualifier(): string
+    {
+        const qualifiers: string[] = [];
+
+        // flat 插值
+        if (this.interpolation === 'flat')
+        {
+            qualifiers.push('flat');
+        }
+        // noperspective（线性插值）
+        else if (this.interpolation === 'linear')
+        {
+            qualifiers.push('noperspective');
+        }
+        // perspective 是默认的，不需要限定符
+
+        // centroid 采样
+        if (this.sampling === 'centroid')
+        {
+            qualifiers.push('centroid');
+        }
+        // sample 采样
+        else if (this.sampling === 'sample')
+        {
+            qualifiers.push('sample');
+        }
+        // center 是默认的，不需要限定符
+
+        return qualifiers.length > 0 ? qualifiers.join(' ') + ' ' : '';
     }
 
     /**
@@ -65,13 +138,36 @@ export class Varying implements IElement
             // WebGL 2.0 中，varyings（顶点到片段的变量）不需要 layout(location)
             // 只需要使用 out（vertex shader）或 in（fragment shader）
             const inOut = stage === 'vertex' ? 'out' : 'in';
+            const interpolation = this.getGLSLInterpolationQualifier();
 
-            return `${inOut} ${glslType} ${this.name};`;
+            return `${interpolation}${inOut} ${glslType} ${this.name};`;
         }
         else
         {
+            // WebGL 1.0 不支持插值限定符
             return `varying ${glslType} ${this.name};`;
         }
+    }
+
+    /**
+     * 获取 WGSL @interpolate 属性
+     */
+    private getWGSLInterpolateAttribute(): string
+    {
+        // flat 插值不需要 sampling
+        if (this.interpolation === 'flat')
+        {
+            return '@interpolate(flat)';
+        }
+
+        // 如果使用默认设置，不需要 @interpolate 属性
+        if (this.interpolation === 'perspective' && this.sampling === 'center')
+        {
+            return '';
+        }
+
+        // 构建 @interpolate 属性
+        return `@interpolate(${this.interpolation}, ${this.sampling})`;
     }
 
     /**
@@ -86,6 +182,12 @@ export class Varying implements IElement
         const wgslType = this.value.wgslType;
         const effectiveLocation = this.getEffectiveLocation();
         const location = `@location(${effectiveLocation})`;
+        const interpolate = this.getWGSLInterpolateAttribute();
+
+        if (interpolate)
+        {
+            return `${location} ${interpolate} ${this.name}: ${wgslType}`;
+        }
 
         return `${location} ${this.name}: ${wgslType}`;
     }
@@ -102,14 +204,27 @@ export class Varying implements IElement
 /**
  * 定义 varying 变量
  *
- * 使用方式：`const v_uv = vec2(varying('v_uv'))`
+ * 使用方式：
+ * - 基本用法：`const v_uv = vec2(varying('v_uv'))`
+ * - 指定 location：`const v_uv = vec2(varying('v_uv', { location: 0 }))`
+ * - 使用 centroid 插值：`const v_attr = float(varying('v_attr', { sampling: 'centroid' }))`
+ * - 使用 flat 插值：`const v_id = int(varying('v_id', { interpolation: 'flat' }))`
  *
  * @param name 变量名称（必需）
- * @param location WGSL location（可选，不指定则自动分配）
+ * @param options 选项（可选）
+ *   - location: WGSL location（可选，不指定则自动分配）
+ *   - interpolation: 插值类型（'perspective' | 'linear' | 'flat'，默认 'perspective'）
+ *   - sampling: 采样方式（'center' | 'centroid' | 'sample'，默认 'center'）
  * @returns Varying 实例
  */
-export function varying(name: string, location?: number): Varying
+export function varying(name: string, options?: VaryingOptions | number): Varying
 {
-    return new Varying(name, location);
+    // 兼容旧 API：如果第二个参数是数字，视为 location
+    if (typeof options === 'number')
+    {
+        return new Varying(name, { location: options });
+    }
+
+    return new Varying(name, options);
 }
 

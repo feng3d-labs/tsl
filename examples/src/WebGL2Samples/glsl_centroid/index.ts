@@ -1,19 +1,23 @@
 /**
  * glsl_centroid 示例
  *
- * 演示 GLSL centroid 插值限定符在多重采样时的效果差异。
+ * 演示 centroid 插值限定符在多重采样时的效果差异。
  *
  * centroid 插值确保插值在图元覆盖的采样点范围内进行，
  * 避免在三角形边缘产生外推值（可能超出顶点数据范围）。
  *
- * 注意：此示例仅支持 WebGL，因为 centroid 是 GLSL 特有功能，
- * TSL 目前不支持生成 centroid 限定符。WGSL 虽然支持类似功能
- * (@interpolate(perspective, centroid))，但 TSL 尚未实现。
+ * 此示例同时支持 WebGL 和 WebGPU 渲染。
+ *
+ * 注意：由于 TSL 目前缺少 sqrt 等内置函数，此示例使用手动编写的着色器。
+ * TSL 已添加 varying 的 centroid 插值支持：
+ * `float(varying('v_attr', { sampling: 'centroid' }))`
  */
 
 import { PassEncoder, RenderPass, RenderPassDescriptor, RenderPassObject, RenderPipeline, RenderObject, Sampler, Texture, VertexAttributes, Viewport } from '@feng3d/render-api';
 import { WebGL } from '@feng3d/webgl';
+import { WebGPU } from '@feng3d/webgpu';
 import { mat4, vec3 } from 'gl-matrix';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 // 导入 GLSL 着色器
 import renderVertGlsl from './shaders/render.vert.glsl';
@@ -22,6 +26,14 @@ import renderCentroidVertGlsl from './shaders/render-centroid.vert.glsl';
 import renderCentroidFragGlsl from './shaders/render-centroid.frag.glsl';
 import splashVertGlsl from './shaders/splash.vert.glsl';
 import splashFragGlsl from './shaders/splash.frag.glsl';
+
+// 导入 WGSL 着色器
+import renderVertWgsl from './shaders/render.vert.wgsl';
+import renderFragWgsl from './shaders/render.frag.wgsl';
+import renderCentroidVertWgsl from './shaders/render-centroid.vert.wgsl';
+import renderCentroidFragWgsl from './shaders/render-centroid.frag.wgsl';
+import splashVertWgsl from './shaders/splash.vert.wgsl';
+import splashFragWgsl from './shaders/splash.frag.wgsl';
 
 /**
  * 初始化画布尺寸
@@ -50,7 +62,12 @@ const PROGRAM = {
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    // centroid 是 GLSL 特有功能，此示例仅支持 WebGL
+    // 初始化 WebGPU
+    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
+    initCanvasSize(webgpuCanvas);
+    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
+
+    // 初始化 WebGL
     const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
     initCanvasSize(webglCanvas);
     const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
@@ -86,20 +103,20 @@ document.addEventListener('DOMContentLoaded', async () =>
     const programs: RenderPipeline[] = [
         // 普通渲染管线
         {
-            vertex: { code: renderVertGlsl },
-            fragment: { code: renderFragGlsl },
+            vertex: { glsl: renderVertGlsl, wgsl: renderVertWgsl },
+            fragment: { glsl: renderFragGlsl, wgsl: renderFragWgsl },
             primitive: { topology: 'triangle-list' },
         },
         // centroid 渲染管线
         {
-            vertex: { code: renderCentroidVertGlsl },
-            fragment: { code: renderCentroidFragGlsl },
+            vertex: { glsl: renderCentroidVertGlsl, wgsl: renderCentroidVertWgsl },
+            fragment: { glsl: renderCentroidFragGlsl, wgsl: renderCentroidFragWgsl },
             primitive: { topology: 'triangle-list' },
         },
         // 显示管线
         {
-            vertex: { code: splashVertGlsl },
-            fragment: { code: splashFragGlsl },
+            vertex: { glsl: splashVertGlsl, wgsl: splashVertWgsl },
+            fragment: { glsl: splashFragGlsl, wgsl: splashFragWgsl, targets: [{ blend: {} }] },
             primitive: { topology: 'triangle-list' },
         },
     ];
@@ -256,18 +273,10 @@ document.addEventListener('DOMContentLoaded', async () =>
     passEncoders.push(rp2);
 
     // 提交渲染
-    webgl.submit({ commandEncoders: [{ passEncoders }] });
+    const submit = { commandEncoders: [{ passEncoders }] };
+    webgl.submit(submit);
+    webgpu.submit(submit);
 
-    // 清理资源
-    for (let i = 0; i < VIEWPORTS.MAX; ++i)
-    {
-        webgl.deleteTexture(textures[i]);
-        webgl.deleteSampler(samplers[i]);
-        webgl.deleteFramebuffer(framebuffers[i]);
-    }
-
-    for (let i = 0; i < PROGRAM.MAX; ++i)
-    {
-        webgl.deleteProgram(programs[i]);
-    }
+    // 第一帧后进行比较
+    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
 });

@@ -85,9 +85,16 @@
         }
 
         .canvas-container {
-            display: flex;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
             margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .canvas-container {
+                grid-template-columns: 1fr;
+            }
         }
 
         .canvas-wrapper {
@@ -96,7 +103,6 @@
 
         canvas {
             width: 100%;
-            max-width: 800px;
             height: auto;
             aspect-ratio: 2 / 1;
             border-radius: 6px;
@@ -178,15 +184,6 @@
             position: absolute;
             left: 0;
         }
-
-        .warning {
-            background: rgba(255, 193, 7, 0.2);
-            border: 1px solid rgba(255, 193, 7, 0.5);
-            border-radius: 4px;
-            padding: 10px;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-        }
     </style>
 </head>
 
@@ -194,35 +191,42 @@
     <div class="container">
         <header class="header">
             <h1 class="title">WebGL2Samples - glsl_centroid</h1>
-            <p class="description">演示 GLSL centroid 插值限定符在多重采样时的效果差异。左侧使用普通插值，右侧使用 centroid 插值。</p>
+            <p class="description">演示 centroid 插值限定符在多重采样时的效果差异。每个画布中：左侧使用普通插值，右侧使用 centroid 插值。</p>
         </header>
 
         <div class="canvas-container">
             <div class="canvas-wrapper">
                 <canvas id="webgl"></canvas>
-                <div class="canvas-label">WebGL (仅支持)</div>
+                <div class="canvas-label">WebGL</div>
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="webgpu"></canvas>
+                <div class="canvas-label">WebGPU</div>
             </div>
         </div>
 
         <div class="info-section">
             <div class="info-panel">
-                <h2 class="info-title">平台支持</h2>
-                <div class="warning">
-                    ⚠️ 此示例仅支持 WebGL，因为 centroid 限定符是 GLSL 特有功能，TSL 目前不支持生成。
+                <h2 class="info-title">比较结果</h2>
+                <div id="comparison-result" style="font-size: 14px;">
+                    <div style="margin-bottom: 8px; font-weight: bold;">比较中...</div>
+                    <div>等待渲染完成...</div>
                 </div>
-                <p style="font-size: 0.9rem;">
-                    WGSL 也支持类似功能（@interpolate(perspective, centroid)），但 TSL 尚未实现此特性。
-                </p>
             </div>
             <div class="info-panel">
                 <h2 class="info-title">关于示例</h2>
                 <ul class="info-list">
-                    <li>演示 GLSL centroid 插值限定符</li>
+                    <li>同时支持 WebGL 和 WebGPU 渲染</li>
+                    <li>自动比较 WebGL 和 WebGPU 渲染结果</li>
                     <li>左侧：普通插值（可能产生颜色错误）</li>
                     <li>右侧：centroid 插值（改进边缘质量）</li>
                     <li>使用 4x 多重采样抗锯齿</li>
                     <li>三角形顶点数据：0.0, 0.0, 1.0</li>
                     <li>颜色：蓝色(0) → 黄色(1)，负值显示黄色</li>
+                    <li>TSL 新增 varying 插值选项支持</li>
+                    <li>TSL用法: `float(varying('v', { sampling: 'centroid' }))`</li>
+                    <li>GLSL: `centroid in/out`</li>
+                    <li>WGSL: `@interpolate(perspective, centroid)`</li>
                     <li>基于 feng3d 框架实现</li>
                 </ul>
             </div>

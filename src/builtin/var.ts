@@ -1,5 +1,6 @@
 import { IElement, ShaderValue } from '../IElement';
 import { getCurrentFunc } from '../currentFunc';
+import { getCurrentIfStatement } from '../ifStack';
 import { Float } from './types/float';
 
 /**
@@ -36,10 +37,23 @@ export function var_(...args: any[]): any
     const currentFunc = getCurrentFunc();
     if (currentFunc)
     {
-        currentFunc.statements.push({
+        const stmt = {
             toGLSL: () => `${expr.glslType} ${name} = ${expr.toGLSL()};`,
             toWGSL: () => `var ${name} = ${expr.toWGSL()};`,
-        });
+        };
+
+        // 检查是否在 if 语句体中
+        const currentIfStatement = getCurrentIfStatement();
+        if (currentIfStatement)
+        {
+            // 如果在 if 语句体中，将语句添加到当前 if 语句的 statements 中
+            currentIfStatement.statements.push(stmt);
+        }
+        else
+        {
+            // 否则将语句添加到当前函数的 statements 中
+            currentFunc.statements.push(stmt);
+        }
         // 收集依赖
         currentFunc.dependencies.push(result);
     }

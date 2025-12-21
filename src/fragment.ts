@@ -396,7 +396,13 @@ export class Fragment extends Func
                 // 生成函数体
                 this.statements.forEach(stmt =>
                 {
-                    lines.push(`    ${stmt.toWGSL()}`);
+                    const wgsl = stmt.toWGSL();
+                    // 处理多行语句，为每行添加缩进
+                    const stmtLines = wgsl.split('\n');
+                    for (const line of stmtLines)
+                    {
+                        lines.push(`    ${line}`);
+                    }
                 });
 
                 // 如果没有 return 语句，在函数体末尾添加 return output; 语句
@@ -422,7 +428,12 @@ export class Fragment extends Func
                         // 使用正则替换，确保只替换独立的变量名
                         wgslCode = wgslCode.replace(new RegExp(`\\b${fragColorName}\\b`, 'g'), `output.${fragColorName}`);
                     }
-                    lines.push(`    ${wgslCode}`);
+                    // 处理多行语句，为每行添加缩进
+                    const stmtLines = wgslCode.split('\n');
+                    for (const line of stmtLines)
+                    {
+                        lines.push(`    ${line}`);
+                    }
                 });
 
                 // 在函数体末尾添加 return output; 语句
@@ -436,7 +447,13 @@ export class Fragment extends Func
                 // 生成函数体
                 this.statements.forEach(stmt =>
                 {
-                    lines.push(`    ${stmt.toWGSL()}`);
+                    const wgsl = stmt.toWGSL();
+                    // 处理多行语句，为每行添加缩进
+                    const stmtLines = wgsl.split('\n');
+                    for (const line of stmtLines)
+                    {
+                        lines.push(`    ${line}`);
+                    }
                 });
 
                 // 在函数体末尾添加 return fragColor; 语句
@@ -447,7 +464,13 @@ export class Fragment extends Func
                 // 生成函数体（单个输出，不需要结构体）
                 this.statements.forEach(stmt =>
                 {
-                    lines.push(`    ${stmt.toWGSL()}`);
+                    const wgsl = stmt.toWGSL();
+                    // 处理多行语句，为每行添加缩进
+                    const stmtLines = wgsl.split('\n');
+                    for (const line of stmtLines)
+                    {
+                        lines.push(`    ${line}`);
+                    }
                 });
             }
 

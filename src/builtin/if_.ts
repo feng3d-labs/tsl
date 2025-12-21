@@ -86,16 +86,38 @@ export class IfStatement implements IStatement
     toGLSL(): string
     {
         const conditionStr = this.condition.toGLSL();
-        const bodyStr = this.statements.map(statement => statement.toGLSL()).join('\n    ');
+        // 为每个语句生成代码，并处理多行语句的缩进
+        const bodyLines: string[] = [];
+        for (const statement of this.statements)
+        {
+            const stmtStr = statement.toGLSL();
+            // 如果语句包含多行，为每行添加缩进
+            const lines = stmtStr.split('\n');
+            for (const line of lines)
+            {
+                bodyLines.push(`    ${line}`);
+            }
+        }
 
-        return `if (${conditionStr}) {\n    ${bodyStr}\n}`;
+        return `if (${conditionStr}) {\n${bodyLines.join('\n')}\n}`;
     }
 
     toWGSL(): string
     {
         const conditionStr = this.condition.toWGSL();
-        const bodyStr = this.statements.map(statement => statement.toWGSL()).join('\n    ');
+        // 为每个语句生成代码，并处理多行语句的缩进
+        const bodyLines: string[] = [];
+        for (const statement of this.statements)
+        {
+            const stmtStr = statement.toWGSL();
+            // 如果语句包含多行，为每行添加缩进
+            const lines = stmtStr.split('\n');
+            for (const line of lines)
+            {
+                bodyLines.push(`    ${line}`);
+            }
+        }
 
-        return `if (${conditionStr}) {\n    ${bodyStr}\n}`;
+        return `if (${conditionStr}) {\n${bodyLines.join('\n')}\n}`;
     }
 }

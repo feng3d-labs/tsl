@@ -80,7 +80,12 @@ export class Func
             // 过滤掉空语句
             if (glsl.trim() !== '')
             {
-                lines.push(`    ${glsl}`);
+                // 处理多行语句，为每行添加缩进
+                const stmtLines = glsl.split('\n');
+                for (const line of stmtLines)
+                {
+                    lines.push(`    ${line}`);
+                }
             }
         });
 
@@ -171,7 +176,13 @@ export class Func
             // 生成函数体
             this.statements.forEach(stmt =>
             {
-                lines.push(`    ${stmt.toWGSL()}`);
+                const wgsl = stmt.toWGSL();
+                // 处理多行语句，为每行添加缩进
+                const stmtLines = wgsl.split('\n');
+                for (const line of stmtLines)
+                {
+                    lines.push(`    ${line}`);
+                }
             });
         }
         else
@@ -214,7 +225,13 @@ export class Func
 
             this.statements.forEach(stmt =>
             {
-                lines.push(`    ${stmt.toWGSL()}`);
+                const wgsl = stmt.toWGSL();
+                // 处理多行语句，为每行添加缩进
+                const stmtLines = wgsl.split('\n');
+                for (const line of stmtLines)
+                {
+                    lines.push(`    ${line}`);
+                }
             });
         }
 

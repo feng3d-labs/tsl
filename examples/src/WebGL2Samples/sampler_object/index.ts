@@ -38,8 +38,8 @@ function initCanvasSize(canvas: HTMLCanvasElement)
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // TSL 生成着色器代码
-    // const vertexGlsl = vertexShader.toGLSL(2);
-    // const fragmentGlsl = fragmentShader.toGLSL(2);
+    const vertexGlsl = vertexShader.toGLSL(2);
+    const fragmentGlsl = fragmentShader.toGLSL(2);
     // const vertexWgsl = vertexShader.toWGSL();
     // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 

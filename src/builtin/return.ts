@@ -71,8 +71,8 @@ export function return_<T extends ShaderValue | FragmentOutput<any>>(expr: T): v
         const currentIfStatement = getCurrentIfStatement();
         if (currentIfStatement)
         {
-            // 如果在 if 语句体中，将语句添加到当前 if 语句的 statements 中
-            currentIfStatement.statements.push(stmt);
+            // 如果在 if 语句体中，使用 addStatement 自动判断添加到 if 体还是 else 体
+            currentIfStatement.addStatement(stmt);
         }
         else
         {

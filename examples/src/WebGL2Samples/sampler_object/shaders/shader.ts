@@ -1,4 +1,4 @@
-import { attribute, float, fragment, gl_Position, if_, mat4, precision, return_, sampler2D, texture, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, float, fragColor, fragment, gl_Position, if_, mat4, precision, return_, sampler2D, texture, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // 顶点属性
 const position = vec2(attribute('position', 0));
@@ -27,6 +27,8 @@ export const vertexShader = vertex('main', () =>
 const materialDiffuse0 = sampler2D(uniform('materialDiffuse0'));
 const materialDiffuse1 = sampler2D(uniform('materialDiffuse1'));
 
+const color = vec4(fragColor(0));
+
 /**
  * 片段着色器
  * 根据纹理坐标位置选择不同的采样器
@@ -42,8 +44,10 @@ export const fragmentShader = fragment('main', () =>
     // 否则使用 materialDiffuse1（Nearest）并乘以 0.77
     if_(v_st.y.divide(v_st.x).lessThan(1.0), () =>
     {
-        return_(texture(materialDiffuse0, v_st));
+        color.assign(texture(materialDiffuse0, v_st));
+    }).else(() =>
+    {
+        color.assign(texture(materialDiffuse1, v_st).multiply(0.77));
     });
 
-    return_(texture(materialDiffuse1, v_st).multiply(0.77));
 });

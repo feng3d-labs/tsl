@@ -27,8 +27,8 @@ export class Assign implements IStatement
             const currentIfStatement = getCurrentIfStatement();
             if (currentIfStatement)
             {
-                // 如果当前在if语句体中，将语句添加到当前if语句的statements中
-                currentIfStatement.statements.push(this);
+                // 如果当前在if语句体中，使用 addStatement 自动判断添加到 if 体还是 else 体
+                currentIfStatement.addStatement(this);
             }
             else
             {

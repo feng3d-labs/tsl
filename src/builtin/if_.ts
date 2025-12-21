@@ -5,11 +5,24 @@ import { IElement } from '../IElement';
 import { getCurrentIfStatement, pushIfStatement, popIfStatement } from '../ifStack';
 
 /**
+ * if_ 返回值接口，支持链式调用 else
+ */
+export interface IfResult
+{
+    /**
+     * else 分支
+     * @param body else 分支执行的回调函数
+     */
+    else(body: () => void): void;
+}
+
+/**
  * if_ 函数，用于条件判断
  * @param condition 条件表达式
  * @param body 条件满足时执行的回调函数
+ * @returns 支持链式调用 else 的对象
  */
-export function if_(condition: Bool, body: () => void): void
+export function if_(condition: Bool, body: () => void): IfResult
 {
     // 创建一个IfStatement实例，用于生成条件判断代码
     const ifStatement = new IfStatement(condition);
@@ -40,6 +53,21 @@ export function if_(condition: Bool, body: () => void): void
         ifStatement.endBody();
         popIfStatement(); // 从堆栈中移除当前if语句
     }
+
+    // 返回支持链式调用的对象
+    return {
+        else(elseBody: () => void): void
+        {
+            if (currentFunc)
+            {
+                pushIfStatement(ifStatement);
+                ifStatement.beginElseBody();
+                elseBody();
+                ifStatement.endElseBody();
+                popIfStatement();
+            }
+        },
+    };
 }
 
 /**
@@ -49,7 +77,9 @@ export class IfStatement implements IStatement
 {
     readonly condition: Bool;
     readonly statements: IStatement[] = [];
+    readonly elseStatements: IStatement[] = [];
     private isBodyActive = false;
+    private isElseBodyActive = false;
 
     constructor(condition: Bool)
     {
@@ -73,6 +103,22 @@ export class IfStatement implements IStatement
     }
 
     /**
+     * 开始收集else语句体
+     */
+    beginElseBody(): void
+    {
+        this.isElseBodyActive = true;
+    }
+
+    /**
+     * 结束收集else语句体
+     */
+    endElseBody(): void
+    {
+        this.isElseBodyActive = false;
+    }
+
+    /**
      * 添加语句到if语句体
      */
     addStatement(statement: IStatement): void
@@ -80,6 +126,10 @@ export class IfStatement implements IStatement
         if (this.isBodyActive)
         {
             this.statements.push(statement);
+        }
+        else if (this.isElseBodyActive)
+        {
+            this.elseStatements.push(statement);
         }
     }
 
@@ -99,7 +149,25 @@ export class IfStatement implements IStatement
             }
         }
 
-        return `if (${conditionStr}) {\n${bodyLines.join('\n')}\n}`;
+        let result = `if (${conditionStr}) {\n${bodyLines.join('\n')}\n}`;
+
+        // 生成 else 分支代码
+        if (this.elseStatements.length > 0)
+        {
+            const elseLines: string[] = [];
+            for (const statement of this.elseStatements)
+            {
+                const stmtStr = statement.toGLSL();
+                const lines = stmtStr.split('\n');
+                for (const line of lines)
+                {
+                    elseLines.push(`    ${line}`);
+                }
+            }
+            result += ` else {\n${elseLines.join('\n')}\n}`;
+        }
+
+        return result;
     }
 
     toWGSL(): string
@@ -118,6 +186,24 @@ export class IfStatement implements IStatement
             }
         }
 
-        return `if (${conditionStr}) {\n${bodyLines.join('\n')}\n}`;
+        let result = `if (${conditionStr}) {\n${bodyLines.join('\n')}\n}`;
+
+        // 生成 else 分支代码
+        if (this.elseStatements.length > 0)
+        {
+            const elseLines: string[] = [];
+            for (const statement of this.elseStatements)
+            {
+                const stmtStr = statement.toWGSL();
+                const lines = stmtStr.split('\n');
+                for (const line of lines)
+                {
+                    elseLines.push(`    ${line}`);
+                }
+            }
+            result += ` else {\n${elseLines.join('\n')}\n}`;
+        }
+
+        return result;
     }
 }

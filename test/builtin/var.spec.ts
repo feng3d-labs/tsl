@@ -5,6 +5,7 @@ import { vec4, Vec4 } from '../../src/builtin/types/vec4';
 import { vertex } from '../../src/vertex';
 import { gl_Position } from '../../src/builtin/builtins';
 import { var_ } from '../../src/builtin/var';
+import { Mat4, mat4 } from '../../src';
 
 describe('var_', () =>
 {
@@ -41,6 +42,33 @@ describe('var_', () =>
                 expect(myVec4.toGLSL()).toBe('myVec4');
                 expect(myVec4.toWGSL()).toBe('myVec4');
             });
+        });
+    });
+
+    describe('var_<T>(name: string, type: (...args) => T): T', () =>
+    {
+        it('应该能够使用类型构造函数声明未初始化的变量', () =>
+        {
+            const shader = vertex('main', () =>
+            {
+                const a = var_('a', float);
+                const b = var_('b', vec3);
+                const c = var_('c', mat4);
+
+                expect(a).toBeInstanceOf(Float);
+                expect(b).toBeInstanceOf(Vec3);
+                expect(c).toBeInstanceOf(Mat4);
+            });
+
+            const glsl = shader.toGLSL();
+            expect(glsl).toContain('float a;');
+            expect(glsl).toContain('vec3 b;');
+            expect(glsl).toContain('mat4 c;');
+
+            const wgsl = shader.toWGSL();
+            expect(wgsl).toContain('var a: f32;');
+            expect(wgsl).toContain('var b: vec3<f32>;');
+            expect(wgsl).toContain('var c: mat4x4<f32>;');
         });
     });
 

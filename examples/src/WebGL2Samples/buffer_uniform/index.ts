@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         reactive(lightPos.light).position = lightPos.light.position.concat(); // 强制更新
 
         // 执行渲染
-        // webgl.submit(submit);
+        webgl.submit(submit);
         webgpu.submit(submit);
 
         // 第一帧后进行比较

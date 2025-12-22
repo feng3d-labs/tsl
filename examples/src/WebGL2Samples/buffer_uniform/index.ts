@@ -10,6 +10,7 @@ import vertexGlsl from './shaders/vertex.glsl';
 import vertexWgsl from './shaders/vertex.wgsl';
 // 导入TSL着色器
 import { fragmentShader, vertexShader } from './shaders/shader';
+import { reactive } from '@feng3d/reactivity';
 
 // 辅助函数：初始化画布大小
 function initCanvasSize(canvas: HTMLCanvasElement)
@@ -157,15 +158,15 @@ document.addEventListener('DOMContentLoaded', async () =>
 
         // 更新 MV 矩阵
         transforms.transform.MV[0] = 0.1 * Math.cos(uTime) + 0.4;
-        transforms.transform.MV = transforms.transform.MV.concat(); // 强制更新
+        reactive(transforms.transform).MV = transforms.transform.MV.concat(); // 强制更新
 
         // 更新光源位置
         lightPos.light.position[0] = Math.cos(3 * uTime);
         lightPos.light.position[1] = Math.sin(6 * uTime);
-        lightPos.light.position = lightPos.light.position.concat(); // 强制更新
+        reactive(lightPos.light).position = lightPos.light.position.concat(); // 强制更新
 
         // 执行渲染
-        webgl.submit(submit);
+        // webgl.submit(submit);
         webgpu.submit(submit);
 
         // 第一帧后进行比较
@@ -175,7 +176,7 @@ document.addEventListener('DOMContentLoaded', async () =>
             autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
         }
 
-        // requestAnimationFrame(render);
+        requestAnimationFrame(render);
     }
 
     render();

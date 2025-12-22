@@ -35,5 +35,8 @@ fn main(input: VertexInput) -> VertexOutput {
     output.v_color = input.color;
     output.position = perDraw.transform.P * pEC;
 
+    let _pos_temp = output.position;
+    output.position = vec4<f32>(_pos_temp.xy, (_pos_temp.z + 1.0) * 0.5, _pos_temp.w);
+    
     return output;
 }

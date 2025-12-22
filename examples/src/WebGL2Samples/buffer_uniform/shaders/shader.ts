@@ -1,0 +1,117 @@
+import { attribute, dot, float, fragment, gl_FragColor, gl_Position, mat4, max, normalize, pow, precision, struct, uniform, varying, vec3, vec4, vertex, Float } from '@feng3d/tsl';
+
+// Vec3 类型别名（TSL 未导出 Vec3 类型）
+type Vec3Like = ReturnType<typeof vec3>;
+
+// 自定义 reflect 函数：reflect(I, N) = I - 2.0 * dot(N, I) * N
+function reflect(incident: Vec3Like, normal: Vec3Like): Vec3Like
+{
+    // I - 2.0 * dot(N, I) * N
+    const dotNI = dot(normal, incident);
+    const scale = float(2.0).multiply(dotNI);
+
+    return incident.subtract(normal.multiply(scale as any) as any) as any;
+}
+
+// 输入属性
+const position = vec3(attribute('position', 0));
+const normal = vec3(attribute('normal', 1));
+const color = vec4(attribute('color', 2));
+
+// 定义 Transform 结构体
+const Transform = struct('Transform', {
+    P: mat4,
+    MV: mat4,
+    Mnormal: mat4,
+});
+
+// 定义 PerDraw UBO
+const PerDraw = struct('PerDraw', {
+    transform: Transform,
+});
+
+const perDraw = PerDraw(uniform('perDraw'));
+
+// Varying 变量
+const v_normal = vec3(varying('v_normal'));
+const v_view = vec3(varying('v_view'));
+const v_color = vec4(varying('v_color'));
+
+// 顶点着色器
+export const vertexShader = vertex('main', () =>
+{
+    precision('highp', 'float');
+    precision('highp', 'int');
+
+    // 计算眼空间位置
+    const pEC = perDraw.transform.MV.multiply(vec4(position, 1.0));
+
+    // 变换法线到眼空间
+    v_normal.assign(perDraw.transform.Mnormal.multiply(vec4(normal, 0.0)).xyz);
+
+    // 计算视线方向（从顶点到眼睛）
+    v_view.assign(float(-1.0).multiply(pEC.xyz) as any);
+
+    // 传递颜色
+    v_color.assign(color);
+
+    // 最终位置
+    gl_Position.assign(perDraw.transform.P.multiply(pEC));
+});
+
+// 定义 Material 结构体
+const Material = struct('Material', {
+    ambient: vec3,
+    diffuse: vec3,
+    specular: vec3,
+    shininess: float,
+});
+
+// 定义 PerScene UBO
+const PerScene = struct('PerScene', {
+    material: Material,
+});
+
+const perScene = PerScene(uniform('perScene'));
+
+// 定义 Light 结构体
+const Light = struct('Light', {
+    position: vec3,
+});
+
+// 定义 PerPass UBO
+const PerPass = struct('PerPass', {
+    light: Light,
+});
+
+const perPass = PerPass(uniform('perPass'));
+
+// 片段着色器
+export const fragmentShader = fragment('main', () =>
+{
+    precision('highp', 'float');
+    precision('highp', 'int');
+
+    // 标准化法线
+    const n = normalize(v_normal);
+
+    // 计算光线方向（光源位置在相机空间）
+    const l = normalize((perPass.light.position as Vec3Like).add(v_view));
+
+    // 标准化视线方向
+    const v = normalize(v_view);
+
+    // 计算漫反射
+    const diffuse = (perScene.material.diffuse as Vec3Like).multiply(max(dot(n, l), 0.0) as any);
+
+    // 计算反射向量: r = -reflect(l, n)
+    const r = float(-1.0).multiply(reflect(l, n) as any);
+
+    // 计算镜面反射
+    const specular = (perScene.material.specular as Vec3Like).multiply(
+        pow(max(dot(r as any, v), 0.0), perScene.material.shininess as Float) as any
+    );
+
+    // 最终颜色 = 环境光 + 漫反射 + 镜面反射
+    gl_FragColor.assign(vec4((perScene.material.ambient as Vec3Like).add(diffuse as any).add(specular as any), 1.0));
+});

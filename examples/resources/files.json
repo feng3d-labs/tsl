@@ -36,7 +36,6 @@
 		"WebGL2Samples/fbo_rtt_texture_array",
 		"WebGL2Samples/fbo_rtt_depth_texture",
 		"WebGL2Samples/fbo_read_pixels",
-		"WebGL2Samples/buffer_copy",
 		"WebGL2Samples/sampler_object",
 		"WebGL2Samples/sampler_filter",
 		"WebGL2Samples/sampler_wrap",
@@ -44,6 +43,8 @@
 		"WebGL2Samples/glsl_flat_smooth_interpolators",
 		"WebGL2Samples/glsl_non_square_matrix",
 		"WebGL2Samples/query_occlusion",
-		"WebGL2Samples/draw_instanced_ubo"
+		"WebGL2Samples/draw_instanced_ubo",
+		"WebGL2Samples/buffer_copy",
+		"WebGL2Samples/buffer_uniform"
 	]
 }

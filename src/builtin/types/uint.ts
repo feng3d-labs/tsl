@@ -19,6 +19,12 @@ export class UInt implements ShaderValue
     toWGSL: () => string;
     dependencies: IElement[];
 
+    /**
+     * 标记此 UInt 是否来自 GLSL 中实际为 int 类型的 builtin（如 gl_VertexID、gl_InstanceID）
+     * 用于在生成 GLSL 代码时避免使用 `u` 后缀
+     */
+    private _isGLSLInt = false;
+
     constructor();
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
@@ -66,6 +72,7 @@ export class UInt implements ShaderValue
             if (builtin.isInstanceIndex || builtin.isVertexIndex)
             {
                 this.toGLSL = () => builtin.toGLSL();
+                this._isGLSLInt = true; // 标记为 GLSL int 类型
             }
             else
             {
@@ -107,9 +114,12 @@ export class UInt implements ShaderValue
     divide(other: number): UInt
     {
         const result = new UInt();
-        result.toGLSL = () => `${this.toGLSL()} / ${Math.floor(other)}u`;
-        result.toWGSL = () => `${this.toWGSL()} / ${Math.floor(other)}u`;
+        const intValue = Math.floor(other);
+        // 如果来自 GLSL int 类型的 builtin，不使用 u 后缀
+        result.toGLSL = () => `${this.toGLSL()} / ${intValue}${this._isGLSLInt ? '' : 'u'}`;
+        result.toWGSL = () => `${this.toWGSL()} / ${intValue}u`;
         result.dependencies = [this];
+        result._isGLSLInt = this._isGLSLInt; // 传递标记
 
         return result;
     }
@@ -124,8 +134,9 @@ export class UInt implements ShaderValue
         result.toGLSL = () =>
         {
             const left = formatOperand(this, '%', true, () => this.toGLSL());
+            // 如果来自 GLSL int 类型的 builtin，不使用 u 后缀
             const right = typeof other === 'number'
-                ? `${Math.floor(other)}u`
+                ? `${Math.floor(other)}${this._isGLSLInt ? '' : 'u'}`
                 : formatOperand(other, '%', false, () => other.toGLSL());
 
             return `${left} % ${right}`;
@@ -140,6 +151,7 @@ export class UInt implements ShaderValue
             return `${left} % ${right}`;
         };
         result.dependencies = typeof other === 'number' ? [this] : [this, other];
+        result._isGLSLInt = this._isGLSLInt; // 传递标记
 
         return result;
     }
@@ -152,9 +164,10 @@ export class UInt implements ShaderValue
         const result = new Bool();
         if (typeof other === 'number')
         {
-            const uintValue = Math.floor(other);
-            result.toGLSL = () => `(${this.toGLSL()} == ${uintValue}u)`;
-            result.toWGSL = () => `(${this.toWGSL()} == ${uintValue}u)`;
+            const intValue = Math.floor(other);
+            // 如果来自 GLSL int 类型的 builtin，不使用 u 后缀
+            result.toGLSL = () => `(${this.toGLSL()} == ${intValue}${this._isGLSLInt ? '' : 'u'})`;
+            result.toWGSL = () => `(${this.toWGSL()} == ${intValue}u)`;
             result.dependencies = [this];
         }
         else

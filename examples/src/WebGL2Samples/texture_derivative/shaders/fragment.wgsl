@@ -11,8 +11,9 @@ fn main(v: VaryingStruct) -> @location(0) vec4<f32> {
     var color = textureSample(diffuse_texture, diffuse, v.v_uv);
 
     // Compute flat normal using gradient
+    // 注意：dpdy 取反以补偿 WebGL/WebGPU Y 轴方向差异
     let fdx = vec3<f32>(dpdx(v.v_position.x), dpdx(v.v_position.y), dpdx(v.v_position.z));
-    let fdy = vec3<f32>(dpdy(v.v_position.x), dpdy(v.v_position.y), dpdy(v.v_position.z));
+    let fdy = vec3<f32>(-dpdy(v.v_position.x), -dpdy(v.v_position.y), -dpdy(v.v_position.z));
 
     let N = normalize(cross(fdx, fdy));
     color = mix(color, vec4<f32>(N, 1.0), 0.5);

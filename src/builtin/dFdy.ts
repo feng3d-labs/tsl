@@ -4,7 +4,11 @@ import { Vec3 } from './types/vec3';
 /**
  * dFdy 函数，计算屏幕空间 y 方向的导数
  * GLSL: dFdy(p)
- * WGSL: dpdy(p)
+ * WGSL: -dpdy(p)（取反以补偿 WebGL/WebGPU Y 轴方向差异）
+ *
+ * 注意：WebGL 的 Y 轴向上，WebGPU 的 Y 轴向下，
+ * 因此 dpdy 的结果与 dFdy 符号相反，需要取反以保持一致。
+ *
  * @param p 输入值
  * @returns 屏幕空间 y 方向的导数
  */
@@ -16,7 +20,7 @@ export function dFdy(p: Float | Vec3): Float | Vec3
     {
         const result = new Vec3();
         result.toGLSL = () => `dFdy(${p.toGLSL()})`;
-        result.toWGSL = () => `dpdy(${p.toWGSL()})`;
+        result.toWGSL = () => `-dpdy(${p.toWGSL()})`;
         result.dependencies = [p];
 
         return result;
@@ -25,7 +29,7 @@ export function dFdy(p: Float | Vec3): Float | Vec3
     {
         const result = new Float();
         result.toGLSL = () => `dFdy(${p.toGLSL()})`;
-        result.toWGSL = () => `dpdy(${p.toWGSL()})`;
+        result.toWGSL = () => `-dpdy(${p.toWGSL()})`;
         result.dependencies = [p];
 
         return result;

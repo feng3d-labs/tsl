@@ -45,6 +45,7 @@
 		"WebGL2Samples/query_occlusion",
 		"WebGL2Samples/draw_instanced_ubo",
 		"WebGL2Samples/buffer_copy",
-		"WebGL2Samples/buffer_uniform"
+		"WebGL2Samples/buffer_uniform",
+		"WebGL2Samples/texture_2d_array"
 	]
 }

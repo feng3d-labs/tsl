@@ -8,6 +8,7 @@ import { FragColor } from '../fragColor';
 import { formatOperand, wrapForSwizzle } from '../expressionUtils';
 import { formatNumber } from '../formatNumber';
 import { Float } from './float';
+import { Uvec4 } from './uvec4';
 import { Vec2 } from './vec2';
 import { Vec3 } from './vec3';
 
@@ -31,10 +32,11 @@ export class Vec4 implements ShaderValue
     constructor(varying: Varying);
     constructor(color: FragColor);
     constructor(vec4: Vec4);
+    constructor(uvec4: Uvec4);
     constructor(xy: Vec2, z: number, w: number);
     constructor(xyz: Vec3, w: number | Float);
     constructor(x: number | Float, y: number | Float, z: number | Float, w: number | Float);
-    constructor(...args: (number | Uniform | Attribute | Builtin | Varying | FragColor | Vec2 | Vec3 | Float | Vec4)[])
+    constructor(...args: (number | Uniform | Attribute | Builtin | Varying | FragColor | Vec2 | Vec3 | Float | Vec4 | Uvec4)[])
     {
         if (args.length === 0) return;
         if (args.length === 1)
@@ -92,6 +94,14 @@ export class Vec4 implements ShaderValue
                 this.toGLSL = vec4.toGLSL;
                 this.toWGSL = vec4.toWGSL;
                 this.dependencies = vec4.dependencies;
+            }
+            else if (args[0] instanceof Uvec4)
+            {
+                // 从 uvec4 转换为 vec4
+                const uvec4 = args[0] as Uvec4;
+                this.toGLSL = () => `vec4(${uvec4.toGLSL()})`;
+                this.toWGSL = () => `vec4<f32>(${uvec4.toWGSL()})`;
+                this.dependencies = [uvec4];
             }
             else if (typeof args[0] === 'number' || args[0] instanceof Float)
             {
@@ -465,6 +475,7 @@ export function vec4(builtin: Builtin): Vec4;
 export function vec4(varying: Varying): Vec4;
 export function vec4(color: FragColor): Vec4;
 export function vec4(value: number | Float): Vec4;
+export function vec4(uvec4: Uvec4): Vec4;
 export function vec4(xy: Vec2, z: number, w: number): Vec4;
 export function vec4(xyz: Vec3, w: number | Float): Vec4;
 export function vec4(x: number | Float, y: number | Float, z: number | Float, w: number | Float): Vec4;

@@ -2,6 +2,7 @@ import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
 import { Float } from './float';
+import { Vec4 } from './vec4';
 
 /**
  * Uvec4 类，用于表示 uvec4 字面量值或 uniform/attribute 变量
@@ -18,12 +19,18 @@ export class Uvec4 implements ShaderValue
 
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
+    constructor(vec4: Vec4);
     constructor(x: number, y: number, z: number, w: number);
-    constructor(...args: (number | Uniform | Attribute)[])
+    constructor(...args: (number | Uniform | Attribute | Vec4)[])
     {
+        if (args.length === 0)
+        {
+            // 无参数构造函数，用于内部创建实例
+            return;
+        }
         if (args.length === 1)
         {
-            // 处理 uniform 或 attribute
+            // 处理 uniform、attribute 或 vec4
             if (args[0] instanceof Uniform)
             {
                 const uniform = args[0] as Uniform;
@@ -43,6 +50,15 @@ export class Uvec4 implements ShaderValue
                 this.dependencies = [attribute];
 
                 attribute.value = this;
+            }
+            else if (args[0] instanceof Vec4)
+            {
+                // 从 vec4 转换为 uvec4
+                const vec4 = args[0] as Vec4;
+
+                this.toGLSL = () => `uvec4(${vec4.toGLSL()})`;
+                this.toWGSL = () => `vec4<u32>(${vec4.toWGSL()})`;
+                this.dependencies = [vec4];
             }
             else
             {
@@ -123,6 +139,7 @@ export class Uvec4 implements ShaderValue
  */
 export function uvec4(uniform: Uniform): Uvec4;
 export function uvec4(attribute: Attribute): Uvec4;
+export function uvec4(vec4: Vec4): Uvec4;
 export function uvec4(x: number, y: number, z: number, w: number): Uvec4;
 export function uvec4(...args: any[]): Uvec4
 {

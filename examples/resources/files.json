@@ -48,6 +48,7 @@
 		"WebGL2Samples/buffer_uniform",
 		"WebGL2Samples/texture_2d_array",
 		"WebGL2Samples/texture_3d",
-		"WebGL2Samples/texture_derivative"
+		"WebGL2Samples/texture_derivative",
+		"WebGL2Samples/texture_fetch"
 	]
 }

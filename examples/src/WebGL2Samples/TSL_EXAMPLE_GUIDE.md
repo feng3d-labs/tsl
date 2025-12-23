@@ -229,6 +229,111 @@ npm run build
 
 如果有编译错误，需要修复后再次编译，直到编译通过。
 
+## TSL 代码结构规范（重要）
+
+**TSL 着色器代码必须保持与原始 GLSL 相同的结构**，确保生成的 GLSL 代码与原始代码一致。这是验证 TSL 正确性的重要标准。
+
+### 使用 `let_` 创建局部变量（最重要）
+
+**必须使用 `let_` 函数创建 GLSL 局部变量**，否则 TSL 会将表达式内联，导致生成代码与原始 GLSL 不一致：
+
+```typescript
+import { let_ } from '@feng3d/tsl';
+
+// ✅ 正确：使用 let_ 创建局部变量
+// 原始 GLSL: vec2 size = vec2(textureSize(diffuse, 0) - 1);
+const size = let_('size', vec2(textureSize(diffuse, 0).subtract(1)));
+
+// ✅ 正确：后续引用该变量
+// 原始 GLSL: vec2 texcoord = v_st * size;
+const texcoordF = let_('texcoord', v_st.multiply(size));
+
+// ❌ 错误：不使用 let_，表达式会被内联
+const size = vec2(textureSize(diffuse, 0).subtract(1));  // TypeScript 常量，不生成 GLSL 变量
+const texcoordF = v_st.multiply(size);  // 生成 v_st * vec2(textureSize(diffuse, 0) - 1) 而非 v_st * size
+```
+
+**内联 vs 局部变量的区别：**
+
+```glsl
+// ❌ 不使用 let_ 生成的代码（内联，重复计算）:
+color = mix(mix(texelFetch(diffuse, ivec2(v_st * vec2(textureSize(diffuse, 0) - 1)), 0), ...));
+
+// ✅ 使用 let_ 生成的代码（与原始一致）:
+vec2 size = vec2(textureSize(diffuse, 0) - 1);
+vec2 texcoord = v_st * size;
+ivec2 coord = ivec2(texcoord);
+vec4 texel00 = texelFetch(diffuse, coord + ivec2(0, 0), 0);
+...
+color = mix(texel0, texel1, sampleCoord.x);
+```
+
+### 类型转换
+
+TSL 支持向量类型之间的转换，必须使用与 GLSL 相同的结构：
+
+```typescript
+// ✅ 正确：与原始 GLSL 结构一致
+// 原始 GLSL: vec2 size = vec2(textureSize(diffuse, 0) - 1);
+const size = vec2(textureSize(diffuse, 0).subtract(1));
+
+// ✅ 正确：ivec2 转 vec2
+// 原始 GLSL: vec2 floatCoord = vec2(intCoord);
+const floatCoord = vec2(intCoord);  // intCoord 是 IVec2 类型
+
+// ✅ 正确：vec2 转 ivec2
+// 原始 GLSL: ivec2 coord = ivec2(texcoord);
+const coord = ivec2(texcoordF);  // texcoordF 是 Vec2 类型
+
+// ❌ 错误：使用分量构造，生成代码不一致
+const size = textureSize(diffuse, 0).subtract(ivec2(1, 1));
+const texcoordF = v_st.multiply(vec2(size.x, size.y));  // 生成 vec2(size.x, size.y) 而非 vec2(size)
+```
+
+### 标量运算（广播）
+
+整数向量支持与标量的运算，GLSL 会自动广播：
+
+```typescript
+// ✅ 正确：标量减法
+// 原始 GLSL: ivec2 result = textureSize(diffuse, 0) - 1;
+const result = textureSize(diffuse, 0).subtract(1);  // 生成 textureSize(diffuse, 0) - 1
+
+// ❌ 错误：使用 ivec2 构造
+const result = textureSize(diffuse, 0).subtract(ivec2(1, 1));  // 生成 textureSize(diffuse, 0) - ivec2(1, 1)
+```
+
+### 纹理相关函数
+
+```typescript
+import { texelFetch, textureSize, fract } from '@feng3d/tsl';
+
+// textureSize - 获取纹理尺寸（返回 IVec2）
+const texSize = textureSize(diffuse, 0);  // 第二个参数是 mip level
+
+// texelFetch - 直接获取纹素（不过滤）
+const texel = texelFetch(diffuse, coord, 0);  // coord 是 IVec2，第三个参数是 mip level
+
+// fract - 取小数部分
+const fractPart = fract(texcoordF);  // 支持 Float 和 Vec2
+```
+
+### 完整示例（手动双线性过滤）
+
+```typescript
+// 原始 GLSL:
+// vec2 size = vec2(textureSize(diffuse, 0) - 1);
+// vec2 texcoord = v_st * size;
+// ivec2 coord = ivec2(texcoord);
+// vec4 texel00 = texelFetch(diffuse, coord + ivec2(0, 0), 0);
+
+// TSL 实现（保持结构一致）:
+const size = vec2(textureSize(diffuse, 0).subtract(1));
+const texcoordF = v_st.multiply(size);
+const coord = ivec2(texcoordF);
+const texel00 = texelFetch(diffuse, coord.add(ivec2(0, 0)), 0);
+```
+
 ## TSL API 常用写法
 
 ### 基础类型和属性

@@ -7,6 +7,7 @@ import { Builtin } from '../builtin';
 import { formatOperand, wrapForSwizzle } from '../expressionUtils';
 import { formatNumber } from '../formatNumber';
 import { Float } from './float';
+import { IVec2 } from './ivec2';
 
 /**
  * Vec2 类，用于表示 vec2 字面量值或 uniform/attribute 变量
@@ -28,8 +29,9 @@ export class Vec2 implements ShaderValue
     constructor(attribute: Attribute);
     constructor(varying: Varying);
     constructor(builtin: Builtin);
+    constructor(ivec2: IVec2);
     constructor(x: number | Float, y: number | Float);
-    constructor(...args: (number | Uniform | Attribute | Varying | Float | Builtin)[])
+    constructor(...args: (number | Uniform | Attribute | Varying | Float | Builtin | IVec2)[])
     {
         if (args.length === 0)
         {
@@ -78,6 +80,15 @@ export class Vec2 implements ShaderValue
                 this.dependencies = [builtin];
                 builtin.value = this;
                 this._builtin = builtin; // 记录 builtin 引用，用于 .y 的翻转处理
+            }
+            else if (args[0] instanceof IVec2)
+            {
+                // 从 ivec2 转换为 vec2
+                const ivec2 = args[0] as IVec2;
+
+                this.toGLSL = () => `vec2(${ivec2.toGLSL()})`;
+                this.toWGSL = () => `vec2<f32>(${ivec2.toWGSL()})`;
+                this.dependencies = [ivec2];
             }
             else
             {
@@ -319,6 +330,7 @@ export function vec2(uniform: Uniform): Vec2;
 export function vec2(attribute: Attribute): Vec2;
 export function vec2(varying: Varying): Vec2;
 export function vec2(builtin: Builtin): Vec2;
+export function vec2(ivec2: IVec2): Vec2;
 export function vec2(x: number | Float, y: number | Float): Vec2;
 export function vec2(...args: any[]): Vec2
 {

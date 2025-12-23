@@ -2,6 +2,7 @@ import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
 import { Float } from './float';
+import { Vec2 } from './vec2';
 
 /**
  * IVec2 类，用于表示 ivec2 字面量值或 uniform/attribute 变量
@@ -18,12 +19,18 @@ export class IVec2 implements ShaderValue
 
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
+    constructor(vec2: Vec2);
     constructor(x: number, y: number);
-    constructor(...args: (number | Uniform | Attribute)[])
+    constructor(...args: (number | Uniform | Attribute | Vec2)[])
     {
+        if (args.length === 0)
+        {
+            // 无参数构造函数，用于内部创建实例
+            return;
+        }
         if (args.length === 1)
         {
-            // 处理 uniform 或 attribute
+            // 处理 uniform、attribute 或 vec2
             if (args[0] instanceof Uniform)
             {
                 const uniform = args[0] as Uniform;
@@ -43,6 +50,15 @@ export class IVec2 implements ShaderValue
                 this.dependencies = [attribute];
 
                 attribute.value = this;
+            }
+            else if (args[0] instanceof Vec2)
+            {
+                // 从 vec2 转换为 ivec2
+                const vec2 = args[0] as Vec2;
+
+                this.toGLSL = () => `ivec2(${vec2.toGLSL()})`;
+                this.toWGSL = () => `vec2<i32>(${vec2.toWGSL()})`;
+                this.dependencies = [vec2];
             }
             else
             {
@@ -88,6 +104,43 @@ export class IVec2 implements ShaderValue
 
         return float;
     }
+
+    /**
+     * 加法运算
+     */
+    add(other: IVec2): IVec2
+    {
+        const result = new (IVec2 as any)();
+        result.toGLSL = () => `${this.toGLSL()} + ${other.toGLSL()}`;
+        result.toWGSL = () => `${this.toWGSL()} + ${other.toWGSL()}`;
+        result.dependencies = [this, other];
+
+        return result;
+    }
+
+    /**
+     * 减法运算
+     * @param other 另一个 IVec2 或数字（标量广播）
+     */
+    subtract(other: IVec2 | number): IVec2
+    {
+        const result = new (IVec2 as any)();
+        if (typeof other === 'number')
+        {
+            // 标量减法（广播）
+            result.toGLSL = () => `${this.toGLSL()} - ${other}`;
+            result.toWGSL = () => `${this.toWGSL()} - vec2<i32>(${other})`;
+            result.dependencies = [this];
+        }
+        else
+        {
+            result.toGLSL = () => `${this.toGLSL()} - ${other.toGLSL()}`;
+            result.toWGSL = () => `${this.toWGSL()} - ${other.toWGSL()}`;
+            result.dependencies = [this, other];
+        }
+
+        return result;
+    }
 }
 
 /**
@@ -95,6 +148,7 @@ export class IVec2 implements ShaderValue
  */
 export function ivec2(uniform: Uniform): IVec2;
 export function ivec2(attribute: Attribute): IVec2;
+export function ivec2(vec2: Vec2): IVec2;
 export function ivec2(x: number, y: number): IVec2;
 export function ivec2(...args: any[]): IVec2
 {

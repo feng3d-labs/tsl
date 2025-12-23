@@ -26,6 +26,7 @@ export { fragColor } from './builtin/fragColor';
 export { cos } from './builtin/cos';
 export { dot } from './builtin/dot';
 export { exp } from './builtin/exp';
+export { fract } from './builtin/fract';
 export { if_ } from './builtin/if_';
 export { let_ } from './builtin/let';
 export { max } from './builtin/max';
@@ -38,8 +39,10 @@ export { sin } from './builtin/sin';
 export { smoothstep } from './builtin/smoothstep';
 export { sqrt } from './builtin/sqrt';
 export { step } from './builtin/step';
+export { texelFetch } from './builtin/texelFetch';
 export { texture } from './builtin/texture';
 export { texture2D } from './builtin/texture2D';
+export { textureSize } from './builtin/textureSize';
 export { var_ } from './builtin/var';
 
 // 导出向量类型
@@ -52,7 +55,7 @@ export { Vec4 } from './builtin/types/vec4';
 export { bool } from './builtin/types/bool';
 export { float } from './builtin/types/float';
 export { int, Int } from './builtin/types/int';
-export { ivec2 } from './builtin/types/ivec2';
+export { ivec2, IVec2 } from './builtin/types/ivec2';
 export { ivec3 } from './builtin/types/ivec3';
 export { ivec4 } from './builtin/types/ivec4';
 export { mat4, Mat4 } from './builtin/types/mat4';

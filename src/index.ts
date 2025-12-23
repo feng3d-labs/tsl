@@ -8,8 +8,8 @@ export * from './sampler';
 export * from './sampler2D';
 export * from './sampler2DArray';
 export * from './depthSampler';
-export { struct, Struct, StructDefinition } from './struct';
-export type { StructMembers, StructMemberType } from './struct';
+export { struct, Struct, StructDefinition, isStructConstructor } from './struct';
+export type { StructMembers, StructMemberType, StructConstructor } from './struct';
 export * from './uniform';
 export * from './varying';
 // 导出 builtin 类型和工具函数

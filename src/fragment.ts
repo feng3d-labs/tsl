@@ -131,6 +131,21 @@ export class Fragment extends Func
             // 收集结构体 uniform 的名称
             const structUniformNames = new Set(dependencies.structUniforms.map(s => s.uniform.name));
 
+            // 收集并生成所有嵌套结构体声明（去重）
+            const generatedStructNames = new Set<string>();
+            for (const structInfo of dependencies.structUniforms)
+            {
+                const nestedDefs = structInfo.structDef.getNestedStructDefinitions();
+                for (const nestedDef of nestedDefs)
+                {
+                    if (!generatedStructNames.has(nestedDef.name))
+                    {
+                        lines.push(nestedDef.toGLSLStruct());
+                        generatedStructNames.add(nestedDef.name);
+                    }
+                }
+            }
+
             // 生成结构体 uniform（UBO 声明）
             for (const structInfo of dependencies.structUniforms)
             {
@@ -280,6 +295,21 @@ export class Fragment extends Func
 
             // 收集结构体 uniform 的名称
             const structUniformNames = new Set(dependencies.structUniforms.map(s => s.uniform.name));
+
+            // 收集并生成所有嵌套结构体声明（去重）
+            const generatedStructNamesWgsl = new Set<string>();
+            for (const structInfo of dependencies.structUniforms)
+            {
+                const nestedDefs = structInfo.structDef.getNestedStructDefinitions();
+                for (const nestedDef of nestedDefs)
+                {
+                    if (!generatedStructNamesWgsl.has(nestedDef.name))
+                    {
+                        lines.push(nestedDef.toWGSLStruct());
+                        generatedStructNamesWgsl.add(nestedDef.name);
+                    }
+                }
+            }
 
             // 生成结构体定义
             for (const structInfo of dependencies.structUniforms)

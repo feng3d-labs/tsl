@@ -88,10 +88,10 @@ document.addEventListener('DOMContentLoaded', async () =>
     };
 
     // 生成着色器代码（注释掉以下代码可切换到原始着色器调试）
-    // const vertexGlsl = vertexShader.toGLSL(2);
-    // const fragmentGlsl = fragmentShader.toGLSL(2);
-    // const vertexWgsl = vertexShader.toWGSL();
-    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+    const vertexGlsl = vertexShader.toGLSL(2);
+    const fragmentGlsl = fragmentShader.toGLSL(2);
+    const vertexWgsl = vertexShader.toWGSL({ convertDepth: true });
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     // 渲染管线
     const program: RenderPipeline = {

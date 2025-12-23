@@ -156,9 +156,14 @@ import { fragmentShader, vertexShader } from './shaders/shader';
 // 生成着色器代码（变量名必须与导入的相同，便于调试切换）
 const vertexGlsl = vertexShader.toGLSL(2);
 const fragmentGlsl = fragmentShader.toGLSL(2);
-const vertexWgsl = vertexShader.toWGSL();
+const vertexWgsl = vertexShader.toWGSL({ convertDepth: true });  // 必须启用深度转换
 const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 ```
+
+**深度转换说明**：生成 WGSL 顶点着色器时，**必须**使用 `{ convertDepth: true }` 选项：
+- WebGL NDC 深度范围：`[-1, 1]`
+- WebGPU NDC 深度范围：`[0, 1]`
+- 启用此选项会自动将 `gl_Position.z` 从 `[-1, 1]` 转换到 `[0, 1]`，确保跨平台渲染结果一致
 
 ## WebGL 与 WebGPU 双渲染（重要）
 
@@ -544,7 +549,7 @@ export const fragmentShader = fragment('main', () => {
 ```typescript
 // const vertexGlsl = vertexShader.toGLSL(2);
 // const fragmentGlsl = fragmentShader.toGLSL(2);
-// const vertexWgsl = vertexShader.toWGSL();
+// const vertexWgsl = vertexShader.toWGSL({ convertDepth: true });
 // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 ```
 

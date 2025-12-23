@@ -5,6 +5,7 @@ import { ShaderValue } from './IElement';
 import { Precision } from './precision';
 import { Sampler } from './sampler';
 import { Sampler2DArray } from './sampler2DArray';
+import { Sampler3D } from './sampler3D';
 import { Uniform } from './uniform';
 import { Varying } from './varying';
 import { Vertex } from './vertex';
@@ -119,6 +120,16 @@ export class Fragment extends Func
             if (hasSampler2DArray)
             {
                 const samplerPrecision = precisionMap.get('sampler2DArray') || new Precision('lowp', 'sampler2DArray');
+                lines.push(samplerPrecision.toGLSL());
+            }
+
+            // 检查是否有 sampler3D，如果有则需要添加 precision 声明（如果没有设置，默认使用 lowp）
+            const hasSampler3D = Array.from(dependencies.samplers).some(s =>
+                s instanceof Sampler3D,
+            );
+            if (hasSampler3D)
+            {
+                const samplerPrecision = precisionMap.get('sampler3D') || new Precision('lowp', 'sampler3D');
                 lines.push(samplerPrecision.toGLSL());
             }
 

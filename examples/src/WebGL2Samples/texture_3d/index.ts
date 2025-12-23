@@ -51,10 +51,10 @@ function yawPitchRoll(yaw: number, pitch: number, roll: number): number[]
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // TSL 生成着色器代码（变量名与导入的相同，便于调试切换）
-    // const vertexGlsl = vertexShader.toGLSL(2);
-    // const fragmentGlsl = fragmentShader.toGLSL(2);
-    // const vertexWgsl = vertexShader.toWGSL({ convertDepth: true });
-    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+    const vertexGlsl = vertexShader.toGLSL(2);
+    const fragmentGlsl = fragmentShader.toGLSL(2);
+    const vertexWgsl = vertexShader.toWGSL({ convertDepth: true });
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     // 初始化 WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;

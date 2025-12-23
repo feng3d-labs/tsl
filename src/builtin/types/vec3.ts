@@ -26,6 +26,7 @@ export class Vec3 implements ShaderValue
     constructor(varying: Varying);
     constructor(value: Float | number);
     constructor(x: number, y: number, z: number);
+    constructor(x: Float, y: Float, z: Float);
     constructor(vec2: Vec2, z: Float | number);
     constructor(...args: (number | Uniform | Attribute | Varying | Float | Vec2)[])
     {
@@ -106,6 +107,17 @@ export class Vec3 implements ShaderValue
                 this.toWGSL = () => `vec3<f32>(${formatNumber(x)}, ${formatNumber(y)}, ${formatNumber(z)})`;
             }
             this.dependencies = [];
+        }
+        else if (args.length === 3 && args[0] instanceof Float && args[1] instanceof Float && args[2] instanceof Float)
+        {
+            // 从三个 Float 表达式构造 vec3
+            const x = args[0] as Float;
+            const y = args[1] as Float;
+            const z = args[2] as Float;
+
+            this.toGLSL = () => `vec3(${x.toGLSL()}, ${y.toGLSL()}, ${z.toGLSL()})`;
+            this.toWGSL = () => `vec3<f32>(${x.toWGSL()}, ${y.toWGSL()}, ${z.toWGSL()})`;
+            this.dependencies = [x, y, z];
         }
         else
         {
@@ -352,6 +364,7 @@ export function vec3(attribute: Attribute): Vec3;
 export function vec3(varying: Varying): Vec3;
 export function vec3(value: Float | number): Vec3;
 export function vec3(x: number, y: number, z: number): Vec3;
+export function vec3(x: Float, y: Float, z: Float): Vec3;
 export function vec3(vec2: Vec2, z: Float | number): Vec3;
 export function vec3(...args: (number | Uniform | Attribute | Varying | Float | Vec2)[]): Vec3
 {

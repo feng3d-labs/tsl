@@ -4,7 +4,7 @@ import { getCurrentFunc } from './currentFunc';
 /**
  * Precision 类型
  */
-export type PrecisionType = 'float' | 'int' | 'sampler2DArray' | 'sampler3D';
+export type PrecisionType = 'float' | 'int' | 'sampler2D' | 'sampler2DArray' | 'sampler3D';
 
 /**
  * Precision 类，表示 GLSL 精度声明（仅用于 fragment shader）

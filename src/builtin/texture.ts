@@ -1,6 +1,7 @@
 import { getBuildParam } from '../buildShader';
 import { Sampler } from '../sampler';
 import { Sampler2DArray } from '../sampler2DArray';
+import { Sampler3D } from '../sampler3D';
 import { Float } from './types/float';
 import { Vec2 } from './types/vec2';
 import { Vec3 } from './types/vec3';
@@ -60,6 +61,7 @@ export function texture(sampler: Sampler, coord: Vec2, layer: Int): Vec4;
 export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4
 {
     const isTextureArray = sampler instanceof Sampler2DArray;
+    const isTexture3D = sampler instanceof Sampler3D;
     const isDepthTexture = sampler.isDepthTexture();
 
     // 根据是否是深度纹理创建不同的结果类型
@@ -70,8 +72,8 @@ export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4
         const buildParam = getBuildParam();
         const version = buildParam?.version ?? 1;
         // 在 WebGL 2.0 中，使用 texture 函数
-        // 在 WebGL 1.0 中，对于 vec2 坐标使用 texture2D，对于 vec3 坐标或 vec2 + int 使用 texture（纹理数组需要 WebGL 2.0）
-        const textureFunc = version === 2 || isTextureArray ? 'texture' : 'texture2D';
+        // 在 WebGL 1.0 中，对于 vec2 坐标使用 texture2D，对于 vec3 坐标或 vec2 + int 使用 texture（纹理数组和 3D 纹理需要 WebGL 2.0）
+        const textureFunc = version === 2 || isTextureArray || isTexture3D ? 'texture' : 'texture2D';
 
         if (layer !== undefined)
         {
@@ -80,7 +82,7 @@ export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4
         }
         else if (coord instanceof Vec3)
         {
-            // 纹理数组：vec3 坐标
+            // 3D 纹理或纹理数组：vec3 坐标
             return `${textureFunc}(${sampler.uniform.name}, ${coord.toGLSL()})`;
         }
         else
@@ -122,7 +124,7 @@ export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4
         }
         else if (coord instanceof Vec3)
         {
-            // 纹理数组采样：vec3 坐标
+            // 3D 纹理或纹理数组采样：vec3 坐标
             return `textureSample(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()})`;
         }
         else

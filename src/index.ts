@@ -7,6 +7,7 @@ export * from './precision';
 export * from './sampler';
 export * from './sampler2D';
 export * from './sampler2DArray';
+export * from './sampler3D';
 export * from './depthSampler';
 export { struct, Struct, StructDefinition, isStructConstructor } from './struct';
 export type { StructMembers, StructMemberType, StructConstructor } from './struct';

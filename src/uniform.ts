@@ -102,6 +102,7 @@ export class Uniform implements IElement
  * 类型通过 vec4()、vec3()、vec2() 等函数自动推断
  */
 export function uniform(name: string): Uniform;
+export function uniform(name: string, group: number): Uniform;
 export function uniform(name: string, group: number, binding: number): Uniform;
 export function uniform(name: string, group?: number, binding?: number): Uniform
 {

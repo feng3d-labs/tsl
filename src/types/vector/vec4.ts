@@ -34,6 +34,7 @@ export class Vec4 implements ShaderValue
     constructor(vec4: Vec4);
     constructor(uvec4: Uvec4);
     constructor(xy: Vec2, z: number, w: number);
+    constructor(xy: Vec2, zw: Vec2);
     constructor(xyz: Vec3, w: number | Float);
     constructor(x: number | Float, y: number | Float, z: number | Float, w: number | Float);
     constructor(...args: (number | Uniform | Attribute | Builtin | Varying | FragColor | Vec2 | Vec3 | Float | Vec4 | Uvec4)[])
@@ -136,6 +137,16 @@ export class Vec4 implements ShaderValue
             this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${formatNumber(z)}, ${formatNumber(w)})`;
             this.dependencies = [xy];
         }
+        else if (args.length === 2 && args[0] instanceof Vec2 && args[1] instanceof Vec2)
+        {
+            // 处理 vec4(xy: Vec2, zw: Vec2) 的情况
+            const xy = args[0] as Vec2;
+            const zw = args[1] as Vec2;
+
+            this.toGLSL = () => `vec4(${xy.toGLSL()}, ${zw.toGLSL()})`;
+            this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${zw.toWGSL()})`;
+            this.dependencies = [xy, zw];
+        }
         else if (args.length === 2 && args[0] instanceof Vec3 && (typeof args[1] === 'number' || args[1] instanceof Float))
         {
             // 处理 vec4(xyz: Vec3, w: number | Float) 的情况
@@ -233,6 +244,32 @@ export class Vec4 implements ShaderValue
         float.dependencies = [this];
 
         return float;
+    }
+
+    /**
+     * 获取 xy 分量（返回 Vec2）
+     */
+    get xy(): Vec2
+    {
+        const vec2 = new (Vec2 as any)();
+        vec2.toGLSL = () => `${wrapForSwizzle(this.toGLSL())}.xy`;
+        vec2.toWGSL = () => `${wrapForSwizzle(this.toWGSL())}.xy`;
+        vec2.dependencies = [this];
+
+        return vec2;
+    }
+
+    /**
+     * 获取 zw 分量（返回 Vec2）
+     */
+    get zw(): Vec2
+    {
+        const vec2 = new (Vec2 as any)();
+        vec2.toGLSL = () => `${wrapForSwizzle(this.toGLSL())}.zw`;
+        vec2.toWGSL = () => `${wrapForSwizzle(this.toWGSL())}.zw`;
+        vec2.dependencies = [this];
+
+        return vec2;
     }
 
     /**
@@ -508,6 +545,12 @@ export function vec4(uvec4: Uvec4): Vec4;
  * @param w w 分量（Float 或数字）
  */
 export function vec4(xy: Vec2, z: Float | number, w: Float | number): Vec4;
+/**
+ * vec4 构造函数
+ * @param xy Vec2 的 xy 分量
+ * @param zw Vec2 的 zw 分量
+ */
+export function vec4(xy: Vec2, zw: Vec2): Vec4;
 /**
  * vec4 构造函数
  * @param xyz Vec3 的 xyz 分量

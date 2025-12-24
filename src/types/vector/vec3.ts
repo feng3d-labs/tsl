@@ -235,14 +235,14 @@ export class Vec3 implements ShaderValue
             result.toGLSL = () =>
             {
                 const left = formatOperand(this, '*', true, () => this.toGLSL());
-                const right = typeof other === 'number' ? other.toString() : formatOperand(other, '*', false, () => other.toGLSL());
+                const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '*', false, () => other.toGLSL());
 
                 return `${left} * ${right}`;
             };
             result.toWGSL = () =>
             {
                 const left = formatOperand(this, '*', true, () => this.toWGSL());
-                const right = typeof other === 'number' ? other.toString() : formatOperand(other, '*', false, () => other.toWGSL());
+                const right = typeof other === 'number' ? formatNumber(other) : formatOperand(other, '*', false, () => other.toWGSL());
 
                 return `${left} * ${right}`;
             };

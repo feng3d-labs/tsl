@@ -1,5 +1,4 @@
 import { Attribute } from '../variables/attribute';
-import { Array as TSLArray } from '../variables/array';
 import { buildShader, getBuildParam } from '../core/buildShader';
 import { Builtin } from '../glsl/builtin/builtin';
 import { Func } from './func';
@@ -86,26 +85,10 @@ export class Vertex extends Func
                 }
             }
 
-            // 生成 varying 声明（排除数组中的 varying）
-            const varyingArrayNames = new Set(globalThis.Array.from(dependencies.varyingArrays).map(va => va.varying?.name));
+            // 生成 varying 声明
             for (const varying of dependencies.varyings)
             {
-                if (!varyingArrayNames.has(varying.name))
-                {
-                    lines.push(varying.toGLSL());
-                }
-            }
-
-            // 生成 varying 数组声明
-            for (const varyingArr of dependencies.varyingArrays)
-            {
-                if (varyingArr.varying)
-                {
-                    const glslType = varyingArr.glslType;
-                    const name = varyingArr.varying.name;
-                    const length = varyingArr.length;
-                    lines.push(`out ${glslType} ${name}[${length}];`);
-                }
+                lines.push(varying.toGLSL());
             }
 
             // 生成外部定义的var_变量（作为全局const）
@@ -177,19 +160,16 @@ export class Vertex extends Func
             // 检查是否有 position builtin（gl_Position）
             const hasPositionBuiltin = globalThis.Array.from(dependencies.builtins).some(b => b.isPosition);
 
-            // 如果有 varying、varying 数组或 position builtin，需要生成 VaryingStruct
-            if (dependencies.varyings.size > 0 || dependencies.varyingArrays.size > 0 || hasPositionBuiltin)
+            // 如果有 varying 或 position builtin，需要生成 VaryingStruct
+            if (dependencies.varyings.size > 0 || hasPositionBuiltin)
             {
                 // 为 varying 分配 location
-                this.allocateVaryingLocations(dependencies.varyings, dependencies.varyingArrays);
+                this.allocateVaryingLocations(dependencies.varyings);
 
-                // 收集 varying 数组的名称，用于排除
-                const varyingArrayNames = new Set(globalThis.Array.from(dependencies.varyingArrays).map(va => va.varying?.name));
-
-                // 设置 varying 的 toWGSL 方法返回 v.varyingName 格式（排除数组中的 varying）
+                // 设置 varying 的 toWGSL 方法返回 v.varyingName 格式
                 for (const v of dependencies.varyings)
                 {
-                    if (v.value && !varyingArrayNames.has(v.name))
+                    if (v.value)
                     {
                         const varyingName = v.name;
                         v.value.toWGSL = () => `v.${varyingName}`;
@@ -206,7 +186,7 @@ export class Vertex extends Func
                 }
 
                 // 生成 VaryingStruct 定义
-                const structDef = this.generateVaryingStructDefinition(dependencies.varyings, dependencies.varyingArrays, dependencies.builtins);
+                const structDef = this.generateVaryingStructDefinition(dependencies.varyings, dependencies.builtins);
                 lines.push(structDef);
             }
 
@@ -277,11 +257,10 @@ export class Vertex extends Func
     /**
      * 生成 VaryingStruct 定义
      * @param varyings varying 集合
-     * @param varyingArrays varying 数组集合
      * @param builtins builtin 集合
      * @returns VaryingStruct 定义字符串
      */
-    private generateVaryingStructDefinition(varyings: Set<Varying>, varyingArrays: Set<TSLArray<any>>, builtins: Set<Builtin>): string
+    private generateVaryingStructDefinition(varyings: Set<Varying>, builtins: Set<Builtin>): string
     {
         const structLines: string[] = ['struct VaryingStruct {'];
 
@@ -295,30 +274,12 @@ export class Vertex extends Func
             }
         }
 
-        // 收集 varying 数组的名称，用于排除
-        const varyingArrayNames = new Set(globalThis.Array.from(varyingArrays).map(va => va.varying?.name));
-
-        // 添加所有普通 varying（使用 toWGSL() 以包含 @interpolate 属性）
+        // 添加所有 varying（使用 toWGSL() 以包含 @interpolate 属性）
         for (const v of varyings)
         {
-            if (v.value && !varyingArrayNames.has(v.name))
+            if (v.value)
             {
                 structLines.push(`    ${v.toWGSL()},`);
-            }
-        }
-
-        // 添加所有 varying 数组（展开为独立变量）
-        for (const va of varyingArrays)
-        {
-            if (va.varying)
-            {
-                const startLocation = va.varying.getEffectiveLocation() ?? 0;
-                const wgslType = va.wgslType;
-                const name = va.varying.name;
-                for (let i = 0; i < va.length; i++)
-                {
-                    structLines.push(`    @location(${startLocation + i}) ${name}_${i}: ${wgslType},`);
-                }
             }
         }
 
@@ -328,42 +289,26 @@ export class Vertex extends Func
     }
 
     /**
-     * 为 varying 和 varying 数组分配 location
+     * 为 varying 分配 location
      * @param varyings varying 集合
-     * @param varyingArrays varying 数组集合
      */
-    private allocateVaryingLocations(varyings: Set<Varying>, varyingArrays: Set<TSLArray<any>>): void
+    private allocateVaryingLocations(varyings: Set<Varying>): void
     {
         const usedLocations = new Set<number>();
 
-        // 收集 varying 数组的名称，用于排除
-        const varyingArrayNames = new Set(globalThis.Array.from(varyingArrays).map(va => va.varying?.name));
-
-        // 收集已显式指定的 location（普通 varying）
+        // 收集已显式指定的 location
         for (const v of varyings)
         {
-            if (v.location !== undefined && !varyingArrayNames.has(v.name))
+            if (v.location !== undefined)
             {
                 usedLocations.add(v.location);
             }
         }
 
-        // 收集已显式指定的 location（varying 数组）
-        for (const va of varyingArrays)
-        {
-            if (va.varying?.location !== undefined)
-            {
-                for (let i = 0; i < va.length; i++)
-                {
-                    usedLocations.add(va.varying.location + i);
-                }
-            }
-        }
-
-        // 为 location 缺省的普通 varying 自动分配 location
+        // 为 location 缺省的 varying 自动分配 location
         for (const v of varyings)
         {
-            if (v.location === undefined && !varyingArrayNames.has(v.name))
+            if (v.location === undefined)
             {
                 let nextLocation = 0;
                 while (usedLocations.has(nextLocation))
@@ -372,35 +317,6 @@ export class Vertex extends Func
                 }
                 v.setAutoLocation(nextLocation);
                 usedLocations.add(nextLocation);
-            }
-        }
-
-        // 为 location 缺省的 varying 数组自动分配 location
-        for (const va of varyingArrays)
-        {
-            if (va.varying && va.varying.location === undefined)
-            {
-                // 找到连续的可用 location
-                let nextLocation = 0;
-                let found = false;
-                while (!found)
-                {
-                    found = true;
-                    for (let i = 0; i < va.length; i++)
-                    {
-                        if (usedLocations.has(nextLocation + i))
-                        {
-                            found = false;
-                            nextLocation = nextLocation + i + 1;
-                            break;
-                        }
-                    }
-                }
-                va.varying.setAutoLocation(nextLocation);
-                for (let i = 0; i < va.length; i++)
-                {
-                    usedLocations.add(nextLocation + i);
-                }
             }
         }
     }
@@ -538,4 +454,3 @@ export function vertex(name: string, body: () => void): Vertex
 {
     return new Vertex(name, body);
 }
-

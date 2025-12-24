@@ -43,6 +43,7 @@ export { step } from './builtin/step';
 export { texelFetch, utexelFetch } from './builtin/texelFetch';
 export { texture } from './builtin/texture';
 export { texture2D } from './builtin/texture2D';
+export { textureGrad } from './builtin/textureGrad';
 export { textureSize } from './builtin/textureSize';
 export { var_ } from './builtin/var';
 

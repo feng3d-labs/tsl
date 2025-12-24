@@ -1,24 +1,26 @@
-// 只导出 array 函数，Array 类与全局 Array 冲突
-export { array, Array as TSLArray } from './array';
-export * from './attribute';
-export * from './fragment';
-export * from './func';
-export * from './precision';
-export * from './sampler';
-export * from './sampler2D';
-export * from './sampler2DArray';
-export * from './sampler3D';
-export * from './usampler2D';
-export * from './depthSampler';
-export { struct, Struct, StructDefinition, isStructConstructor } from './struct';
-export type { StructMembers, StructMemberType, StructConstructor } from './struct';
-export * from './uniform';
-export * from './varying';
-// 导出 builtin 类型和工具函数
+// 只导出 array 函数
+export { array } from './array';
+
+// 导出函数
+export { attribute } from './attribute';
+export { fragment } from './fragment';
+export { precision } from './precision';
+export { sampler2D } from './sampler2D';
+export { sampler2DArray } from './sampler2DArray';
+export { sampler3D } from './sampler3D';
+export { usampler2D } from './usampler2D';
+export { depthSampler } from './depthSampler';
+export { struct } from './struct';
+export { uniform } from './uniform';
+export { varying } from './varying';
+export { vertex } from './vertex';
+
+// 导出内置变量
+export { gl_Position, gl_FragColor, gl_VertexID, gl_FragCoord, gl_InstanceID, gl_FrontFacing } from './builtin/builtins';
+
+// 导出 builtin 函数
 export { acos } from './builtin/acos';
 export { atan } from './builtin/atan';
-export { Builtin } from './builtin/builtin';
-export * from './builtin/builtins';
 export { clamp } from './builtin/clamp';
 export { cross } from './builtin/cross';
 export { dFdx } from './builtin/dFdx';
@@ -51,11 +53,11 @@ export { var_ } from './builtin/var';
 // 导出向量构造函数
 export { bool } from './builtin/types/bool';
 export { float } from './builtin/types/float';
-export { int, Int } from './builtin/types/int';
-export { ivec2, IVec2 } from './builtin/types/ivec2';
+export { int } from './builtin/types/int';
+export { ivec2 } from './builtin/types/ivec2';
 export { ivec3 } from './builtin/types/ivec3';
 export { ivec4 } from './builtin/types/ivec4';
-export { mat4, Mat4 } from './builtin/types/mat4';
+export { mat4 } from './builtin/types/mat4';
 export { mat4x3 } from './builtin/types/mat4x3';
 export { uint } from './builtin/types/uint';
 export { uvec2 } from './builtin/types/uvec2';
@@ -64,5 +66,3 @@ export { uvec4 } from './builtin/types/uvec4';
 export { vec2 } from './builtin/types/vec2';
 export { vec3 } from './builtin/types/vec3';
 export { vec4 } from './builtin/types/vec4';
-export * from './vertex';
-

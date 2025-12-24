@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { float, Float } from '../../src/builtin/types/float';
 import { vec3, Vec3 } from '../../src/builtin/types/vec3';
 import { vec4, Vec4 } from '../../src/builtin/types/vec4';
+import { mat4, Mat4 } from '../../src/builtin/types/mat4';
 import { vertex } from '../../src/vertex';
 import { gl_Position } from '../../src/builtin/builtins';
 import { var_ } from '../../src/builtin/var';
-import { Mat4, mat4 } from '../../src';
 
 describe('var_', () =>
 {

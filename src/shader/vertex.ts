@@ -85,6 +85,12 @@ export class Vertex extends Func
                 }
             }
 
+            // 生成 samplers（纹理采样器声明）
+            for (const sampler of dependencies.samplers)
+            {
+                lines.push(sampler.toGLSL());
+            }
+
             // 生成 varying 声明
             for (const varying of dependencies.varyings)
             {
@@ -160,8 +166,8 @@ export class Vertex extends Func
             // 自动分配 location（对于 location 缺省的 attribute）
             this.allocateLocations(dependencies.attributes);
 
-            // 自动分配 binding（对于 binding 缺省的 uniform）
-            this.allocateBindings(dependencies.uniforms, new Set());
+            // 自动分配 binding（对于 binding 缺省的 uniform 和 sampler）
+            this.allocateBindings(dependencies.uniforms, dependencies.samplers);
 
             // 检查是否有 position builtin（gl_Position）
             const hasPositionBuiltin = globalThis.Array.from(dependencies.builtins).some(b => b.isPosition);
@@ -237,6 +243,12 @@ export class Vertex extends Func
                 {
                     lines.push(uniform.toWGSL());
                 }
+            }
+
+            // 生成 samplers（纹理采样器声明）
+            for (const sampler of dependencies.samplers)
+            {
+                lines.push(sampler.toWGSL());
             }
 
             // 生成外部定义的var_变量（作为全局const）

@@ -326,11 +326,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         if (!firstFrameCompared)
         {
             firstFrameCompared = true;
-            // 延迟一帧进行比较，确保渲染完成
-            requestAnimationFrame(() =>
-            {
-                autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 1);
-            });
+            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 1);
         }
 
         requestAnimationFrame(render);

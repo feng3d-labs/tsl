@@ -280,24 +280,46 @@ export class Vec3 implements ShaderValue
     /**
      * 减法运算
      */
-    subtract(other: Vec3): Vec3
+    subtract(other: Vec3): Vec3;
+    subtract(other: number): Vec3;
+    subtract(other: Vec3 | number): Vec3
     {
         const result = new Vec3();
-        result.toGLSL = () =>
+        if (typeof other === 'number')
         {
-            const left = formatOperand(this, '-', true, () => this.toGLSL());
-            const right = formatOperand(other, '-', false, () => other.toGLSL());
+            result.toGLSL = () =>
+            {
+                const left = formatOperand(this, '-', true, () => this.toGLSL());
 
-            return `${left} - ${right}`;
-        };
-        result.toWGSL = () =>
+                return `${left} - ${formatNumber(other)}`;
+            };
+            // WGSL 不支持 vec3 - float，需要转换为 vec3 - vec3(float)
+            result.toWGSL = () =>
+            {
+                const left = formatOperand(this, '-', true, () => this.toWGSL());
+
+                return `${left} - vec3<f32>(${formatNumber(other)})`;
+            };
+            result.dependencies = [this];
+        }
+        else
         {
-            const left = formatOperand(this, '-', true, () => this.toWGSL());
-            const right = formatOperand(other, '-', false, () => other.toWGSL());
+            result.toGLSL = () =>
+            {
+                const left = formatOperand(this, '-', true, () => this.toGLSL());
+                const right = formatOperand(other, '-', false, () => other.toGLSL());
 
-            return `${left} - ${right}`;
-        };
-        result.dependencies = [this, other];
+                return `${left} - ${right}`;
+            };
+            result.toWGSL = () =>
+            {
+                const left = formatOperand(this, '-', true, () => this.toWGSL());
+                const right = formatOperand(other, '-', false, () => other.toWGSL());
+
+                return `${left} - ${right}`;
+            };
+            result.dependencies = [this, other];
+        }
 
         return result;
     }

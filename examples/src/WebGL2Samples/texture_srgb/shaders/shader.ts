@@ -1,4 +1,4 @@
-import { func, attribute, clamp, dot, fract, fragment, gl_Position, lessThan, let_, mat4, mix, pow, precision, return_, sampler2D, texture, uniform, var_, varying, vec2, vec3, vec4, vertex, float } from '@feng3d/tsl';
+import { func, attribute, clamp, dot, fract, fragment, fragColor, gl_Position, lessThan, let_, mat4, mix, pow, precision, return_, sampler2D, texture, uniform, var_, varying, vec2, vec3, vec4, vertex, float } from '@feng3d/tsl';
 
 // ============================================================================
 // 辅助函数（对应 GLSL 中的函数定义）
@@ -6,10 +6,10 @@ import { func, attribute, clamp, dot, fract, fragment, gl_Position, lessThan, le
 
 const rgbToSrgb = func('rgbToSrgb', [vec3, float], vec3, (colorRGB, gammaCorrection) =>
 {
-    const clampedColorRGB = let_('clampedColorRGB', clamp(colorRGB, vec3(0.0), vec3(1.0)));
+    const clampedColorRGB = let_('clampedColorRGB', clamp(colorRGB, 0.0, 1.0));
 
     return_(mix(
-        pow(clampedColorRGB, vec3(gammaCorrection)).multiply(1.055).subtract(vec3(0.055)),
+        pow(clampedColorRGB, vec3(gammaCorrection)).multiply(1.055).subtract(0.055),
         clampedColorRGB.multiply(12.92),
         lessThan(clampedColorRGB, vec3(0.0031308)),
     ));
@@ -25,19 +25,12 @@ const rgbToSrgb = func('rgbToSrgb', [vec3, float], vec3, (colorRGB, gammaCorrect
 const contrastSaturationBrightness = func('contrastSaturationBrightness', [vec3, float, float, float], vec3, (color, brt, sat, con) =>
 {
     // 亮度系数（用于计算灰度）
-    const lumCoeff = vec3(0.2125, 0.7154, 0.0721);
+    const lumCoeff = let_('lumCoeff', vec3(0.2125, 0.7154, 0.0721));
 
-    // 应用亮度
-    const brtColor = color.multiply(brt);
-
-    // 计算灰度强度
-    const intensity = vec3(dot(brtColor, lumCoeff));
-
-    // 应用饱和度
-    const satColor = mix(intensity, brtColor, sat);
-
-    // 应用对比度
-    const conColor = mix(vec3(0.5), satColor, con);
+    const brtColor = let_('brtColor', color.multiply(brt));
+    const intensity = let_('intensity', vec3(dot(brtColor, lumCoeff)));
+    const satColor = let_('satColor', mix(intensity, brtColor, sat));
+    const conColor = let_('conColor', mix(vec3(0.5), satColor, con));
 
     return_(conColor);
 });
@@ -162,12 +155,11 @@ export const fragmentShader = fragment('main', () =>
     colorRgb.assign(mix(colorRgb, texture(materialDiffuse, h_blur_CD.xy), sampleCoord.x));
     colorRgb.assign(mix(colorRgb, texture(materialDiffuse, h_blur_CD.zw), sampleCoord.x));
 
-    // 应用对比度、饱和度、亮度调整（使用辅助函数）
-    const conColor = let_('conColor', contrastSaturationBrightness(colorRgb.xyz, 1.0, 0.5, 1.0));
+    const brightness = let_('brightness', float(1.0));
+    const saturation = let_('saturation', float(0.5));
+    const contrast = let_('contrast', float(1.0));
+    colorRgb.assign(vec4(contrastSaturationBrightness(colorRgb.rgb, brightness, saturation, contrast), 1.0));
 
-    // 应用 gamma 校正转回 sRGB（使用辅助函数）
-    // Gamma 校正参数（约 1/2.4）
-    const srgbColor = let_('srgbColor', rgbToSrgb(conColor, 0.41666));
-
-    return_(vec4(srgbColor, 1.0));
+    const color = vec4(fragColor(0, 'color'));
+    color.assign(vec4(rgbToSrgb(colorRgb.rgb, 0.41666), 1.0));
 });

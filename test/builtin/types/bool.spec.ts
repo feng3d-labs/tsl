@@ -1,11 +1,11 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { bool } from '../../../src/builtin/types/bool';
-import { builtin } from '../../../src/builtin/builtin';
-import { vec3 } from '../../../src/builtin/types/vec3';
-import { if_ } from '../../../src/builtin/if_';
-import { vertex } from '../../../src/vertex';
-import { fragment } from '../../../src/fragment';
-import { gl_FrontFacing } from '../../../src/builtin/builtins';
+import { bool } from '../../../src/types/scalar/bool';
+import { builtin } from '../../../src/glsl/builtin/builtin';
+import { vec3 } from '../../../src/types/vector/vec3';
+import { if_ } from '../../../src/control/if_';
+import { vertex } from '../../../src/shader/vertex';
+import { fragment } from '../../../src/shader/fragment';
+import { gl_FrontFacing } from '../../../src/glsl/builtin/builtins';
 
 // 模拟函数
 let currentFunc = {
@@ -14,20 +14,20 @@ let currentFunc = {
 };
 
 // 预先定义mock，解决提升问题
-vi.mock('../../../src/currentFunc', () => ({
+vi.mock('../../../src/core/currentFunc', () => ({
     getCurrentFunc: () => currentFunc,
 }));
 
-vi.mock('../../../src/ifStack', () => ({
+vi.mock('../../../src/core/ifStack', () => ({
     pushIfStatement: () => {},
     popIfStatement: () => {},
     getCurrentIfStatement: () => null,
 }));
 
 // 使用内联定义的方式解决MockIfStatement未定义问题
-vi.mock('../../../src/builtin/if_', async () => {
+vi.mock('../../../src/control/if_', async () => {
     // 导入实际的模块
-    const actual = await vi.importActual('../../../src/builtin/if_') as any;
+    const actual = await vi.importActual('../../../src/control/if_') as any;
 
     // 在内联中重新定义MockIfStatement，避免提升问题
     class MockIfStatement {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Uniform, uniform } from '../src/uniform';
-import { vec4 } from '../src/builtin/types/vec4';
-import { fragment } from '../src/fragment';
+import { Uniform, uniform } from '../src/variables/uniform';
+import { vec4 } from '../src/types/vector/vec4';
+import { fragment } from '../src/shader/fragment';
 import { return_ } from '../src/index';
 
 describe('Uniform', () =>

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { Attribute } from '../../src/attribute';
-import { float, Float } from '../../src/builtin/types/float';
-import { vec2, Vec2 } from '../../src/builtin/types/vec2';
-import { Uniform } from '../../src/uniform';
+import { Attribute } from '../../src/variables/attribute';
+import { float, Float } from '../../src/types/scalar/float';
+import { vec2, Vec2 } from '../../src/types/vector/vec2';
+import { Uniform } from '../../src/variables/uniform';
 
 describe('Vec2', () =>
 {

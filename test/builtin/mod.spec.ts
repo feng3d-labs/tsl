@@ -1,10 +1,10 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { float } from '../../src/builtin/types/float';
-import { uint, UInt } from '../../src/builtin/types/uint';
-import { vertex } from '../../src/vertex';
-import { fragment } from '../../src/fragment';
-import { vec2 } from '../../src/builtin/types/vec2';
-import { uniform } from '../../src/uniform';
+import { float } from '../../src/types/scalar/float';
+import { uint, UInt } from '../../src/types/scalar/uint';
+import { vertex } from '../../src/shader/vertex';
+import { fragment } from '../../src/shader/fragment';
+import { vec2 } from '../../src/types/vector/vec2';
+import { uniform } from '../../src/variables/uniform';
 
 // 模拟函数
 let currentFunc = {
@@ -13,21 +13,21 @@ let currentFunc = {
 };
 
 // 预先定义mock，解决提升问题
-vi.mock('../../src/currentFunc', () => ({
+vi.mock('../../src/core/currentFunc', () => ({
     getCurrentFunc: () => currentFunc,
 }));
 
-vi.mock('../../src/ifStack', () => ({
+vi.mock('../../src/core/ifStack', () => ({
     pushIfStatement: () => { },
     popIfStatement: () => { },
     getCurrentIfStatement: () => null,
 }));
 
 // 使用内联定义的方式解决MockIfStatement未定义问题
-vi.mock('../../src/builtin/if_', async () =>
+vi.mock('../../src/control/if_', async () =>
 {
     // 导入实际的模块
-    const actual = await vi.importActual('../../src/builtin/if_') as any;
+    const actual = await vi.importActual('../../src/control/if_') as any;
 
     // 在内联中重新定义MockIfStatement，避免提升问题
     class MockIfStatement

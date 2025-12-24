@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { select } from '../../src/builtin/select';
-import { float } from '../../src/builtin/types/float';
-import { vec2 } from '../../src/builtin/types/vec2';
-import { vec3 } from '../../src/builtin/types/vec3';
-import { vec4, Vec4 } from '../../src/builtin/types/vec4';
-import { Vec3 } from '../../src/builtin/types/vec3';
-import { Vec2 } from '../../src/builtin/types/vec2';
-import { Float } from '../../src/builtin/types/float';
-import { fragment } from '../../src/fragment';
-import { fragColor } from '../../src/builtin/fragColor';
-import { precision } from '../../src/precision';
-import { varying } from '../../src/varying';
+import { select } from '../../src/control/select';
+import { float } from '../../src/types/scalar/float';
+import { vec2 } from '../../src/types/vector/vec2';
+import { vec3 } from '../../src/types/vector/vec3';
+import { vec4, Vec4 } from '../../src/types/vector/vec4';
+import { Vec3 } from '../../src/types/vector/vec3';
+import { Vec2 } from '../../src/types/vector/vec2';
+import { Float } from '../../src/types/scalar/float';
+import { fragment } from '../../src/shader/fragment';
+import { fragColor } from '../../src/glsl/fragColor';
+import { precision } from '../../src/glsl/precision';
+import { varying } from '../../src/variables/varying';
 
 describe('select', () =>
 {

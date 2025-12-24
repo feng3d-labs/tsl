@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { Attribute } from '../../src/attribute';
-import { float, Float } from '../../src/builtin/types/float';
-import { Uniform } from '../../src/uniform';
-import { Varying, varying } from '../../src/varying';
-import { exp } from '../../src/builtin/exp';
-import { max } from '../../src/builtin/max';
-import { vec3 } from '../../src/builtin/types/vec3';
+import { Attribute } from '../../src/variables/attribute';
+import { float, Float } from '../../src/types/scalar/float';
+import { Uniform } from '../../src/variables/uniform';
+import { Varying, varying } from '../../src/variables/varying';
+import { exp } from '../../src/math/exponential/exp';
+import { max } from '../../src/math/common/max';
+import { vec3 } from '../../src/types/vector/vec3';
 
 describe('Float', () =>
 {

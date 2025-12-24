@@ -1,18 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
-import { if_ } from '../../src/builtin/if_';
-import { vec3 } from '../../src/builtin/types/vec3';
-import { vec4 } from '../../src/builtin/types/vec4';
-import { vec2 } from '../../src/builtin/types/vec2';
-import { float } from '../../src/builtin/types/float';
-import { vertex } from '../../src/vertex';
-import { fragment } from '../../src/fragment';
-import { gl_FrontFacing } from '../../src/builtin/builtins';
-import { fragColor } from '../../src/builtin/fragColor';
-import { precision } from '../../src/precision';
-import { varying } from '../../src/varying';
-import { uniform } from '../../src/uniform';
-import { sampler2D } from '../../src/sampler2D';
-import { texture } from '../../src/builtin/texture';
+import { if_ } from '../../src/control/if_';
+import { vec3 } from '../../src/types/vector/vec3';
+import { vec4 } from '../../src/types/vector/vec4';
+import { vec2 } from '../../src/types/vector/vec2';
+import { float } from '../../src/types/scalar/float';
+import { vertex } from '../../src/shader/vertex';
+import { fragment } from '../../src/shader/fragment';
+import { gl_FrontFacing } from '../../src/glsl/builtin/builtins';
+import { fragColor } from '../../src/glsl/fragColor';
+import { precision } from '../../src/glsl/precision';
+import { varying } from '../../src/variables/varying';
+import { uniform } from '../../src/variables/uniform';
+import { sampler2D } from '../../src/glsl/sampler/sampler2D';
+import { texture } from '../../src/glsl/texture/texture';
 
 describe('if_', () =>
 {

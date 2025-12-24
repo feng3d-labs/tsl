@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { fragColor, FragColor } from '../src/builtin/fragColor';
-import { gl_FragColor } from '../src/builtin/builtins';
-import { vec4 } from '../src/builtin/types/vec4';
-import { fragment } from '../src/fragment';
-import { precision } from '../src/precision';
+import { fragColor, FragColor } from '../src/glsl/fragColor';
+import { gl_FragColor } from '../src/glsl/builtin/builtins';
+import { vec4 } from '../src/types/vector/vec4';
+import { fragment } from '../src/shader/fragment';
+import { precision } from '../src/glsl/precision';
 
 describe('fragColor', () =>
 {

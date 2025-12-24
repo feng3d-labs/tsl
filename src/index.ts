@@ -1,68 +1,88 @@
-// 只导出 array 函数
-export { array } from './array';
+// variables - 变量相关
+export { array } from './variables/array';
+export { attribute } from './variables/attribute';
+export { struct } from './variables/struct';
+export { uniform } from './variables/uniform';
+export { varying } from './variables/varying';
+export { let_ } from './variables/let';
+export { var_ } from './variables/var';
 
-// 导出函数
-export { attribute } from './attribute';
-export { fragment } from './fragment';
-export { precision } from './precision';
-export { sampler2D } from './sampler2D';
-export { sampler2DArray } from './sampler2DArray';
-export { sampler3D } from './sampler3D';
-export { usampler2D } from './usampler2D';
-export { depthSampler } from './depthSampler';
-export { struct } from './struct';
-export { uniform } from './uniform';
-export { varying } from './varying';
-export { vertex } from './vertex';
+// shader - 着色器相关
+export { fragment } from './shader/fragment';
+export { vertex } from './shader/vertex';
 
-// 导出内置变量
-export { gl_Position, gl_FragColor, gl_VertexID, gl_FragCoord, gl_InstanceID, gl_FrontFacing } from './builtin/builtins';
+// glsl - GLSL 专有
+export { precision } from './glsl/precision';
+export { fragColor } from './glsl/fragColor';
 
-// 导出 builtin 函数
-export { acos } from './builtin/acos';
-export { atan } from './builtin/atan';
-export { clamp } from './builtin/clamp';
-export { cross } from './builtin/cross';
-export { dFdx } from './builtin/dFdx';
-export { dFdy } from './builtin/dFdy';
-export { fragColor } from './builtin/fragColor';
-export { cos } from './builtin/cos';
-export { dot } from './builtin/dot';
-export { exp } from './builtin/exp';
-export { fract } from './builtin/fract';
-export { if_ } from './builtin/if_';
-export { let_ } from './builtin/let';
-export { max } from './builtin/max';
-export { mix } from './builtin/mix';
-export { normalize } from './builtin/normalize';
-export { pow } from './builtin/pow';
-export { reflect } from './builtin/reflect';
-export { return_ } from './builtin/return';
-export { select } from './builtin/select';
-export { sin } from './builtin/sin';
-export { smoothstep } from './builtin/smoothstep';
-export { sqrt } from './builtin/sqrt';
-export { step } from './builtin/step';
-export { texelFetch } from './builtin/texelFetch';
-export { texture } from './builtin/texture';
-export { texture2D } from './builtin/texture2D';
-export { textureGrad } from './builtin/textureGrad';
-export { textureSize } from './builtin/textureSize';
-export { var_ } from './builtin/var';
+// glsl/sampler - 采样器
+export { sampler2D } from './glsl/sampler/sampler2D';
+export { sampler2DArray } from './glsl/sampler/sampler2DArray';
+export { sampler3D } from './glsl/sampler/sampler3D';
+export { usampler2D } from './glsl/sampler/usampler2D';
+export { depthSampler } from './glsl/sampler/depthSampler';
 
-// 导出向量构造函数
-export { bool } from './builtin/types/bool';
-export { float } from './builtin/types/float';
-export { int } from './builtin/types/int';
-export { ivec2 } from './builtin/types/ivec2';
-export { ivec3 } from './builtin/types/ivec3';
-export { ivec4 } from './builtin/types/ivec4';
-export { mat4 } from './builtin/types/mat4';
-export { mat4x3 } from './builtin/types/mat4x3';
-export { uint } from './builtin/types/uint';
-export { uvec2 } from './builtin/types/uvec2';
-export { uvec3 } from './builtin/types/uvec3';
-export { uvec4 } from './builtin/types/uvec4';
-export { vec2 } from './builtin/types/vec2';
-export { vec3 } from './builtin/types/vec3';
-export { vec4 } from './builtin/types/vec4';
+// glsl/builtin - 内置变量
+export { gl_Position, gl_FragColor, gl_VertexID, gl_FragCoord, gl_InstanceID, gl_FrontFacing } from './glsl/builtin/builtins';
+
+// glsl/texture - 纹理函数
+export { texelFetch } from './glsl/texture/texelFetch';
+export { texture } from './glsl/texture/texture';
+export { texture2D } from './glsl/texture/texture2D';
+export { textureGrad } from './glsl/texture/textureGrad';
+export { textureSize } from './glsl/texture/textureSize';
+
+// glsl/derivative - 导数函数
+export { dFdx } from './glsl/derivative/dFdx';
+export { dFdy } from './glsl/derivative/dFdy';
+
+// control - 控制流
+export { if_ } from './control/if_';
+export { return_ } from './control/return';
+export { select } from './control/select';
+
+// vector - 向量运算
+export { cross } from './vector/cross';
+export { dot } from './vector/dot';
+export { normalize } from './vector/normalize';
+export { reflect } from './vector/reflect';
+
+// math/trigonometric - 三角函数
+export { acos } from './math/trigonometric/acos';
+export { atan } from './math/trigonometric/atan';
+export { cos } from './math/trigonometric/cos';
+export { sin } from './math/trigonometric/sin';
+
+// math/exponential - 指数函数
+export { exp } from './math/exponential/exp';
+export { pow } from './math/exponential/pow';
+export { sqrt } from './math/exponential/sqrt';
+
+// math/common - 通用数学函数
+export { clamp } from './math/common/clamp';
+export { fract } from './math/common/fract';
+export { max } from './math/common/max';
+export { mix } from './math/common/mix';
+export { smoothstep } from './math/common/smoothstep';
+export { step } from './math/common/step';
+
+// types/scalar - 标量类型
+export { bool } from './types/scalar/bool';
+export { float } from './types/scalar/float';
+export { int } from './types/scalar/int';
+export { uint } from './types/scalar/uint';
+
+// types/vector - 向量类型
+export { ivec2 } from './types/vector/ivec2';
+export { ivec3 } from './types/vector/ivec3';
+export { ivec4 } from './types/vector/ivec4';
+export { uvec2 } from './types/vector/uvec2';
+export { uvec3 } from './types/vector/uvec3';
+export { uvec4 } from './types/vector/uvec4';
+export { vec2 } from './types/vector/vec2';
+export { vec3 } from './types/vector/vec3';
+export { vec4 } from './types/vector/vec4';
+
+// types/matrix - 矩阵类型
+export { mat4 } from './types/matrix/mat4';
+export { mat4x3 } from './types/matrix/mat4x3';

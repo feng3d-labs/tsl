@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { attribute } from '../src/attribute';
-import { gl_Position } from '../src/builtin/builtins';
-import { mat4 } from '../src/builtin/types/mat4';
-import { var_ } from '../src/builtin/var';
-import { vec2 } from '../src/builtin/types/vec2';
-import { vec3 } from '../src/builtin/types/vec3';
-import { vec4 } from '../src/builtin/types/vec4';
-import { uniform } from '../src/uniform';
-import { varying } from '../src/varying';
-import { Vertex, vertex } from '../src/vertex';
+import { attribute } from '../src/variables/attribute';
+import { gl_Position } from '../src/glsl/builtin/builtins';
+import { mat4 } from '../src/types/matrix/mat4';
+import { var_ } from '../src/variables/var';
+import { vec2 } from '../src/types/vector/vec2';
+import { vec3 } from '../src/types/vector/vec3';
+import { vec4 } from '../src/types/vector/vec4';
+import { uniform } from '../src/variables/uniform';
+import { varying } from '../src/variables/varying';
+import { Vertex, vertex } from '../src/shader/vertex';
 import { return_ } from '../src/index';
 
 describe('Vertex', () =>

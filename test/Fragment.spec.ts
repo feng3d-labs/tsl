@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { attribute } from '../src/attribute';
-import { gl_Position } from '../src/builtin/builtins';
-import { vec2 } from '../src/builtin/types/vec2';
-import { vec4 } from '../src/builtin/types/vec4';
-import { Fragment, fragment } from '../src/fragment';
+import { attribute } from '../src/variables/attribute';
+import { gl_Position } from '../src/glsl/builtin/builtins';
+import { vec2 } from '../src/types/vector/vec2';
+import { vec4 } from '../src/types/vector/vec4';
+import { Fragment, fragment } from '../src/shader/fragment';
 import { return_ } from '../src/index';
-import { varying } from '../src/varying';
-import { vertex } from '../src/vertex';
+import { varying } from '../src/variables/varying';
+import { vertex } from '../src/shader/vertex';
 
 describe('Fragment', () =>
 {

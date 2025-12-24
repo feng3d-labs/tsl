@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Func } from '../src/func';
+import { Func } from '../src/shader/func';
 
 describe('Func', () =>
 {

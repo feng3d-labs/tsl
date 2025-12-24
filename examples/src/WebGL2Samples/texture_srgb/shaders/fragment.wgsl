@@ -1,36 +1,25 @@
 @group(0) @binding(1) var materialDiffuse_texture: texture_2d<f32>;
 @group(0) @binding(2) var materialDiffuse: sampler;
 
+// 使用 vec4 打包两个 vec2 坐标，减少 location 使用
 struct VaryingStruct {
     @location(0) v_st: vec2<f32>,
-    @location(1) v_blurTexCoords_0: vec2<f32>,
-    @location(2) v_blurTexCoords_1: vec2<f32>,
-    @location(3) v_blurTexCoords_2: vec2<f32>,
-    @location(4) v_blurTexCoords_3: vec2<f32>,
-    @location(5) v_blurTexCoords_4: vec2<f32>,
-    @location(6) v_blurTexCoords_5: vec2<f32>,
-    @location(7) v_blurTexCoords_6: vec2<f32>,
-    @location(8) v_blurTexCoords_7: vec2<f32>,
-    @location(9) v_blurTexCoords_8: vec2<f32>,
-    @location(10) v_blurTexCoords_9: vec2<f32>,
-    @location(11) v_blurTexCoords_10: vec2<f32>,
-    @location(12) v_blurTexCoords_11: vec2<f32>,
-    @location(13) v_blurTexCoords_12: vec2<f32>,
-    @location(14) v_blurTexCoords_13: vec2<f32>,
-    @location(15) h_blurTexCoords_0: vec2<f32>,
-    @location(16) h_blurTexCoords_1: vec2<f32>,
-    @location(17) h_blurTexCoords_2: vec2<f32>,
-    @location(18) h_blurTexCoords_3: vec2<f32>,
-    @location(19) h_blurTexCoords_4: vec2<f32>,
-    @location(20) h_blurTexCoords_5: vec2<f32>,
-    @location(21) h_blurTexCoords_6: vec2<f32>,
-    @location(22) h_blurTexCoords_7: vec2<f32>,
-    @location(23) h_blurTexCoords_8: vec2<f32>,
-    @location(24) h_blurTexCoords_9: vec2<f32>,
-    @location(25) h_blurTexCoords_10: vec2<f32>,
-    @location(26) h_blurTexCoords_11: vec2<f32>,
-    @location(27) h_blurTexCoords_12: vec2<f32>,
-    @location(28) h_blurTexCoords_13: vec2<f32>,
+    // 垂直方向模糊坐标 (打包为 vec4: xy = [i], zw = [i+1])
+    @location(1) v_blur_01: vec4<f32>,
+    @location(2) v_blur_23: vec4<f32>,
+    @location(3) v_blur_45: vec4<f32>,
+    @location(4) v_blur_67: vec4<f32>,
+    @location(5) v_blur_89: vec4<f32>,
+    @location(6) v_blur_AB: vec4<f32>,
+    @location(7) v_blur_CD: vec4<f32>,
+    // 水平方向模糊坐标 (打包为 vec4: xy = [i], zw = [i+1])
+    @location(8) h_blur_01: vec4<f32>,
+    @location(9) h_blur_23: vec4<f32>,
+    @location(10) h_blur_45: vec4<f32>,
+    @location(11) h_blur_67: vec4<f32>,
+    @location(12) h_blur_89: vec4<f32>,
+    @location(13) h_blur_AB: vec4<f32>,
+    @location(14) h_blur_CD: vec4<f32>,
 }
 
 fn rgbToSrgb(colorRGB: vec3<f32>, gammaCorrection: f32) -> vec3<f32> {
@@ -57,37 +46,37 @@ fn main(v: VaryingStruct) -> @location(0) vec4<f32> {
     // sRGB 纹理采样（GPU 自动将 sRGB 转换为线性 RGB）
     var colorRgb = vec4<f32>(textureSample(materialDiffuse_texture, materialDiffuse, v.v_st).rgb, 1.0);
 
-    // 垂直方向高斯模糊
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_0), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_1), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_2), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_3), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_4), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_5), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_6), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_7), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_8), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_9), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_10), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_11), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_12), sampleCoord.y);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blurTexCoords_13), sampleCoord.y);
+    // 垂直方向高斯模糊（从 vec4 解包 vec2）
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_01.xy), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_01.zw), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_23.xy), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_23.zw), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_45.xy), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_45.zw), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_67.xy), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_67.zw), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_89.xy), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_89.zw), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_AB.xy), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_AB.zw), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_CD.xy), sampleCoord.y);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.v_blur_CD.zw), sampleCoord.y);
 
-    // 水平方向高斯模糊
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_0), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_1), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_2), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_3), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_4), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_5), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_6), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_7), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_8), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_9), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_10), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_11), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_12), sampleCoord.x);
-    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blurTexCoords_13), sampleCoord.x);
+    // 水平方向高斯模糊（从 vec4 解包 vec2）
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_01.xy), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_01.zw), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_23.xy), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_23.zw), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_45.xy), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_45.zw), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_67.xy), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_67.zw), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_89.xy), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_89.zw), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_AB.xy), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_AB.zw), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_CD.xy), sampleCoord.x);
+    colorRgb = mix(colorRgb, textureSample(materialDiffuse_texture, materialDiffuse, v.h_blur_CD.zw), sampleCoord.x);
 
     let brightness = 1.0;
     let saturation = 0.5;

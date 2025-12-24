@@ -666,6 +666,7 @@ export const fragmentShader = fragment('main', () => {
 - `sampler_filter/` - 纹理过滤模式（4视口，双渲染）
 - `sampler_wrap/` - 纹理包裹模式（4视口，双渲染）
 - `texture_lod/` - 纹理 LOD bias 控制（4视口，鼠标交互，双渲染）
+- `texture_offset/` - textureOffset 和 texelFetchOffset（偏移纹理采样，双渲染）
 - `fbo_multisample/` - 多重采样 + 两阶段渲染（双渲染）
 - `fbo_rtt_depth_texture/` - 深度纹理渲染（双渲染，深度纹理处理）
 - `glsl_centroid/` - centroid 插值（varying 插值选项，select 三元条件选择）

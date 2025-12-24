@@ -27,9 +27,11 @@ export { gl_Position, gl_FragColor, gl_VertexID, gl_FragCoord, gl_InstanceID, gl
 
 // glsl/texture - 纹理函数
 export { texelFetch } from './glsl/texture/texelFetch';
+export { texelFetchOffset } from './glsl/texture/texelFetchOffset';
 export { texture } from './glsl/texture/texture';
 export { texture2D } from './glsl/texture/texture2D';
 export { textureGrad } from './glsl/texture/textureGrad';
+export { textureOffset } from './glsl/texture/textureOffset';
 export { textureSize } from './glsl/texture/textureSize';
 
 // glsl/derivative - 导数函数

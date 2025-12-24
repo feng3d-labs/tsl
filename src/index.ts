@@ -34,6 +34,7 @@ export { max } from './builtin/max';
 export { mix } from './builtin/mix';
 export { normalize } from './builtin/normalize';
 export { pow } from './builtin/pow';
+export { reflect } from './builtin/reflect';
 export { return_ } from './builtin/return';
 export { select } from './builtin/select';
 export { sin } from './builtin/sin';

@@ -1,17 +1,7 @@
-import { attribute, dot, float, fragment, gl_FragColor, gl_Position, mat4, max, normalize, pow, precision, struct, uniform, varying, vec3, vec4, vertex, Float } from '@feng3d/tsl';
+import { attribute, dot, float, fragment, gl_FragColor, gl_Position, mat4, max, normalize, pow, precision, reflect, struct, uniform, varying, vec3, vec4, vertex, Float } from '@feng3d/tsl';
 
 // Vec3 类型别名（TSL 未导出 Vec3 类型）
 type Vec3Like = ReturnType<typeof vec3>;
-
-// 自定义 reflect 函数：reflect(I, N) = I - 2.0 * dot(N, I) * N
-function reflect(incident: Vec3Like, normal: Vec3Like): Vec3Like
-{
-    // I - 2.0 * dot(N, I) * N
-    const dotNI = dot(normal, incident);
-    const scale = float(2.0).multiply(dotNI);
-
-    return incident.subtract(normal.multiply(scale as any) as any) as any;
-}
 
 // 输入属性
 const position = vec3(attribute('position', 0));

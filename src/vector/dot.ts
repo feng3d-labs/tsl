@@ -1,5 +1,5 @@
-import { IElement, ShaderValue } from '../core/IElement';
 import { Float } from '../types/scalar/float';
+import { Vec2 } from '../types/vector/vec2';
 import { Vec3 } from '../types/vector/vec3';
 
 /**
@@ -8,7 +8,9 @@ import { Vec3 } from '../types/vector/vec3';
  * @param b 第二个向量
  * @returns 点积结果
  */
-export function dot(a: Vec3, b: Vec3): Float
+export function dot(a: Vec2, b: Vec2): Float;
+export function dot(a: Vec3, b: Vec3): Float;
+export function dot(a: Vec2 | Vec3, b: Vec2 | Vec3): Float
 {
     const result = new Float();
     result.toGLSL = () => `dot(${a.toGLSL()}, ${b.toGLSL()})`;

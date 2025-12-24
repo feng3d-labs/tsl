@@ -25,6 +25,7 @@ export class Vec2 implements ShaderValue
     /** @internal 存储 Builtin 引用，用于 gl_FragCoord 的 Y 坐标翻转 */
     private _builtin?: Builtin;
 
+    constructor();
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(varying: Varying);

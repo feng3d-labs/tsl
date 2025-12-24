@@ -32,6 +32,7 @@ export { texelFetchOffset } from './glsl/texture/texelFetchOffset';
 export { texture } from './glsl/texture/texture';
 export { texture2D } from './glsl/texture/texture2D';
 export { textureGrad } from './glsl/texture/textureGrad';
+export { textureLod } from './glsl/texture/textureLod';
 export { textureOffset } from './glsl/texture/textureOffset';
 export { textureSize } from './glsl/texture/textureSize';
 
@@ -59,6 +60,7 @@ export { sin } from './math/trigonometric/sin';
 
 // math/exponential - 指数函数
 export { exp } from './math/exponential/exp';
+export { log2 } from './math/exponential/log2';
 export { pow } from './math/exponential/pow';
 export { sqrt } from './math/exponential/sqrt';
 
@@ -72,7 +74,7 @@ export { step } from './math/common/step';
 
 // types/scalar - 标量类型
 export { bool } from './types/scalar/bool';
-export { float } from './types/scalar/float';
+export { float, Float } from './types/scalar/float';
 export { int } from './types/scalar/int';
 export { uint } from './types/scalar/uint';
 
@@ -84,7 +86,7 @@ export { ivec4 } from './types/vector/ivec4';
 export { uvec2 } from './types/vector/uvec2';
 export { uvec3 } from './types/vector/uvec3';
 export { uvec4 } from './types/vector/uvec4';
-export { vec2 } from './types/vector/vec2';
+export { vec2, Vec2 } from './types/vector/vec2';
 export { vec3 } from './types/vector/vec3';
 export { vec4 } from './types/vector/vec4';
 

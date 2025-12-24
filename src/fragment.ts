@@ -7,6 +7,7 @@ import { Sampler } from './sampler';
 import { Sampler2DArray } from './sampler2DArray';
 import { Sampler3D } from './sampler3D';
 import { Uniform } from './uniform';
+import { USampler2D } from './usampler2D';
 import { Varying } from './varying';
 import { Vertex } from './vertex';
 
@@ -130,6 +131,16 @@ export class Fragment extends Func
             if (hasSampler3D)
             {
                 const samplerPrecision = precisionMap.get('sampler3D') || new Precision('lowp', 'sampler3D');
+                lines.push(samplerPrecision.toGLSL());
+            }
+
+            // 检查是否有 usampler2D，如果有则需要添加 precision 声明（如果没有设置，默认使用 highp）
+            const hasUSampler2D = Array.from(dependencies.samplers).some(s =>
+                s instanceof USampler2D,
+            );
+            if (hasUSampler2D)
+            {
+                const samplerPrecision = precisionMap.get('usampler2D') || new Precision('highp', 'usampler2D');
                 lines.push(samplerPrecision.toGLSL());
             }
 

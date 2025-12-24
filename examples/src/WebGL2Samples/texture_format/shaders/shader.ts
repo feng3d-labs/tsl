@@ -59,7 +59,7 @@ export const fragmentShaderUint = fragment('main', () =>
 {
     precision('highp', 'float');
     precision('highp', 'int');
-    // 注意：TSL 目前不直接支持 usampler2D 精度声明，但这不影响功能
+    precision('highp', 'usampler2D');
 
     // 原始 GLSL: ivec2 size = textureSize(diffuse, 0);
     const size = let_('size', textureSize(diffuseUint, 0));

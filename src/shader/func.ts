@@ -3,6 +3,10 @@ import { buildShader } from '../core/buildShader';
 import { IStatement } from '../core/Statement';
 import { setCurrentFunc } from '../core/currentFunc';
 import { IElement, ShaderValue } from '../core/IElement';
+import { Float } from '../types/scalar/float';
+
+// 类型辅助：如果是 Float 类型则添加 | number，否则保持原类型
+type MaybeNumber<T> = T extends Float ? T | number : T;
 
 /**
  * 参数信息
@@ -366,6 +370,19 @@ type ParamTypesWithNumber<T extends ShaderValue[]> = {
     [K in keyof T]: T[K] | number;
 };
 
+// 类型辅助：从带名称的参数定义构建带标签的元组类型
+type NamedParamsToLabeled<T extends [string, (...args: any[]) => ShaderValue][]> = {
+    [K in keyof T]: T[K] extends [infer Name extends string, (...args: any[]) => infer R]
+        ? R | number
+        : never;
+} & {
+    [K in keyof T as T[K] extends [infer Name extends string, any] ? Name : never]:
+        T[K] extends [string, (...args: any[]) => infer R] ? R | number : never;
+};
+
+// 辅助类型：判断是否所有参数都是带名称的格式
+type AllNamed<T extends ParamDef[]> = T extends [string, (...args: any[]) => ShaderValue][] ? true : false;
+
 /**
  * 定义着色器函数
  * @param name 函数名
@@ -392,6 +409,46 @@ type ParamTypesWithNumber<T extends ShaderValue[]> = {
  * const result = rgbToSrgb(someColor, 0.41666);
  * ```
  */
+// 重载：带名称的参数定义（2个参数）
+export function func<
+    N1 extends string, T1 extends (...args: any[]) => ShaderValue,
+    N2 extends string, T2 extends (...args: any[]) => ShaderValue,
+    TReturn extends ShaderValue,
+>(
+    name: string,
+    paramDefs: [[N1, T1], [N2, T2]],
+    returnType: (...args: any[]) => TReturn,
+    body: (p1: ReturnType<T1>, p2: ReturnType<T2>) => void,
+): (p1: MaybeNumber<ReturnType<T1>>, p2: MaybeNumber<ReturnType<T2>>) => TReturn;
+
+// 重载：带名称的参数定义（3个参数）
+export function func<
+    N1 extends string, T1 extends (...args: any[]) => ShaderValue,
+    N2 extends string, T2 extends (...args: any[]) => ShaderValue,
+    N3 extends string, T3 extends (...args: any[]) => ShaderValue,
+    TReturn extends ShaderValue,
+>(
+    name: string,
+    paramDefs: [[N1, T1], [N2, T2], [N3, T3]],
+    returnType: (...args: any[]) => TReturn,
+    body: (p1: ReturnType<T1>, p2: ReturnType<T2>, p3: ReturnType<T3>) => void,
+): (p1: MaybeNumber<ReturnType<T1>>, p2: MaybeNumber<ReturnType<T2>>, p3: MaybeNumber<ReturnType<T3>>) => TReturn;
+
+// 重载：带名称的参数定义（4个参数）
+export function func<
+    N1 extends string, T1 extends (...args: any[]) => ShaderValue,
+    N2 extends string, T2 extends (...args: any[]) => ShaderValue,
+    N3 extends string, T3 extends (...args: any[]) => ShaderValue,
+    N4 extends string, T4 extends (...args: any[]) => ShaderValue,
+    TReturn extends ShaderValue,
+>(
+    name: string,
+    paramDefs: [[N1, T1], [N2, T2], [N3, T3], [N4, T4]],
+    returnType: (...args: any[]) => TReturn,
+    body: (p1: ReturnType<T1>, p2: ReturnType<T2>, p3: ReturnType<T3>, p4: ReturnType<T4>) => void,
+): (p1: MaybeNumber<ReturnType<T1>>, p2: MaybeNumber<ReturnType<T2>>, p3: MaybeNumber<ReturnType<T3>>, p4: MaybeNumber<ReturnType<T4>>) => TReturn;
+
+// 重载：不带名称的参数定义（通用）
 export function func<
     TParamDefs extends ParamDef[],
     TReturn extends ShaderValue,
@@ -400,20 +457,28 @@ export function func<
     paramDefs: [...TParamDefs],
     returnType: (...args: any[]) => TReturn,
     body: (...params: ParamTypesFromDefs<TParamDefs>) => void,
-): (...args: ParamTypesWithNumber<ParamTypesFromDefs<TParamDefs>>) => TReturn
+): (...args: ParamTypesWithNumber<ParamTypesFromDefs<TParamDefs>>) => TReturn;
+
+// 实现
+export function func(
+    name: string,
+    paramDefs: ParamDef[],
+    returnType: (...args: any[]) => ShaderValue,
+    body: (...params: any[]) => void,
+): (...args: any[]) => ShaderValue
 {
-    const shaderFunc = new ShaderFunc<ParamTypesFromDefs<TParamDefs>, TReturn>(
+    const shaderFunc = new ShaderFunc(
         name,
         paramDefs,
         returnType,
-        body as any,
+        body,
     );
 
     // 返回一个可调用的函数
-    const callable = (...args: any[]) => shaderFunc.call(...(args as any));
+    const callable = (...args: any[]) => shaderFunc.call(...args);
 
     // 附加 ShaderFunc 实例以便获取函数定义
     (callable as any)._shaderFunc = shaderFunc;
 
-    return callable as any;
+    return callable;
 }

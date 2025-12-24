@@ -69,11 +69,19 @@ export function texture(sampler: Sampler, coord: Vec2 | Vec3): Vec4;
  * @returns 采样结果（vec4）
  */
 export function texture(sampler: Sampler, coord: Vec2, layer: Int): Vec4;
-export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4 | Uvec4
+/**
+ * texture 函数（带 LOD bias），用于采样纹理并指定 LOD 偏移
+ * @param sampler 采样器（在 GLSL 中是 sampler2D，在 WGSL 中需要 texture 和 sampler）
+ * @param coord 纹理坐标（vec2）
+ * @param bias LOD 偏移值（float）
+ * @returns 采样结果（vec4）
+ */
+export function texture(sampler: Sampler, coord: Vec2, bias: Float | number): Vec4;
+export function texture(sampler: Sampler, coord: Vec2 | Vec3, layerOrBias?: Int | Float | number): Vec4 | Uvec4
 {
     // 检测是否是无符号整数纹理
     const isUintTexture = sampler instanceof USampler2D;
-    if (isUintTexture && coord instanceof Vec2 && layer === undefined)
+    if (isUintTexture && coord instanceof Vec2 && layerOrBias === undefined)
     {
         const result = new Uvec4();
 
@@ -98,6 +106,16 @@ export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4
     const isTexture3D = sampler instanceof Sampler3D;
     const isDepthTexture = sampler.isDepthTexture();
 
+    // 判断第三个参数的类型
+    const isLayer = layerOrBias instanceof Int;
+    const isBias = layerOrBias instanceof Float || typeof layerOrBias === 'number';
+    const layer = isLayer ? layerOrBias : undefined;
+    const bias = isBias ? layerOrBias : undefined;
+
+    // 计算 bias 的 GLSL 和 WGSL 表示
+    const biasGLSL = bias !== undefined ? (typeof bias === 'number' ? bias.toFixed(1) : bias.toGLSL()) : undefined;
+    const biasWGSL = bias !== undefined ? (typeof bias === 'number' ? bias.toFixed(1) : bias.toWGSL()) : undefined;
+
     // 根据是否是深度纹理创建不同的结果类型
     const result = isDepthTexture ? new DepthTextureResult() : new Vec4();
 
@@ -118,6 +136,11 @@ export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4
         {
             // 3D 纹理或纹理数组：vec3 坐标
             return `${textureFunc}(${sampler.uniform.name}, ${coord.toGLSL()})`;
+        }
+        else if (biasGLSL !== undefined)
+        {
+            // 带 bias 的纹理采样
+            return `${textureFunc}(${sampler.uniform.name}, ${coord.toGLSL()}, ${biasGLSL})`;
         }
         else
         {
@@ -161,14 +184,31 @@ export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4
             // 3D 纹理或纹理数组采样：vec3 坐标
             return `textureSample(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()})`;
         }
+        else if (biasWGSL !== undefined)
+        {
+            // 带 bias 的纹理采样
+            return `textureSampleBias(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()}, ${biasWGSL})`;
+        }
         else
         {
             // 普通纹理采样：vec2 坐标
             return `textureSample(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()})`;
         }
     };
-    result.dependencies = layer !== undefined ? [sampler, coord, layer] : [sampler, coord];
+
+    // 设置依赖
+    if (layer !== undefined)
+    {
+        result.dependencies = [sampler, coord, layer];
+    }
+    else if (bias !== undefined && typeof bias !== 'number')
+    {
+        result.dependencies = [sampler, coord, bias];
+    }
+    else
+    {
+        result.dependencies = [sampler, coord];
+    }
 
     return result;
 }
-

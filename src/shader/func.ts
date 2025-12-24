@@ -1,5 +1,4 @@
 import { analyzeDependencies, AnalyzedDependencies } from '../core/analyzeDependencies';
-import { getBuildParam } from '../core/buildShader';
 import { IStatement } from '../core/Statement';
 import { setCurrentFunc } from '../core/currentFunc';
 import { IElement } from '../core/IElement';
@@ -95,7 +94,8 @@ export class Func
     }
 
     /**
-     * 转换为 WGSL 代码
+     * 转换为 WGSL 代码（基础实现，生成简单的函数体）
+     * 子类（Vertex、Fragment）应覆盖此方法以处理各自特有的逻辑
      */
     toWGSL(): string
     {
@@ -104,175 +104,44 @@ export class Func
 
         const lines: string[] = [];
 
-        const buildParam = getBuildParam();
-        const shaderType = buildParam.stage;
+        // 生成简单的函数签名（子类应覆盖以生成正确的签名）
+        lines.push(`fn ${this.name}() {`);
 
-        // 生成函数签名
-        const stage = shaderType === 'vertex' ? '@vertex' : '@fragment';
-        lines.push(stage);
-
-        if (shaderType === 'vertex')
+        // 生成函数体语句
+        this.statements.forEach((stmt) =>
         {
-            // Vertex shader - 从 dependencies 中获取 attributes 和 builtins
-            const dependencies = this.getAnalyzedDependencies();
-            const params: string[] = [];
-
-            for (const attr of dependencies.attributes)
+            const wgsl = stmt.toWGSL();
+            // 处理多行语句，为每行添加缩进
+            const stmtLines = wgsl.split('\n');
+            for (const line of stmtLines)
             {
-                params.push(attr.toWGSL());
+                lines.push(`    ${line}`);
             }
-
-            // 添加 builtins 参数（只添加输入类型的 builtin，如 vertex_index）
-            for (const builtin of dependencies.builtins)
-            {
-                // 只添加输入类型的 builtin（vertex_index、instance_index 等）
-                if (builtin.isVertexIndex || builtin.isInstanceIndex)
-                {
-                    params.push(builtin.toWGSL());
-                }
-            }
-
-            // 检查是否需要返回 VaryingStruct（有 varying 或 position builtin）
-            const hasPositionBuiltin = Array.from(dependencies.builtins).some(b => b.isPosition);
-            const hasVaryings = dependencies.varyings.size > 0;
-            const needsVaryingStruct = hasPositionBuiltin || hasVaryings;
-
-            // 如果需要 VaryingStruct，添加 var v: VaryingStruct; 声明和 return v;
-            if (needsVaryingStruct)
-            {
-                // 检查是否已经添加了 var v: VaryingStruct; 声明
-                const hasVarDeclaration = this.statements.some(stmt => stmt.toWGSL().includes('var v: VaryingStruct'));
-                if (!hasVarDeclaration)
-                {
-                    // 在函数体开头添加 var v: VaryingStruct; 声明
-                    const newStatements: IStatement[] = [];
-                    newStatements.push({
-                        toGLSL: () => '',
-                        toWGSL: () => `var v: VaryingStruct;`,
-                    });
-                    // 保留所有原有语句
-                    for (const stmt of this.statements)
-                    {
-                        newStatements.push(stmt);
-                    }
-                    this.statements = newStatements;
-                }
-
-                // 检查是否有 return_() 语句或已添加的自动 return 语句
-                const hasReturnStatement = this.statements.some((stmt) =>
-                    (stmt as any)._isReturn || (stmt as any)._isAutoReturn,
-                );
-
-                // 检查是否已添加深度转换语句
-                const hasDepthConvert = this.statements.some(stmt => (stmt as any)._isAutoDepthConvert);
-
-                // 如果启用了深度转换，且使用的是 gl_Position.assign() 方式（无 return_() 语句）
-                // 且尚未添加深度转换语句，则在 return 前添加深度转换语句
-                // 将深度从 WebGL 的 [-1, 1] 转换为 WebGPU 的 [0, 1]
-                // 注意：使用 return_() 的情况在 return.ts 中处理，这里不需要再处理
-                if (buildParam.convertDepth && hasPositionBuiltin && !hasReturnStatement && !hasDepthConvert)
-                {
-                    // 找到 position builtin
-                    const positionBuiltin = Array.from(dependencies.builtins).find(b => b.isPosition);
-                    if (positionBuiltin)
-                    {
-                        // 使用闭包延迟获取变量名，确保在 toWGSL() 调用时 structVarPrefix 已设置
-                        const depthConvertStmt: any = {
-                            toGLSL: () => '',
-                            toWGSL: () =>
-                            {
-                                const posVarName = positionBuiltin.getFullWGSLVarName();
-
-                                return `${posVarName} = vec4<f32>(${posVarName}.xy, (${posVarName}.z + 1.0) * 0.5, ${posVarName}.w);`;
-                            },
-                        };
-                        depthConvertStmt._isAutoDepthConvert = true;
-                        this.statements.push(depthConvertStmt);
-                    }
-                }
-
-                // 如果没有找到 return 语句，添加 return v;
-                if (!hasReturnStatement)
-                {
-                    const returnStmt: any = {
-                        toGLSL: () => '',
-                        toWGSL: () => `return v;`,
-                    };
-                    returnStmt._isAutoReturn = true;
-                    this.statements.push(returnStmt);
-                }
-            }
-
-            const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
-            // 如果需要 VaryingStruct，使用结构体类型；否则使用默认的 vec4<f32>
-            const returnType = needsVaryingStruct ? 'VaryingStruct' : '@builtin(position) vec4<f32>';
-            lines.push(`fn ${this.name}${paramStr} -> ${returnType} {`);
-
-            // 生成函数体
-            this.statements.forEach(stmt =>
-            {
-                const wgsl = stmt.toWGSL();
-                // 处理多行语句，为每行添加缩进
-                const stmtLines = wgsl.split('\n');
-                for (const line of stmtLines)
-                {
-                    lines.push(`    ${line}`);
-                }
-            });
-        }
-        else
-        {
-            // Fragment shader
-            const dependencies = this.getAnalyzedDependencies();
-
-            // 生成函数参数
-            const params: string[] = [];
-
-            // 如果有 varying，添加结构体参数
-            if (dependencies.varyings.size > 0)
-            {
-                params.push(`v: VaryingStruct`);
-            }
-
-            // 添加 builtins 参数（只添加 fragment shader 输入类型的 builtin，如 gl_FragCoord 和 gl_FrontFacing）
-            for (const builtin of dependencies.builtins)
-            {
-                if (builtin.isFragCoord || builtin.isFrontFacing)
-                {
-                    params.push(builtin.toWGSL());
-                }
-            }
-
-            const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
-
-            // 检查是否有返回语句（判断是否是空片段着色器，如深度-only 渲染）
-            const hasReturn = this.statements.some(stmt => stmt.toWGSL().includes('return'));
-            if (hasReturn)
-            {
-                // 有返回语句，添加返回类型
-                lines.push(`fn ${this.name}${paramStr} -> @location(0) vec4<f32> {`);
-            }
-            else
-            {
-                // 没有返回语句（空片段着色器，仅写深度），不添加返回类型
-                lines.push(`fn ${this.name}${paramStr} {`);
-            }
-
-            this.statements.forEach(stmt =>
-            {
-                const wgsl = stmt.toWGSL();
-                // 处理多行语句，为每行添加缩进
-                const stmtLines = wgsl.split('\n');
-                for (const line of stmtLines)
-                {
-                    lines.push(`    ${line}`);
-                }
-            });
-        }
+        });
 
         lines.push('}');
 
         return lines.join('\n');
+    }
+
+    /**
+     * 生成 WGSL 函数体语句（供子类使用）
+     * @returns 函数体语句数组，每行已添加缩进
+     */
+    protected generateWGSLStatements(): string[]
+    {
+        const lines: string[] = [];
+        this.statements.forEach((stmt) =>
+        {
+            const wgsl = stmt.toWGSL();
+            const stmtLines = wgsl.split('\n');
+            for (const line of stmtLines)
+            {
+                lines.push(`    ${line}`);
+            }
+        });
+
+        return lines;
     }
 
 }

@@ -144,9 +144,8 @@ export class Vertex extends Func
         {
             const lines: string[] = [];
 
-            // 先执行 body 收集依赖（通过调用父类的 toWGSL 来触发，它会执行 body 并填充 dependencies）
-            // 这里只为了收集依赖，不生成完整代码
-            super.toWGSL();
+            // 执行 body 收集依赖
+            this.executeBodyIfNeeded();
 
             // 从函数的 dependencies 中分析获取 attributes、uniforms（使用缓存）
             const dependencies = this.getAnalyzedDependencies();
@@ -159,9 +158,11 @@ export class Vertex extends Func
 
             // 检查是否有 position builtin（gl_Position）
             const hasPositionBuiltin = globalThis.Array.from(dependencies.builtins).some(b => b.isPosition);
+            const hasVaryings = dependencies.varyings.size > 0;
+            const needsVaryingStruct = hasPositionBuiltin || hasVaryings;
 
             // 如果有 varying 或 position builtin，需要生成 VaryingStruct
-            if (dependencies.varyings.size > 0 || hasPositionBuiltin)
+            if (needsVaryingStruct)
             {
                 // 为 varying 分配 location
                 this.allocateVaryingLocations(dependencies.varyings);
@@ -244,14 +245,126 @@ export class Vertex extends Func
                 lines.push('');
             }
 
-            // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
-            const funcCode = super.toWGSL();
+            // 生成函数代码
+            const funcCode = this.generateVertexFunctionWGSL(dependencies, needsVaryingStruct, hasPositionBuiltin, convertDepth);
             lines.push(...funcCode.split('\n'));
 
             const resultStr = lines.join('\n') + '\n';
 
             return resultStr;
         });
+    }
+
+    /**
+     * 生成顶点着色器函数的 WGSL 代码
+     * @param dependencies 分析后的依赖
+     * @param needsVaryingStruct 是否需要 VaryingStruct
+     * @param hasPositionBuiltin 是否有 position builtin
+     * @param convertDepth 是否转换深度
+     * @returns 函数代码字符串
+     */
+    private generateVertexFunctionWGSL(
+        dependencies: ReturnType<typeof this.getAnalyzedDependencies>,
+        needsVaryingStruct: boolean,
+        hasPositionBuiltin: boolean,
+        convertDepth: boolean,
+    ): string
+    {
+        const lines: string[] = [];
+
+        // 生成函数参数
+        const params: string[] = [];
+        for (const attr of dependencies.attributes)
+        {
+            params.push(attr.toWGSL());
+        }
+
+        // 添加 builtins 参数（只添加输入类型的 builtin，如 vertex_index）
+        for (const builtin of dependencies.builtins)
+        {
+            if (builtin.isVertexIndex || builtin.isInstanceIndex)
+            {
+                params.push(builtin.toWGSL());
+            }
+        }
+
+        // 如果需要 VaryingStruct，添加 var v: VaryingStruct; 声明和相关语句
+        if (needsVaryingStruct)
+        {
+            // 检查是否已经添加了 var v: VaryingStruct; 声明
+            const hasVarDeclaration = this.statements.some((stmt) =>
+                (stmt as any)._isAutoVarDeclaration,
+            );
+            if (!hasVarDeclaration)
+            {
+                // 在函数体开头添加 var v: VaryingStruct; 声明
+                const varDeclStmt: any = {
+                    toGLSL: () => '',
+                    toWGSL: () => `var v: VaryingStruct;`,
+                };
+                varDeclStmt._isAutoVarDeclaration = true;
+
+                const newStatements: any[] = [varDeclStmt];
+                for (const stmt of this.statements)
+                {
+                    newStatements.push(stmt);
+                }
+                this.statements = newStatements;
+            }
+
+            // 检查是否有 return_() 语句或已添加的自动 return 语句
+            const hasReturnStatement = this.statements.some((stmt) =>
+                (stmt as any)._isReturn || (stmt as any)._isAutoReturn,
+            );
+
+            // 检查是否已添加深度转换语句
+            const hasDepthConvert = this.statements.some((stmt) => (stmt as any)._isAutoDepthConvert);
+
+            // 如果启用了深度转换，且使用的是 gl_Position.assign() 方式（无 return_() 语句）
+            // 且尚未添加深度转换语句，则在 return 前添加深度转换语句
+            if (convertDepth && hasPositionBuiltin && !hasReturnStatement && !hasDepthConvert)
+            {
+                const positionBuiltin = globalThis.Array.from(dependencies.builtins).find(b => b.isPosition);
+                if (positionBuiltin)
+                {
+                    const depthConvertStmt: any = {
+                        toGLSL: () => '',
+                        toWGSL: () =>
+                        {
+                            const posVarName = positionBuiltin.getFullWGSLVarName();
+
+                            return `${posVarName} = vec4<f32>(${posVarName}.xy, (${posVarName}.z + 1.0) * 0.5, ${posVarName}.w);`;
+                        },
+                    };
+                    depthConvertStmt._isAutoDepthConvert = true;
+                    this.statements.push(depthConvertStmt);
+                }
+            }
+
+            // 如果没有找到 return 语句，添加 return v;
+            if (!hasReturnStatement)
+            {
+                const returnStmt: any = {
+                    toGLSL: () => '',
+                    toWGSL: () => `return v;`,
+                };
+                returnStmt._isAutoReturn = true;
+                this.statements.push(returnStmt);
+            }
+        }
+
+        // 生成函数签名
+        lines.push('@vertex');
+        const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
+        const returnType = needsVaryingStruct ? 'VaryingStruct' : '@builtin(position) vec4<f32>';
+        lines.push(`fn ${this.name}${paramStr} -> ${returnType} {`);
+
+        // 生成函数体语句
+        lines.push(...this.generateWGSLStatements());
+
+        lines.push('}');
+
+        return lines.join('\n');
     }
 
     /**

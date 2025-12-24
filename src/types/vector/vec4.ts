@@ -468,17 +468,60 @@ export class Vec4 implements ShaderValue
 
 /**
  * vec4 构造函数
+ * @param uniform Uniform 变量
  */
 export function vec4(uniform: Uniform): Vec4;
+/**
+ * vec4 构造函数
+ * @param attribute Attribute 变量
+ */
 export function vec4(attribute: Attribute): Vec4;
+/**
+ * vec4 构造函数
+ * @param builtin Builtin 变量
+ */
 export function vec4(builtin: Builtin): Vec4;
+/**
+ * vec4 构造函数
+ * @param varying Varying 变量
+ */
 export function vec4(varying: Varying): Vec4;
+/**
+ * vec4 构造函数
+ * @param color FragColor 颜色输出
+ */
 export function vec4(color: FragColor): Vec4;
-export function vec4(value: number | Float): Vec4;
+/**
+ * vec4 构造函数
+ * @param value 单个值填充所有分量（Float 或数字）
+ */
+export function vec4(value: Float | number): Vec4;
+/**
+ * vec4 构造函数
+ * @param uvec4 Uvec4 转换
+ */
 export function vec4(uvec4: Uvec4): Vec4;
-export function vec4(xy: Vec2, z: number, w: number): Vec4;
-export function vec4(xyz: Vec3, w: number | Float): Vec4;
-export function vec4(x: number | Float, y: number | Float, z: number | Float, w: number | Float): Vec4;
+/**
+ * vec4 构造函数
+ * @param xy Vec2 的 xy 分量
+ * @param z z 分量（Float 或数字）
+ * @param w w 分量（Float 或数字）
+ */
+export function vec4(xy: Vec2, z: Float | number, w: Float | number): Vec4;
+/**
+ * vec4 构造函数
+ * @param xyz Vec3 的 xyz 分量
+ * @param w w 分量（Float 或数字）
+ */
+export function vec4(xyz: Vec3, w: Float | number): Vec4;
+/**
+ * vec4 构造函数
+ * @param x x 分量（Float 或数字）
+ * @param y y 分量（Float 或数字）
+ * @param z z 分量（Float 或数字）
+ * @param w w 分量（Float 或数字）
+ */
+export function vec4(x: Float | number, y: Float | number, z: Float | number, w: Float | number): Vec4;
 export function vec4(...args: any[]): Vec4
 {
     return new (Vec4 as any)(...args);

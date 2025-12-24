@@ -325,13 +325,35 @@ export class Vec2 implements ShaderValue
 
 /**
  * vec2 构造函数
+ * @param uniform Uniform 变量
  */
 export function vec2(uniform: Uniform): Vec2;
+/**
+ * vec2 构造函数
+ * @param attribute Attribute 变量
+ */
 export function vec2(attribute: Attribute): Vec2;
+/**
+ * vec2 构造函数
+ * @param varying Varying 变量
+ */
 export function vec2(varying: Varying): Vec2;
+/**
+ * vec2 构造函数
+ * @param builtin Builtin 变量
+ */
 export function vec2(builtin: Builtin): Vec2;
+/**
+ * vec2 构造函数
+ * @param ivec2 IVec2 转换
+ */
 export function vec2(ivec2: IVec2): Vec2;
-export function vec2(x: number | Float, y: number | Float): Vec2;
+/**
+ * vec2 构造函数
+ * @param x x 分量（Float 或数字）
+ * @param y y 分量（Float 或数字）
+ */
+export function vec2(x: Float | number, y: Float | number): Vec2;
 export function vec2(...args: any[]): Vec2
 {
     return new (Vec2 as any)(...args);

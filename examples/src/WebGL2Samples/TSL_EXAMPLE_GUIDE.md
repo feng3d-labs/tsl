@@ -684,3 +684,51 @@ export const fragmentShader = fragment('main', () => {
 ```
 
 **重要**：导入的着色器变量名必须与 TSL 生成的变量名相同，这样才能通过简单注释切换。
+
+## TSL 代码规范
+
+### 函数重载签名规范
+
+**允许使用以下便捷联合类型**，以提高使用便利性：
+- `Float | number` - 允许直接传入数字而无需 `float()` 包装
+- `Bool | boolean` - 允许直接传入布尔值而无需 `bool()` 包装
+- `Int | number` - 允许直接传入整数而无需 `int()` 包装
+
+```typescript
+// ✅ 允许：使用便捷联合类型
+export function smoothstep(edge0: Float | number, edge1: Float | number, x: Float | number): Float;
+export function vec4(x: Float | number, y: Float | number, z: Float | number, w: Float | number): Vec4;
+
+// ✅ 允许：字面量联合
+export function precision(value: 'lowp' | 'mediump' | 'highp'): Precision;
+
+// ✅ 允许：返回类型使用联合类型
+export function fract(x: Float | Vec2 | number): Float | Vec2;
+```
+
+**需要独立重载的情况**：当不同类型组合导致不同的返回类型时，需要创建独立的重载签名：
+
+```typescript
+// 需要独立重载：返回类型不同
+export function fract(x: Float | number): Float;
+export function fract(x: Vec2): Vec2;
+export function fract(x: Float | Vec2 | number): Float | Vec2
+{
+    // 实现...
+}
+```
+
+### 采样器类型规范
+
+**不使用内部抽象类 `Sampler`**，在重载签名中明确使用具体的采样器类型：
+
+```typescript
+// ❌ 错误：使用内部抽象类
+export function texture(sampler: Sampler, coord: Vec2): Vec4;
+
+// ✅ 正确：使用具体类型
+export function texture(sampler: Sampler2D, coord: Vec2): Vec4;
+export function texture(sampler: DepthSampler, coord: Vec2): Vec4;
+export function texture(sampler: Sampler3D, coord: Vec3): Vec4;
+export function texture(sampler: Sampler2DArray, coord: Vec3): Vec4;
+```

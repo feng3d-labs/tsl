@@ -6,9 +6,8 @@ import { formatNumber } from '../../core/formatNumber';
  * fract 函数，返回 x 的小数部分
  * fract(x) = x - floor(x)
  */
-export function fract(x: Float): Float;
+export function fract(x: Float | number): Float;
 export function fract(x: Vec2): Vec2;
-export function fract(x: number): Float;
 export function fract(x: Float | Vec2 | number): Float | Vec2
 {
     if (typeof x === 'number')
@@ -39,4 +38,3 @@ export function fract(x: Float | Vec2 | number): Float | Vec2
         return result;
     }
 }
-

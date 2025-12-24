@@ -1,4 +1,3 @@
-import { IElement, ShaderValue } from '../../core/IElement';
 import { Float } from '../../types/scalar/float';
 import { formatNumber } from '../../core/formatNumber';
 
@@ -14,4 +13,3 @@ export function sin(a: Float | number): Float
 
     return result;
 }
-

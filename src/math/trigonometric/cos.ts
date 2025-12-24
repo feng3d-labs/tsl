@@ -1,4 +1,3 @@
-import { IElement, ShaderValue } from '../../core/IElement';
 import { Float } from '../../types/scalar/float';
 import { formatNumber } from '../../core/formatNumber';
 
@@ -14,4 +13,3 @@ export function cos(a: Float | number): Float
 
     return result;
 }
-

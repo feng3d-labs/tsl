@@ -372,15 +372,41 @@ export class Vec3 implements ShaderValue
 }
 
 /**
- * vec3 构造函数
+ * vec3 构造函数（默认）
  */
 export function vec3(): Vec3;
+/**
+ * vec3 构造函数
+ * @param uniform Uniform 变量
+ */
 export function vec3(uniform: Uniform): Vec3;
+/**
+ * vec3 构造函数
+ * @param attribute Attribute 变量
+ */
 export function vec3(attribute: Attribute): Vec3;
+/**
+ * vec3 构造函数
+ * @param varying Varying 变量
+ */
 export function vec3(varying: Varying): Vec3;
+/**
+ * vec3 构造函数
+ * @param value 单个值填充所有分量（Float 或数字）
+ */
 export function vec3(value: Float | number): Vec3;
-export function vec3(x: number, y: number, z: number): Vec3;
-export function vec3(x: Float, y: Float, z: Float): Vec3;
+/**
+ * vec3 构造函数
+ * @param x x 分量（Float 或数字）
+ * @param y y 分量（Float 或数字）
+ * @param z z 分量（Float 或数字）
+ */
+export function vec3(x: Float | number, y: Float | number, z: Float | number): Vec3;
+/**
+ * vec3 构造函数
+ * @param vec2 Vec2 的 xy 分量
+ * @param z z 分量（Float 或数字）
+ */
 export function vec3(vec2: Vec2, z: Float | number): Vec3;
 export function vec3(...args: (number | Uniform | Attribute | Varying | Float | Vec2)[]): Vec3
 {

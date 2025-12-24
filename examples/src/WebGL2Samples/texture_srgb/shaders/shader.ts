@@ -161,5 +161,5 @@ export const fragmentShader = fragment('main', () =>
     colorRgb.assign(vec4(contrastSaturationBrightness(colorRgb.rgb, brightness, saturation, contrast), 1.0));
 
     const color = vec4(fragColor(0, 'color'));
-    color.assign(vec4(rgbToSrgb(colorRgb.rgb, 0.41666), 1.0));
+    color.assign(vec4(rgbToSrgb(colorRgb.rgb, float(0.41666)), 1.0));
 });

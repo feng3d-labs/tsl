@@ -3,10 +3,6 @@ import { buildShader } from '../core/buildShader';
 import { IStatement } from '../core/Statement';
 import { setCurrentFunc } from '../core/currentFunc';
 import { IElement, ShaderValue } from '../core/IElement';
-import { Float } from '../types/scalar/float';
-
-// 类型辅助：如果是 Float 类型则添加 | number，否则保持原类型
-type MaybeNumber<T> = T extends Float ? T | number : T;
 
 /**
  * 参数信息
@@ -365,23 +361,8 @@ type ParamTypesFromDefs<T extends ParamDef[]> = {
             : never;
 };
 
-// 类型辅助：将参数类型转换为可接受 number 的版本
-type ParamTypesWithNumber<T extends ShaderValue[]> = {
-    [K in keyof T]: T[K] | number;
-};
-
-// 类型辅助：从带名称的参数定义构建带标签的元组类型
-type NamedParamsToLabeled<T extends [string, (...args: any[]) => ShaderValue][]> = {
-    [K in keyof T]: T[K] extends [infer Name extends string, (...args: any[]) => infer R]
-        ? R | number
-        : never;
-} & {
-    [K in keyof T as T[K] extends [infer Name extends string, any] ? Name : never]:
-        T[K] extends [string, (...args: any[]) => infer R] ? R | number : never;
-};
-
-// 辅助类型：判断是否所有参数都是带名称的格式
-type AllNamed<T extends ParamDef[]> = T extends [string, (...args: any[]) => ShaderValue][] ? true : false;
+// 辅助类型：判断是否所有参数都是带名称的格式（未使用，保留以备将来扩展）
+// type AllNamed<T extends ParamDef[]> = T extends [string, (...args: any[]) => ShaderValue][] ? true : false;
 
 /**
  * 定义着色器函数
@@ -419,7 +400,7 @@ export function func<
     paramDefs: [[N1, T1], [N2, T2]],
     returnType: (...args: any[]) => TReturn,
     body: (p1: ReturnType<T1>, p2: ReturnType<T2>) => void,
-): (p1: MaybeNumber<ReturnType<T1>>, p2: MaybeNumber<ReturnType<T2>>) => TReturn;
+): (p1: ReturnType<T1>, p2: ReturnType<T2>) => TReturn;
 
 // 重载：带名称的参数定义（3个参数）
 export function func<
@@ -432,7 +413,7 @@ export function func<
     paramDefs: [[N1, T1], [N2, T2], [N3, T3]],
     returnType: (...args: any[]) => TReturn,
     body: (p1: ReturnType<T1>, p2: ReturnType<T2>, p3: ReturnType<T3>) => void,
-): (p1: MaybeNumber<ReturnType<T1>>, p2: MaybeNumber<ReturnType<T2>>, p3: MaybeNumber<ReturnType<T3>>) => TReturn;
+): (p1: ReturnType<T1>, p2: ReturnType<T2>, p3: ReturnType<T3>) => TReturn;
 
 // 重载：带名称的参数定义（4个参数）
 export function func<
@@ -446,7 +427,7 @@ export function func<
     paramDefs: [[N1, T1], [N2, T2], [N3, T3], [N4, T4]],
     returnType: (...args: any[]) => TReturn,
     body: (p1: ReturnType<T1>, p2: ReturnType<T2>, p3: ReturnType<T3>, p4: ReturnType<T4>) => void,
-): (p1: MaybeNumber<ReturnType<T1>>, p2: MaybeNumber<ReturnType<T2>>, p3: MaybeNumber<ReturnType<T3>>, p4: MaybeNumber<ReturnType<T4>>) => TReturn;
+): (p1: ReturnType<T1>, p2: ReturnType<T2>, p3: ReturnType<T3>, p4: ReturnType<T4>) => TReturn;
 
 // 重载：不带名称的参数定义（通用）
 export function func<
@@ -457,7 +438,7 @@ export function func<
     paramDefs: [...TParamDefs],
     returnType: (...args: any[]) => TReturn,
     body: (...params: ParamTypesFromDefs<TParamDefs>) => void,
-): (...args: ParamTypesWithNumber<ParamTypesFromDefs<TParamDefs>>) => TReturn;
+): (...args: ParamTypesFromDefs<TParamDefs>) => TReturn;
 
 // 实现
 export function func(

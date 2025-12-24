@@ -52,6 +52,7 @@
 		"WebGL2Samples/texture_fetch",
 		"WebGL2Samples/texture_format",
 		"WebGL2Samples/texture_grad",
-		"WebGL2Samples/texture_immutable"
+		"WebGL2Samples/texture_immutable",
+		"WebGL2Samples/texture_integer"
 	]
 }

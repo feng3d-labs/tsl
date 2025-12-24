@@ -40,7 +40,7 @@ export { sin } from './builtin/sin';
 export { smoothstep } from './builtin/smoothstep';
 export { sqrt } from './builtin/sqrt';
 export { step } from './builtin/step';
-export { texelFetch, utexelFetch } from './builtin/texelFetch';
+export { texelFetch } from './builtin/texelFetch';
 export { texture } from './builtin/texture';
 export { texture2D } from './builtin/texture2D';
 export { textureGrad } from './builtin/textureGrad';

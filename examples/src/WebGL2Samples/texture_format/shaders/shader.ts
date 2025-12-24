@@ -1,4 +1,4 @@
-import { attribute, fragColor, fragment, gl_Position, ivec2, let_, mat4, precision, sampler2D, texture, textureSize, uniform, usampler2D, utexelFetch, varying, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, fragColor, fragment, gl_Position, ivec2, let_, mat4, precision, sampler2D, texelFetch, texture, textureSize, uniform, usampler2D, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // 顶点属性
 const position = vec2(attribute('position', 0));
@@ -68,8 +68,8 @@ export const fragmentShaderUint = fragment('main', () =>
     // 原始 GLSL: ivec2 coord = ivec2(texcoord);
     const coord = let_('coord', ivec2(texcoordF));
     // 原始 GLSL: uvec4 texel = uvec4(texelFetch(diffuse, coord, 0));
-    // 注意：utexelFetch 已经返回 uvec4，不需要再用 uvec4() 包装
-    const texel = let_('texel', utexelFetch(diffuseUint, coord, 0));
+    // 注意：texelFetch 对 usampler2D 已经返回 uvec4，不需要再用 uvec4() 包装
+    const texel = let_('texel', texelFetch(diffuseUint, coord, 0));
 
     // 原始 GLSL: color = vec4(texel) / 255.0;
     colorUint.assign(vec4(texel).divide(255.0));

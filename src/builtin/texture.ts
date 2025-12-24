@@ -2,7 +2,9 @@ import { getBuildParam } from '../buildShader';
 import { Sampler } from '../sampler';
 import { Sampler2DArray } from '../sampler2DArray';
 import { Sampler3D } from '../sampler3D';
+import { USampler2D } from '../usampler2D';
 import { Float } from './types/float';
+import { Uvec4 } from './types/uvec4';
 import { Vec2 } from './types/vec2';
 import { Vec3 } from './types/vec3';
 import { Vec4 } from './types/vec4';
@@ -43,6 +45,15 @@ class DepthTextureResult extends Vec4
 }
 
 /**
+ * texture 函数，用于采样无符号整数纹理（usampler2D）
+ * 在 GLSL 中使用 texture() 函数，返回 uvec4
+ * 在 WGSL 中使用 textureLoad()，因为整数纹理不支持过滤采样
+ * @param sampler 采样器（usampler2D）
+ * @param coord 纹理坐标（vec2）
+ * @returns 采样结果（uvec4）
+ */
+export function texture(sampler: USampler2D, coord: Vec2): Uvec4;
+/**
  * texture 函数，用于采样纹理
  * 支持 vec2 坐标（普通纹理）、vec3 坐标（纹理数组）或 vec2 + int（纹理数组）
  * @param sampler 采样器（在 GLSL 中是 sampler2D 或 sampler2DArray，在 WGSL 中需要 texture 和 sampler）
@@ -58,8 +69,31 @@ export function texture(sampler: Sampler, coord: Vec2 | Vec3): Vec4;
  * @returns 采样结果（vec4）
  */
 export function texture(sampler: Sampler, coord: Vec2, layer: Int): Vec4;
-export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4
+export function texture(sampler: Sampler, coord: Vec2 | Vec3, layer?: Int): Vec4 | Uvec4
 {
+    // 检测是否是无符号整数纹理
+    const isUintTexture = sampler instanceof USampler2D;
+    if (isUintTexture && coord instanceof Vec2 && layer === undefined)
+    {
+        const result = new Uvec4();
+
+        // GLSL: texture(usampler2D, vec2) -> uvec4
+        result.toGLSL = () => `texture(${sampler.uniform.name}, ${coord.toGLSL()})`;
+
+        // WGSL: 整数纹理不支持 textureSample，必须使用 textureLoad
+        // 需要将 UV 坐标转换为像素坐标
+        result.toWGSL = () =>
+        {
+            const texName = `${sampler.uniform.name}_texture`;
+
+            return `textureLoad(${texName}, vec2<i32>(${coord.toWGSL()} * vec2<f32>(textureDimensions(${texName}))), 0)`;
+        };
+
+        result.dependencies = [sampler, coord];
+
+        return result;
+    }
+
     const isTextureArray = sampler instanceof Sampler2DArray;
     const isTexture3D = sampler instanceof Sampler3D;
     const isDepthTexture = sampler.isDepthTexture();

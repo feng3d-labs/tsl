@@ -17,6 +17,7 @@ export class Uvec4 implements ShaderValue
     toGLSL: () => string;
     toWGSL: () => string;
 
+    constructor();
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
     constructor(vec4: Vec4);
@@ -132,17 +133,67 @@ export class Uvec4 implements ShaderValue
 
         return float;
     }
+
+    /**
+     * 整数除法操作
+     * @param divisor 除数（无符号整数）
+     * @returns 商（uvec4）
+     */
+    divide(divisor: number): Uvec4
+    {
+        const result = new Uvec4();
+        result.toGLSL = () => `${this.toGLSL()} / ${divisor}u`;
+        result.toWGSL = () => `${this.toWGSL()} / ${divisor}u`;
+        result.dependencies = [this];
+
+        return result;
+    }
+
+    /**
+     * 整数乘法操作
+     * @param multiplier 乘数（无符号整数）
+     * @returns 积（uvec4）
+     */
+    multiply(multiplier: number): Uvec4
+    {
+        const result = new Uvec4();
+        result.toGLSL = () => `${this.toGLSL()} * ${multiplier}u`;
+        result.toWGSL = () => `${this.toWGSL()} * ${multiplier}u`;
+        result.dependencies = [this];
+
+        return result;
+    }
 }
 
 /**
  * uvec4 构造函数
  */
+export function uvec4(): Uvec4;
 export function uvec4(uniform: Uniform): Uvec4;
 export function uvec4(attribute: Attribute): Uvec4;
 export function uvec4(vec4: Vec4): Uvec4;
 export function uvec4(x: number, y: number, z: number, w: number): Uvec4;
-export function uvec4(...args: any[]): Uvec4
+export function uvec4(
+    xOrUniformOrAttributeOrVec4?: number | Uniform | Attribute | Vec4,
+    y?: number,
+    z?: number,
+    w?: number,
+): Uvec4
 {
-    return new (Uvec4 as any)(...args);
+    if (arguments.length === 0) return new Uvec4();
+    if (arguments.length === 4)
+    {
+        return new Uvec4(xOrUniformOrAttributeOrVec4 as number, y!, z!, w!);
+    }
+    if (xOrUniformOrAttributeOrVec4 instanceof Uniform)
+    {
+        return new Uvec4(xOrUniformOrAttributeOrVec4);
+    }
+    if (xOrUniformOrAttributeOrVec4 instanceof Attribute)
+    {
+        return new Uvec4(xOrUniformOrAttributeOrVec4);
+    }
+
+    return new Uvec4(xOrUniformOrAttributeOrVec4 as Vec4);
 }
 

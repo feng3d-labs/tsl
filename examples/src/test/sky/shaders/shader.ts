@@ -84,14 +84,14 @@ export const fragmentShader = fragment('main', () =>
     const betaSum = var_('betaSum', vBetaR.add(vBetaM));
     const betaThetaSum = var_('betaThetaSum', betaRTheta.add(betaMTheta));
     const betaRatio = var_('betaRatio', betaThetaSum.divide(betaSum));
-    const Lin = var_('Lin', pow(betaRatio.multiply(vSunE as any).multiply(float(1.0).subtract(Fex)), vec3(1.5)));
-    const FexPow = var_('FexPow', pow(betaRatio.multiply(vSunE as any).multiply(Fex), vec3(0.5)));
+    const Lin = var_('Lin', pow(betaRatio.multiply(vSunE).multiply(float(1.0).subtract(Fex)), vec3(1.5)));
+    const FexPow = var_('FexPow', pow(betaRatio.multiply(vSunE).multiply(Fex), vec3(0.5)));
     const upDotSun = var_('upDotSun', dot(upFrag, vSunDirection));
     const mixFactor = var_('mixFactor', clamp(pow(float(1.0).subtract(upDotSun), float(5.0)), float(0.0), float(1.0)));
     const LinMixed = var_('LinMixed', Lin.multiply(mix(vec3(1.0), FexPow, mixFactor)));
     const theta = var_('theta', acos(direction.y));
     const phi = var_('phi', atan(direction.z, direction.x));
-    const uv = var_('uv', vec2(phi, theta).divide(vec2(float(2.0).multiply(pi), pi)).add(vec2(0.5, 0.0)) as any);
+    const uv = var_('uv', vec2(phi, theta).divide(vec2(float(2.0).multiply(pi), pi)).add(vec2(0.5, 0.0)));
     const L0 = var_('L0', vec3(0.1).multiply(Fex));
     const sundisk = var_('sundisk', smoothstep(sunAngularDiameterCos, sunAngularDiameterCos.add(float(0.00002)), cosTheta));
     const L0WithSun = var_('L0WithSun', L0.add(Fex.multiply(vSunE.multiply(float(19000.0))).multiply(sundisk)));

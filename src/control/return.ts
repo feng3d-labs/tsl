@@ -41,6 +41,17 @@ export function return_<T extends ShaderValue>(expr: T): void
             },
             toWGSL: () =>
             {
+                const buildParam = getBuildParam();
+
+                // 在顶点着色器中，如果启用了深度转换，将深度从 WebGL 的 [-1, 1] 转换为 WebGPU 的 [0, 1]
+                if (buildParam.stage === 'vertex' && buildParam.convertDepth)
+                {
+                    const exprWgsl = expr.toWGSL();
+
+                    // 使用临时变量避免重复计算
+                    return `let _pos_temp = ${exprWgsl}; return vec4<f32>(_pos_temp.xy, (_pos_temp.z + 1.0) * 0.5, _pos_temp.w);`;
+                }
+
                 return `return ${expr.toWGSL()};`;
             },
         };

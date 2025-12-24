@@ -158,13 +158,48 @@ export class Func
                     this.statements = newStatements;
                 }
 
-                // 如果没有找到 return 语句，添加 return v;
-                if (!this.statements.some(stmt => stmt.toWGSL().includes('return')))
+                // 检查是否有 return_() 语句或已添加的自动 return 语句
+                const hasReturnStatement = this.statements.some((stmt) =>
+                    (stmt as any)._isReturn || (stmt as any)._isAutoReturn,
+                );
+
+                // 检查是否已添加深度转换语句
+                const hasDepthConvert = this.statements.some(stmt => (stmt as any)._isAutoDepthConvert);
+
+                // 如果启用了深度转换，且使用的是 gl_Position.assign() 方式（无 return_() 语句）
+                // 且尚未添加深度转换语句，则在 return 前添加深度转换语句
+                // 将深度从 WebGL 的 [-1, 1] 转换为 WebGPU 的 [0, 1]
+                // 注意：使用 return_() 的情况在 return.ts 中处理，这里不需要再处理
+                if (buildParam.convertDepth && hasPositionBuiltin && !hasReturnStatement && !hasDepthConvert)
                 {
-                    this.statements.push({
+                    // 找到 position builtin
+                    const positionBuiltin = Array.from(dependencies.builtins).find(b => b.isPosition);
+                    if (positionBuiltin)
+                    {
+                        // 使用闭包延迟获取变量名，确保在 toWGSL() 调用时 structVarPrefix 已设置
+                        const depthConvertStmt: any = {
+                            toGLSL: () => '',
+                            toWGSL: () =>
+                            {
+                                const posVarName = positionBuiltin.getFullWGSLVarName();
+
+                                return `${posVarName} = vec4<f32>(${posVarName}.xy, (${posVarName}.z + 1.0) * 0.5, ${posVarName}.w);`;
+                            },
+                        };
+                        depthConvertStmt._isAutoDepthConvert = true;
+                        this.statements.push(depthConvertStmt);
+                    }
+                }
+
+                // 如果没有找到 return 语句，添加 return v;
+                if (!hasReturnStatement)
+                {
+                    const returnStmt: any = {
                         toGLSL: () => '',
                         toWGSL: () => `return v;`,
-                    });
+                    };
+                    returnStmt._isAutoReturn = true;
+                    this.statements.push(returnStmt);
                 }
             }
 

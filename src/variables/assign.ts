@@ -145,20 +145,7 @@ export class Assign implements IStatement
                 return this.target.toWGSL();
             };
 
-            // 如果启用了深度转换，将深度从 WebGL 的 [-1, 1] 转换为 WebGPU 的 [0, 1]
-            if (buildParam.convertDepth)
-            {
-                // 公式: z_webgpu = (z_webgl + 1.0) * 0.5
-                // 生成: vec4<f32>(pos.xy, (pos.z + 1.0) * 0.5, pos.w)
-                // 使用临时变量避免重复计算
-                const tempVar = '_pos_temp';
-                const targetWGSL = getTargetWGSL();
-                const depthConversion = `let ${tempVar} = ${valueWGSL}; ${targetWGSL} = vec4<f32>(${tempVar}.xy, (${tempVar}.z + 1.0) * 0.5, ${tempVar}.w);`;
-
-                return depthConversion;
-            }
-
-            // 普通赋值
+            // 普通赋值（深度转换在函数末尾统一处理）
             return `${getTargetWGSL()} = ${valueWGSL};`;
         }
         else

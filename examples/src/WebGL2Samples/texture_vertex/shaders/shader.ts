@@ -96,7 +96,7 @@ export const fragmentShader = fragment('main', () =>
     const level = let_('level', textureLevel(v_st));
 
     // 使用显式 LOD 采样纹理
-    const color = let_('color', textureLod(diffuse, v_st, level));
+    const texColor = let_('texColor', textureLod(diffuse, v_st, level));
 
     // 使用屏幕空间导数计算平面法线
     const fdx = let_('fdx', dFdx(v_position));
@@ -106,7 +106,7 @@ export const fragmentShader = fragment('main', () =>
     const N = let_('N', normalize(cross(fdx, fdy)));
 
     // 将纹理颜色与法线颜色混合（50%）
-    color.assign(mix(color, vec4(N, 1.0), 0.5));
+    const finalColor = let_('finalColor', mix(texColor, vec4(N, 1.0), 0.5));
 
-    return_(color);
+    return_(finalColor);
 });

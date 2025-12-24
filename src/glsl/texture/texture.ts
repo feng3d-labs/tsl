@@ -200,6 +200,9 @@ export function texture(
     // 在 WGSL 中，texture 和 sampler 是分离的
     result.toWGSL = () =>
     {
+        const buildParam = getBuildParam();
+        const isVertexStage = buildParam?.stage === 'vertex';
+
         // 深度纹理需要使用 textureLoad 而不是 textureSample
         if (isDepthTexture)
         {
@@ -208,21 +211,45 @@ export function texture(
         else if (layer !== undefined)
         {
             // 纹理数组采样：vec2 + int
+            // 在顶点着色器中使用 textureSampleLevel，在片段着色器中使用 textureSample
+            if (isVertexStage)
+            {
+                return `textureSampleLevel(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()}, ${layer.toWGSL()}, 0.0)`;
+            }
+
             return `textureSample(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()}, ${layer.toWGSL()})`;
         }
         else if (coord instanceof Vec3)
         {
             // 3D 纹理或纹理数组采样：vec3 坐标
+            // 在顶点着色器中使用 textureSampleLevel，在片段着色器中使用 textureSample
+            if (isVertexStage)
+            {
+                return `textureSampleLevel(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()}, 0.0)`;
+            }
+
             return `textureSample(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()})`;
         }
         else if (biasWGSL !== undefined)
         {
             // 带 bias 的纹理采样
+            // 注意：textureSampleBias 也不能在顶点着色器中使用，转换为 textureSampleLevel
+            if (isVertexStage)
+            {
+                return `textureSampleLevel(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()}, ${biasWGSL})`;
+            }
+
             return `textureSampleBias(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()}, ${biasWGSL})`;
         }
         else
         {
             // 普通纹理采样：vec2 坐标
+            // 在顶点着色器中使用 textureSampleLevel（LOD 0），在片段着色器中使用 textureSample
+            if (isVertexStage)
+            {
+                return `textureSampleLevel(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()}, 0.0)`;
+            }
+
             return `textureSample(${sampler.uniform.name}_texture, ${sampler.uniform.name}, ${coord.toWGSL()})`;
         }
     };

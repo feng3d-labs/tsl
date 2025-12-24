@@ -93,8 +93,8 @@ document.addEventListener('DOMContentLoaded', async () =>
     // 生成着色器代码（注释掉则使用手写的 GLSL/WGSL 进行调试）
     const vertexGlsl = vertexShader.toGLSL(2);
     const fragmentGlsl = fragmentShader.toGLSL(2);
-    // const vertexWgsl = vertexShader.toWGSL({ convertDepth: true });
-    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+    const vertexWgsl = vertexShader.toWGSL({ convertDepth: true });
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     // 初始化 WebGPU
     const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;

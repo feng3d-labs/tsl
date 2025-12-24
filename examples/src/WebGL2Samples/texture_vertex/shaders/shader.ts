@@ -1,7 +1,7 @@
 import {
     attribute, clamp, cross, dFdx, dFdy, dot, float, Float, fract, fragment, func,
     gl_Position, let_, log2, mat4, max, mix, normalize, pow, precision,
-    return_, sampler2D, texture, textureLod, textureSize, uniform, varying,
+    return_, sampler2D, texture, textureLod, textureSize, uniform, var_, varying,
     vec2, Vec2, vec3, vec4, vertex
 } from '@feng3d/tsl';
 
@@ -68,7 +68,7 @@ const textureLevel: (v_st: Vec2) => Float = func(
         const dy = let_('dy', dFdy(v_st.multiply(size)));
 
         // 计算各向异性值
-        const d = let_('d', max(dot(dx, dx), dot(dy, dy)));
+        const d = var_('d', max(dot(dx, dx), dot(dy, dy)));
 
         // 钳制值（需要类型断言以确保 pow 和 clamp 的类型正确）
         const powResult = pow(2.0, (levelCount.subtract(1.0) as Float).multiply(2.0) as Float) as Float;

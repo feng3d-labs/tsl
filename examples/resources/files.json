@@ -56,6 +56,7 @@
 		"WebGL2Samples/texture_integer",
 		"WebGL2Samples/texture_lod",
 		"WebGL2Samples/texture_offset",
-		"WebGL2Samples/texture_pixel_store"
+		"WebGL2Samples/texture_pixel_store",
+		"WebGL2Samples/texture_srgb"
 	]
 }

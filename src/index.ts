@@ -46,6 +46,7 @@ export { select } from './control/select';
 // vector - 向量运算
 export { cross } from './vector/cross';
 export { dot } from './vector/dot';
+export { lessThan } from './vector/lessThan';
 export { normalize } from './vector/normalize';
 export { reflect } from './vector/reflect';
 
@@ -75,6 +76,7 @@ export { int } from './types/scalar/int';
 export { uint } from './types/scalar/uint';
 
 // types/vector - 向量类型
+export { bvec3 } from './types/vector/bvec3';
 export { ivec2 } from './types/vector/ivec2';
 export { ivec3 } from './types/vector/ivec3';
 export { ivec4 } from './types/vector/ivec4';

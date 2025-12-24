@@ -1,4 +1,5 @@
 import { buildShader } from '../core/buildShader';
+import { Array as TSLArray } from '../variables/array';
 import { Builtin } from '../glsl/builtin/builtin';
 import { Func } from './func';
 import { ShaderValue } from '../core/IElement';
@@ -144,10 +145,26 @@ export class Fragment extends Func
                 lines.push(samplerPrecision.toGLSL());
             }
 
-            // 生成 varying 声明
+            // 生成 varying 声明（排除数组中的 varying）
+            const varyingArrayNames = new Set(globalThis.Array.from(dependencies.varyingArrays).map(va => va.varying?.name));
             for (const varying of dependencies.varyings)
             {
-                lines.push(varying.toGLSL());
+                if (!varyingArrayNames.has(varying.name))
+                {
+                    lines.push(varying.toGLSL());
+                }
+            }
+
+            // 生成 varying 数组声明
+            for (const varyingArr of dependencies.varyingArrays)
+            {
+                if (varyingArr.varying)
+                {
+                    const glslType = varyingArr.glslType;
+                    const name = varyingArr.varying.name;
+                    const length = varyingArr.length;
+                    lines.push(`in ${glslType} ${name}[${length}];`);
+                }
             }
 
             // 收集结构体 uniform 的名称
@@ -270,18 +287,21 @@ export class Fragment extends Func
             // 自动分配 binding（对于 binding 缺省的 uniform），考虑顶点着色器的 binding
             this.allocateBindings(dependencies.uniforms, dependencies.samplers, vertexShader);
 
-            // 如果有 varying，生成 VaryingStruct
-            const hasVaryings = dependencies.varyings.size > 0;
+            // 如果有 varying 或 varying 数组，生成 VaryingStruct
+            const hasVaryings = dependencies.varyings.size > 0 || dependencies.varyingArrays.size > 0;
             if (hasVaryings)
             {
                 // 为 varying 分配 location（从 vertexShader 获取已分配的 location）
-                this.allocateVaryingLocations(dependencies.varyings, vertexShader);
+                this.allocateVaryingLocations(dependencies.varyings, dependencies.varyingArrays, vertexShader);
 
-                // 更新 varying 的 value.toWGSL 方法，使其返回 v.name 格式
+                // 收集 varying 数组的名称，用于排除
+                const varyingArrayNames = new Set(globalThis.Array.from(dependencies.varyingArrays).map(va => va.varying?.name));
+
+                // 更新 varying 的 value.toWGSL 方法，使其返回 v.name 格式（排除数组中的 varying）
                 // 必须在生成函数体代码之前更新，否则生成的代码会使用旧的路径
                 for (const v of dependencies.varyings)
                 {
-                    if (v.value)
+                    if (v.value && !varyingArrayNames.has(v.name))
                     {
                         const varyingName = v.name;
                         v.value.toWGSL = () => `v.${varyingName}`;
@@ -292,9 +312,23 @@ export class Fragment extends Func
                 const structLines: string[] = ['struct VaryingStruct {'];
                 for (const v of dependencies.varyings)
                 {
-                    if (v.value)
+                    if (v.value && !varyingArrayNames.has(v.name))
                     {
                         structLines.push(`    ${v.toWGSL()},`);
+                    }
+                }
+                // 添加所有 varying 数组（展开为独立变量）
+                for (const va of dependencies.varyingArrays)
+                {
+                    if (va.varying)
+                    {
+                        const startLocation = va.varying.getEffectiveLocation() ?? 0;
+                        const wgslType = va.wgslType;
+                        const name = va.varying.name;
+                        for (let i = 0; i < va.length; i++)
+                        {
+                            structLines.push(`    @location(${startLocation + i}) ${name}_${i}: ${wgslType},`);
+                        }
                     }
                 }
                 structLines.push('}');
@@ -642,12 +676,16 @@ export class Fragment extends Func
     }
 
     /**
-     * 为 varying 分配 location
+     * 为 varying 和 varying 数组分配 location
      * @param varyings varying 集合
+     * @param varyingArrays varying 数组集合
      * @param vertexShader 可选的顶点着色器，用于获取已分配的 location
      */
-    private allocateVaryingLocations(varyings: Set<Varying>, vertexShader?: Vertex): void
+    private allocateVaryingLocations(varyings: Set<Varying>, varyingArrays: Set<TSLArray<any>>, vertexShader?: Vertex): void
     {
+        // 收集 varying 数组的名称，用于排除
+        const varyingArrayNames = new Set(globalThis.Array.from(varyingArrays).map(va => va.varying?.name));
+
         // 如果传入了 vertexShader，从顶点着色器获取已分配的 location
         if (vertexShader)
         {
@@ -664,15 +702,28 @@ export class Fragment extends Func
                 }
             }
 
-            // 为片段着色器的 varying 设置与顶点着色器相同的 location
+            // 为片段着色器的普通 varying 设置与顶点着色器相同的 location
             for (const v of varyings)
             {
-                if (v.location === undefined)
+                if (v.location === undefined && !varyingArrayNames.has(v.name))
                 {
                     const vertexLoc = vertexVaryingMap.get(v.name);
                     if (vertexLoc !== undefined)
                     {
                         v.setAutoLocation(vertexLoc);
+                    }
+                }
+            }
+
+            // 为片段着色器的 varying 数组设置与顶点着色器相同的 location
+            for (const va of varyingArrays)
+            {
+                if (va.varying && va.varying.location === undefined)
+                {
+                    const vertexLoc = vertexVaryingMap.get(va.varying.name);
+                    if (vertexLoc !== undefined)
+                    {
+                        va.varying.setAutoLocation(vertexLoc);
                     }
                 }
             }
@@ -683,19 +734,31 @@ export class Fragment extends Func
         // 如果没有传入 vertexShader，自己分配 location
         const usedLocations = new Set<number>();
 
-        // 收集已显式指定的 location
+        // 收集已显式指定的 location（普通 varying）
         for (const v of varyings)
         {
-            if (v.location !== undefined)
+            if (v.location !== undefined && !varyingArrayNames.has(v.name))
             {
                 usedLocations.add(v.location);
             }
         }
 
-        // 为 location 缺省的 varying 自动分配 location
+        // 收集已显式指定的 location（varying 数组）
+        for (const va of varyingArrays)
+        {
+            if (va.varying?.location !== undefined)
+            {
+                for (let i = 0; i < va.length; i++)
+                {
+                    usedLocations.add(va.varying.location + i);
+                }
+            }
+        }
+
+        // 为 location 缺省的普通 varying 自动分配 location
         for (const v of varyings)
         {
-            if (v.location === undefined)
+            if (v.location === undefined && !varyingArrayNames.has(v.name))
             {
                 let nextLocation = 0;
                 while (usedLocations.has(nextLocation))
@@ -704,6 +767,35 @@ export class Fragment extends Func
                 }
                 v.setAutoLocation(nextLocation);
                 usedLocations.add(nextLocation);
+            }
+        }
+
+        // 为 location 缺省的 varying 数组自动分配 location
+        for (const va of varyingArrays)
+        {
+            if (va.varying && va.varying.location === undefined)
+            {
+                // 找到连续的可用 location
+                let nextLocation = 0;
+                let found = false;
+                while (!found)
+                {
+                    found = true;
+                    for (let i = 0; i < va.length; i++)
+                    {
+                        if (usedLocations.has(nextLocation + i))
+                        {
+                            found = false;
+                            nextLocation = nextLocation + i + 1;
+                            break;
+                        }
+                    }
+                }
+                va.varying.setAutoLocation(nextLocation);
+                for (let i = 0; i < va.length; i++)
+                {
+                    usedLocations.add(nextLocation + i);
+                }
             }
         }
     }

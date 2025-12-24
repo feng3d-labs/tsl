@@ -1,4 +1,5 @@
 import { Attribute } from '../variables/attribute';
+import { Array as TSLArray } from '../variables/array';
 import { FragColor } from '../glsl/fragColor';
 import { Builtin } from '../glsl/builtin/builtin';
 import { Precision } from '../glsl/precision';
@@ -8,7 +9,7 @@ import { Uniform } from '../variables/uniform';
 import { Varying } from '../variables/varying';
 import { ShaderValue } from './IElement';
 
-// 注意：不能直接导入 Array，因为会与全局 Array 冲突，使用 StructDefinition 中的类型
+// 注意：不能直接导入 Array，因为会与全局 Array 冲突，使用别名 TSLArray
 
 /**
  * 结构体 uniform 信息
@@ -29,6 +30,7 @@ export interface AnalyzedDependencies
     uniforms: Set<Uniform>;
     precisions: Set<Precision>;
     varyings: Set<Varying>;
+    varyingArrays: Set<TSLArray<any>>;
     samplers: Set<Sampler>;
     builtins: Set<Builtin>;
     fragColors: Set<FragColor>;
@@ -46,6 +48,7 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
     const attributes = new Set<Attribute>();
     const uniforms = new Set<Uniform>();
     const varyings = new Set<Varying>();
+    const varyingArrays = new Set<TSLArray<any>>();
     const samplers = new Set<Sampler>();
     const builtins = new Set<Builtin>();
     const fragColors = new Set<FragColor>();
@@ -113,6 +116,20 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
             return;
         }
 
+        // 如果是 TSLArray 实例且是 varying 数组，添加到 varyingArrays 集合
+        if (value instanceof TSLArray && value.isVaryingArray)
+        {
+            varyingArrays.add(value);
+
+            // 继续分析数组中的 varying
+            if (value.varying)
+            {
+                varyings.add(value.varying);
+            }
+
+            return;
+        }
+
         // 如果是 Sampler 实例，添加到 samplers 集合
         if (value instanceof Sampler)
         {
@@ -169,11 +186,12 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
         uniforms,
         precisions,
         varyings,
+        varyingArrays,
         samplers,
         builtins,
         fragColors,
-        externalVars: Array.from(externalVars.values()),
-        structUniforms: Array.from(structUniformsMap.values()),
+        externalVars: globalThis.Array.from(externalVars.values()),
+        structUniforms: globalThis.Array.from(structUniformsMap.values()),
     };
 }
 

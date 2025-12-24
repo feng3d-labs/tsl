@@ -1,5 +1,6 @@
 import { getBuildParam } from '../../core/buildShader';
-import { Sampler } from '../sampler/sampler';
+import { DepthSampler } from '../sampler/depthSampler';
+import { Sampler2D } from '../sampler/sampler2D';
 import { Sampler2DArray } from '../sampler/sampler2DArray';
 import { Sampler3D } from '../sampler/sampler3D';
 import { USampler2D } from '../sampler/usampler2D';
@@ -46,38 +47,68 @@ class DepthTextureResult extends Vec4
 
 /**
  * texture 函数，用于采样无符号整数纹理（usampler2D）
- * 在 GLSL 中使用 texture() 函数，返回 uvec4
- * 在 WGSL 中使用 textureLoad()，因为整数纹理不支持过滤采样
- * @param sampler 采样器（usampler2D）
+ * @param sampler 无符号整数纹理采样器
  * @param coord 纹理坐标（vec2）
  * @returns 采样结果（uvec4）
  */
 export function texture(sampler: USampler2D, coord: Vec2): Uvec4;
 /**
- * texture 函数，用于采样纹理
- * 支持 vec2 坐标（普通纹理）、vec3 坐标（纹理数组）或 vec2 + int（纹理数组）
- * @param sampler 采样器（在 GLSL 中是 sampler2D 或 sampler2DArray，在 WGSL 中需要 texture 和 sampler）
- * @param coord 纹理坐标（vec2 或 vec3）
+ * texture 函数，用于采样 2D 纹理
+ * @param sampler 2D 纹理采样器
+ * @param coord 纹理坐标（vec2）
  * @returns 采样结果（vec4）
  */
-export function texture(sampler: Sampler, coord: Vec2 | Vec3): Vec4;
+export function texture(sampler: Sampler2D, coord: Vec2): Vec4;
 /**
- * texture 函数，用于采样纹理数组
- * @param sampler 采样器
+ * texture 函数，用于采样深度纹理
+ * @param sampler 深度纹理采样器
+ * @param coord 纹理坐标（vec2）
+ * @returns 采样结果（vec4，通过 .r 获取深度值）
+ */
+export function texture(sampler: DepthSampler, coord: Vec2): Vec4;
+/**
+ * texture 函数，用于采样 3D 纹理
+ * @param sampler 3D 纹理采样器
+ * @param coord 纹理坐标（vec3）
+ * @returns 采样结果（vec4）
+ */
+export function texture(sampler: Sampler3D, coord: Vec3): Vec4;
+/**
+ * texture 函数，用于采样纹理数组（使用 vec3 坐标）
+ * @param sampler 纹理数组采样器
+ * @param coord 纹理坐标（vec3，z 分量为层索引）
+ * @returns 采样结果（vec4）
+ */
+export function texture(sampler: Sampler2DArray, coord: Vec3): Vec4;
+/**
+ * texture 函数，用于采样纹理数组（使用 vec2 坐标 + 层索引）
+ * @param sampler 纹理数组采样器
  * @param coord 纹理坐标（vec2）
  * @param layer 纹理数组层索引（int）
  * @returns 采样结果（vec4）
  */
-export function texture(sampler: Sampler, coord: Vec2, layer: Int): Vec4;
+export function texture(sampler: Sampler2DArray, coord: Vec2, layer: Int): Vec4;
 /**
- * texture 函数（带 LOD bias），用于采样纹理并指定 LOD 偏移
- * @param sampler 采样器（在 GLSL 中是 sampler2D，在 WGSL 中需要 texture 和 sampler）
+ * texture 函数（带 LOD bias），用于采样 2D 纹理并指定 LOD 偏移
+ * @param sampler 2D 纹理采样器
  * @param coord 纹理坐标（vec2）
- * @param bias LOD 偏移值（float）
+ * @param bias LOD 偏移值（Float 类型）
  * @returns 采样结果（vec4）
  */
-export function texture(sampler: Sampler, coord: Vec2, bias: Float | number): Vec4;
-export function texture(sampler: Sampler, coord: Vec2 | Vec3, layerOrBias?: Int | Float | number): Vec4 | Uvec4
+export function texture(sampler: Sampler2D, coord: Vec2, bias: Float): Vec4;
+/**
+ * texture 函数（带 LOD bias），用于采样 2D 纹理并指定 LOD 偏移
+ * @param sampler 2D 纹理采样器
+ * @param coord 纹理坐标（vec2）
+ * @param bias LOD 偏移值（数字常量）
+ * @returns 采样结果（vec4）
+ */
+export function texture(sampler: Sampler2D, coord: Vec2, bias: number): Vec4;
+export function texture(
+    sampler: Sampler2D | Sampler2DArray | Sampler3D | USampler2D | DepthSampler,
+    coord: Vec2 | Vec3,
+    layerOrBias?: Int | Float | number,
+): Vec4 | Uvec4
 {
     // 检测是否是无符号整数纹理
     const isUintTexture = sampler instanceof USampler2D;

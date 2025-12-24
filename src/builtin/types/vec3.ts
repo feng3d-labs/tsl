@@ -206,6 +206,9 @@ export class Vec3 implements ShaderValue
     /**
      * 乘法运算
      */
+    multiply(other: Vec3): Vec3;
+    multiply(other: Float): Vec3;
+    multiply(other: number): Vec3;
     multiply(other: Vec3 | Float | number): Vec3
     {
         const result = new Vec3();
@@ -295,6 +298,19 @@ export class Vec3 implements ShaderValue
             return `${left} - ${right}`;
         };
         result.dependencies = [this, other];
+
+        return result;
+    }
+
+    /**
+     * 取反运算（返回 -this）
+     */
+    negate(): Vec3
+    {
+        const result = new Vec3();
+        result.toGLSL = () => `-${wrapForSwizzle(this.toGLSL())}`;
+        result.toWGSL = () => `-${wrapForSwizzle(this.toWGSL())}`;
+        result.dependencies = [this];
 
         return result;
     }

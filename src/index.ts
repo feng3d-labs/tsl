@@ -48,12 +48,6 @@ export { textureGrad } from './builtin/textureGrad';
 export { textureSize } from './builtin/textureSize';
 export { var_ } from './builtin/var';
 
-// 导出向量类型
-export { Bool } from './builtin/types/bool';
-export { Float } from './builtin/types/float';
-export { UInt } from './builtin/types/uint';
-export { Vec2 } from './builtin/types/vec2';
-export { Vec4 } from './builtin/types/vec4';
 // 导出向量构造函数
 export { bool } from './builtin/types/bool';
 export { float } from './builtin/types/float';

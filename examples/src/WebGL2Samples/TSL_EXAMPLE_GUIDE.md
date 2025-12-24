@@ -371,7 +371,7 @@ texture(depthMap, v.v_st).r
 ### 数学函数
 
 ```typescript
-import { sqrt, pow, sin, cos, mix, clamp, step, smoothstep, normalize, dot, max, exp } from '@feng3d/tsl';
+import { sqrt, pow, sin, cos, mix, clamp, step, smoothstep, normalize, dot, max, exp, reflect } from '@feng3d/tsl';
 
 // 平方根
 const len = sqrt(x);
@@ -390,6 +390,27 @@ const s = step(edge, x);
 
 // 平滑阶跃
 const ss = smoothstep(0.0, 1.0, x);
+
+// 反射向量（用于镜面反射光照计算）
+// reflect(I, N) = I - 2.0 * dot(N, I) * N
+const r = reflect(incident, normal);
+```
+
+### 向量取反操作
+
+```typescript
+// Vec3 取反：返回 -this
+const negV = v.negate();  // 生成 -v
+
+// 常用于光照计算中的反射向量取反
+const r = reflect(l, n).negate();  // 生成 -reflect(l, n)
+
+// 替代 float(-1.0).multiply(vec) 的写法
+// ❌ 旧写法（需要类型转换）
+const negView = float(-1.0).multiply(pEC.xyz);
+
+// ✅ 新写法（更清晰）
+const negView = pEC.xyz.negate();
 ```
 
 ### 三元条件选择（select）

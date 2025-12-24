@@ -1,7 +1,4 @@
-import { attribute, dot, float, fragment, gl_FragColor, gl_Position, mat4, max, normalize, pow, precision, reflect, struct, uniform, varying, vec3, vec4, vertex, Float } from '@feng3d/tsl';
-
-// Vec3 类型别名（TSL 未导出 Vec3 类型）
-type Vec3Like = ReturnType<typeof vec3>;
+import { attribute, dot, float, fragment, gl_FragColor, gl_Position, mat4, max, normalize, pow, precision, reflect, struct, uniform, varying, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
 const position = vec3(attribute('position', 0));
@@ -39,8 +36,8 @@ export const vertexShader = vertex('main', () =>
     // 变换法线到眼空间
     v_normal.assign(perDraw.transform.Mnormal.multiply(vec4(normal, 0.0)).xyz);
 
-    // 计算视线方向（从顶点到眼睛）
-    v_view.assign(float(-1.0).multiply(pEC.xyz) as any);
+    // 计算视线方向（从顶点到眼睛）：-pEC.xyz
+    v_view.assign(pEC.xyz.negate());
 
     // 传递颜色
     v_color.assign(color);
@@ -86,22 +83,22 @@ export const fragmentShader = fragment('main', () =>
     const n = normalize(v_normal);
 
     // 计算光线方向（光源位置在相机空间）
-    const l = normalize((perPass.light.position as Vec3Like).add(v_view));
+    const l = normalize(perPass.light.position.add(v_view));
 
     // 标准化视线方向
     const v = normalize(v_view);
 
     // 计算漫反射
-    const diffuse = (perScene.material.diffuse as Vec3Like).multiply(max(dot(n, l), 0.0) as any);
+    const diffuse = perScene.material.diffuse.multiply(max(dot(n, l), 0.0));
 
     // 计算反射向量: r = -reflect(l, n)
-    const r = float(-1.0).multiply(reflect(l, n) as any);
+    const r = reflect(l, n).negate();
 
     // 计算镜面反射
-    const specular = (perScene.material.specular as Vec3Like).multiply(
-        pow(max(dot(r as any, v), 0.0), perScene.material.shininess as Float) as any
+    const specular = perScene.material.specular.multiply(
+        pow(max(dot(r, v), 0.0), perScene.material.shininess)
     );
 
     // 最终颜色 = 环境光 + 漫反射 + 镜面反射
-    gl_FragColor.assign(vec4((perScene.material.ambient as Vec3Like).add(diffuse as any).add(specular as any), 1.0));
+    gl_FragColor.assign(vec4(perScene.material.ambient.add(diffuse).add(specular), 1.0));
 });

@@ -1,4 +1,4 @@
-import { array, attribute, fragment, gl_FragColor, gl_InstanceID, gl_Position, int, mat4, Mat4, precision, struct, uniform, varying, vec2, vec4, Vec4, vertex } from '@feng3d/tsl';
+import { array, attribute, fragment, gl_FragColor, gl_InstanceID, gl_Position, int, mat4, precision, struct, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
 const pos = vec2(attribute('pos', 0));

@@ -19,9 +19,14 @@ export type StructMembers = Record<string, StructMemberType>;
 
 /**
  * 将成员工厂函数类型映射为其返回值类型
+ * 对于嵌套结构体，递归解析其成员类型
  */
 type ResolveMembers<T extends StructMembers> = {
-    [K in keyof T]: T[K] extends (...args: any[]) => infer R ? R : never;
+    [K in keyof T]: T[K] extends StructConstructor<infer U>
+        ? ResolveMembers<U>
+        : T[K] extends (...args: any[]) => infer R
+            ? R
+            : never;
 };
 
 /**

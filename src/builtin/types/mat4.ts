@@ -1,6 +1,7 @@
 import { Attribute } from '../../attribute';
 import { IElement, ShaderValue } from '../../IElement';
 import { Uniform } from '../../uniform';
+import { formatNumber } from '../formatNumber';
 import { Vec4 } from './vec4';
 
 /**
@@ -19,13 +20,30 @@ export class Mat4 implements ShaderValue
     constructor();
     constructor(uniform: Uniform);
     constructor(attribute: Attribute);
-    constructor(...args: (Uniform | Attribute)[])
+    constructor(diagonal: number);
+    constructor(...args: (Uniform | Attribute | number)[])
     {
         if (args.length === 0) return;
         if (args.length === 1)
         {
-            // 处理 uniform 或 attribute
-            if (args[0] instanceof Uniform)
+            // 处理数字字面量：mat4(1.0) 创建对角矩阵
+            if (typeof args[0] === 'number')
+            {
+                const value = args[0];
+                const glslValue = formatNumber(value);
+                // GLSL: mat4(1.0) 创建对角矩阵
+                this.toGLSL = () => `mat4(${glslValue})`;
+                // WGSL: 需要显式构造对角矩阵
+                this.toWGSL = () =>
+                {
+                    const v = glslValue;
+
+                    return `mat4x4<f32>(vec4<f32>(${v}, 0.0, 0.0, 0.0), vec4<f32>(0.0, ${v}, 0.0, 0.0), vec4<f32>(0.0, 0.0, ${v}, 0.0), vec4<f32>(0.0, 0.0, 0.0, ${v}))`;
+                };
+                this.dependencies = [];
+            }
+            // 处理 uniform
+            else if (args[0] instanceof Uniform)
             {
                 const uniform = args[0] as Uniform;
 
@@ -35,6 +53,7 @@ export class Mat4 implements ShaderValue
 
                 uniform.value = this;
             }
+            // 处理 attribute
             else if (args[0] instanceof Attribute)
             {
                 const attribute = args[0] as Attribute;
@@ -81,9 +100,15 @@ export class Mat4 implements ShaderValue
 
 /**
  * mat4 构造函数
+ *
+ * 支持以下用法：
+ * - `mat4(uniform('MVP'))` - 从 uniform 创建
+ * - `mat4(attribute('matrix'))` - 从 attribute 创建
+ * - `mat4(1.0)` - 创建对角矩阵（单位矩阵用 mat4(1.0)）
  */
 export function mat4(uniform: Uniform): Mat4;
 export function mat4(attribute: Attribute): Mat4;
+export function mat4(diagonal: number): Mat4;
 export function mat4(...args: any[]): Mat4
 {
     return new (Mat4 as any)(...args);

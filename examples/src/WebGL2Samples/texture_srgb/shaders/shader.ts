@@ -1,4 +1,50 @@
-import { attribute, clamp, dot, fract, fragment, gl_Position, lessThan, let_, mat4, mix, pow, precision, return_, sampler2D, texture, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
+import { func, attribute, clamp, dot, fract, fragment, gl_Position, lessThan, let_, mat4, mix, pow, precision, return_, sampler2D, texture, uniform, var_, varying, vec2, vec3, vec4, vertex, float } from '@feng3d/tsl';
+
+// ============================================================================
+// 辅助函数（对应 GLSL 中的函数定义）
+// ============================================================================
+
+const rgbToSrgb = func('rgbToSrgb', [vec3, float], vec3, (colorRGB, gammaCorrection) =>
+{
+    const clampedColorRGB = let_('clampedColorRGB', clamp(colorRGB, vec3(0.0), vec3(1.0)));
+
+    return_(mix(
+        pow(clampedColorRGB, vec3(gammaCorrection)).multiply(1.055).subtract(vec3(0.055)),
+        clampedColorRGB.multiply(12.92),
+        lessThan(clampedColorRGB, vec3(0.0031308)),
+    ));
+});
+
+
+/**
+ * 对比度、饱和度、亮度调整
+ * 对应 GLSL: vec3 contrastSaturationBrightness(vec3 color, float brt, float sat, float con)
+ *
+ * 所有设置: 1.0 = 100%, 0.5 = 50%, 1.5 = 150%
+ */
+const contrastSaturationBrightness = func('contrastSaturationBrightness', [vec3, float, float, float], vec3, (color, brt, sat, con) =>
+{
+    // 亮度系数（用于计算灰度）
+    const lumCoeff = vec3(0.2125, 0.7154, 0.0721);
+
+    // 应用亮度
+    const brtColor = color.multiply(brt);
+
+    // 计算灰度强度
+    const intensity = vec3(dot(brtColor, lumCoeff));
+
+    // 应用饱和度
+    const satColor = mix(intensity, brtColor, sat);
+
+    // 应用对比度
+    const conColor = mix(vec3(0.5), satColor, con);
+
+    return_(conColor);
+});
+
+// ============================================================================
+// 着色器变量定义
+// ============================================================================
 
 // 顶点属性
 const position = vec2(attribute('position', 0));
@@ -116,43 +162,12 @@ export const fragmentShader = fragment('main', () =>
     colorRgb.assign(mix(colorRgb, texture(materialDiffuse, h_blur_CD.xy), sampleCoord.x));
     colorRgb.assign(mix(colorRgb, texture(materialDiffuse, h_blur_CD.zw), sampleCoord.x));
 
-    // 亮度、饱和度、对比度参数
-    const brightness = 1.0;
-    const saturation = 0.5;
-    const contrast = 1.0;
+    // 应用对比度、饱和度、亮度调整（使用辅助函数）
+    const conColor = let_('conColor', contrastSaturationBrightness(colorRgb.xyz, 1.0, 0.5, 1.0));
 
-    // 亮度系数（用于计算灰度）
-    const lumCoeff = vec3(0.2125, 0.7154, 0.0721);
-
-    // 应用亮度
-    const brtColor = let_('brtColor', colorRgb.xyz.multiply(brightness));
-
-    // 计算灰度强度
-    const intensity = let_('intensity', vec3(dot(brtColor, lumCoeff)));
-
-    // 应用饱和度
-    const satColor = let_('satColor', mix(intensity, brtColor, saturation));
-
-    // 应用对比度
-    const conColor = let_('conColor', mix(vec3(0.5), satColor, contrast));
-
+    // 应用 gamma 校正转回 sRGB（使用辅助函数）
     // Gamma 校正参数（约 1/2.4）
-    const gammaCorrection = 0.41666;
-    const gammaVec = vec3(gammaCorrection, gammaCorrection, gammaCorrection);
-
-    // 钳制颜色值到 [0, 1] 范围
-    const clampedColorRGB = let_('clampedColorRGB', clamp(conColor, vec3(0.0), vec3(1.0)));
-
-    // 正确的 sRGB 转换：
-    // 对于小于 0.0031308 的值使用线性映射 (x * 12.92)
-    // 对于大于等于的值使用 gamma 曲线 (pow(x, gamma) * 1.055 - 0.055)
-    const thresholdVec = vec3(0.0031308);
-    const linearPart = let_('linearPart', clampedColorRGB.multiply(12.92));
-    const powResult = let_('powResult', pow(clampedColorRGB, gammaVec));
-    const gammaPart = let_('gammaPart', powResult.multiply(1.055).subtract(vec3(0.055)));
-
-    // 使用 lessThan 进行向量比较，mix 选择正确的值
-    const srgbColor = let_('srgbColor', mix(gammaPart, linearPart, lessThan(clampedColorRGB, thresholdVec)));
+    const srgbColor = let_('srgbColor', rgbToSrgb(conColor, 0.41666));
 
     return_(vec4(srgbColor, 1.0));
 });

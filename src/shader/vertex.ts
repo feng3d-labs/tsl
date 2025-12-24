@@ -98,6 +98,13 @@ export class Vertex extends Func
                 lines.push(`const ${expr.glslType} ${name} = ${expr.toGLSL()};`);
             }
 
+            // 生成着色器函数定义
+            for (const shaderFunc of dependencies.shaderFuncs)
+            {
+                lines.push('');
+                lines.push(shaderFunc.toGLSL());
+            }
+
             // 使用父类方法生成函数代码（不会再次执行 body，因为依赖已收集）
             const funcCode = super.toGLSL();
             const funcLines = funcCode.split('\n').filter(line => line.trim() !== '');
@@ -237,6 +244,13 @@ export class Vertex extends Func
             for (const { name, expr } of externalVars)
             {
                 lines.push(`const ${name}: ${expr.wgslType} = ${expr.toWGSL()};`);
+            }
+
+            // 生成着色器函数定义
+            for (const shaderFunc of dependencies.shaderFuncs)
+            {
+                lines.push('');
+                lines.push(shaderFunc.toWGSL());
             }
 
             // 空行

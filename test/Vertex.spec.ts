@@ -164,9 +164,9 @@ describe('Vertex', () =>
             });
 
             const wgsl = vert.toWGSL({ convertDepth: true });
-            // 验证深度转换代码生成
-            expect(wgsl).toContain('let _pos_temp = position;');
-            expect(wgsl).toContain('v.position = vec4<f32>(_pos_temp.xy, (_pos_temp.z + 1.0) * 0.5, _pos_temp.w);');
+            // 验证深度转换代码生成（在末尾添加深度转换语句）
+            expect(wgsl).toContain('v.position = position;');
+            expect(wgsl).toContain('v.position = vec4<f32>(v.position.xy, (v.position.z + 1.0) * 0.5, v.position.w);');
         });
 
         it('使用 convertDepth: false 时，应该与默认行为相同', () =>
@@ -193,9 +193,9 @@ describe('Vertex', () =>
             });
 
             const wgsl = vert.toWGSL({ convertDepth: true });
-            // 验证复杂表达式也能正确处理
-            expect(wgsl).toContain('let _pos_temp = vec4<f32>(pos, 0.0, 1.0);');
-            expect(wgsl).toContain('v.position = vec4<f32>(_pos_temp.xy, (_pos_temp.z + 1.0) * 0.5, _pos_temp.w);');
+            // 验证复杂表达式也能正确处理（在末尾添加深度转换语句）
+            expect(wgsl).toContain('v.position = vec4<f32>(pos, 0.0, 1.0);');
+            expect(wgsl).toContain('v.position = vec4<f32>(v.position.xy, (v.position.z + 1.0) * 0.5, v.position.w);');
         });
 
         it('深度转换不应影响非 position 的赋值', () =>
@@ -210,8 +210,8 @@ describe('Vertex', () =>
             });
 
             const wgsl = vert.toWGSL({ convertDepth: true });
-            // position 赋值应该有深度转换
-            expect(wgsl).toContain('_pos_temp');
+            // position 赋值应该有深度转换（在末尾添加深度转换语句）
+            expect(wgsl).toContain('v.position = vec4<f32>(v.position.xy, (v.position.z + 1.0) * 0.5, v.position.w);');
             // color 赋值不应该有深度转换
             expect(wgsl).toContain('v.vColor = color;');
         });

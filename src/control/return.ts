@@ -20,6 +20,12 @@ export function return_<T extends ShaderValue>(expr: T): void
                 const version = buildParam.version;
                 const stage = buildParam.stage;
 
+                // 辅助函数中使用普通的 return 语句
+                if (buildParam.isHelperFunction)
+                {
+                    return `return ${expr.toGLSL()};`;
+                }
+
                 if (stage === 'vertex')
                 {
                     return `gl_Position = ${expr.toGLSL()}; return;`;
@@ -42,6 +48,12 @@ export function return_<T extends ShaderValue>(expr: T): void
             toWGSL: () =>
             {
                 const buildParam = getBuildParam();
+
+                // 辅助函数中使用普通的 return 语句
+                if (buildParam.isHelperFunction)
+                {
+                    return `return ${expr.toWGSL()};`;
+                }
 
                 // 在顶点着色器中，如果启用了深度转换，将深度从 WebGL 的 [-1, 1] 转换为 WebGPU 的 [0, 1]
                 if (buildParam.stage === 'vertex' && buildParam.convertDepth)

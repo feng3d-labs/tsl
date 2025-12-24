@@ -11,11 +11,29 @@ import { getCurrentIfStatement } from '../core/ifStack';
 export function let_<T extends ShaderValue>(name: string, expr: T): T
 {
     const cls = expr.constructor;
-    const result: ShaderValue = new (cls as any)();
 
-    result.toGLSL = () => `${name}`;
-    result.toWGSL = () => `${name}`;
-    result.dependencies = [expr];
+    // 创建结果对象
+    // 如果 constructor 是 Object（简单对象，如 ShaderFunc.call 返回值），则创建一个新的 ShaderValue 对象
+    // 否则使用原始构造函数创建新实例
+    let result: ShaderValue;
+    if (cls === Object || !cls)
+    {
+        // 对于简单对象，创建一个包含必要属性的新对象
+        result = {
+            glslType: expr.glslType,
+            wgslType: expr.wgslType,
+            toGLSL: () => `${name}`,
+            toWGSL: () => `${name}`,
+            dependencies: [expr],
+        };
+    }
+    else
+    {
+        result = new (cls as any)();
+        result.toGLSL = () => `${name}`;
+        result.toWGSL = () => `${name}`;
+        result.dependencies = [expr];
+    }
 
     // 收集 let 语句
     const currentFunc = getCurrentFunc();

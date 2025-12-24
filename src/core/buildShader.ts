@@ -15,6 +15,11 @@ export interface BuildShaderParam
      * 公式: z_webgpu = (z_webgl + 1.0) * 0.5
      */
     convertDepth?: boolean;
+    /**
+     * 是否在生成辅助函数（如 ShaderFunc）
+     * 辅助函数中的 return_ 应该生成普通的 return 语句，而不是着色器输出赋值
+     */
+    isHelperFunction?: boolean;
 }
 
 let buildParam: BuildShaderParam;

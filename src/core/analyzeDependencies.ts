@@ -3,6 +3,7 @@ import { FragColor } from '../glsl/fragColor';
 import { Builtin } from '../glsl/builtin/builtin';
 import { Precision } from '../glsl/precision';
 import { Sampler } from '../glsl/sampler/sampler';
+import { ShaderFunc } from '../shader/func';
 import { StructDefinition } from '../variables/struct';
 import { Uniform } from '../variables/uniform';
 import { Varying } from '../variables/varying';
@@ -32,6 +33,7 @@ export interface AnalyzedDependencies
     fragColors: Set<FragColor>;
     externalVars: Array<{ name: string; expr: ShaderValue }>;
     structUniforms: StructUniformInfo[];
+    shaderFuncs: Set<ShaderFunc<any, any>>;
 }
 
 /**
@@ -50,6 +52,7 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
     const externalVars = new Map<string, { name: string; expr: ShaderValue }>();
     const precisions = new Set<Precision>();
     const structUniformsMap = new Map<Uniform, StructUniformInfo>();
+    const shaderFuncs = new Set<ShaderFunc<any, any>>();
     const visited = new WeakSet();
 
     const analyzeValue = (value: any): void =>
@@ -135,6 +138,30 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
             return;
         }
 
+        // 如果是 ShaderFunc 实例，添加到 shaderFuncs 集合
+        if (value instanceof ShaderFunc)
+        {
+            shaderFuncs.add(value);
+            // 继续分析 ShaderFunc 的依赖
+            for (const dep of value.dependencies)
+            {
+                analyzeValue(dep);
+            }
+
+            return;
+        }
+
+        // 检查是否有 _shaderFunc 属性（函数调用表达式）
+        if (typeof value === 'object' && (value as any)._shaderFunc instanceof ShaderFunc)
+        {
+            shaderFuncs.add((value as any)._shaderFunc);
+            // 继续分析 ShaderFunc 的依赖
+            for (const dep of (value as any)._shaderFunc.dependencies)
+            {
+                analyzeValue(dep);
+            }
+        }
+
         // 如果是外部定义的var_变量，收集它
         if (typeof value === 'object' && (value as any)._isExternalVar)
         {
@@ -172,5 +199,6 @@ export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
         fragColors,
         externalVars: globalThis.Array.from(externalVars.values()),
         structUniforms: globalThis.Array.from(structUniformsMap.values()),
+        shaderFuncs,
     };
 }

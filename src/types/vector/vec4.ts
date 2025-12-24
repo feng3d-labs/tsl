@@ -147,9 +147,9 @@ export class Vec4 implements ShaderValue
             this.toWGSL = () => `vec4<f32>(${xy.toWGSL()}, ${zw.toWGSL()})`;
             this.dependencies = [xy, zw];
         }
-        else if (args.length === 2 && args[0] instanceof Vec3 && (typeof args[1] === 'number' || args[1] instanceof Float))
+        else if (args.length === 2 && (args[0] instanceof Vec3 || (args[0] && (args[0] as any).glslType === 'vec3')) && (typeof args[1] === 'number' || args[1] instanceof Float))
         {
-            // 处理 vec4(xyz: Vec3, w: number | Float) 的情况
+            // 处理 vec4(xyz: Vec3 | ShaderValue<vec3>, w: number | Float) 的情况
             const xyz = args[0] as Vec3;
             const w = args[1] as number | Float;
 

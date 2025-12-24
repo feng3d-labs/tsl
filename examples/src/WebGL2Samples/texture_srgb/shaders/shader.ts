@@ -4,7 +4,7 @@ import { func, attribute, clamp, dot, fract, fragment, fragColor, gl_Position, l
 // 辅助函数（对应 GLSL 中的函数定义）
 // ============================================================================
 
-const rgbToSrgb = func('rgbToSrgb', [vec3, float], vec3, (colorRGB, gammaCorrection) =>
+const rgbToSrgb = func('rgbToSrgb', [['colorRGB', vec3], ['gammaCorrection', float]], vec3, (colorRGB, gammaCorrection) =>
 {
     const clampedColorRGB = let_('clampedColorRGB', clamp(colorRGB, 0.0, 1.0));
 
@@ -22,7 +22,7 @@ const rgbToSrgb = func('rgbToSrgb', [vec3, float], vec3, (colorRGB, gammaCorrect
  *
  * 所有设置: 1.0 = 100%, 0.5 = 50%, 1.5 = 150%
  */
-const contrastSaturationBrightness = func('contrastSaturationBrightness', [vec3, float, float, float], vec3, (color, brt, sat, con) =>
+const contrastSaturationBrightness = func('contrastSaturationBrightness', [['color', vec3], ['brt', float], ['sat', float], ['con', float]], vec3, (color, brt, sat, con) =>
 {
     // 亮度系数（用于计算灰度）
     const lumCoeff = let_('lumCoeff', vec3(0.2125, 0.7154, 0.0721));

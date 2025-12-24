@@ -159,6 +159,11 @@ export class Func
 }
 
 /**
+ * 参数定义类型：可以是类型构造函数，或 [名称, 类型构造函数] 元组
+ */
+type ParamDef = ((...args: any[]) => ShaderValue) | [string, (...args: any[]) => ShaderValue];
+
+/**
  * ShaderFunc 类 - 表示一个可调用的着色器函数
  * 支持参数和返回值
  */
@@ -175,7 +180,7 @@ export class ShaderFunc<TParams extends ShaderValue[], TReturn extends ShaderVal
 
     constructor(
         name: string,
-        paramTypes: ((...args: any[]) => ShaderValue)[],
+        paramDefs: ParamDef[],
         returnTypeFunc: (...args: any[]) => TReturn,
         body: (...params: TParams) => void,
     )
@@ -189,11 +194,16 @@ export class ShaderFunc<TParams extends ShaderValue[], TReturn extends ShaderVal
             wgslType: returnSample.wgslType,
         };
 
-        // 从数组创建参数
-        this.params = paramTypes.map((typeFunc, index) =>
+        // 从数组创建参数，支持两种格式：
+        // 1. 类型构造函数：vec3 -> 参数名自动生成为 p0, p1, ...
+        // 2. [名称, 类型构造函数]：['colorRGB', vec3] -> 使用指定的参数名
+        this.params = paramDefs.map((def, index) =>
         {
+            const isNamedParam = Array.isArray(def);
+            const paramName = isNamedParam ? def[0] : `p${index}`;
+            const typeFunc = isNamedParam ? def[1] : def;
+
             const sample = typeFunc();
-            const paramName = `p${index}`;
             const paramValue = typeFunc();
 
             // 设置参数的 toGLSL 和 toWGSL 返回参数名
@@ -342,9 +352,13 @@ export class ShaderFunc<TParams extends ShaderValue[], TReturn extends ShaderVal
     }
 }
 
-// 类型辅助：从类型构造函数数组推导参数类型
-type ParamTypesFromConstructors<T extends ((...args: any[]) => ShaderValue)[]> = {
-    [K in keyof T]: T[K] extends (...args: any[]) => infer R ? R : never;
+// 类型辅助：从类型构造函数数组推导参数类型（支持两种格式）
+type ParamTypesFromDefs<T extends ParamDef[]> = {
+    [K in keyof T]: T[K] extends [string, (...args: any[]) => infer R]
+        ? R
+        : T[K] extends (...args: any[]) => infer R
+            ? R
+            : never;
 };
 
 // 类型辅助：将参数类型转换为可接受 number 的版本
@@ -355,20 +369,23 @@ type ParamTypesWithNumber<T extends ShaderValue[]> = {
 /**
  * 定义着色器函数
  * @param name 函数名
- * @param paramTypes 参数类型数组，如 [vec3, float]
+ * @param paramDefs 参数定义数组，支持两种格式：
+ *   - 类型构造函数：[vec3, float] -> 参数名自动生成为 p0, p1, ...
+ *   - 带名称的元组：[['colorRGB', vec3], ['gammaCorrection', float]] -> 使用指定的参数名
  * @param returnType 返回类型，如 vec3
  * @param body 函数体，接收参数并返回结果（使用 return_ 表达返回值）
  * @returns 可调用的着色器函数
  *
  * @example
  * ```typescript
+ * // 使用自动参数名
  * const rgbToSrgb = func('rgbToSrgb', [vec3, float], vec3, (colorRGB, gammaCorrection) => {
- *     const clampedColorRGB = let_('clampedColorRGB', clamp(colorRGB, vec3(0.0), vec3(1.0)));
- *     return_(mix(
- *         pow(clampedColorRGB, vec3(gammaCorrection)).multiply(1.055).subtract(vec3(0.055)),
- *         clampedColorRGB.multiply(12.92),
- *         lessThan(clampedColorRGB, vec3(0.0031308)),
- *     ));
+ *     // ...
+ * });
+ *
+ * // 使用指定参数名（与 GLSL 一致）
+ * const rgbToSrgb = func('rgbToSrgb', [['colorRGB', vec3], ['gammaCorrection', float]], vec3, (colorRGB, gammaCorrection) => {
+ *     // ...
  * });
  *
  * // 调用
@@ -376,18 +393,18 @@ type ParamTypesWithNumber<T extends ShaderValue[]> = {
  * ```
  */
 export function func<
-    TParamTypes extends ((...args: any[]) => ShaderValue)[],
+    TParamDefs extends ParamDef[],
     TReturn extends ShaderValue,
 >(
     name: string,
-    paramTypes: [...TParamTypes],
+    paramDefs: [...TParamDefs],
     returnType: (...args: any[]) => TReturn,
-    body: (...params: ParamTypesFromConstructors<TParamTypes>) => void,
-): (...args: ParamTypesWithNumber<ParamTypesFromConstructors<TParamTypes>>) => TReturn
+    body: (...params: ParamTypesFromDefs<TParamDefs>) => void,
+): (...args: ParamTypesWithNumber<ParamTypesFromDefs<TParamDefs>>) => TReturn
 {
-    const shaderFunc = new ShaderFunc<ParamTypesFromConstructors<TParamTypes>, TReturn>(
+    const shaderFunc = new ShaderFunc<ParamTypesFromDefs<TParamDefs>, TReturn>(
         name,
-        paramTypes,
+        paramDefs,
         returnType,
         body as any,
     );

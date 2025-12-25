@@ -18,25 +18,16 @@ export class Int implements ShaderValue
     dependencies: IElement[];
 
     constructor();
-    constructor(builtin: Builtin);
     constructor(value: number);
     constructor(other: UInt);
-    constructor(...args: (number | Builtin | UInt)[])
+    constructor(...args: (number | UInt)[])
     {
         if (args.length === 0)
         {
             // 无参数构造函数，用于 var_ 函数创建新实例
             return;
         }
-        if (args.length === 1 && args[0] instanceof Builtin)
-        {
-            const builtin = args[0] as Builtin;
-            this.dependencies = [builtin];
-            this.toGLSL = () => builtin.toGLSL();
-            this.toWGSL = () => builtin.getFullWGSLVarName();
-            builtin.value = this;
-        }
-        else if (args.length === 1 && typeof args[0] === 'number')
+        if (args.length === 1 && typeof args[0] === 'number')
         {
             const value = args[0] as number;
             const intValue = Math.floor(value); // 确保是整数
@@ -142,10 +133,9 @@ export class Int implements ShaderValue
  * int 构造函数
  */
 export function int(): Int;
-export function int(builtin: Builtin): Int;
 export function int(value: number): Int;
 export function int(other: UInt): Int;
-export function int(...args: (number | Builtin | UInt)[]): Int
+export function int(...args: (number | UInt)[]): Int
 {
     return new (Int as any)(...args);
 }

@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { uint, UInt } from '../../../src/types/scalar/uint';
-import { builtin } from '../../../src/glsl/builtin/builtin';
 import { vec3 } from '../../../src/types/vector/vec3';
 import { vertex } from '../../../src/shader/vertex';
 import { fragment } from '../../../src/shader/fragment';
@@ -149,11 +148,6 @@ describe('UInt', () => {
     });
 
     describe('与 builtin 变量一起使用', () => {
-        it('应该能够创建 gl_VertexID builtin', () => {
-            const b = builtin('gl_VertexID');
-            expect(b.builtinName).toBe('gl_VertexID');
-        });
-
         it('gl_VertexID 应该生成正确的 GLSL 代码', () => {
             const u = gl_VertexID;
             // gl_VertexID 在 GLSL 中是 int 类型，可以直接作为数组索引使用

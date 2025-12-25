@@ -1,6 +1,5 @@
 import { IElement, ShaderValue } from '../../core/IElement';
 import { Assign } from '../../variables/assign';
-import { Builtin } from '../../glsl/builtin/builtin';
 import { FragColor } from '../../glsl/fragColor';
 import { formatOperand, wrapForSwizzle } from '../../core/expressionUtils';
 import { formatNumber } from '../../core/formatNumber';
@@ -23,7 +22,6 @@ export class Vec4 implements ShaderValue
     dependencies: IElement[];
 
     constructor();
-    constructor(builtin: Builtin);
     constructor(color: FragColor);
     constructor(vec4: Vec4);
     constructor(uvec4: Uvec4);
@@ -31,21 +29,12 @@ export class Vec4 implements ShaderValue
     constructor(xy: Vec2, zw: Vec2);
     constructor(xyz: Vec3, w: number | Float);
     constructor(x: number | Float, y: number | Float, z: number | Float, w: number | Float);
-    constructor(...args: (number | Builtin | FragColor | Vec2 | Vec3 | Float | Vec4 | Uvec4)[])
+    constructor(...args: (number | FragColor | Vec2 | Vec3 | Float | Vec4 | Uvec4)[])
     {
         if (args.length === 0) return;
         if (args.length === 1)
         {
-            if (args[0] instanceof Builtin)
-            {
-                const builtin = args[0] as Builtin;
-
-                this.toGLSL = () => builtin.toGLSL();
-                this.toWGSL = () => builtin.getFullWGSLVarName();
-                this.dependencies = [builtin];
-                builtin.value = this;
-            }
-            else if (args[0] instanceof FragColor)
+            if (args[0] instanceof FragColor)
             {
                 const color = args[0] as FragColor;
 
@@ -473,11 +462,6 @@ export class Vec4 implements ShaderValue
  * vec4 构造函数（无参数）
  */
 export function vec4(): Vec4;
-/**
- * vec4 构造函数
- * @param builtin Builtin 变量
- */
-export function vec4(builtin: Builtin): Vec4;
 /**
  * vec4 构造函数
  * @param color FragColor 颜色输出

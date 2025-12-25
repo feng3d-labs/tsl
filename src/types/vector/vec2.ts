@@ -25,12 +25,11 @@ export class Vec2 implements ShaderValue
     private _builtin?: Builtin;
 
     constructor();
-    constructor(builtin: Builtin);
     constructor(ivec2: IVec2);
     constructor(vec3: Vec3);
     constructor(vec4: Vec4);
     constructor(x: number | Float, y: number | Float);
-    constructor(...args: (number | Float | Builtin | IVec2 | Vec3 | Vec4)[])
+    constructor(...args: (number | Float | IVec2 | Vec3 | Vec4)[])
     {
         if (args.length === 0)
         {
@@ -39,17 +38,7 @@ export class Vec2 implements ShaderValue
         }
         if (args.length === 1)
         {
-            if (args[0] instanceof Builtin)
-            {
-                const builtin = args[0] as Builtin;
-
-                this.toGLSL = () => builtin.toGLSL();
-                this.toWGSL = () => builtin.getFullWGSLVarName();
-                this.dependencies = [builtin];
-                builtin.value = this;
-                this._builtin = builtin; // 记录 builtin 引用，用于 .y 的翻转处理
-            }
-            else if (args[0] instanceof IVec2)
+            if (args[0] instanceof IVec2)
             {
                 // 从 ivec2 转换为 vec2
                 const ivec2 = args[0] as IVec2;
@@ -305,11 +294,6 @@ export class Vec2 implements ShaderValue
  * vec2 构造函数（无参数）
  */
 export function vec2(): Vec2;
-/**
- * vec2 构造函数
- * @param builtin Builtin 变量
- */
-export function vec2(builtin: Builtin): Vec2;
 /**
  * vec2 构造函数
  * @param ivec2 IVec2 转换

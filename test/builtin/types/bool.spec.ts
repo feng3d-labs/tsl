@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { bool } from '../../../src/types/scalar/bool';
-import { builtin } from '../../../src/glsl/builtin/builtin';
 import { vec3 } from '../../../src/types/vector/vec3';
 import { if_ } from '../../../src/control/if_';
 import { vertex } from '../../../src/shader/vertex';
@@ -190,11 +189,6 @@ describe('Bool', () => {
     });
 
     describe('gl_FrontFacing builtin', () => {
-        it('应该能够创建 gl_FrontFacing builtin', () => {
-            const b = builtin('gl_FrontFacing');
-            expect(b.builtinName).toBe('gl_FrontFacing');
-        });
-
         it('gl_FrontFacing 应该生成正确的 GLSL 代码', () => {
             const v = gl_FrontFacing;
             expect(v.toGLSL()).toBe('gl_FrontFacing');

@@ -1,5 +1,4 @@
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Builtin } from '../../glsl/builtin/builtin';
 import { formatOperand } from '../../core/expressionUtils';
 import { Bool } from './bool';
 
@@ -23,35 +22,16 @@ export class UInt implements ShaderValue
     private _isGLSLInt = false;
 
     constructor();
-    constructor(builtin: Builtin);
     constructor(value: number);
     constructor(other: IElement);
-    constructor(...args: (number | Builtin | IElement)[])
+    constructor(...args: (number | IElement)[])
     {
         if (args.length === 0)
         {
             // 无参数构造函数，用于 var_ 函数创建新实例
             return;
         }
-        if (args.length === 1 && args[0] instanceof Builtin)
-        {
-            const builtin = args[0] as Builtin;
-            this.dependencies = [builtin];
-            // gl_InstanceID 在 GLSL 中是 int 类型，可以直接作为数组索引使用
-            // gl_VertexID 在 GLSL 中也是 int 类型
-            if (builtin.isInstanceIndex || builtin.isVertexIndex)
-            {
-                this.toGLSL = () => builtin.toGLSL();
-                this._isGLSLInt = true; // 标记为 GLSL int 类型
-            }
-            else
-            {
-                this.toGLSL = () => `uint(${builtin.toGLSL()})`;
-            }
-            this.toWGSL = () => builtin.getFullWGSLVarName();
-            builtin.value = this;
-        }
-        else if (args.length === 1 && typeof args[0] === 'number')
+        if (args.length === 1 && typeof args[0] === 'number')
         {
             const value = args[0] as number;
             const uintValue = Math.floor(value); // 确保是整数
@@ -64,16 +44,9 @@ export class UInt implements ShaderValue
             const other = args[0] as IElement;
             this.dependencies = [other];
 
-            // 检查是否是Builtin对象，如果是，不需要添加uint()包装
-            if ('builtinName' in other) {
-                // 对于builtin变量，直接使用其名称，不需要类型转换
-                this.toGLSL = () => other.toGLSL();
-                this.toWGSL = () => other.toWGSL();
-            } else {
-                // 类型转换，将其他类型转换为uint
-                this.toGLSL = () => `uint(${other.toGLSL()})`;
-                this.toWGSL = () => `u32(${other.toWGSL()})`;
-            }
+            // 类型转换，将其他类型转换为uint
+            this.toGLSL = () => `uint(${other.toGLSL()})`;
+            this.toWGSL = () => `u32(${other.toWGSL()})`;
         }
         else
         {
@@ -155,10 +128,9 @@ export class UInt implements ShaderValue
  * uint 构造函数
  */
 export function uint(): UInt;
-export function uint(builtin: Builtin): UInt;
 export function uint(value: number): UInt;
 export function uint(other: IElement): UInt;
-export function uint(...args: (number | Builtin | IElement)[]): UInt
+export function uint(...args: (number | IElement)[]): UInt
 {
     return new (UInt as any)(...args);
 }

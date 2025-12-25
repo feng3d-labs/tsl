@@ -142,6 +142,7 @@ export class Assign implements IStatement
             {
                 return '// gl_Position assignment ignored in compute shader';
             }
+
             // 否则正常生成赋值语句
             return `${targetWGSL} = ${this.value.toWGSL()};`;
         }

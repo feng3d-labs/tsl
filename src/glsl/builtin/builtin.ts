@@ -1,9 +1,9 @@
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Bool, bool } from '../../types/scalar/bool';
-import { Float, float } from '../../types/scalar/float';
-import { UInt, uint } from '../../types/scalar/uint';
-import { Vec2, vec2 } from '../../types/vector/vec2';
-import { Vec4, vec4 } from '../../types/vector/vec4';
+import { Bool } from '../../types/scalar/bool';
+import { Float } from '../../types/scalar/float';
+import { UInt } from '../../types/scalar/uint';
+import { Vec2 } from '../../types/vector/vec2';
+import { Vec4 } from '../../types/vector/vec4';
 
 /**
  * 将下划线命名转换为驼峰命名
@@ -241,8 +241,6 @@ export class Builtin implements IElement
     }
 }
 
-type BuiltinName = 'gl_Position' | 'gl_FrontFacing' | 'gl_VertexID' | 'gl_FragCoord' | 'gl_InstanceID' | 'gl_FragColor' | 'gl_PointSize';
-
 interface BuiltinMap
 {
     'gl_Position': Vec4,
@@ -254,21 +252,25 @@ interface BuiltinMap
     'gl_PointSize': Float,
 }
 
-const builtinMap: BuiltinMap = {
-    'gl_Position': vec4(),
-    'gl_FrontFacing': bool(),
-    'gl_VertexID': uint(),
-    'gl_FragCoord': vec2(),
-    'gl_InstanceID': uint(),
-    'gl_FragColor': vec4(),
-    'gl_PointSize': float(),
-};
-
 /**
  * 创建内置变量引用
  * @internal 仅供 builtins.ts 内部使用
  */
-export function builtin<T extends BuiltinName>(builtinName: T, value: BuiltinMap[T]): BuiltinMap[T];
+export function builtin<T extends keyof BuiltinMap>(builtinName: T, value: BuiltinMap[T]): BuiltinMap[T]
 {
-    return new Builtin(builtinName, varName);
+    const bi = new Builtin(builtinName);
+    const result = new (value.constructor as new () => BuiltinMap[T])();
+    result.toGLSL = () => bi.toGLSL();
+    // toWGSL 返回变量名（用于表达式），而不是完整声明
+    result.toWGSL = () => bi.defaultName;
+    result.dependencies = [bi];
+    bi.value = result;
+
+    // 为 gl_FragCoord 设置 _builtin 引用，用于 .y 的翻转处理
+    if (builtinName === 'gl_FragCoord' && result instanceof Vec2)
+    {
+        (result as any)._builtin = bi;
+    }
+
+    return result;
 }

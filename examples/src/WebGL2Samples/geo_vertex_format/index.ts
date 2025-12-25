@@ -30,10 +30,10 @@ function loadImage(url: string, onload: (img: HTMLImageElement) => void): HTMLIm
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 生成着色器代码（变量名必须与导入的相同，便于调试切换）
-    // const vertexGlsl = vertexShader.toGLSL(2);
-    // const fragmentGlsl = fragmentShader.toGLSL(2);
-    // const vertexWgsl = vertexShader.toWGSL({ convertDepth: true }); // 必须启用深度转换
-    // const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
+    const vertexGlsl = vertexShader.toGLSL(2);
+    const fragmentGlsl = fragmentShader.toGLSL(2);
+    const vertexWgsl = vertexShader.toWGSL({ convertDepth: true }); // 必须启用深度转换
+    const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 

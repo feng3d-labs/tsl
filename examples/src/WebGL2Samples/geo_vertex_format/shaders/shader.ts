@@ -6,8 +6,8 @@
  */
 
 import {
-    attribute, clamp, dot, float, fragment, gl_Position, mat4, normalize, precision,
-    return_, sampler2D, texture, uniform, var_, varying, vec2, vec3, vec4, vertex
+    attribute, clamp, dot, float, fragColor, fragment, gl_Position, mat4, normalize, precision,
+    sampler2D, texture, uniform, var_, varying, vec2, vec3, vec4, vertex
 } from '@feng3d/tsl';
 
 // ==================== 顶点着色器 ====================
@@ -54,13 +54,16 @@ export const vertexShader = vertex('main', () =>
 const s_tex2D = sampler2D(uniform('s_tex2D'));
 const u_ambient = float(uniform('u_ambient'));
 
+// 片段输出颜色
+const color = vec4(fragColor(0, 'color'));
+
 export const fragmentShader = fragment('main', () =>
 {
     precision('highp', 'float');
     precision('highp', 'int');
 
     // 采样纹理颜色
-    const color = var_('color', texture(s_tex2D, v_texCoord));
+    color.assign(texture(s_tex2D, v_texCoord));
 
     // 计算漫反射光照强度
     const lightIntensity = var_('lightIntensity', dot(normalize(v_normal), normalize(v_lightDirection)));
@@ -70,7 +73,5 @@ export const fragmentShader = fragment('main', () =>
 
     // 应用光照到颜色
     color.assign(color.multiply(lightIntensity));
-
-    return_(color);
 });
 

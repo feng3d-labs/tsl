@@ -172,6 +172,7 @@ export class ShaderFunc<TParams extends ShaderValue[], TReturn extends ShaderVal
     readonly name: string;
     readonly params: ParamInfo[];
     readonly returnType: { glslType: string; wgslType: string };
+    readonly returnTypeFunc: (...args: any[]) => TReturn;
     readonly statements: IStatement[] = [];
     readonly dependencies: IElement[] = [];
 
@@ -186,6 +187,7 @@ export class ShaderFunc<TParams extends ShaderValue[], TReturn extends ShaderVal
     )
     {
         this.name = name;
+        this.returnTypeFunc = returnTypeFunc;
 
         // 获取返回类型信息
         const returnSample = returnTypeFunc();
@@ -260,19 +262,18 @@ export class ShaderFunc<TParams extends ShaderValue[], TReturn extends ShaderVal
             return arg as ShaderValue;
         });
 
-        // 创建函数调用表达式（使用简单对象而不是调用构造函数）
-        const result: ShaderValue = {
-            glslType: this.returnType.glslType,
-            wgslType: this.returnType.wgslType,
-            toGLSL: () => `${this.name}(${argExpressions.map((a) => a.toGLSL()).join(', ')})`,
-            toWGSL: () => `${this.name}(${argExpressions.map((a) => a.toWGSL()).join(', ')})`,
-            dependencies: argExpressions as IElement[],
-        };
+        // 创建返回类型的实例，并设置其 toGLSL/toWGSL
+        const result = this.returnTypeFunc() as TReturn;
+
+        // 设置函数调用表达式
+        result.toGLSL = () => `${this.name}(${argExpressions.map((a) => a.toGLSL()).join(', ')})`;
+        result.toWGSL = () => `${this.name}(${argExpressions.map((a) => a.toWGSL()).join(', ')})`;
+        result.dependencies = argExpressions as IElement[];
 
         // 标记需要此函数定义
         (result as any)._shaderFunc = this;
 
-        return result as TReturn;
+        return result;
     }
 
     /**

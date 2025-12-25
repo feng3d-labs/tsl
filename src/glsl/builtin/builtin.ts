@@ -27,7 +27,7 @@ export class Builtin implements IElement
      */
     private _structVarPrefix?: string;
 
-    constructor(builtinName: 'gl_Position' | 'gl_FrontFacing' | 'gl_VertexID' | 'gl_FragCoord' | 'gl_InstanceID' | 'gl_FragColor', varName?: string)
+    constructor(builtinName: 'gl_Position' | 'gl_FrontFacing' | 'gl_VertexID' | 'gl_FragCoord' | 'gl_InstanceID' | 'gl_FragColor' | 'gl_PointSize', varName?: string)
     {
         this.builtinName = builtinName;
         this.name = varName;
@@ -76,6 +76,7 @@ export class Builtin implements IElement
         if (this.builtinName === 'gl_VertexID') return 'vertex_index';
         if (this.builtinName === 'gl_FragCoord') return 'position';
         if (this.builtinName === 'gl_InstanceID') return 'instance_index';
+        if (this.builtinName === 'gl_PointSize') return 'point_size';
 
         return this.builtinName;
     }
@@ -149,6 +150,14 @@ export class Builtin implements IElement
         return this.builtinName === 'gl_FragColor';
     }
 
+    /**
+     * 检查是否是 pointSize 相关的 builtin
+     */
+    get isPointSize(): boolean
+    {
+        return this.builtinName === 'gl_PointSize';
+    }
+
     toGLSL(): string
     {
         if (this.isPosition)
@@ -174,6 +183,10 @@ export class Builtin implements IElement
         if (this.isFragColorOutput)
         {
             return 'gl_FragColor';
+        }
+        if (this.isPointSize)
+        {
+            return 'gl_PointSize';
         }
 
         throw new Error(`Builtin '${this.builtinName}' 不支持 GLSL，无法生成 GLSL 代码。`);
@@ -202,6 +215,10 @@ export class Builtin implements IElement
         {
             wgslType = 'vec4<f32>';
         }
+        else if (this.isPointSize)
+        {
+            wgslType = 'f32';
+        }
         else
         {
             // 对于其他 builtin，使用 value 的类型
@@ -219,7 +236,7 @@ export class Builtin implements IElement
     }
 }
 
-type BuiltinName = 'gl_Position' | 'gl_FrontFacing' | 'gl_VertexID' | 'gl_FragCoord' | 'gl_InstanceID' | 'gl_FragColor';
+type BuiltinName = 'gl_Position' | 'gl_FrontFacing' | 'gl_VertexID' | 'gl_FragCoord' | 'gl_InstanceID' | 'gl_FragColor' | 'gl_PointSize';
 
 /**
  * 创建内置变量引用

@@ -61,6 +61,7 @@
 		"WebGL2Samples/texture_vertex",
 		"WebGL2Samples/geo_vertex_format",
 		"WebGL2Samples/transform_feedback_interleaved",
-		"WebGL2Samples/transform_feedback_separated"
+		"WebGL2Samples/transform_feedback_separated",
+		"WebGL2Samples/transform_feedback_separated_2"
 	]
 }

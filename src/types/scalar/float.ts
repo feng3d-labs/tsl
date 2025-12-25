@@ -1,4 +1,5 @@
 import { Attribute } from '../../variables/attribute';
+import { Builtin } from '../../glsl/builtin/builtin';
 import { IElement, ShaderValue } from '../../core/IElement';
 import { Uniform } from '../../variables/uniform';
 import { Varying } from '../../variables/varying';
@@ -30,7 +31,8 @@ export class Float implements ShaderValue
     constructor(varying: Varying);
     constructor(value: number);
     constructor(value: UInt);
-    constructor(...args: (number | Uniform | Attribute | Varying | UInt)[])
+    constructor(builtin: Builtin);
+    constructor(...args: (number | Uniform | Attribute | Varying | UInt | Builtin)[])
     {
         if (args.length === 0)
         {
@@ -67,6 +69,15 @@ export class Float implements ShaderValue
             this.toGLSL = () => `float(${value.toGLSL()})`;
             this.toWGSL = () => `f32(${value.toWGSL()})`;
             this.dependencies = [value];
+        }
+        else if (args.length === 1 && args[0] instanceof Builtin)
+        {
+            const builtin = args[0] as Builtin;
+            this.dependencies = [builtin];
+            this.toGLSL = () => builtin.toGLSL();
+            // 对于 builtin，在表达式中使用完整变量名（包括结构体前缀）
+            this.toWGSL = () => builtin.getFullWGSLVarName();
+            builtin.value = this;
         }
         else if (args.length === 1 && typeof args[0] === 'number')
         {
@@ -708,6 +719,7 @@ export function float(attribute: Attribute): Float;
 export function float(varying: Varying): Float;
 export function float(value: number): Float;
 export function float(value: UInt): Float;
+export function float(builtin: Builtin): Float;
 export function float(...args: any[]): Float
 {
     return new (Float as any)(...args);

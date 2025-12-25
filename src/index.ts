@@ -25,7 +25,7 @@ export { usampler2D } from './glsl/sampler/usampler2D';
 export { depthSampler } from './glsl/sampler/depthSampler';
 
 // glsl/builtin - 内置变量
-export { gl_Position, gl_FragColor, gl_VertexID, gl_FragCoord, gl_InstanceID, gl_FrontFacing } from './glsl/builtin/builtins';
+export { gl_Position, gl_FragColor, gl_VertexID, gl_FragCoord, gl_InstanceID, gl_FrontFacing, gl_PointSize } from './glsl/builtin/builtins';
 
 // glsl/texture - 纹理函数
 export { texelFetch } from './glsl/texture/texelFetch';
@@ -74,7 +74,7 @@ export { smoothstep } from './math/common/smoothstep';
 export { step } from './math/common/step';
 
 // types/scalar - 标量类型
-export { bool } from './types/scalar/bool';
+export { bool, Bool } from './types/scalar/bool';
 export { float, Float } from './types/scalar/float';
 export { int } from './types/scalar/int';
 export { uint } from './types/scalar/uint';

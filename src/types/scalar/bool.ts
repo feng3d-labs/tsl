@@ -95,6 +95,66 @@ export class Bool implements ShaderValue
 
         return result;
     }
+
+    /**
+     * 逻辑 OR 运算
+     * @param other 另一个布尔值或布尔表达式
+     * @returns 逻辑 OR 的结果
+     */
+    or(other: Bool): Bool
+    {
+        const result = new Bool();
+
+        result.toGLSL = () =>
+        {
+            const thisStr = this.toGLSL();
+            const otherStr = other.toGLSL();
+
+            return `(${thisStr}) || (${otherStr})`;
+        };
+
+        result.toWGSL = () =>
+        {
+            const thisStr = this.toWGSL();
+            const otherStr = other.toWGSL();
+
+            return `(${thisStr}) || (${otherStr})`;
+        };
+
+        result.dependencies = [this, other];
+
+        return result;
+    }
+
+    /**
+     * 逻辑 AND 运算
+     * @param other 另一个布尔值或布尔表达式
+     * @returns 逻辑 AND 的结果
+     */
+    and(other: Bool): Bool
+    {
+        const result = new Bool();
+
+        result.toGLSL = () =>
+        {
+            const thisStr = this.toGLSL();
+            const otherStr = other.toGLSL();
+
+            return `(${thisStr}) && (${otherStr})`;
+        };
+
+        result.toWGSL = () =>
+        {
+            const thisStr = this.toWGSL();
+            const otherStr = other.toWGSL();
+
+            return `(${thisStr}) && (${otherStr})`;
+        };
+
+        result.dependencies = [this, other];
+
+        return result;
+    }
 }
 
 /**

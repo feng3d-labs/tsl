@@ -1,4 +1,9 @@
 import { IElement, ShaderValue } from '../../core/IElement';
+import { Bool, bool } from '../../types/scalar/bool';
+import { Float, float } from '../../types/scalar/float';
+import { UInt, uint } from '../../types/scalar/uint';
+import { Vec2, vec2 } from '../../types/vector/vec2';
+import { Vec4, vec4 } from '../../types/vector/vec4';
 
 /**
  * 将下划线命名转换为驼峰命名
@@ -238,13 +243,32 @@ export class Builtin implements IElement
 
 type BuiltinName = 'gl_Position' | 'gl_FrontFacing' | 'gl_VertexID' | 'gl_FragCoord' | 'gl_InstanceID' | 'gl_FragColor' | 'gl_PointSize';
 
+interface BuiltinMap
+{
+    'gl_Position': Vec4,
+    'gl_FrontFacing': Bool,
+    'gl_VertexID': UInt,
+    'gl_FragCoord': Vec2,
+    'gl_InstanceID': UInt,
+    'gl_FragColor': Vec4,
+    'gl_PointSize': Float,
+}
+
+const builtinMap: BuiltinMap = {
+    'gl_Position': vec4(),
+    'gl_FrontFacing': bool(),
+    'gl_VertexID': uint(),
+    'gl_FragCoord': vec2(),
+    'gl_InstanceID': uint(),
+    'gl_FragColor': vec4(),
+    'gl_PointSize': float(),
+};
+
 /**
  * 创建内置变量引用
  * @internal 仅供 builtins.ts 内部使用
  */
-export function builtin(builtinName: BuiltinName): Builtin;
-export function builtin(builtinName: BuiltinName, varName: string): Builtin;
-export function builtin(builtinName: BuiltinName, varName?: string): Builtin
+export function builtin<T extends BuiltinName>(builtinName: T, value: BuiltinMap[T]): BuiltinMap[T];
 {
     return new Builtin(builtinName, varName);
 }

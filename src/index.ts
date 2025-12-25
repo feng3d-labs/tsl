@@ -9,6 +9,7 @@ export { var_ } from './variables/var';
 
 // shader - 着色器相关
 export { fragment } from './shader/fragment';
+export { transform } from './shader/transform';
 export { vertex } from './shader/vertex';
 export { func } from './shader/func';
 export type { TransformFeedbackOutput } from './shader/TransformFeedbackOutput';

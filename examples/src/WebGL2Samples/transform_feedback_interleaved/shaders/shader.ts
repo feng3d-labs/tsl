@@ -1,4 +1,4 @@
-import { attribute, clamp, fragment, gl_Position, mat4, precision, return_, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
+import { attribute, clamp, fragment, gl_Position, mat4, precision, return_, transform, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // =====================================================
 // Transform 着色器（用于 Transform Feedback 捕获）
@@ -14,7 +14,7 @@ const MVP = mat4(uniform('MVP'));
 const v_color = vec4(varying('v_color'));
 
 // Transform 顶点着色器
-export const transformVertexShader = vertex('main', () =>
+export const transformVertexShader = transform('main', () =>
 {
     precision('highp', 'float');
     precision('highp', 'int');

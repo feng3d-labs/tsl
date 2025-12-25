@@ -9,6 +9,7 @@ import fragmentFeedbackWgsl from './shaders/fragment-feedback.wgsl';
 import vertexFeedbackGlsl from './shaders/vertex-feedback.glsl';
 import vertexFeedbackWgsl from './shaders/vertex-feedback.wgsl';
 import vertexTransformGlsl from './shaders/vertex-transform.glsl';
+import computeTransformWgsl from './shaders/vertex-transform.wgsl';
 // 导入 TSL 着色器
 import { feedbackFragmentShader, feedbackVertexShader, transformVertexShader } from './shaders/shader';
 
@@ -23,11 +24,10 @@ function initCanvasSize(canvas: HTMLCanvasElement)
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 生成着色器代码（变量名必须与导入的相同，便于调试切换）
-    const vertexTransformGlsl = transformVertexShader.toGLSL(2);
+    const vertexTransformGlsl = transformVertexShader.toGLSL();
     // 生成 WGSL 计算着色器（用于 WebGPU Transform Feedback 模拟）
-    const computeTransformWgsl = transformVertexShader.toComputeWGSL({
+    const computeTransformWgsl = transformVertexShader.toWGSL({
         outputs: ['gl_Position', 'v_color'],
-        workgroupSize: 64,
     });
     const vertexFeedbackGlsl = feedbackVertexShader.toGLSL(2);
     const fragmentFeedbackGlsl = feedbackFragmentShader.toGLSL(2);

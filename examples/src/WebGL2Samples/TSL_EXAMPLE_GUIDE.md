@@ -348,7 +348,7 @@ const MVP = mat4(uniform('MVP'));
 const diffuse = sampler2D(uniform('diffuse'));       // 普通纹理：用 sampler2D
 const depth = depthSampler(uniform('depthMap'));   // 深度纹理：用 depthSampler
 
-// Varying（独立声明，WGSL 生成时自动创建 VaryingStruct）
+// Varying（独立声明，WGSL 生成时自动创建 VertexOutput/FragmentInput）
 const v_st = vec2(varying('v_st'));
 ```
 

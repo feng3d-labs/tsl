@@ -174,19 +174,19 @@ export class Vertex extends Func
             const hasVaryings = dependencies.varyings.size > 0;
             const needsVaryingStruct = hasPositionBuiltin || hasVaryings;
 
-            // 如果有 varying 或 position builtin，需要生成 VaryingStruct
+            // 如果有 varying 或 position builtin，需要生成 VertexOutput
             if (needsVaryingStruct)
             {
                 // 为 varying 分配 location
                 this.allocateVaryingLocations(dependencies.varyings);
 
-                // 设置 varying 的 toWGSL 方法返回 v.varyingName 格式
+                // 设置 varying 的 toWGSL 方法返回 output.varyingName 格式
                 for (const v of dependencies.varyings)
                 {
                     if (v.value)
                     {
                         const varyingName = v.name;
-                        v.value.toWGSL = () => `v.${varyingName}`;
+                        v.value.toWGSL = () => `output.${varyingName}`;
                     }
                 }
 
@@ -195,12 +195,12 @@ export class Vertex extends Func
                 {
                     if (builtin.isPosition)
                     {
-                        builtin.setStructVarPrefix('v');
+                        builtin.setStructVarPrefix('output');
                     }
                 }
 
-                // 生成 VaryingStruct 定义
-                const structDef = this.generateVaryingStructDefinition(dependencies.varyings, dependencies.builtins);
+                // 生成 VertexOutput 定义
+                const structDef = this.generateVertexOutputStructDefinition(dependencies.varyings, dependencies.builtins);
                 lines.push(structDef);
             }
 
@@ -284,7 +284,7 @@ export class Vertex extends Func
     /**
      * 生成顶点着色器函数的 WGSL 代码
      * @param dependencies 分析后的依赖
-     * @param needsVaryingStruct 是否需要 VaryingStruct
+     * @param needsVaryingStruct 是否需要 VertexOutput
      * @param hasPositionBuiltin 是否有 position builtin
      * @param convertDepth 是否转换深度
      * @returns 函数代码字符串
@@ -314,19 +314,19 @@ export class Vertex extends Func
             }
         }
 
-        // 如果需要 VaryingStruct，添加 var v: VaryingStruct; 声明和相关语句
+        // 如果需要 VertexOutput，添加 var output: VertexOutput; 声明和相关语句
         if (needsVaryingStruct)
         {
-            // 检查是否已经添加了 var v: VaryingStruct; 声明
+            // 检查是否已经添加了 var output: VertexOutput; 声明
             const hasVarDeclaration = this.statements.some((stmt) =>
                 (stmt as any)._isAutoVarDeclaration,
             );
             if (!hasVarDeclaration)
             {
-                // 在函数体开头添加 var v: VaryingStruct; 声明
+                // 在函数体开头添加 var output: VertexOutput; 声明
                 const varDeclStmt: any = {
                     toGLSL: () => '',
-                    toWGSL: () => `var v: VaryingStruct;`,
+                    toWGSL: () => `var output: VertexOutput;`,
                 };
                 varDeclStmt._isAutoVarDeclaration = true;
 
@@ -367,12 +367,12 @@ export class Vertex extends Func
                 }
             }
 
-            // 如果没有找到 return 语句，添加 return v;
+            // 如果没有找到 return 语句，添加 return output;
             if (!hasReturnStatement)
             {
                 const returnStmt: any = {
                     toGLSL: () => '',
-                    toWGSL: () => `return v;`,
+                    toWGSL: () => `return output;`,
                 };
                 returnStmt._isAutoReturn = true;
                 this.statements.push(returnStmt);
@@ -382,7 +382,7 @@ export class Vertex extends Func
         // 生成函数签名
         lines.push('@vertex');
         const paramStr = params.length > 0 ? `(\n    ${params.map(p => `${p},`).join('\n    ')}\n)` : '()';
-        const returnType = needsVaryingStruct ? 'VaryingStruct' : '@builtin(position) vec4<f32>';
+        const returnType = needsVaryingStruct ? 'VertexOutput' : '@builtin(position) vec4<f32>';
         lines.push(`fn ${this.name}${paramStr} -> ${returnType} {`);
 
         // 生成函数体语句
@@ -394,14 +394,14 @@ export class Vertex extends Func
     }
 
     /**
-     * 生成 VaryingStruct 定义
+     * 生成 VertexOutput 定义
      * @param varyings varying 集合
      * @param builtins builtin 集合
-     * @returns VaryingStruct 定义字符串
+     * @returns VertexOutput 定义字符串
      */
-    private generateVaryingStructDefinition(varyings: Set<Varying>, builtins: Set<Builtin>): string
+    private generateVertexOutputStructDefinition(varyings: Set<Varying>, builtins: Set<Builtin>): string
     {
-        const structLines: string[] = ['struct VaryingStruct {'];
+        const structLines: string[] = ['struct VertexOutput {'];
 
         // 添加 position builtin
         for (const builtin of builtins)

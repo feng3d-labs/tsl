@@ -17,13 +17,13 @@ function toCamelCase(name: string): string
 export class Builtin implements IElement
 {
     readonly builtinName: string; // WGSL 中内置的固定名称（如 "position" 或 "gl_Position"）
-    name?: string; // 变量名称（在生成 VaryingStruct 时自动设置）
+    name?: string; // 变量名称（在生成 VertexOutput 时自动设置）
     value: ShaderValue;
     dependencies: IElement[] = [];
 
     /**
-     * 结构体变量名前缀（当 builtin 被加入到自动生成的 VaryingStruct 时设置）
-     * 用于在 toWGSL() 中生成正确的字段访问路径（如 'v.position'）
+     * 结构体变量名前缀（当 builtin 被加入到自动生成的 VertexOutput 时设置）
+     * 用于在 toWGSL() 中生成正确的字段访问路径（如 'output.position'）
      */
     private _structVarPrefix?: string;
 
@@ -34,7 +34,7 @@ export class Builtin implements IElement
     }
 
     /**
-     * 设置结构体变量名前缀（由 vertex.ts 在生成 VaryingStruct 时调用）
+     * 设置结构体变量名前缀（由 vertex.ts 在生成 VertexOutput 时调用）
      * @internal
      */
     setStructVarPrefix(prefix: string): void
@@ -58,7 +58,7 @@ export class Builtin implements IElement
     }
 
     /**
-     * 检查是否已被加入到自动生成的 VaryingStruct 中
+     * 检查是否已被加入到自动生成的 VertexOutput 中
      * 用于在 assign 中判断是否需要使用 getFullWGSLVarName()
      */
     hasStructVarPrefix(): boolean

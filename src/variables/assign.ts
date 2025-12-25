@@ -73,7 +73,7 @@ export class Assign implements IStatement
     {
         const buildParam = getBuildParam();
 
-        // 检测是否是 position builtin（直接或通过 VaryingStruct 包装）
+        // 检测是否是 position builtin（直接或通过 VertexOutput 包装）
         let isPositionBuiltin = false;
         if (this.target instanceof Builtin && this.target.isPosition)
         {
@@ -81,7 +81,7 @@ export class Assign implements IStatement
         }
         else if (this.target && 'dependencies' in this.target && Array.isArray(this.target.dependencies))
         {
-            // 检查 dependencies[0] 是否是 position builtin（用于 VaryingStruct 字段）
+            // 检查 dependencies[0] 是否是 position builtin（用于 VertexOutput 字段）
             const dep = this.target.dependencies[0];
             if (dep instanceof Builtin && dep.isPosition)
             {
@@ -132,7 +132,7 @@ export class Assign implements IStatement
             }
 
             // 获取目标变量名
-            // 如果 builtin 有结构体前缀（auto-generated VaryingStruct），使用 getFullWGSLVarName()（如 'v.position'）
+            // 如果 builtin 有结构体前缀（auto-generated VertexOutput），使用 getFullWGSLVarName()（如 'output.position'）
             // 否则使用 target.toWGSL()
             const getTargetWGSL = (): string =>
             {

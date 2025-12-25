@@ -277,26 +277,26 @@ export class Fragment extends Func
             // 自动分配 binding（对于 binding 缺省的 uniform），考虑顶点着色器的 binding
             this.allocateBindings(dependencies.uniforms, dependencies.samplers, vertexShader);
 
-            // 如果有 varying，生成 VaryingStruct
+            // 如果有 varying，生成 FragmentInput
             const hasVaryings = dependencies.varyings.size > 0;
             if (hasVaryings)
             {
                 // 为 varying 分配 location（从 vertexShader 获取已分配的 location）
                 this.allocateVaryingLocations(dependencies.varyings, vertexShader);
 
-                // 更新 varying 的 value.toWGSL 方法，使其返回 v.name 格式
+                // 更新 varying 的 value.toWGSL 方法，使其返回 input.name 格式
                 // 必须在生成函数体代码之前更新，否则生成的代码会使用旧的路径
                 for (const v of dependencies.varyings)
                 {
                     if (v.value)
                     {
                         const varyingName = v.name;
-                        v.value.toWGSL = () => `v.${varyingName}`;
+                        v.value.toWGSL = () => `input.${varyingName}`;
                     }
                 }
 
-                // 生成 VaryingStruct 定义（使用 toWGSL() 以包含 @interpolate 属性）
-                const structLines: string[] = ['struct VaryingStruct {'];
+                // 生成 FragmentInput 定义（使用 toWGSL() 以包含 @interpolate 属性）
+                const structLines: string[] = ['struct FragmentInput {'];
                 for (const v of dependencies.varyings)
                 {
                     if (v.value)
@@ -400,7 +400,7 @@ export class Fragment extends Func
             // 添加结构体参数（如果有 varying）
             if (hasVaryings)
             {
-                params.push(`v: VaryingStruct`);
+                params.push(`input: FragmentInput`);
             }
 
             // 添加 builtins 参数（只添加 fragment shader 输入类型的 builtin，如 gl_FragCoord 和 gl_FrontFacing）

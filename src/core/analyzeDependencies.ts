@@ -39,7 +39,7 @@ export interface AnalyzedDependencies
 /**
  * 分析函数依赖中使用的 attributes、uniforms、precision、structs、varyings、builtins 和外部变量
  * @param dependencies 函数依赖数组
- * @returns 使用的 Attribute、Uniform、Precision、VaryingStruct、Varying、Sampler、Builtin 和外部变量集合
+ * @returns 使用的 Attribute、Uniform、Precision、VertexOutput/FragmentInput、Varying、Sampler、Builtin 和外部变量集合
  */
 export function analyzeDependencies(dependencies: any[]): AnalyzedDependencies
 {

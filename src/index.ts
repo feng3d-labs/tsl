@@ -11,6 +11,7 @@ export { var_ } from './variables/var';
 export { fragment } from './shader/fragment';
 export { vertex } from './shader/vertex';
 export { func } from './shader/func';
+export type { TransformFeedbackOutput } from './shader/TransformFeedbackOutput';
 
 // glsl - GLSL 专有
 export { precision } from './glsl/precision';

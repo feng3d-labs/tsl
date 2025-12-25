@@ -1,13 +1,16 @@
-import { Buffer, RenderPipeline, VertexAttributes, VertexData } from '@feng3d/render-api';
-import { TransformFeedback, TransformFeedbackPipeline, WebGL } from '@feng3d/webgl';
+import { Buffer, RenderPipeline, Submit, TransformFeedback, TransformFeedbackPipeline, VertexAttributes, VertexData } from '@feng3d/render-api';
+import { WebGL } from '@feng3d/webgl';
+import { WebGPU } from '@feng3d/webgpu';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
-// 直接导入预生成的着色器文件（调试时可注释掉TSL生成的代码，使用这些原始着色器）
-import fragmentTransformGlsl from './shaders/fragment-transform.glsl';
+// 直接导入预生成的着色器文件（调试时可注释掉 TSL 生成的代码，使用这些原始着色器）
 import fragmentFeedbackGlsl from './shaders/fragment-feedback.glsl';
-import vertexTransformGlsl from './shaders/vertex-transform.glsl';
+import fragmentFeedbackWgsl from './shaders/fragment-feedback.wgsl';
 import vertexFeedbackGlsl from './shaders/vertex-feedback.glsl';
-// 导入TSL着色器
-import { feedbackFragmentShader, feedbackVertexShader, transformFragmentShader, transformVertexShader } from './shaders/shader';
+import vertexFeedbackWgsl from './shaders/vertex-feedback.wgsl';
+import vertexTransformGlsl from './shaders/vertex-transform.glsl';
+// 导入 TSL 着色器
+import { feedbackFragmentShader, feedbackVertexShader, transformVertexShader } from './shaders/shader';
 
 // 辅助函数：初始化画布大小
 function initCanvasSize(canvas: HTMLCanvasElement)
@@ -19,35 +22,23 @@ function initCanvasSize(canvas: HTMLCanvasElement)
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    // 初始化WebGL（Transform Feedback 是 WebGL 特有功能）
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2', webGLContextAttributes: { antialias: false } });
-
-    // 生成着色器代码
+    // 生成着色器代码（变量名必须与导入的相同，便于调试切换）
     const vertexTransformGlsl = transformVertexShader.toGLSL(2);
-    const fragmentTransformGlsl = transformFragmentShader.toGLSL(2);
+    // 生成 WGSL 计算着色器（用于 WebGPU Transform Feedback 模拟）
+    const computeTransformWgsl = transformVertexShader.toComputeWGSL({
+        outputs: ['gl_Position', 'v_color'],
+        workgroupSize: 64,
+    });
     const vertexFeedbackGlsl = feedbackVertexShader.toGLSL(2);
     const fragmentFeedbackGlsl = feedbackFragmentShader.toGLSL(2);
-
-    // Transform Feedback 管线
-    const programTransform: TransformFeedbackPipeline = {
-        vertex: { code: vertexTransformGlsl },
-        transformFeedbackVaryings: {
-            varyings: ['gl_Position', 'v_color'],
-            bufferMode: 'INTERLEAVED_ATTRIBS',
-        },
-    };
-
-    // Feedback 渲染管线
-    const programFeedback: RenderPipeline = {
-        vertex: { code: vertexFeedbackGlsl },
-        fragment: { code: fragmentFeedbackGlsl },
-    };
+    const vertexFeedbackWgsl = feedbackVertexShader.toWGSL();
+    const fragmentFeedbackWgsl = feedbackFragmentShader.toWGSL(feedbackVertexShader);
 
     // 缓冲区配置
     const SIZE_V4C4 = 32; // vec4 (position) + vec4 (color) = 32 bytes
     const VERTEX_COUNT = 6;
+    const PROGRAM_TRANSFORM = 0;
+    const PROGRAM_FEEDBACK = 1;
 
     // 顶点数据 - 形成两个三角形（覆盖整个画布）
     const vertices = new Float32Array([
@@ -59,43 +50,38 @@ document.addEventListener('DOMContentLoaded', async () =>
         -1.0, -1.0, 0.0, 1.0,
     ]);
 
-    // 缓冲区：索引0为Transform输入，索引1为Feedback输出/渲染输入
-    const PROGRAM_TRANSFORM = 0;
-    const PROGRAM_FEEDBACK = 1;
-
+    // 缓冲区：索引 0 为 Transform 输入，索引 1 为 Feedback 输出/渲染输入
     const buffers: VertexData[] = [
-        // Transform 缓冲区（输入）
         vertices,
-        // Feedback 空缓冲区（输出，用于接收Transform Feedback的结果）
         new Float32Array(SIZE_V4C4 * VERTEX_COUNT / Float32Array.BYTES_PER_ELEMENT),
     ];
 
     // 顶点属性配置
     const vertexArrays: { vertices?: VertexAttributes }[] = [
-        // Transform 阶段的顶点属性
         {
             vertices: {
                 position: { data: buffers[PROGRAM_TRANSFORM], format: 'float32x4' },
             },
         },
-        // Feedback 阶段的顶点属性（从 Transform Feedback 输出缓冲区读取）
         {
             vertices: {
-                position: {
-                    data: buffers[PROGRAM_FEEDBACK],
-                    format: 'float32x4',
-                    arrayStride: SIZE_V4C4,
-                    offset: 0,
-                },
-                color: {
-                    data: buffers[PROGRAM_FEEDBACK],
-                    format: 'float32x4',
-                    arrayStride: SIZE_V4C4,
-                    offset: SIZE_V4C4 / 2, // 16 bytes 偏移，跳过 position
-                },
+                position: { data: buffers[PROGRAM_FEEDBACK], format: 'float32x4', arrayStride: SIZE_V4C4, offset: 0 },
+                color: { data: buffers[PROGRAM_FEEDBACK], format: 'float32x4', arrayStride: SIZE_V4C4, offset: SIZE_V4C4 / 2 },
             },
         },
     ];
+
+    // Transform Feedback 管线（仅 WebGL 支持）
+    const programTransform: TransformFeedbackPipeline = {
+        vertex: { glsl: vertexTransformGlsl, wgsl: computeTransformWgsl },
+        transformFeedbackVaryings: { varyings: ['gl_Position', 'v_color'], bufferMode: 'INTERLEAVED_ATTRIBS' },
+    };
+
+    // Feedback 渲染管线（同时支持 WebGL 和 WebGPU）
+    const programFeedback: RenderPipeline = {
+        vertex: { glsl: vertexFeedbackGlsl, wgsl: vertexFeedbackWgsl },
+        fragment: { glsl: fragmentFeedbackGlsl, wgsl: fragmentFeedbackWgsl },
+    };
 
     // Transform Feedback 配置
     const transformFeedback: TransformFeedback = {
@@ -104,7 +90,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         ],
     };
 
-    // MVP 矩阵（缩放0.5）
+    // MVP 矩阵（缩放 0.5）
     const matrix = new Float32Array([
         0.5, 0.0, 0.0, 0.0,
         0.0, 0.5, 0.0, 0.0,
@@ -112,11 +98,13 @@ document.addEventListener('DOMContentLoaded', async () =>
         0.0, 0.0, 0.0, 1.0,
     ]);
 
-    // 提交渲染命令
-    webgl.submit({
+    // 渲染提交（WebGL 和 WebGPU 共用）
+    const submit: Submit = {
         commandEncoders: [{
             passEncoders: [
-                // 第一阶段：Transform Feedback Pass（禁用光栅化）
+                // 第一阶段：Transform Feedback Pass
+                // WebGL: 使用 Transform Feedback
+                // WebGPU: 自动转换为 Compute Pass
                 {
                     __type__: 'TransformFeedbackPass',
                     transformFeedbackObjects: [
@@ -131,12 +119,7 @@ document.addEventListener('DOMContentLoaded', async () =>
                 },
                 // 第二阶段：使用捕获的属性进行渲染
                 {
-                    descriptor: {
-                        colorAttachments: [{
-                            clearValue: [0.0, 0.0, 0.0, 1.0],
-                            loadOp: 'clear',
-                        }],
-                    },
+                    descriptor: { colorAttachments: [{ clearValue: [0.0, 0.0, 0.0, 1.0], loadOp: 'clear' }] },
                     renderPassObjects: [
                         {
                             pipeline: programFeedback,
@@ -147,7 +130,24 @@ document.addEventListener('DOMContentLoaded', async () =>
                 },
             ],
         }],
-    });
+    };
+
+    // 初始化 WebGL
+    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
+    initCanvasSize(webglCanvas);
+    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2', webGLContextAttributes: { antialias: false } });
+
+    // 初始化 WebGPU
+    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
+    initCanvasSize(webgpuCanvas);
+    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
+
+    // 执行渲染
+    webgl.submit(submit);
+    webgpu.submit(submit);
+
+    // 第一帧后进行比较
+    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
 
     // 清理 WebGL 资源
     webgl.deleteTransformFeedback(transformFeedback);
@@ -156,4 +156,3 @@ document.addEventListener('DOMContentLoaded', async () =>
     webgl.deleteProgram(programTransform);
     webgl.deleteProgram(programFeedback);
 });
-

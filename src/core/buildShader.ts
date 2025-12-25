@@ -6,7 +6,7 @@ export interface BuildShaderParam
     /** 目标语言 */
     language: 'glsl' | 'wgsl';
     /** 着色器阶段 */
-    stage: 'vertex' | 'fragment';
+    stage: 'vertex' | 'fragment' | 'compute';
     /** 版本（GLSL 使用） */
     version: 1 | 2;
     /**

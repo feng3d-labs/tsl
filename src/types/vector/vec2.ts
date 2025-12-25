@@ -101,7 +101,8 @@ export class Vec2 implements ShaderValue
                 const vec = args[0] as Vec3 | Vec4;
 
                 this.toGLSL = () => `vec2(${vec.toGLSL()})`;
-                this.toWGSL = () => `vec2<f32>(${vec.toWGSL()})`;
+                // WGSL 不支持直接用 vec4/vec3 构造 vec2，需要使用 .xy 提取分量
+                this.toWGSL = () => `${wrapForSwizzle(vec.toWGSL())}.xy`;
                 this.dependencies = [vec];
             }
             else

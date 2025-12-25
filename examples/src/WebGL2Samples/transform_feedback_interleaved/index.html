@@ -192,30 +192,34 @@
             </p>
         </header>
 
-        <div class="canvas-container">
+        <div class="canvas-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="canvas-wrapper">
                 <canvas id="webgl"></canvas>
                 <div class="canvas-label">WebGL</div>
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="webgpu"></canvas>
+                <div class="canvas-label">WebGPU</div>
             </div>
         </div>
 
         <div class="info-section">
             <div class="info-panel">
-                <h2 class="info-title">平台支持</h2>
+                <h2 class="info-title">比较结果</h2>
                 <div id="comparison-result" style="font-size: 14px;">
-                    <div style="margin-bottom: 8px; font-weight: bold; color: #4a90e2;">仅 WebGL 支持</div>
-                    <div>Transform Feedback 是 WebGL 特有功能，WebGPU 暂不支持此操作</div>
+                    <div style="margin-bottom: 8px; font-weight: bold;">比较中...</div>
+                    <div>等待渲染完成...</div>
                 </div>
             </div>
             <div class="info-panel">
                 <h2 class="info-title">关于示例</h2>
                 <ul class="info-list">
                     <li>使用 TSL (TypeScript Shader Language) 编写着色器</li>
-                    <li>仅支持 WebGL 渲染（Transform Feedback 特性）</li>
-                    <li>展示 Transform Feedback 交错模式（INTERLEAVED_ATTRIBS）</li>
-                    <li>第一阶段：禁用光栅化，捕获 gl_Position 和 v_color</li>
-                    <li>第二阶段：使用捕获的数据进行渲染</li>
-                    <li>基于 feng3d 框架实现</li>
+                    <li>同时支持 WebGL 和 WebGPU 渲染</li>
+                    <li>自动比较 WebGL 和 WebGPU 渲染结果</li>
+                    <li>WebGL：使用 Transform Feedback 交错模式（INTERLEAVED_ATTRIBS）</li>
+                    <li>WebGPU：使用 Compute Shader 模拟 Transform Feedback</li>
+                    <li>同一份 TSL 着色器代码生成不同平台的着色器</li>
                 </ul>
             </div>
         </div>

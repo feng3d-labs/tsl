@@ -6,15 +6,15 @@ const normal = attribute('normal', vec3()); // attribute vec3 normal;
 const uv = attribute('uv', vec2()); // attribute vec2 uv;
 
 // Vertex shader 的 uniform
-const projection = mat4(uniform('projection')); // uniform mat4 projection;
-const view = mat4(uniform('view')); // uniform mat4 view;
+const projection = uniform('projection', mat4()); // uniform mat4 projection;
+const view = uniform('view', mat4()); // uniform mat4 view;
 
 // Fragment shader 的 uniform
 const texture = sampler2D(uniform('texture')); // uniform sampler2D texture;
 
 // Varying 变量
-const vUv = vec2(varying('vUv')); // varying vec2 vUv;
-const vNormal = vec3(varying('vNormal')); // varying vec3 vNormal;
+const vUv = varying('vUv', vec2()); // varying vec2 vUv;
+const vNormal = varying('vNormal', vec3()); // varying vec3 vNormal;
 
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>

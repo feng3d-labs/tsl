@@ -34,7 +34,7 @@ export const drawBufferFragmentShader = fragment('main', () =>
 const drawPosition = attribute('position', vec2());
 const drawTexcoord = attribute('textureCoordinates', vec2());
 
-const v_st = vec2(varying("v_st"));
+const v_st = varying("v_st", vec2());
 
 export const drawVertexShader = vertex('main', () =>
 {

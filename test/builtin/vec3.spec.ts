@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { float } from '../../src/types/scalar/float';
 import { vec3, Vec3 } from '../../src/types/vector/vec3';
-import { Uniform } from '../../src/variables/uniform';
+import { uniform } from '../../src/variables/uniform';
 
 describe('vec3', () =>
 {
@@ -14,35 +14,19 @@ describe('vec3', () =>
         });
     });
 
-    describe('vec3(uniform: Uniform)', () =>
+    describe('uniform(name, vec3())', () =>
     {
         it('应该返回 Vec3 实例', () =>
         {
-            const uniform = new Uniform('uPosition', 0, 0);
-            const result = vec3(uniform);
+            const result = uniform('uPosition', vec3(), 0, 0);
             expect(result).toBeInstanceOf(Vec3);
-        });
-
-        it('应该将 Vec3 实例保存到 uniform.value', () =>
-        {
-            const uniform = new Uniform('uPosition', 0, 0);
-            const vec3Instance = vec3(uniform);
-            expect(uniform.value).toBe(vec3Instance);
         });
 
         it('应该正确设置 toGLSL 和 toWGSL 方法', () =>
         {
-            const uniform = new Uniform('uPosition', 0, 0);
-            const result = vec3(uniform);
+            const result = uniform('uPosition', vec3(), 0, 0);
             expect(result.toGLSL()).toBe('uPosition');
             expect(result.toWGSL()).toBe('uPosition');
-        });
-
-        it('应该设置正确的 dependencies', () =>
-        {
-            const uniform = new Uniform('uPosition', 0, 0);
-            const result = vec3(uniform);
-            expect(result.dependencies).toEqual([uniform]);
         });
     });
 

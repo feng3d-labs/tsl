@@ -18,7 +18,7 @@ const Material = struct('Material', {
 const material = Material(uniform('material'));
 
 // varying 变量 - flat 插值（与原示例一致使用 instance 命名）
-const instance = int(varying('instance', { interpolation: 'flat' }));
+const instance = varying('instance', int(), { interpolation: 'flat' });
 
 // 顶点着色器
 export const vertexShader = vertex('main', () =>

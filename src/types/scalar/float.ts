@@ -1,8 +1,5 @@
-import { Attribute } from '../../variables/attribute';
 import { Builtin } from '../../glsl/builtin/builtin';
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Uniform } from '../../variables/uniform';
-import { Varying } from '../../variables/varying';
 import { Assign } from '../../variables/assign';
 import { formatOperand } from '../../core/expressionUtils';
 import { formatNumber } from '../../core/formatNumber';
@@ -26,44 +23,17 @@ export class Float implements ShaderValue
     dependencies: IElement[];
 
     constructor();
-    constructor(uniform: Uniform);
-    constructor(attribute: Attribute);
-    constructor(varying: Varying);
     constructor(value: number);
     constructor(value: UInt);
     constructor(builtin: Builtin);
-    constructor(...args: (number | Uniform | Attribute | Varying | UInt | Builtin)[])
+    constructor(...args: (number | UInt | Builtin)[])
     {
         if (args.length === 0)
         {
             // 无参数构造函数，用于 var_ 函数创建新实例
             return;
         }
-        if (args.length === 1 && args[0] instanceof Uniform)
-        {
-            const uniform = args[0] as Uniform;
-            this.dependencies = [uniform];
-            this.toGLSL = () => uniform.name;
-            this.toWGSL = () => uniform.name;
-            uniform.value = this;
-        }
-        else if (args.length === 1 && args[0] instanceof Attribute)
-        {
-            const attribute = args[0] as Attribute;
-            this.dependencies = [attribute];
-            this.toGLSL = () => attribute.name;
-            this.toWGSL = () => attribute.name;
-            attribute.value = this;
-        }
-        else if (args.length === 1 && args[0] instanceof Varying)
-        {
-            const varying = args[0] as Varying;
-            this.dependencies = [varying];
-            this.toGLSL = () => varying.name;
-            this.toWGSL = () => varying.name;
-            varying.value = this;
-        }
-        else if (args.length === 1 && args[0] instanceof UInt)
+        if (args.length === 1 && args[0] instanceof UInt)
         {
             const value = args[0] as UInt;
             this.toGLSL = () => `float(${value.toGLSL()})`;
@@ -753,12 +723,8 @@ export class Float implements ShaderValue
 
 /**
  * float 构造函数
- * 如果传入单个 Uniform、Attribute 或 Varying 实例，则将类型信息保存到对应的 value 属性
  */
 export function float(): Float;
-export function float(uniform: Uniform): Float;
-export function float(attribute: Attribute): Float;
-export function float(varying: Varying): Float;
 export function float(value: number): Float;
 export function float(value: UInt): Float;
 export function float(builtin: Builtin): Float;

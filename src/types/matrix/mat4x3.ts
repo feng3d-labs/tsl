@@ -1,11 +1,10 @@
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Uniform } from '../../variables/uniform';
 import { wrapForSwizzle } from '../../core/expressionUtils';
 import { Vec3 } from '../vector/vec3';
 import { Vec4 } from '../vector/vec4';
 
 /**
- * Mat4x3 类，用于表示 mat4x3（4列3行）非方阵 uniform 变量
+ * Mat4x3 类，用于表示 mat4x3（4列3行）非方阵字面量值
  *
  * mat4x3 是 4 列 3 行的矩阵：
  * - GLSL: mat4x3（列主序，4 个 vec3 列向量）
@@ -26,33 +25,8 @@ export class Mat4x3 implements ShaderValue
     toGLSL: () => string;
     toWGSL: () => string;
 
-    constructor();
-    constructor(uniform: Uniform);
-    constructor(...args: (Uniform)[])
+    constructor()
     {
-        if (args.length === 0) return;
-        if (args.length === 1)
-        {
-            // 处理 uniform
-            if (args[0] instanceof Uniform)
-            {
-                const uniform = args[0] as Uniform;
-
-                this.toGLSL = () => uniform.name;
-                this.toWGSL = () => uniform.name;
-                this.dependencies = [uniform];
-
-                uniform.value = this;
-            }
-            else
-            {
-                throw new Error('Mat4x3 constructor: invalid argument');
-            }
-        }
-        else
-        {
-            throw new Error('Mat4x3 constructor: invalid arguments');
-        }
     }
 
     /**
@@ -87,7 +61,7 @@ export class Mat4x3 implements ShaderValue
 /**
  * mat4x3 构造函数
  */
-export function mat4x3(uniform: Uniform): Mat4x3;
+export function mat4x3(): Mat4x3;
 export function mat4x3(...args: any[]): Mat4x3
 {
     return new (Mat4x3 as any)(...args);

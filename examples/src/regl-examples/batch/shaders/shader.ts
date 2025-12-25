@@ -4,11 +4,11 @@ import { attribute, cos, float, fragment, precision, return_, sin, uniform, vec2
 const position = attribute('position', vec2());
 
 // Vertex shader 的 uniforms
-const angle = float(uniform('angle'));
-const offset = vec2(uniform('offset'));
+const angle = uniform('angle', float());
+const offset = uniform('offset', vec2());
 
 // Fragment shader 的 uniform
-const color = vec4(uniform('color'));
+const color = uniform('color', vec4());
 
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>

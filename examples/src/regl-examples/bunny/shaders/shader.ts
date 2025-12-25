@@ -4,9 +4,9 @@ import { attribute, fragment, gl_Position, mat4, return_, uniform, vec3, vec4, v
 const position = attribute('position', vec3());
 
 // Vertex shader 的 uniforms
-const model = mat4(uniform('model'));
-const view = mat4(uniform('view'));
-const projection = mat4(uniform('projection'));
+const model = uniform('model', mat4());
+const view = uniform('view', mat4());
+const projection = uniform('projection', mat4());
 
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>

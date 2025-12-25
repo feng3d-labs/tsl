@@ -5,10 +5,10 @@ const position = attribute('position', vec2(), 0);
 const texcoord = attribute('texcoord', vec2(), 4);
 
 // Uniform 变量
-const MVP = mat4(uniform('MVP'));
+const MVP = uniform('MVP', mat4());
 
 // Varying 变量
-const v_st = vec2(varying('v_st'));
+const v_st = varying('v_st', vec2());
 
 /**
  * 顶点着色器

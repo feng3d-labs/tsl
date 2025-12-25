@@ -1,10 +1,8 @@
-import { Attribute } from '../../variables/attribute';
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Uniform } from '../../variables/uniform';
 import { Float } from '../scalar/float';
 
 /**
- * Uvec2 类，用于表示 uvec2 字面量值或 uniform/attribute 变量
+ * Uvec2 类，用于表示 uvec2 字面量值
  * @internal 库外部不应直接使用 `new Uvec2()`，应使用 `uvec2()` 函数
  */
 export class Uvec2 implements ShaderValue
@@ -16,38 +14,13 @@ export class Uvec2 implements ShaderValue
     toGLSL: () => string;
     toWGSL: () => string;
 
-    constructor(uniform: Uniform);
-    constructor(attribute: Attribute);
+    constructor();
     constructor(x: number, y: number);
-    constructor(...args: (number | Uniform | Attribute)[])
+    constructor(...args: number[])
     {
-        if (args.length === 1)
+        if (args.length === 0)
         {
-            // 处理 uniform 或 attribute
-            if (args[0] instanceof Uniform)
-            {
-                const uniform = args[0] as Uniform;
-
-                this.toGLSL = () => uniform.name;
-                this.toWGSL = () => uniform.name;
-                this.dependencies = [uniform];
-
-                uniform.value = this;
-            }
-            else if (args[0] instanceof Attribute)
-            {
-                const attribute = args[0] as Attribute;
-
-                this.toGLSL = () => attribute.name;
-                this.toWGSL = () => attribute.name;
-                this.dependencies = [attribute];
-
-                attribute.value = this;
-            }
-            else
-            {
-                throw new Error('UVec2 constructor: invalid argument');
-            }
+            return;
         }
         else if (args.length === 2 && typeof args[0] === 'number' && typeof args[1] === 'number')
         {
@@ -91,10 +64,12 @@ export class Uvec2 implements ShaderValue
 }
 
 /**
+ * uvec2 构造函数（无参数）
+ */
+export function uvec2(): Uvec2;
+/**
  * uvec2 构造函数
  */
-export function uvec2(uniform: Uniform): Uvec2;
-export function uvec2(attribute: Attribute): Uvec2;
 export function uvec2(x: number, y: number): Uvec2;
 export function uvec2(...args: any[]): Uvec2
 {

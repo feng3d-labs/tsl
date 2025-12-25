@@ -127,7 +127,7 @@ describe('Struct', () =>
             });
             const material = Material(uniform('material'));
 
-            const instance = int(varying('instance', { interpolation: 'flat' }));
+            const instance = varying('instance', int(), { interpolation: 'flat' });
 
             const fragmentShader = fragment('main', () =>
             {
@@ -172,7 +172,7 @@ describe('Struct', () =>
             });
             const material = Material(uniform('material'));
 
-            const instance = int(varying('instance', { interpolation: 'flat' }));
+            const instance = varying('instance', int(), { interpolation: 'flat' });
 
             const fragmentShader = fragment('main', () =>
             {

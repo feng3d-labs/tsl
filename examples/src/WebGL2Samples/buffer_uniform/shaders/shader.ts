@@ -20,9 +20,9 @@ const PerDraw = struct('PerDraw', {
 const perDraw = PerDraw(uniform('perDraw'));
 
 // Varying 变量
-const v_normal = vec3(varying('v_normal'));
-const v_view = vec3(varying('v_view'));
-const v_color = vec4(varying('v_color'));
+const v_normal = varying('v_normal', vec3());
+const v_view = varying('v_view', vec3());
+const v_color = varying('v_color', vec4());
 
 // 顶点着色器
 export const vertexShader = vertex('main', () =>

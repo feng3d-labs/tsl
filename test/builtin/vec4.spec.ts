@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { float } from '../../src/types/scalar/float';
 import { vec2 } from '../../src/types/vector/vec2';
 import { vec4, Vec4 } from '../../src/types/vector/vec4';
-import { Uniform } from '../../src/variables/uniform';
+import { uniform } from '../../src/variables/uniform';
 
 describe('vec4', () =>
 {
@@ -30,8 +30,7 @@ describe('vec4', () =>
 
         it('应该从 Vec2 uniform 和两个数字创建 Vec4', () =>
         {
-            const uniform = new Uniform('uPosition', 0, 0);
-            const xy = vec2(uniform);
+            const xy = uniform('uPosition', vec2(), 0, 0);
             const result = vec4(xy, 0.0, 1.0);
             expect(result).toBeInstanceOf(Vec4);
             expect(result.toGLSL()).toBe('vec4(uPosition, 0.0, 1.0)');

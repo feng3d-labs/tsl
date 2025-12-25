@@ -1,4 +1,13 @@
 import { IElement, ShaderValue } from '../core/IElement';
+import { Float } from '../types/scalar/float';
+import { Int } from '../types/scalar/int';
+import { Vec2 } from '../types/vector/vec2';
+import { Vec3 } from '../types/vector/vec3';
+import { Vec4 } from '../types/vector/vec4';
+import { IVec2 } from '../types/vector/ivec2';
+import { Mat4 } from '../types/matrix/mat4';
+import { Mat4x3 } from '../types/matrix/mat4x3';
+import { Mat2 } from '../types/matrix/mat2';
 
 /**
  * 需要对齐的矩阵类型（在 WebGPU uniform buffer 中每列 vec3 需要按 vec4 对齐）
@@ -81,7 +90,7 @@ export class Uniform implements IElement
             console.warn(
                 `[TSL] ${wgslType} uniform "${this.name}" 在 WebGPU uniform buffer 中需要对齐，建议避免使用。\n`
                 + `WebGPU uniform buffer 要求每列按 vec4 对齐（16 字节），会造成额外的内存开销和数据转换。\n`
-                + `建议使用 mat4 代替，或将数据拆分为多个 vec3/vec4 uniform。`
+                + `建议使用 mat4 代替，或将数据拆分为多个 vec3/vec4 uniform。`,
             );
         }
 
@@ -98,14 +107,56 @@ export class Uniform implements IElement
 }
 
 /**
- * 定义 uniform 变量
- * 类型通过 vec4()、vec3()、vec2() 等函数自动推断
+ * 支持的 uniform 类型
  */
+type UniformType = Float | Int | Vec2 | Vec3 | Vec4 | IVec2 | Mat4 | Mat4x3 | Mat2;
+
+/**
+ * 定义 uniform 变量
+ *
+ * 使用方式：
+ * - `const color = uniform('color', vec4())` - 定义 vec4 类型的 uniform
+ * - `const mvp = uniform('mvp', mat4())` - 定义 mat4 类型的 uniform
+ * - `const color = uniform('color', vec4(), 0, 0)` - 指定 group 和 binding
+ *
+ * @internal 内部使用：`uniform('name')` 返回 Uniform 实例，用于 struct 等内部模块
+ *
+ * @param name uniform 名称
+ * @param value 类型模板（用于推断类型）
+ * @param group 可选的 group 值（默认 0）
+ * @param binding 可选的 binding 值
+ * @returns 与 value 相同类型的实例，关联到创建的 Uniform
+ */
+export function uniform<T extends UniformType>(name: string, value: T): T;
+export function uniform<T extends UniformType>(name: string, value: T, group: number): T;
+export function uniform<T extends UniformType>(name: string, value: T, group: number, binding: number): T;
+/** @internal 用于 struct 内部使用 */
 export function uniform(name: string): Uniform;
-export function uniform(name: string, group: number): Uniform;
-export function uniform(name: string, group: number, binding: number): Uniform;
-export function uniform(name: string, group?: number, binding?: number): Uniform
+export function uniform<T extends UniformType>(
+    name: string,
+    value?: T,
+    group?: number,
+    binding?: number,
+): T | Uniform
 {
-    return new Uniform(name, group, binding);
+    // 内部使用：仅传入 name 时返回 Uniform 实例
+    if (value === undefined)
+    {
+        return new Uniform(name, group, binding);
+    }
+
+    // 创建 Uniform 实例
+    const uni = new Uniform(name, group, binding);
+
+    // 创建与 value 相同类型的新实例
+    const result = new (value.constructor as new () => T)();
+
+    // 设置双向引用
+    result.toGLSL = () => name;
+    result.toWGSL = () => name;
+    result.dependencies = [uni];
+    uni.value = result;
+
+    return result;
 }
 

@@ -4,22 +4,22 @@ import { acos, atan, attribute, clamp, cos, dot, exp, float, fragment, gl_Positi
 const position = attribute('position', vec3());
 
 // Vertex shader 的 uniforms
-const modelMatrix = mat4(uniform('modelMatrix'));
-const modelViewMatrix = mat4(uniform('modelViewMatrix'));
-const projectionMatrix = mat4(uniform('projectionMatrix'));
-const sunPosition = vec3(uniform('sunPosition'));
-const rayleigh = float(uniform('rayleigh'));
-const turbidity = float(uniform('turbidity'));
-const mieCoefficient = float(uniform('mieCoefficient'));
-const up = vec3(uniform('up'));
+const modelMatrix = uniform('modelMatrix', mat4());
+const modelViewMatrix = uniform('modelViewMatrix', mat4());
+const projectionMatrix = uniform('projectionMatrix', mat4());
+const sunPosition = uniform('sunPosition', vec3());
+const rayleigh = uniform('rayleigh', float());
+const turbidity = uniform('turbidity', float());
+const mieCoefficient = uniform('mieCoefficient', float());
+const up = uniform('up', vec3());
 
 // Varying 变量
-const vWorldPosition = vec3(varying('vWorldPosition'));
-const vSunDirection = vec3(varying('vSunDirection'));
-const vSunfade = float(varying('vSunfade'));
-const vBetaR = vec3(varying('vBetaR'));
-const vBetaM = vec3(varying('vBetaM'));
-const vSunE = float(varying('vSunE'));
+const vWorldPosition = varying('vWorldPosition', vec3());
+const vSunDirection = varying('vSunDirection', vec3());
+const vSunfade = varying('vSunfade', float());
+const vBetaR = varying('vBetaR', vec3());
+const vBetaM = varying('vBetaM', vec3());
+const vSunE = varying('vSunE', float());
 
 // Vertex shader constants
 const totalRayleigh = var_('totalRayleigh', vec3(5.804542996261093E-6, 1.3562911419845635E-5, 3.0265902468824876E-5));
@@ -53,9 +53,9 @@ export const vertexShader = vertex('main', () =>
 });
 
 // Fragment shader 的 uniforms
-const cameraPosition = vec3(uniform('cameraPosition'));
-const mieDirectionalG = float(uniform('mieDirectionalG'));
-const upFrag = vec3(uniform('up'));
+const cameraPosition = uniform('cameraPosition', vec3());
+const mieDirectionalG = uniform('mieDirectionalG', float());
+const upFrag = uniform('up', vec3());
 
 // Fragment shader constants
 const pi = var_('pi', 3.141592653589793);

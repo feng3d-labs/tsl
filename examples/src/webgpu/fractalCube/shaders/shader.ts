@@ -5,12 +5,12 @@ const aVertexPosition = attribute('aVertexPosition', vec3());
 const aTextureCoord = attribute('aTextureCoord', vec2());
 
 // Vertex shader 的 uniforms
-const uModelViewMatrix = mat4(uniform('uModelViewMatrix', 0, 0));
-const uProjectionMatrix = mat4(uniform('uProjectionMatrix', 0, 1));
+const uModelViewMatrix = uniform('uModelViewMatrix', mat4(), 0, 0);
+const uProjectionMatrix = uniform('uProjectionMatrix', mat4(), 0, 1);
 
 // Varying 变量
-const vTextureCoord = vec2(varying('vTextureCoord'));
-const vFragPosition = vec4(varying('vFragPosition'));
+const vTextureCoord = varying('vTextureCoord', vec2());
+const vFragPosition = varying('vFragPosition', vec4());
 
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>

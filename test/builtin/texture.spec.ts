@@ -76,7 +76,7 @@ describe('texture', () =>
         {
             const diffuse = sampler2DArray(uniform('diffuse'));
             const coord = vec2(0.5, 0.5);
-            const layer = int(uniform('layer'));
+            const layer = uniform('layer', int());
 
             const frag = fragment('main', () =>
             {

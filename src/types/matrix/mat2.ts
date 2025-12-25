@@ -1,12 +1,10 @@
-import { Attribute } from '../../variables/attribute';
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Uniform } from '../../variables/uniform';
 import { formatNumber } from '../../core/formatNumber';
 import { Vec2 } from '../vector/vec2';
 import { Float } from '../scalar/float';
 
 /**
- * Mat2 类，用于表示 mat2 字面量值或 uniform/attribute 变量
+ * Mat2 类，用于表示 mat2 字面量值
  * @internal 库外部不应直接使用 `new Mat2()`，应使用 `mat2()` 函数
  */
 export class Mat2 implements ShaderValue
@@ -19,53 +17,22 @@ export class Mat2 implements ShaderValue
     toWGSL: () => string;
 
     constructor();
-    constructor(uniform: Uniform);
-    constructor(attribute: Attribute);
     constructor(diagonal: number);
     constructor(col0: Vec2, col1: Vec2);
     constructor(m00: Float | number, m01: Float | number, m10: Float | number, m11: Float | number);
-    constructor(...args: (Uniform | Attribute | number | Float | Vec2)[])
+    constructor(...args: (number | Float | Vec2)[])
     {
         if (args.length === 0) return;
-        if (args.length === 1)
+        if (args.length === 1 && typeof args[0] === 'number')
         {
             // 处理数字字面量：mat2(1.0) 创建对角矩阵
-            if (typeof args[0] === 'number')
-            {
-                const value = args[0];
-                const glslValue = formatNumber(value);
-                // GLSL: mat2(1.0) 创建对角矩阵
-                this.toGLSL = () => `mat2(${glslValue})`;
-                // WGSL: 需要显式构造对角矩阵
-                this.toWGSL = () => `mat2x2<f32>(vec2<f32>(${glslValue}, 0.0), vec2<f32>(0.0, ${glslValue}))`;
-                this.dependencies = [];
-            }
-            // 处理 uniform
-            else if (args[0] instanceof Uniform)
-            {
-                const uniform = args[0] as Uniform;
-
-                this.toGLSL = () => uniform.name;
-                this.toWGSL = () => uniform.name;
-                this.dependencies = [uniform];
-
-                uniform.value = this;
-            }
-            // 处理 attribute
-            else if (args[0] instanceof Attribute)
-            {
-                const attribute = args[0] as Attribute;
-
-                this.toGLSL = () => attribute.name;
-                this.toWGSL = () => attribute.name;
-                this.dependencies = [attribute];
-
-                attribute.value = this;
-            }
-            else
-            {
-                throw new Error('Mat2 constructor: invalid argument');
-            }
+            const value = args[0];
+            const glslValue = formatNumber(value);
+            // GLSL: mat2(1.0) 创建对角矩阵
+            this.toGLSL = () => `mat2(${glslValue})`;
+            // WGSL: 需要显式构造对角矩阵
+            this.toWGSL = () => `mat2x2<f32>(vec2<f32>(${glslValue}, 0.0), vec2<f32>(0.0, ${glslValue}))`;
+            this.dependencies = [];
         }
         else if (args.length === 2)
         {
@@ -161,8 +128,7 @@ export class Mat2 implements ShaderValue
  * const rot = mat2(vec2(cos_r, sin_r), vec2(sin_r.negate(), cos_r));
  * ```
  */
-export function mat2(uniform: Uniform): Mat2;
-export function mat2(attribute: Attribute): Mat2;
+export function mat2(): Mat2;
 export function mat2(diagonal: number): Mat2;
 export function mat2(col0: Vec2, col1: Vec2): Mat2;
 export function mat2(m00: Float | number, m01: Float | number, m10: Float | number, m11: Float | number): Mat2;

@@ -4,8 +4,8 @@
  * 演示 flat 和 smooth 插值限定符的区别
  *
  * TSL 用法：
- * - smooth varying（默认）: `vec3(varying('v_normal'))`
- * - flat varying: `vec3(varying('v_normal', { interpolation: 'flat' }))`
+ * - smooth varying（默认）: `varying('v_normal', vec3())`
+ * - flat varying: `varying('v_normal', vec3(), { interpolation: 'flat' })`
  */
 
 import {
@@ -17,11 +17,11 @@ import {
 
 const position = attribute('position', vec3(), 0);
 const normal = attribute('normal', vec3(), 1);
-const mvp = mat4(uniform('mvp'));
-const mvNormal = mat4(uniform('mvNormal'));
+const mvp = uniform('mvp', mat4());
+const mvNormal = uniform('mvNormal', mat4());
 
 // smooth varying（默认使用透视校正插值）
-const v_normal_smooth = vec3(varying('v_normal'));
+const v_normal_smooth = varying('v_normal', vec3());
 
 export const smoothVertexShader = vertex('main', () =>
 {
@@ -43,7 +43,7 @@ export const smoothFragmentShader = fragment('main', () =>
 // ==================== Flat 着色器（不插值）====================
 
 // flat varying（不进行插值，使用 provoking 顶点的值）
-const v_normal_flat = vec3(varying('v_normal', { interpolation: 'flat' }));
+const v_normal_flat = varying('v_normal', vec3(), { interpolation: 'flat' });
 
 export const flatVertexShader = vertex('main', () =>
 {

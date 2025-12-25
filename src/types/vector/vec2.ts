@@ -1,6 +1,4 @@
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Uniform } from '../../variables/uniform';
-import { Varying } from '../../variables/varying';
 import { Assign } from '../../variables/assign';
 import { Builtin } from '../../glsl/builtin/builtin';
 import { formatOperand, wrapForSwizzle } from '../../core/expressionUtils';
@@ -11,7 +9,7 @@ import type { Vec3 } from './vec3';
 import type { Vec4 } from './vec4';
 
 /**
- * Vec2 类，用于表示 vec2 字面量值或 uniform/attribute 变量
+ * Vec2 类，用于表示 vec2 字面量值
  * @internal 库外部不应直接使用 `new Vec2()`，应使用 `vec2()` 函数
  */
 export class Vec2 implements ShaderValue
@@ -27,14 +25,12 @@ export class Vec2 implements ShaderValue
     private _builtin?: Builtin;
 
     constructor();
-    constructor(uniform: Uniform);
-    constructor(varying: Varying);
     constructor(builtin: Builtin);
     constructor(ivec2: IVec2);
     constructor(vec3: Vec3);
     constructor(vec4: Vec4);
     constructor(x: number | Float, y: number | Float);
-    constructor(...args: (number | Uniform | Varying | Float | Builtin | IVec2 | Vec3 | Vec4)[])
+    constructor(...args: (number | Float | Builtin | IVec2 | Vec3 | Vec4)[])
     {
         if (args.length === 0)
         {
@@ -43,28 +39,7 @@ export class Vec2 implements ShaderValue
         }
         if (args.length === 1)
         {
-            // 处理 uniform、attribute 或 varying
-            if (args[0] instanceof Uniform)
-            {
-                const uniform = args[0] as Uniform;
-
-                this.toGLSL = () => uniform.name;
-                this.toWGSL = () => uniform.name;
-                this.dependencies = [uniform];
-
-                uniform.value = this;
-            }
-            else if (args[0] instanceof Varying)
-            {
-                const varying = args[0] as Varying;
-
-                this.toGLSL = () => varying.name;
-                this.toWGSL = () => varying.name;
-                this.dependencies = [varying];
-
-                varying.value = this;
-            }
-            else if (args[0] instanceof Builtin)
+            if (args[0] instanceof Builtin)
             {
                 const builtin = args[0] as Builtin;
 
@@ -330,16 +305,6 @@ export class Vec2 implements ShaderValue
  * vec2 构造函数（无参数）
  */
 export function vec2(): Vec2;
-/**
- * vec2 构造函数
- * @param uniform Uniform 变量
- */
-export function vec2(uniform: Uniform): Vec2;
-/**
- * vec2 构造函数
- * @param varying Varying 变量
- */
-export function vec2(varying: Varying): Vec2;
 /**
  * vec2 构造函数
  * @param builtin Builtin 变量

@@ -1,11 +1,9 @@
-import { Attribute } from '../../variables/attribute';
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Uniform } from '../../variables/uniform';
 import { Float } from '../scalar/float';
 import { Vec4 } from './vec4';
 
 /**
- * Uvec4 类，用于表示 uvec4 字面量值或 uniform/attribute 变量
+ * Uvec4 类，用于表示 uvec4 字面量值
  * @internal 库外部不应直接使用 `new Uvec4()`，应使用 `uvec4()` 函数
  */
 export class Uvec4 implements ShaderValue
@@ -18,11 +16,9 @@ export class Uvec4 implements ShaderValue
     toWGSL: () => string;
 
     constructor();
-    constructor(uniform: Uniform);
-    constructor(attribute: Attribute);
     constructor(vec4: Vec4);
     constructor(x: number, y: number, z: number, w: number);
-    constructor(...args: (number | Uniform | Attribute | Vec4)[])
+    constructor(...args: (number | Vec4)[])
     {
         if (args.length === 0)
         {
@@ -31,28 +27,8 @@ export class Uvec4 implements ShaderValue
         }
         if (args.length === 1)
         {
-            // 处理 uniform、attribute 或 vec4
-            if (args[0] instanceof Uniform)
-            {
-                const uniform = args[0] as Uniform;
-
-                this.toGLSL = () => uniform.name;
-                this.toWGSL = () => uniform.name;
-                this.dependencies = [uniform];
-
-                uniform.value = this;
-            }
-            else if (args[0] instanceof Attribute)
-            {
-                const attribute = args[0] as Attribute;
-
-                this.toGLSL = () => attribute.name;
-                this.toWGSL = () => attribute.name;
-                this.dependencies = [attribute];
-
-                attribute.value = this;
-            }
-            else if (args[0] instanceof Vec4)
+            // 处理 vec4
+            if (args[0] instanceof Vec4)
             {
                 // 从 vec4 转换为 uvec4
                 const vec4 = args[0] as Vec4;
@@ -169,12 +145,10 @@ export class Uvec4 implements ShaderValue
  * uvec4 构造函数
  */
 export function uvec4(): Uvec4;
-export function uvec4(uniform: Uniform): Uvec4;
-export function uvec4(attribute: Attribute): Uvec4;
 export function uvec4(vec4: Vec4): Uvec4;
 export function uvec4(x: number, y: number, z: number, w: number): Uvec4;
 export function uvec4(
-    xOrUniformOrAttributeOrVec4?: number | Uniform | Attribute | Vec4,
+    xOrVec4?: number | Vec4,
     y?: number,
     z?: number,
     w?: number,
@@ -183,17 +157,9 @@ export function uvec4(
     if (arguments.length === 0) return new Uvec4();
     if (arguments.length === 4)
     {
-        return new Uvec4(xOrUniformOrAttributeOrVec4 as number, y!, z!, w!);
-    }
-    if (xOrUniformOrAttributeOrVec4 instanceof Uniform)
-    {
-        return new Uvec4(xOrUniformOrAttributeOrVec4);
-    }
-    if (xOrUniformOrAttributeOrVec4 instanceof Attribute)
-    {
-        return new Uvec4(xOrUniformOrAttributeOrVec4);
+        return new Uvec4(xOrVec4 as number, y!, z!, w!);
     }
 
-    return new Uvec4(xOrUniformOrAttributeOrVec4 as Vec4);
+    return new Uvec4(xOrVec4 as Vec4);
 }
 

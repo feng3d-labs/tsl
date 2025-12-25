@@ -1,73 +1,40 @@
 import { describe, expect, it } from 'vitest';
 import { Varying, varying } from '../src/variables/varying';
-import { vec2 } from '../src/types/vector/vec2';
-import { vec4 } from '../src/types/vector/vec4';
-import { int } from '../src/types/scalar/int';
+import { vec2, Vec2 } from '../src/types/vector/vec2';
+import { vec4, Vec4 } from '../src/types/vector/vec4';
+import { int, Int } from '../src/types/scalar/int';
 import { vertex } from '../src/shader/vertex';
 import { fragment } from '../src/shader/fragment';
-import { array, int as intFunc, return_, struct, uniform } from '../src/index';
+import { array, return_, struct, uniform } from '../src/index';
 import { gl_FragColor, gl_InstanceID, gl_Position } from '../src/glsl/builtin/builtins';
-import { buildShader } from '../src/core/buildShader';
 
 describe('Varying', () =>
 {
-    describe('Varying 类', () =>
-    {
-        it('应该能够创建 Varying 实例', () =>
-        {
-            const v = new Varying('vColor', 0);
-            expect(v.name).toBe('vColor');
-            expect(v.location).toBe(0);
-        });
-
-        it('应该能够创建不指定 location 的 Varying', () =>
-        {
-            const v = new Varying('vColor');
-            expect(v.name).toBe('vColor');
-            expect(v.location).toBeUndefined();
-        });
-
-        it('应该能够生成 GLSL 声明', () =>
-        {
-            buildShader({ language: 'glsl', stage: 'vertex', version: 1 }, () =>
-            {
-                const v = vec4(varying('v_color', 0));
-                const varyingInstance = v.dependencies[0] as Varying;
-                expect(varyingInstance.name).toBe('v_color');
-                expect(varyingInstance.toGLSL()).toBe('varying vec4 v_color;');
-            });
-        });
-
-        it('应该能够生成 WGSL 声明', () =>
-        {
-            const v = vec4(varying('v_color', 0));
-            const varyingInstance = v.dependencies[0] as Varying;
-            expect(varyingInstance.name).toBe('v_color');
-            expect(varyingInstance.toWGSL()).toBe('@location(0) v_color: vec4<f32>');
-        });
-    });
-
     describe('varying() 函数', () =>
     {
-        it('应该能够创建 varying（指定名称和 location）', () =>
+        it('应该能够创建 varying 并返回对应类型', () =>
         {
-            const v = varying('vColor', 0);
-            expect(v).toBeInstanceOf(Varying);
-            expect(v.name).toBe('vColor');
-            expect(v.location).toBe(0);
+            const v = varying('vColor', vec4(), { location: 0 });
+            expect(v).toBeInstanceOf(Vec4);
+            expect(v.toGLSL()).toBe('vColor');
+            expect(v.toWGSL()).toBe('vColor');
         });
 
-        it('应该能够创建 varying（只指定名称）', () =>
+        it('应该支持不同类型的 varying', () =>
         {
-            const v = varying('vColor');
-            expect(v).toBeInstanceOf(Varying);
-            expect(v.name).toBe('vColor');
-            expect(v.location).toBeUndefined();
+            const vColor = varying('vColor', vec4());
+            expect(vColor).toBeInstanceOf(Vec4);
+
+            const vTexCoord = varying('vTexCoord', vec2());
+            expect(vTexCoord).toBeInstanceOf(Vec2);
+
+            const vInstance = varying('vInstance', int(), { interpolation: 'flat' });
+            expect(vInstance).toBeInstanceOf(Int);
         });
 
-        it('应该支持 vec4(varying(...)) 形式', () =>
+        it('应该能够在 vertex shader 中使用', () =>
         {
-            const vColor = vec4(varying('vColor', 0));
+            const vColor = varying('vColor', vec4(), { location: 0 });
 
             const vertexShader = vertex('main', () =>
             {
@@ -85,8 +52,8 @@ describe('Varying', () =>
     {
         it('应该支持 location 缺省时的自动分配', () =>
         {
-            const vColor = vec4(varying('vColor'));
-            const vTexCoord = vec2(varying('vTexCoord'));
+            const vColor = varying('vColor', vec4());
+            const vTexCoord = varying('vTexCoord', vec2());
 
             const vertexShader = vertex('main', () =>
             {
@@ -103,8 +70,8 @@ describe('Varying', () =>
 
         it('应该能够混合显式指定和自动分配的 location', () =>
         {
-            const vColor = vec4(varying('vColor', 2)); // 显式指定 location 2
-            const vTexCoord = vec2(varying('vTexCoord')); // 自动分配
+            const vColor = varying('vColor', vec4(), { location: 2 }); // 显式指定 location 2
+            const vTexCoord = varying('vTexCoord', vec2()); // 自动分配
 
             const vertexShader = vertex('main', () =>
             {
@@ -117,31 +84,13 @@ describe('Varying', () =>
             expect(wgsl).toContain('@location(2) vColor: vec4<f32>');
             expect(wgsl).toContain('@location(0) vTexCoord: vec2<f32>');
         });
-
-        it('应该能够获取有效的 location', () =>
-        {
-            const v1 = varying('vColor');
-            const v2 = varying('vTexCoord', 1);
-            const vColor = vec4(v1);
-            const vTexCoord = vec2(v2);
-
-            const vertexShader = vertex('main', () =>
-            {
-                gl_Position.assign(vec4(1.0, 0.0, 0.0, 1.0));
-                vColor.assign(vec4(1.0, 0.0, 0.0, 1.0));
-                vTexCoord.assign(vec2(0.0, 0.0));
-            });
-            vertexShader.toWGSL(); // 触发自动分配
-            expect(v1.getEffectiveLocation()).toBe(0); // 自动分配的值
-            expect(v2.getEffectiveLocation()).toBe(1); // 显式指定
-        });
     });
 
     describe('独立定义的 varying', () =>
     {
         it('应该能够独立定义 varying 并自动生成 VaryingStruct', () =>
         {
-            const v_st = vec2(varying('v_st'));
+            const v_st = varying('v_st', vec2());
 
             const vertexShader = vertex('main', () =>
             {
@@ -174,7 +123,7 @@ describe('Varying', () =>
 
         it('应该能够在片段着色器中使用独立 varying', () =>
         {
-            const v_st = vec2(varying('v_st'));
+            const v_st = varying('v_st', vec2());
 
             const fragmentShader = fragment('main', () =>
             {
@@ -199,11 +148,11 @@ describe('Varying', () =>
     {
         it('应该为整数类型 varying 添加 @interpolate(flat) 属性', () =>
         {
-            const instance = intFunc(varying('instance', { interpolation: 'flat' }));
+            const instance = varying('instance', int(), { interpolation: 'flat' });
 
             const vertexShader = vertex('main', () =>
             {
-                instance.assign(intFunc(gl_InstanceID));
+                instance.assign(int(gl_InstanceID));
                 gl_Position.assign(vec4(0.0, 0.0, 0.0, 1.0));
             });
 
@@ -219,11 +168,11 @@ describe('Varying', () =>
             });
             const material = Material(uniform('material'));
 
-            const instance = intFunc(varying('instance', { interpolation: 'flat' }));
+            const instance = varying('instance', int(), { interpolation: 'flat' });
 
             const vertexShader = vertex('main', () =>
             {
-                instance.assign(intFunc(gl_InstanceID));
+                instance.assign(int(gl_InstanceID));
                 gl_Position.assign(vec4(0.0, 0.0, 0.0, 1.0));
             });
 
@@ -242,18 +191,18 @@ describe('Varying', () =>
 
     describe('Fragment shader 中 varying 访问路径', () =>
     {
-        it('应该在片段着色器中使用 v.xxx 格式访问 varying', () =>
+        it('应该在片段着色器中使用 input.xxx 格式访问 varying', () =>
         {
             const Material = struct('Material', {
                 Diffuse: array(vec4, 2),
             });
             const material = Material(uniform('material'));
 
-            const instance = intFunc(varying('instance', { interpolation: 'flat' }));
+            const instance = varying('instance', int(), { interpolation: 'flat' });
 
             const vertexShader = vertex('main', () =>
             {
-                instance.assign(intFunc(gl_InstanceID));
+                instance.assign(int(gl_InstanceID));
                 gl_Position.assign(vec4(0.0, 0.0, 0.0, 1.0));
             });
 
@@ -270,18 +219,18 @@ describe('Varying', () =>
             expect(wgsl).toContain('input.instance');
         });
 
-        it('应该在数组索引中正确使用 v.xxx 格式', () =>
+        it('应该在数组索引中正确使用 input.xxx 格式', () =>
         {
             const Material = struct('Material', {
                 Diffuse: array(vec4, 2),
             });
             const material = Material(uniform('material'));
 
-            const instance = intFunc(varying('instance', { interpolation: 'flat' }));
+            const instance = varying('instance', int(), { interpolation: 'flat' });
 
             const vertexShader = vertex('main', () =>
             {
-                instance.assign(intFunc(gl_InstanceID));
+                instance.assign(int(gl_InstanceID));
                 gl_Position.assign(vec4(0.0, 0.0, 0.0, 1.0));
             });
 

@@ -47,7 +47,7 @@ const WANDER_CIRCLE_OFFSET = 0.04;
 const MOVE_DELTA = 0.001;
 
 // uniform float u_time;
-const u_time = float(uniform('u_time'));
+const u_time = uniform('u_time', float());
 
 // layout(location = OFFSET_LOCATION) in vec2 a_offset;
 // layout(location = ROTATION_LOCATION) in float a_rotation;
@@ -56,8 +56,8 @@ const a_rotation = attribute('a_rotation', float(), 1);
 
 // out vec2 v_offset;
 // out float v_rotation;
-const v_offset = vec2(varying('v_offset'));
-const v_rotation = float(varying('v_rotation'));
+const v_offset = varying('v_offset', vec2());
+const v_rotation = varying('v_rotation', float());
 
 // float rand(vec2 co)
 // {
@@ -127,7 +127,7 @@ const draw_offset = attribute('a_offset', vec2(), 0);
 const draw_color = attribute('a_color', vec3(), 3);
 
 // out vec3 v_color;
-const v_color = vec3(varying('v_color'));
+const v_color = varying('v_color', vec3());
 
 // void main() - vs-draw
 export const drawVertexShader = vertex('main', () =>

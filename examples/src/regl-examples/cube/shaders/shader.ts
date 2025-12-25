@@ -5,11 +5,11 @@ const position = attribute('position', vec3());
 const uv = attribute('uv', vec2());
 
 // Vertex shader 的 uniforms
-const projection = mat4(uniform('projection'));
-const view = mat4(uniform('view'));
+const projection = uniform('projection', mat4());
+const view = uniform('view', mat4());
 
 // Varying 变量
-const vUv = vec2(varying('vUv'));
+const vUv = varying('vUv', vec2());
 
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>

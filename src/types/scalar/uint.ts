@@ -1,7 +1,4 @@
-import { Attribute } from '../../variables/attribute';
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Uniform } from '../../variables/uniform';
-import { Varying } from '../../variables/varying';
 import { Builtin } from '../../glsl/builtin/builtin';
 import { formatOperand } from '../../core/expressionUtils';
 import { Bool } from './bool';
@@ -26,44 +23,17 @@ export class UInt implements ShaderValue
     private _isGLSLInt = false;
 
     constructor();
-    constructor(uniform: Uniform);
-    constructor(attribute: Attribute);
-    constructor(varying: Varying);
     constructor(builtin: Builtin);
     constructor(value: number);
     constructor(other: IElement);
-    constructor(...args: (number | Uniform | Attribute | Varying | Builtin | IElement)[])
+    constructor(...args: (number | Builtin | IElement)[])
     {
         if (args.length === 0)
         {
             // 无参数构造函数，用于 var_ 函数创建新实例
             return;
         }
-        if (args.length === 1 && args[0] instanceof Uniform)
-        {
-            const uniform = args[0] as Uniform;
-            this.dependencies = [uniform];
-            this.toGLSL = () => uniform.name;
-            this.toWGSL = () => uniform.name;
-            uniform.value = this;
-        }
-        else if (args.length === 1 && args[0] instanceof Attribute)
-        {
-            const attribute = args[0] as Attribute;
-            this.dependencies = [attribute];
-            this.toGLSL = () => attribute.name;
-            this.toWGSL = () => attribute.name;
-            attribute.value = this;
-        }
-        else if (args.length === 1 && args[0] instanceof Varying)
-        {
-            const varying = args[0] as Varying;
-            this.dependencies = [varying];
-            this.toGLSL = () => varying.name;
-            this.toWGSL = () => varying.name;
-            varying.value = this;
-        }
-        else if (args.length === 1 && args[0] instanceof Builtin)
+        if (args.length === 1 && args[0] instanceof Builtin)
         {
             const builtin = args[0] as Builtin;
             this.dependencies = [builtin];
@@ -184,13 +154,11 @@ export class UInt implements ShaderValue
 /**
  * uint 构造函数
  */
-export function uint(uniform: Uniform): UInt;
-export function uint(attribute: Attribute): UInt;
-export function uint(varying: Varying): UInt;
+export function uint(): UInt;
 export function uint(builtin: Builtin): UInt;
 export function uint(value: number): UInt;
 export function uint(other: IElement): UInt;
-export function uint(...args: (number | Uniform | Attribute | Varying | Builtin | IElement)[]): UInt
+export function uint(...args: (number | Builtin | IElement)[]): UInt
 {
     return new (UInt as any)(...args);
 }

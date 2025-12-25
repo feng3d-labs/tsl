@@ -11,13 +11,13 @@ const normal = attribute('normal', vec3(), 1);
 const texcoord = attribute('texcoord', vec2(), 4);
 
 // Uniform 变量
-const mvMatrix = mat4(uniform('mvMatrix'));
-const pMatrix = mat4(uniform('pMatrix'));
+const mvMatrix = uniform('mvMatrix', mat4());
+const pMatrix = uniform('pMatrix', mat4());
 const displacementMap = sampler2D(uniform('displacementMap'));
 
 // Varying 变量
-const v_st = vec2(varying('v_st'));
-const v_position = vec3(varying('v_position'));
+const v_st = varying('v_st', vec2());
+const v_position = varying('v_position', vec3());
 
 /**
  * 顶点着色器

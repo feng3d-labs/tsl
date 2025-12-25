@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { float, Float } from '../../src/types/scalar/float';
-import { Uniform } from '../../src/variables/uniform';
-import { Varying, varying } from '../../src/variables/varying';
+import { uniform } from '../../src/variables/uniform';
+import { varying } from '../../src/variables/varying';
 import { exp } from '../../src/math/exponential/exp';
 import { max } from '../../src/math/common/max';
 import { vec3 } from '../../src/types/vector/vec3';
@@ -24,24 +24,22 @@ describe('Float', () =>
         });
     });
 
-    describe('float(uniform: Uniform)', () =>
+    describe('uniform(name, float())', () =>
     {
         it('应该返回 Float 实例', () =>
         {
-            const uniform = new Uniform('uValue', 0, 0);
-            const result = float(uniform);
+            const result = uniform('uValue', float(), 0, 0);
             expect(result).toBeInstanceOf(Float);
             expect(result.toGLSL()).toBe('uValue');
             expect(result.toWGSL()).toBe('uValue');
         });
     });
 
-    describe('float(varying: Varying)', () =>
+    describe('varying(name, float())', () =>
     {
         it('应该返回 Float 实例', () =>
         {
-            const vValue = varying('vValue', 0);
-            const result = float(vValue);
+            const result = varying('vValue', float(), { location: 0 });
             expect(result).toBeInstanceOf(Float);
             expect(result.toGLSL()).toBe('vValue');
             // WGSL 输出由 vertex/fragment 着色器设置
@@ -141,7 +139,7 @@ describe('Float', () =>
         it('应该正确处理科学计数法并优化同级乘法', () =>
         {
             const a = float(0.2);
-            const turbidity = float(new Uniform('turbidity', 0, 0));
+            const turbidity = uniform('turbidity', float(), 0, 0);
             const b = float(10E-18);
             // 0.2 * turbidity * 1e-17 应该生成 0.2 * turbidity * 1e-17（同级乘法不需要括号）
             const mul1 = a.multiply(turbidity);
@@ -152,9 +150,9 @@ describe('Float', () =>
 
         it('应该正确处理 -1.0 * (a - b) / c 优化为 -((a - b) / c)', () =>
         {
-            const cutoffAngle = float(new Uniform('cutoffAngle', 0, 0));
-            const acosClamped = float(new Uniform('acosClamped', 0, 0));
-            const steepness = float(new Uniform('steepness', 0, 0));
+            const cutoffAngle = uniform('cutoffAngle', float(), 0, 0);
+            const acosClamped = uniform('acosClamped', float(), 0, 1);
+            const steepness = uniform('steepness', float(), 0, 2);
             // float(-1.0).multiply(cutoffAngle.subtract(acosClamped).divide(steepness))
             // 应该生成 -((cutoffAngle - acosClamped) / steepness)
             const sub = cutoffAngle.subtract(acosClamped);
@@ -168,10 +166,10 @@ describe('Float', () =>
         {
             // 模拟 assign(vSunE, EE.multiply(max(0.0, float(1.0).subtract(exp(float(-1.0).multiply(cutoffAngle.subtract(acosClamped).divide(steepness)))))));
             // 应该生成: EE * max(0.0, 1.0 - exp(-((cutoffAngle - acosClamped) / steepness)))
-            const EE = float(new Uniform('EE', 0, 0));
-            const cutoffAngle = float(new Uniform('cutoffAngle', 0, 0));
-            const acosClamped = float(new Uniform('acosClamped', 0, 0));
-            const steepness = float(new Uniform('steepness', 0, 0));
+            const EE = uniform('EE', float(), 0, 0);
+            const cutoffAngle = uniform('cutoffAngle', float(), 0, 1);
+            const acosClamped = uniform('acosClamped', float(), 0, 2);
+            const steepness = uniform('steepness', float(), 0, 3);
 
             const sub = cutoffAngle.subtract(acosClamped);
             const div = sub.divide(steepness);
@@ -187,10 +185,10 @@ describe('Float', () =>
 
         it('应该正确处理 float(-1.0).multiply(Vec3) 优化为 -Vec3', () =>
         {
-            const vBetaR = vec3(new Uniform('vBetaR', 0, 0));
-            const sR = float(new Uniform('sR', 0, 0));
-            const vBetaM = vec3(new Uniform('vBetaM', 0, 0));
-            const sM = float(new Uniform('sM', 0, 0));
+            const vBetaR = uniform('vBetaR', vec3(), 0, 0);
+            const sR = uniform('sR', float(), 0, 1);
+            const vBetaM = uniform('vBetaM', vec3(), 0, 2);
+            const sM = uniform('sM', float(), 0, 3);
 
             // float(-1.0).multiply(vBetaR.multiply(sR).add(vBetaM.multiply(sM)))
             // 应该生成 -(vBetaR * sR + vBetaM * sM)

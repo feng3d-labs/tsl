@@ -66,7 +66,7 @@ describe('Vertex', () =>
         it('应该能够生成包含 varying 声明的 GLSL 代码', () =>
         {
             const aVertexColor = attribute('aVertexColor', vec4(), 0);
-            const vColor = vec4(varying('vColor', 0));
+            const vColor = varying('vColor', vec4(), { location: 0 });
 
             const vert = vertex('main', () =>
             {
@@ -101,8 +101,8 @@ describe('Vertex', () =>
 
         it('应该能够自动分配 varying 的 location', () =>
         {
-            const vColor = vec4(varying('vColor'));
-            const vTexCoord = vec2(varying('vTexCoord'));
+            const vColor = varying('vColor', vec4());
+            const vTexCoord = varying('vTexCoord', vec2());
 
             const vert = vertex('main', () =>
             {
@@ -120,8 +120,8 @@ describe('Vertex', () =>
         {
             const aPos = attribute('aPos', vec2(), 2); // 显式指定 location 2
             const aColor = attribute('aColor', vec4()); // 自动分配
-            const vColor = vec4(varying('vColor', 1)); // 显式指定 location 1
-            const vTexCoord = vec2(varying('vTexCoord')); // 自动分配
+            const vColor = varying('vColor', vec4(), { location: 1 }); // 显式指定 location 1
+            const vTexCoord = varying('vTexCoord', vec2()); // 自动分配
 
             const vert = vertex('main', () =>
             {
@@ -201,7 +201,7 @@ describe('Vertex', () =>
         it('深度转换不应影响非 position 的赋值', () =>
         {
             const color = attribute('color', vec4());
-            const vColor = vec4(varying('vColor'));
+            const vColor = varying('vColor', vec4());
 
             const vert = vertex('main', () =>
             {
@@ -238,10 +238,10 @@ describe('Vertex', () =>
         {
             const aVertexPosition = attribute('aVertexPosition', vec3());
             const aTextureCoord = attribute('aTextureCoord', vec2());
-            const uModelViewMatrix = mat4(uniform('uModelViewMatrix'));
-            const uProjectionMatrix = mat4(uniform('uProjectionMatrix'));
+            const uModelViewMatrix = uniform('uModelViewMatrix', mat4());
+            const uProjectionMatrix = uniform('uProjectionMatrix', mat4());
 
-            const vTextureCoord = vec2(varying('vTextureCoord'));
+            const vTextureCoord = varying('vTextureCoord', vec2());
 
             const vert = vertex('main', () =>
             {

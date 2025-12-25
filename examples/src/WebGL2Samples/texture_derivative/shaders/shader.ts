@@ -5,12 +5,12 @@ const position = attribute('position', vec3(), 0);
 const texcoord = attribute('texcoord', vec2(), 4);
 
 // Uniform 变量
-const mvMatrix = mat4(uniform('mvMatrix'));
-const pMatrix = mat4(uniform('pMatrix'));
+const mvMatrix = uniform('mvMatrix', mat4());
+const pMatrix = uniform('pMatrix', mat4());
 
 // Varying 变量
-const v_uv = vec2(varying('v_uv'));
-const v_position = vec3(varying('v_position'));
+const v_uv = varying('v_uv', vec2());
+const v_position = varying('v_position', vec3());
 
 /**
  * 顶点着色器

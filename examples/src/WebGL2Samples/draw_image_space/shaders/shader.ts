@@ -9,7 +9,7 @@ export const vertexShader = vertex('main', () =>
 });
 
 const diffuse = sampler2D(uniform('diffuse'));
-const u_imageSize = vec2(uniform('u_imageSize'));
+const u_imageSize = uniform('u_imageSize', vec2());
 
 export const fragmentShader = fragment('main', () =>
 {

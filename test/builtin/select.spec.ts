@@ -141,7 +141,7 @@ describe('select', () =>
         it('应该在片段着色器中正确生成 GLSL 代码', () =>
         {
             const color = vec4(fragColor(0, 'color'));
-            const v_attr = float(varying('v_attr'));
+            const v_attr = varying('v_attr', float());
 
             const fShader = fragment('main', () =>
             {
@@ -162,7 +162,7 @@ describe('select', () =>
         it('应该在片段着色器中正确生成 WGSL 代码', () =>
         {
             const color = vec4(fragColor(0, 'color'));
-            const v_attr = float(varying('v_attr'));
+            const v_attr = varying('v_attr', float());
 
             const fShader = fragment('main', () =>
             {

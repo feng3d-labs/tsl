@@ -5,10 +5,10 @@ const position = attribute('position', vec2(), 0);
 const in_texcoord = attribute('in_texcoord', vec2(), 1);
 
 // Uniforms
-const orientation = mat4(uniform('orientation'));
+const orientation = uniform('orientation', mat4());
 
 // Varying 变量
-const v_texcoord = vec3(varying('v_texcoord'));
+const v_texcoord = varying('v_texcoord', vec3());
 
 /**
  * 顶点着色器

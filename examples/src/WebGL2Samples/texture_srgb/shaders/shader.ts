@@ -44,30 +44,30 @@ const position = attribute('position', vec2(), 0);
 const textureCoordinates = attribute('textureCoordinates', vec2(), 4);
 
 // Uniform 变量
-const mvp = mat4(uniform('mvp'));
+const mvp = uniform('mvp', mat4());
 
 // Varying 变量
 // 使用 vec4 打包两个 vec2 坐标，减少 location 使用
 // 总计: 1 (v_st) + 7 (垂直) + 7 (水平) = 15 个 location
-const v_st = vec2(varying('v_st', { location: 0 }));
+const v_st = varying('v_st', vec2(), { location: 0 });
 
 // 垂直方向模糊坐标 (打包为 vec4: xy = [i], zw = [i+1])
-const v_blur_01 = vec4(varying('v_blur_01', { location: 1 }));
-const v_blur_23 = vec4(varying('v_blur_23', { location: 2 }));
-const v_blur_45 = vec4(varying('v_blur_45', { location: 3 }));
-const v_blur_67 = vec4(varying('v_blur_67', { location: 4 }));
-const v_blur_89 = vec4(varying('v_blur_89', { location: 5 }));
-const v_blur_AB = vec4(varying('v_blur_AB', { location: 6 }));
-const v_blur_CD = vec4(varying('v_blur_CD', { location: 7 }));
+const v_blur_01 = varying('v_blur_01', vec4(), { location: 1 });
+const v_blur_23 = varying('v_blur_23', vec4(), { location: 2 });
+const v_blur_45 = varying('v_blur_45', vec4(), { location: 3 });
+const v_blur_67 = varying('v_blur_67', vec4(), { location: 4 });
+const v_blur_89 = varying('v_blur_89', vec4(), { location: 5 });
+const v_blur_AB = varying('v_blur_AB', vec4(), { location: 6 });
+const v_blur_CD = varying('v_blur_CD', vec4(), { location: 7 });
 
 // 水平方向模糊坐标 (打包为 vec4: xy = [i], zw = [i+1])
-const h_blur_01 = vec4(varying('h_blur_01', { location: 8 }));
-const h_blur_23 = vec4(varying('h_blur_23', { location: 9 }));
-const h_blur_45 = vec4(varying('h_blur_45', { location: 10 }));
-const h_blur_67 = vec4(varying('h_blur_67', { location: 11 }));
-const h_blur_89 = vec4(varying('h_blur_89', { location: 12 }));
-const h_blur_AB = vec4(varying('h_blur_AB', { location: 13 }));
-const h_blur_CD = vec4(varying('h_blur_CD', { location: 14 }));
+const h_blur_01 = varying('h_blur_01', vec4(), { location: 8 });
+const h_blur_23 = varying('h_blur_23', vec4(), { location: 9 });
+const h_blur_45 = varying('h_blur_45', vec4(), { location: 10 });
+const h_blur_67 = varying('h_blur_67', vec4(), { location: 11 });
+const h_blur_89 = varying('h_blur_89', vec4(), { location: 12 });
+const h_blur_AB = varying('h_blur_AB', vec4(), { location: 13 });
+const h_blur_CD = varying('h_blur_CD', vec4(), { location: 14 });
 
 /**
  * 顶点着色器

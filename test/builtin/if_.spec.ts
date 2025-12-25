@@ -67,7 +67,7 @@ describe('if_', () =>
         it('应该生成正确的 GLSL if-else 代码', () =>
         {
             const color = vec4(fragColor(0, 'color'));
-            const v_st = vec2(varying('v_st'));
+            const v_st = varying('v_st', vec2());
 
             const fShader = fragment('main', () =>
             {
@@ -94,7 +94,7 @@ describe('if_', () =>
         it('应该生成正确的 WGSL if-else 代码', () =>
         {
             const color = vec4(fragColor(0, 'color'));
-            const v_st = vec2(varying('v_st'));
+            const v_st = varying('v_st', vec2());
 
             const fShader = fragment('main', () =>
             {
@@ -124,7 +124,7 @@ describe('if_', () =>
         it('应该在 WGSL 中将 textureSample 调用移至 if 语句前', () =>
         {
             const color = vec4(fragColor(0, 'color'));
-            const v_st = vec2(varying('v_st'));
+            const v_st = varying('v_st', vec2());
             const materialDiffuse0 = sampler2D(uniform('materialDiffuse0'));
             const materialDiffuse1 = sampler2D(uniform('materialDiffuse1'));
 
@@ -170,7 +170,7 @@ describe('if_', () =>
         it('GLSL 中 texture 调用应该保留在 if 语句内', () =>
         {
             const color = vec4(fragColor(0, 'color'));
-            const v_st = vec2(varying('v_st'));
+            const v_st = varying('v_st', vec2());
             const materialDiffuse0 = sampler2D(uniform('materialDiffuse0'));
             const materialDiffuse1 = sampler2D(uniform('materialDiffuse1'));
 
@@ -205,7 +205,7 @@ describe('if_', () =>
         it('WGSL textureSample 提升应该只警告一次（缓存机制）', () =>
         {
             const color = vec4(fragColor(0, 'color'));
-            const v_st = vec2(varying('v_st'));
+            const v_st = varying('v_st', vec2());
             const materialDiffuse0 = sampler2D(uniform('materialDiffuse0'));
 
             const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -240,7 +240,7 @@ describe('if_', () =>
         it('GLSL if-else 代码应该正确缩进', () =>
         {
             const color = vec4(fragColor(0, 'color'));
-            const v_st = vec2(varying('v_st'));
+            const v_st = varying('v_st', vec2());
 
             const fShader = fragment('main', () =>
             {
@@ -266,7 +266,7 @@ describe('if_', () =>
         it('WGSL if-else 代码应该正确缩进', () =>
         {
             const color = vec4(fragColor(0, 'color'));
-            const v_st = vec2(varying('v_st'));
+            const v_st = varying('v_st', vec2());
 
             const fShader = fragment('main', () =>
             {

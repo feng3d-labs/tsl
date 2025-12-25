@@ -62,8 +62,8 @@ describe('Fragment', () =>
     {
         it('应该能够自动分配 varying 的 location', () =>
         {
-            const vColor = vec4(varying('vColor'));
-            const vTexCoord = vec2(varying('vTexCoord'));
+            const vColor = varying('vColor', vec4());
+            const vTexCoord = varying('vTexCoord', vec2());
 
             const frag = fragment('main', () =>
             {
@@ -78,7 +78,7 @@ describe('Fragment', () =>
         it('应该能够与 vertex shader 的 varying location 保持一致', () =>
         {
             const aPos = attribute('aPos', vec2());
-            const vColor = vec4(varying('vColor'));
+            const vColor = varying('vColor', vec4());
 
             const vert = vertex('main', () =>
             {
@@ -105,7 +105,7 @@ describe('Fragment', () =>
 
         it('应该能够生成包含 varying 的 VaryingStruct', () =>
         {
-            const vColor = vec4(varying('vColor'));
+            const vColor = varying('vColor', vec4());
 
             const frag = fragment('main', () =>
             {

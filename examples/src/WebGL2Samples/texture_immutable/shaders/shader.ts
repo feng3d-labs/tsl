@@ -9,10 +9,10 @@ const position = attribute('position', vec2(), 0);
 const texcoord = attribute('texcoord', vec2(), 4);
 
 // Uniform 变量
-const MVP = mat4(uniform('MVP'));
+const MVP = uniform('MVP', mat4());
 
 // Varying 变量
-const v_st = vec2(varying('v_st'));
+const v_st = varying('v_st', vec2());
 
 /**
  * 2D 纹理顶点着色器
@@ -52,7 +52,7 @@ const position3D = attribute('position', vec2(), 0);
 const in_texcoord = attribute('in_texcoord', vec2(), 4);
 
 // Varying 变量
-const v_texcoord = vec3(varying('v_texcoord'));
+const v_texcoord = varying('v_texcoord', vec3());
 
 /**
  * 3D 纹理顶点着色器

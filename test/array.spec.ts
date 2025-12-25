@@ -49,7 +49,7 @@ describe('Array', () =>
         it('应该能够使用 Int 类型索引访问数组元素', () =>
         {
             const arr = var_('arr', array(vec4, 4));
-            const i = int(uniform('i'));
+            const i = uniform('i', int());
 
             const element = arr.index(i);
 
@@ -127,7 +127,7 @@ describe('Array', () =>
             });
             const material = Material(uniform('material'));
 
-            const instance = int(varying('instance', { interpolation: 'flat' }));
+            const instance = varying('instance', int(), { interpolation: 'flat' });
 
             const fragmentShader = fragment('main', () =>
             {

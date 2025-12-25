@@ -9,8 +9,8 @@
  * 此示例同时支持 WebGL 和 WebGPU 渲染。
  *
  * TSL 用法：
- * - smooth varying（默认）: `vec3(varying('v_normal'))`
- * - flat varying: `vec3(varying('v_normal', { interpolation: 'flat' }))`
+ * - smooth varying（默认）: `varying('v_normal', vec3())`
+ * - flat varying: `varying('v_normal', vec3(), { interpolation: 'flat' })`
  */
 
 import { IndicesDataTypes, RenderPass, RenderPassObject, RenderPipeline, VertexAttributes, VertexFormat, Viewport } from '@feng3d/render-api';

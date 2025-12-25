@@ -1,10 +1,8 @@
-import { Attribute } from '../../variables/attribute';
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Uniform } from '../../variables/uniform';
 import { Float } from '../scalar/float';
 
 /**
- * Uvec3 类，用于表示 uvec3 字面量值或 uniform/attribute 变量
+ * Uvec3 类，用于表示 uvec3 字面量值
  * @internal 库外部不应直接使用 `new Uvec3()`，应使用 `uvec3()` 函数
  */
 export class Uvec3 implements ShaderValue
@@ -16,38 +14,13 @@ export class Uvec3 implements ShaderValue
     toGLSL: () => string;
     toWGSL: () => string;
 
-    constructor(uniform: Uniform);
-    constructor(attribute: Attribute);
+    constructor();
     constructor(x: number, y: number, z: number);
-    constructor(...args: (number | Uniform | Attribute)[])
+    constructor(...args: number[])
     {
-        if (args.length === 1)
+        if (args.length === 0)
         {
-            // 处理 uniform 或 attribute
-            if (args[0] instanceof Uniform)
-            {
-                const uniform = args[0] as Uniform;
-
-                this.toGLSL = () => uniform.name;
-                this.toWGSL = () => uniform.name;
-                this.dependencies = [uniform];
-
-                uniform.value = this;
-            }
-            else if (args[0] instanceof Attribute)
-            {
-                const attribute = args[0] as Attribute;
-
-                this.toGLSL = () => attribute.name;
-                this.toWGSL = () => attribute.name;
-                this.dependencies = [attribute];
-
-                attribute.value = this;
-            }
-            else
-            {
-                throw new Error('Uvec3 constructor: invalid argument');
-            }
+            return;
         }
         else if (args.length === 3 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number')
         {
@@ -107,8 +80,7 @@ export class Uvec3 implements ShaderValue
 /**
  * uvec3 构造函数
  */
-export function uvec3(uniform: Uniform): Uvec3;
-export function uvec3(attribute: Attribute): Uvec3;
+export function uvec3(): Uvec3;
 export function uvec3(x: number, y: number, z: number): Uvec3;
 export function uvec3(...args: any[]): Uvec3
 {

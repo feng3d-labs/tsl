@@ -3,9 +3,9 @@ import { attribute, fragColor, fragment, gl_Position, int, mat4, precision, retu
 const position = attribute('position', vec2());
 const textureCoordinates = attribute('textureCoordinates', vec2());
 
-const mvp = mat4(uniform('mvp'));
+const mvp = uniform('mvp', mat4());
 
-const v_st = vec2(varying('v_st'));
+const v_st = varying('v_st', vec2());
 
 export const layerVertexShader = vertex('main', () =>
 {
@@ -14,7 +14,7 @@ export const layerVertexShader = vertex('main', () =>
 });
 
 const diffuse = sampler2DArray(uniform('diffuse'));
-const layer = int(uniform('layer'));
+const layer = uniform('layer', int());
 
 export const layerFragmentShader = fragment('main', () =>
 {

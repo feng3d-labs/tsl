@@ -1,11 +1,9 @@
-import { Attribute } from '../../variables/attribute';
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Uniform } from '../../variables/uniform';
 import { Float } from '../scalar/float';
 import { Vec2 } from './vec2';
 
 /**
- * IVec2 类，用于表示 ivec2 字面量值或 uniform/attribute 变量
+ * IVec2 类，用于表示 ivec2 字面量值
  * @internal 库外部不应直接使用 `new IVec2()`，应使用 `ivec2()` 函数
  */
 export class IVec2 implements ShaderValue
@@ -17,11 +15,10 @@ export class IVec2 implements ShaderValue
     toGLSL: () => string;
     toWGSL: () => string;
 
-    constructor(uniform: Uniform);
-    constructor(attribute: Attribute);
+    constructor();
     constructor(vec2: Vec2);
     constructor(x: number, y: number);
-    constructor(...args: (number | Uniform | Attribute | Vec2)[])
+    constructor(...args: (number | Vec2)[])
     {
         if (args.length === 0)
         {
@@ -30,28 +27,8 @@ export class IVec2 implements ShaderValue
         }
         if (args.length === 1)
         {
-            // 处理 uniform、attribute 或 vec2
-            if (args[0] instanceof Uniform)
-            {
-                const uniform = args[0] as Uniform;
-
-                this.toGLSL = () => uniform.name;
-                this.toWGSL = () => uniform.name;
-                this.dependencies = [uniform];
-
-                uniform.value = this;
-            }
-            else if (args[0] instanceof Attribute)
-            {
-                const attribute = args[0] as Attribute;
-
-                this.toGLSL = () => attribute.name;
-                this.toWGSL = () => attribute.name;
-                this.dependencies = [attribute];
-
-                attribute.value = this;
-            }
-            else if (args[0] instanceof Vec2)
+            // 处理 vec2
+            if (args[0] instanceof Vec2)
             {
                 // 从 vec2 转换为 ivec2
                 const vec2 = args[0] as Vec2;
@@ -144,10 +121,12 @@ export class IVec2 implements ShaderValue
 }
 
 /**
+ * ivec2 构造函数（无参数）
+ */
+export function ivec2(): IVec2;
+/**
  * ivec2 构造函数
  */
-export function ivec2(uniform: Uniform): IVec2;
-export function ivec2(attribute: Attribute): IVec2;
 export function ivec2(vec2: Vec2): IVec2;
 export function ivec2(x: number, y: number): IVec2;
 export function ivec2(...args: any[]): IVec2

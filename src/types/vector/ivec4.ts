@@ -1,10 +1,8 @@
-import { Attribute } from '../../variables/attribute';
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Uniform } from '../../variables/uniform';
 import { Float } from '../scalar/float';
 
 /**
- * IVec4 类，用于表示 ivec4 字面量值或 uniform/attribute 变量
+ * IVec4 类，用于表示 ivec4 字面量值
  * @internal 库外部不应直接使用 `new IVec4()`，应使用 `ivec4()` 函数
  */
 export class IVec4 implements ShaderValue
@@ -16,38 +14,13 @@ export class IVec4 implements ShaderValue
     toGLSL: () => string;
     toWGSL: () => string;
 
-    constructor(uniform: Uniform);
-    constructor(attribute: Attribute);
+    constructor();
     constructor(x: number, y: number, z: number, w: number);
-    constructor(...args: (number | Uniform | Attribute)[])
+    constructor(...args: number[])
     {
-        if (args.length === 1)
+        if (args.length === 0)
         {
-            // 处理 uniform 或 attribute
-            if (args[0] instanceof Uniform)
-            {
-                const uniform = args[0] as Uniform;
-
-                this.toGLSL = () => uniform.name;
-                this.toWGSL = () => uniform.name;
-                this.dependencies = [uniform];
-
-                uniform.value = this;
-            }
-            else if (args[0] instanceof Attribute)
-            {
-                const attribute = args[0] as Attribute;
-
-                this.toGLSL = () => attribute.name;
-                this.toWGSL = () => attribute.name;
-                this.dependencies = [attribute];
-
-                attribute.value = this;
-            }
-            else
-            {
-                throw new Error('IVec4 constructor: invalid argument');
-            }
+            return;
         }
         else if (args.length === 4 && typeof args[0] === 'number' && typeof args[1] === 'number' && typeof args[2] === 'number' && typeof args[3] === 'number')
         {
@@ -121,8 +94,7 @@ export class IVec4 implements ShaderValue
 /**
  * ivec4 构造函数
  */
-export function ivec4(uniform: Uniform): IVec4;
-export function ivec4(attribute: Attribute): IVec4;
+export function ivec4(): IVec4;
 export function ivec4(x: number, y: number, z: number, w: number): IVec4;
 export function ivec4(...args: any[]): IVec4
 {

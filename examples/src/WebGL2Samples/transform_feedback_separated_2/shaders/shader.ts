@@ -34,14 +34,14 @@ const a_lifetime = attribute('a_lifetime', float(), 3);
 const a_ID = attribute('a_ID', float(), 4);
 
 // Uniforms
-const u_time = float(uniform('u_time'));
-const u_acceleration = vec2(uniform('u_acceleration'));
+const u_time = uniform('u_time', float());
+const u_acceleration = uniform('u_acceleration', vec2());
 
 // Varying（Transform Feedback 输出）
-const v_position = vec2(varying('v_position'));
-const v_velocity = vec2(varying('v_velocity'));
-const v_spawntime = float(varying('v_spawntime'));
-const v_lifetime = float(varying('v_lifetime'));
+const v_position = varying('v_position', vec2());
+const v_velocity = varying('v_velocity', vec2());
+const v_spawntime = varying('v_spawntime', float());
+const v_lifetime = varying('v_lifetime', float());
 
 // 自定义随机数函数
 // GLSL: float rand(vec2 co) { return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); }
@@ -116,7 +116,7 @@ export const drawVertexShader = vertex('main', () =>
 });
 
 // 渲染 Uniform
-const u_color = vec4(uniform('u_color'));
+const u_color = uniform('u_color', vec4());
 
 // 渲染片段着色器
 export const drawFragmentShader = fragment('main', () =>

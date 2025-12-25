@@ -1,6 +1,4 @@
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Uniform } from '../../variables/uniform';
-import { Varying } from '../../variables/varying';
 import { Assign } from '../../variables/assign';
 import { formatOperand, wrapForSwizzle } from '../../core/expressionUtils';
 import { formatNumber } from '../../core/formatNumber';
@@ -8,7 +6,7 @@ import { Float } from '../scalar/float';
 import { Vec2 } from './vec2';
 
 /**
- * Vec3 类，用于表示 vec3 字面量值或 uniform/attribute 变量
+ * Vec3 类，用于表示 vec3 字面量值
  * @internal 库外部不应直接使用 `new Vec3()`，应使用 `vec3()` 函数
  */
 export class Vec3 implements ShaderValue
@@ -20,32 +18,14 @@ export class Vec3 implements ShaderValue
     toWGSL: () => string;
 
     constructor();
-    constructor(uniform: Uniform);
-    constructor(varying: Varying);
     constructor(value: Float | number);
     constructor(x: number, y: number, z: number);
     constructor(x: Float, y: Float, z: Float);
     constructor(vec2: Vec2, z: Float | number);
-    constructor(...args: (number | Uniform | Varying | Float | Vec2)[])
+    constructor(...args: (number | Float | Vec2)[])
     {
         if (args.length === 0) return;
-        if (args.length === 1 && args[0] instanceof Uniform)
-        {
-            const uniform = args[0] as Uniform;
-            this.dependencies = [uniform];
-            this.toGLSL = () => uniform.name;
-            this.toWGSL = () => uniform.name;
-            uniform.value = this;
-        }
-        else if (args.length === 1 && args[0] instanceof Varying)
-        {
-            const varying = args[0] as Varying;
-            this.dependencies = [varying];
-            this.toGLSL = () => varying.name;
-            this.toWGSL = () => varying.name;
-            varying.value = this;
-        }
-        else if (args.length === 1 && (typeof args[0] === 'number' || args[0] instanceof Float))
+        if (args.length === 1 && (typeof args[0] === 'number' || args[0] instanceof Float))
         {
             const value = args[0] as number | Float;
             if (typeof value === 'number')
@@ -393,16 +373,6 @@ export function vec3(): Vec3;
 export function vec3(): Vec3;
 /**
  * vec3 构造函数
- * @param uniform Uniform 变量
- */
-export function vec3(uniform: Uniform): Vec3;
-/**
- * vec3 构造函数
- * @param varying Varying 变量
- */
-export function vec3(varying: Varying): Vec3;
-/**
- * vec3 构造函数
  * @param value 单个值填充所有分量（Float 或数字）
  */
 export function vec3(value: Float | number): Vec3;
@@ -419,7 +389,7 @@ export function vec3(x: Float | number, y: Float | number, z: Float | number): V
  * @param z z 分量（Float 或数字）
  */
 export function vec3(vec2: Vec2, z: Float | number): Vec3;
-export function vec3(...args: (number | Uniform | Varying | Float | Vec2)[]): Vec3
+export function vec3(...args: (number | Float | Vec2)[]): Vec3
 {
     return new (Vec3 as any)(...args);
 }

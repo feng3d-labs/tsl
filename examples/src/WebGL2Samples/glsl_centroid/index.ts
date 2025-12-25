@@ -9,8 +9,8 @@
  * 此示例同时支持 WebGL 和 WebGPU 渲染。
  *
  * TSL 用法：
- * - 普通 varying: `float(varying('v_attr'))`
- * - centroid 插值: `float(varying('v_attr', { sampling: 'centroid' }))`
+ * - 普通 varying: `varying('v_attr', float())`
+ * - centroid 插值: `varying('v_attr', float(), { sampling: 'centroid' })`
  */
 
 import { PassEncoder, RenderPass, RenderPassDescriptor, RenderPassObject, RenderPipeline, RenderObject, Sampler, Texture, VertexAttributes, Viewport } from '@feng3d/render-api';

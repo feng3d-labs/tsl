@@ -152,8 +152,8 @@ describe('mod', () =>
 
         it('应该能够与float uniform一起使用', () =>
         {
-            const x = float(uniform('x'));
-            const y = float(uniform('y'));
+            const x = uniform('x', float());
+            const y = uniform('y', float());
 
             // 创建片段着色器
             const fShader = fragment('main', () =>
@@ -167,7 +167,7 @@ describe('mod', () =>
 
         it('应该能够与vec2组件一起使用', () =>
         {
-            const v = vec2(uniform('v'));
+            const v = uniform('v', vec2());
             const y = float(2.0);
 
             // 创建片段着色器

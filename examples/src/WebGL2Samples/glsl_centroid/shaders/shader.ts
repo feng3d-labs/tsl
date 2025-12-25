@@ -4,8 +4,8 @@
  * 演示 centroid 插值限定符的使用
  *
  * TSL 用法：
- * - 普通 varying: `float(varying('v_attr'))`
- * - centroid 插值: `float(varying('v_attr', { sampling: 'centroid' }))`
+ * - 普通 varying: `varying('v_attr', float())`
+ * - centroid 插值: `varying('v_attr', float(), { sampling: 'centroid' })`
  */
 
 import {
@@ -18,10 +18,10 @@ import { float } from '@feng3d/tsl';
 
 const position = attribute('position', vec2(), 0);
 const data = attribute('data', float(), 6);
-const MVP = mat4(uniform('MVP'));
+const MVP = uniform('MVP', mat4());
 
 // 普通 varying（默认使用 center 采样）
-const v_attribute = float(varying('v_attribute'));
+const v_attribute = varying('v_attribute', float());
 
 export const renderVertexShader = vertex('main', () =>
 {
@@ -51,7 +51,7 @@ export const renderFragmentShader = fragment('main', () =>
 // ==================== 渲染着色器（centroid 插值）====================
 
 // centroid varying（使用 centroid 采样，避免边缘外推）
-const v_attribute_centroid = float(varying('v_attribute', { sampling: 'centroid' }));
+const v_attribute_centroid = varying('v_attribute', float(), { sampling: 'centroid' });
 
 export const renderCentroidVertexShader = vertex('main', () =>
 {
@@ -77,8 +77,8 @@ export const renderCentroidFragmentShader = fragment('main', () =>
 
 const splashPosition = attribute('position', vec2(), 0);
 const texcoord = attribute('texcoord', vec2(), 1);
-const splashMVP = mat4(uniform('MVP'));
-const v_st = vec2(varying('v_st'));
+const splashMVP = uniform('MVP', mat4());
+const v_st = varying('v_st', vec2());
 
 export const splashVertexShader = vertex('main', () =>
 {

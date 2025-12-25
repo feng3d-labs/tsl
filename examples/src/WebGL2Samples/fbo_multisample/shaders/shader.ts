@@ -6,7 +6,7 @@ import { attribute, fragment, gl_Position, mat4, precision, return_, sampler2D, 
 const renderPosition = attribute('position', vec2(), 0);
 
 // Uniform
-const renderMVP = mat4(uniform('MVP'));
+const renderMVP = uniform('MVP', mat4());
 
 // 顶点着色器
 export const renderVertexShader = vertex('main', () =>
@@ -34,10 +34,10 @@ const splashPosition = attribute('position', vec2(), 0);
 const splashTexcoord = attribute('texcoord', vec2(), 1);
 
 // Uniform
-const splashMVP = mat4(uniform('MVP'));
+const splashMVP = uniform('MVP', mat4());
 
 // Varying
-const uv = vec2(varying('uv'));
+const uv = varying('uv', vec2());
 
 // 顶点着色器
 export const splashVertexShader = vertex('main', () =>

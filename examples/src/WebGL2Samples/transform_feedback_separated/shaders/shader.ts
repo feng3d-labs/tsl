@@ -8,10 +8,10 @@ import { attribute, clamp, fragment, gl_Position, mat4, precision, return_, tran
 const position = attribute('position', vec4(), 0);
 
 // Uniform
-const MVP = mat4(uniform('MVP'));
+const MVP = uniform('MVP', mat4());
 
 // Varying 变量
-const v_color = vec4(varying('v_color'));
+const v_color = varying('v_color', vec4());
 
 // Transform 顶点着色器
 export const transformVertexShader = transform('main', () =>
@@ -45,7 +45,7 @@ const feedbackPosition = attribute('position', vec4(), 0);
 const feedbackColor = attribute('color', vec4(), 3);
 
 // Feedback Varying
-const v_color_feedback = vec4(varying('v_color'));
+const v_color_feedback = varying('v_color', vec4());
 
 // Feedback 顶点着色器
 export const feedbackVertexShader = vertex('main', () =>

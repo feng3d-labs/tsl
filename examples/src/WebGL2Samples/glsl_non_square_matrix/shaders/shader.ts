@@ -22,10 +22,10 @@ import {
 
 const position = attribute('position', vec2(), 0);
 const texcoord = attribute('texcoord', vec2(), 1);
-const MVP = mat4x3(uniform('MVP'));
+const MVP = uniform('MVP', mat4x3());
 
 // Varying 变量
-const v_st = vec2(varying('v_st'));
+const v_st = varying('v_st', vec2());
 
 export const vertexShader = vertex('main', () =>
 {

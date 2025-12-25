@@ -84,7 +84,7 @@ describe('Precision', () =>
 
         it('应该在 fragment shader 中自动添加到依赖', () =>
         {
-            const color = vec4(uniform('color', 0, 0));
+            const color = uniform('color', vec4(), 0, 0);
 
             const fragmentShader = fragment('main', () =>
             {
@@ -100,7 +100,7 @@ describe('Precision', () =>
 
         it('应该在生成的 GLSL 代码中自动包含 precision 声明', () =>
         {
-            const color = vec4(uniform('color', 0, 0));
+            const color = uniform('color', vec4(), 0, 0);
 
             const fragmentShader = fragment('main', () =>
             {
@@ -122,7 +122,7 @@ describe('Precision', () =>
 
         it('应该支持在 fragment shader 中使用不同的 precision 值', () =>
         {
-            const color1 = vec4(uniform('color', 0, 0));
+            const color1 = uniform('color', vec4(), 0, 0);
 
             const fragmentShader1 = fragment('main', () =>
             {
@@ -134,7 +134,7 @@ describe('Precision', () =>
             const glsl1 = fragmentShader1.toGLSL();
             expect(glsl1).toContain('precision lowp float;');
 
-            const color2 = vec4(uniform('color', 0, 0));
+            const color2 = uniform('color', vec4(), 0, 0);
 
             const fragmentShader2 = fragment('main', () =>
             {
@@ -166,7 +166,7 @@ describe('Precision', () =>
         {
             const diffuse = sampler2DArray(uniform('diffuse'));
             const coord = vec2(0.5, 0.5);
-            const layer = int(uniform('layer')); // 使用 int 类型
+            const layer = uniform('layer', int()); // 使用 int 类型
 
             const fragmentShader = fragment('main', () =>
             {

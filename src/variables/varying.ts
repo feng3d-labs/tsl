@@ -1,5 +1,10 @@
 import { getBuildParam } from '../core/buildShader';
 import { IElement, ShaderValue } from '../core/IElement';
+import { Float } from '../types/scalar/float';
+import { Int } from '../types/scalar/int';
+import { Vec2 } from '../types/vector/vec2';
+import { Vec3 } from '../types/vector/vec3';
+import { Vec4 } from '../types/vector/vec4';
 
 /**
  * 插值类型
@@ -33,9 +38,9 @@ export interface VaryingOptions
 /**
  * Varying 类，表示在 vertex 和 fragment shader 之间传递的变量
  *
- * 使用方式：`const v_uv = vec2(varying('v_uv'))`
+ * 使用方式：`const v_uv = varying('v_uv', vec2())`
  *
- * 使用 centroid 插值：`const v_attr = float(varying('v_attr', { sampling: 'centroid' }))`
+ * 使用 centroid 插值：`const v_attr = varying('v_attr', float(), { sampling: 'centroid' })`
  *
  * @internal 库外部不应直接使用 `new Varying()`，应使用 `varying()` 函数
  */
@@ -212,25 +217,39 @@ export class Varying implements IElement
 }
 
 /**
+ * 支持的 varying 类型
+ */
+type VaryingType = Float | Int | Vec2 | Vec3 | Vec4;
+
+/**
  * 定义 varying 变量
  *
  * 使用方式：
- * - 基本用法：`const v_uv = vec2(varying('v_uv'))`
- * - 指定 location：`const v_uv = vec2(varying('v_uv', 0))`
- * - 使用选项对象：`const v_uv = vec2(varying('v_uv', { location: 0 }))`
- * - 使用 centroid 插值：`const v_attr = float(varying('v_attr', { sampling: 'centroid' }))`
- * - 使用 flat 插值：`const v_id = int(varying('v_id', { interpolation: 'flat' }))`
+ * - `const v_uv = varying('v_uv', vec2())` - 定义 vec2 类型的 varying
+ * - `const v_color = varying('v_color', vec4())` - 定义 vec4 类型的 varying
+ * - `const v_uv = varying('v_uv', vec2(), { location: 0 })` - 指定选项
+ * - `const v_attr = varying('v_attr', float(), { sampling: 'centroid' })` - 使用 centroid 插值
+ * - `const v_id = varying('v_id', int(), { interpolation: 'flat' })` - 使用 flat 插值
+ *
+ * @param name varying 名称
+ * @param value 类型模板（用于推断类型）
+ * @param options 可选的 VaryingOptions
+ * @returns 与 value 相同类型的实例，关联到创建的 Varying
  */
-export function varying(name: string): Varying;
-export function varying(name: string, location: number): Varying;
-export function varying(name: string, options: VaryingOptions): Varying;
-export function varying(name: string, options?: VaryingOptions | number): Varying
+export function varying<T extends VaryingType>(name: string, value: T, options?: VaryingOptions): T
 {
-    if (typeof options === 'number')
-    {
-        return new Varying(name, { location: options });
-    }
+    // 创建 Varying 实例
+    const vary = new Varying(name, options);
 
-    return new Varying(name, options);
+    // 创建与 value 相同类型的新实例
+    const result = new (value.constructor as new () => T)();
+
+    // 设置双向引用
+    result.toGLSL = () => name;
+    result.toWGSL = () => name;
+    result.dependencies = [vary];
+    vary.value = result;
+
+    return result;
 }
 

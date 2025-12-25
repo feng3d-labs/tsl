@@ -4,8 +4,8 @@ import { attribute, fragment, gl_FragColor, gl_Position, let_, mat4, uniform, ve
 const aVertexPosition = attribute('aVertexPosition', vec2());
 
 // Vertex shader 的 uniforms（group 缺省时使用默认值 0）
-const uModelViewMatrix = mat4(uniform('uModelViewMatrix'));
-const uProjectionMatrix = mat4(uniform('uProjectionMatrix'));
+const uModelViewMatrix = uniform('uModelViewMatrix', mat4());
+const uProjectionMatrix = uniform('uProjectionMatrix', mat4());
 
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>

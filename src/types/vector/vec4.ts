@@ -1,6 +1,4 @@
 import { IElement, ShaderValue } from '../../core/IElement';
-import { Uniform } from '../../variables/uniform';
-import { Varying } from '../../variables/varying';
 import { Assign } from '../../variables/assign';
 import { Builtin } from '../../glsl/builtin/builtin';
 import { FragColor } from '../../glsl/fragColor';
@@ -12,7 +10,7 @@ import { Vec2 } from './vec2';
 import { Vec3 } from './vec3';
 
 /**
- * Vec4 类型，表示 vec4 字面量值或 uniform/attribute 变量
+ * Vec4 类型，表示 vec4 字面量值
  * @internal 库外部不应直接使用 `new Vec4()`，应使用 `vec4()` 函数
  */
 export class Vec4 implements ShaderValue
@@ -25,9 +23,7 @@ export class Vec4 implements ShaderValue
     dependencies: IElement[];
 
     constructor();
-    constructor(uniform: Uniform);
     constructor(builtin: Builtin);
-    constructor(varying: Varying);
     constructor(color: FragColor);
     constructor(vec4: Vec4);
     constructor(uvec4: Uvec4);
@@ -35,22 +31,12 @@ export class Vec4 implements ShaderValue
     constructor(xy: Vec2, zw: Vec2);
     constructor(xyz: Vec3, w: number | Float);
     constructor(x: number | Float, y: number | Float, z: number | Float, w: number | Float);
-    constructor(...args: (number | Uniform | Builtin | Varying | FragColor | Vec2 | Vec3 | Float | Vec4 | Uvec4)[])
+    constructor(...args: (number | Builtin | FragColor | Vec2 | Vec3 | Float | Vec4 | Uvec4)[])
     {
         if (args.length === 0) return;
         if (args.length === 1)
         {
-            // 处理 uniform、attribute 或 builtin
-            if (args[0] instanceof Uniform)
-            {
-                const uniform = args[0] as Uniform;
-                uniform.value = this;
-
-                this.toGLSL = () => uniform.name;
-                this.toWGSL = () => uniform.name;
-                this.dependencies = [uniform];
-            }
-            else if (args[0] instanceof Builtin)
+            if (args[0] instanceof Builtin)
             {
                 const builtin = args[0] as Builtin;
 
@@ -58,15 +44,6 @@ export class Vec4 implements ShaderValue
                 this.toWGSL = () => builtin.getFullWGSLVarName();
                 this.dependencies = [builtin];
                 builtin.value = this;
-            }
-            else if (args[0] instanceof Varying)
-            {
-                const varying = args[0] as Varying;
-
-                this.toGLSL = () => varying.name;
-                this.toWGSL = () => varying.name;
-                this.dependencies = [varying];
-                varying.value = this;
             }
             else if (args[0] instanceof FragColor)
             {
@@ -498,19 +475,9 @@ export class Vec4 implements ShaderValue
 export function vec4(): Vec4;
 /**
  * vec4 构造函数
- * @param uniform Uniform 变量
- */
-export function vec4(uniform: Uniform): Vec4;
-/**
- * vec4 构造函数
  * @param builtin Builtin 变量
  */
 export function vec4(builtin: Builtin): Vec4;
-/**
- * vec4 构造函数
- * @param varying Varying 变量
- */
-export function vec4(varying: Varying): Vec4;
 /**
  * vec4 构造函数
  * @param color FragColor 颜色输出

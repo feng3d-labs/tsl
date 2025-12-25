@@ -18,15 +18,15 @@ const a_texCoord = attribute('a_texCoord', vec2(), 2);
 const a_normal = attribute('a_normal', vec3(), 3);
 
 // Uniform 变量
-const u_model = mat4(uniform('u_model'));
-const u_modelInvTrans = mat4(uniform('u_modelInvTrans')); // 用于正确变换法线到世界空间
-const u_viewProj = mat4(uniform('u_viewProj'));
-const u_lightPosition = vec3(uniform('u_lightPosition'));
+const u_model = uniform('u_model', mat4());
+const u_modelInvTrans = uniform('u_modelInvTrans', mat4()); // 用于正确变换法线到世界空间
+const u_viewProj = uniform('u_viewProj', mat4());
+const u_lightPosition = uniform('u_lightPosition', vec3());
 
 // Varying 变量（顶点着色器输出到片段着色器）
-const v_texCoord = vec2(varying('v_texCoord'));
-const v_normal = vec3(varying('v_normal'));
-const v_lightDirection = vec3(varying('v_lightDirection'));
+const v_texCoord = varying('v_texCoord', vec2());
+const v_normal = varying('v_normal', vec3());
+const v_lightDirection = varying('v_lightDirection', vec3());
 
 export const vertexShader = vertex('main', () =>
 {
@@ -52,7 +52,7 @@ export const vertexShader = vertex('main', () =>
 // ==================== 片段着色器 ====================
 
 const s_tex2D = sampler2D(uniform('s_tex2D'));
-const u_ambient = float(uniform('u_ambient'));
+const u_ambient = uniform('u_ambient', float());
 
 // 片段输出颜色
 const color = vec4(fragColor(0, 'color'));

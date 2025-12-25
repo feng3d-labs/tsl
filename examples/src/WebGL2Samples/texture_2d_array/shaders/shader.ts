@@ -5,10 +5,10 @@ const position = attribute('position', vec2(), 0);
 const texcoord = attribute('texcoord', vec2(), 4);
 
 // Uniforms
-const MVP = mat4(uniform('MVP'));
+const MVP = uniform('MVP', mat4());
 
 // Varying 变量
-const v_st = vec2(varying('v_st'));
+const v_st = varying('v_st', vec2());
 
 /**
  * 顶点着色器
@@ -26,7 +26,7 @@ export const vertexShader = vertex('main', () =>
 
 // 片段着色器 Uniforms
 const diffuse = sampler2DArray(uniform('diffuse'));
-const layer = int(uniform('layer'));
+const layer = uniform('layer', int());
 
 /**
  * 片段着色器

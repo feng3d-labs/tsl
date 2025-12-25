@@ -5,7 +5,7 @@ const pos = attribute('pos', vec2(), 0);
 const color = attribute('color', vec4(), 1);
 
 // varying 变量
-const v_color = vec4(varying('v_color'));
+const v_color = varying('v_color', vec4());
 
 // 顶点着色器
 export const vertexShader = vertex('main', () =>

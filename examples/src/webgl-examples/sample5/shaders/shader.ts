@@ -5,11 +5,11 @@ const aVertexPosition = attribute('aVertexPosition', vec3());
 const aVertexColor = attribute('aVertexColor', vec4());
 
 // Vertex shader 的 uniforms（group 缺省时使用默认值 0）
-const uModelViewMatrix = mat4(uniform('uModelViewMatrix'));
-const uProjectionMatrix = mat4(uniform('uProjectionMatrix'));
+const uModelViewMatrix = uniform('uModelViewMatrix', mat4());
+const uProjectionMatrix = uniform('uProjectionMatrix', mat4());
 
 // Varying 变量
-const vColor = vec4(varying('vColor'));
+const vColor = varying('vColor', vec4());
 
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>

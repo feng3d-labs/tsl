@@ -1,17 +1,36 @@
 import { buildShader } from '../core/buildShader';
 import { Builtin } from '../glsl/builtin/builtin';
+import { Varying } from '../variables/varying';
 import { Vertex } from './vertex';
 
 /**
- * Transform 类，继承自 Vertex，用于 Transform Feedback
+ * Transform 类，包装 Vertex 用于 Transform Feedback
  *
  * 专门用于 Transform Feedback 着色器，其 toWGSL 方法生成计算着色器代码。
  */
-export class Transform extends Vertex
+export class Transform
 {
+    private vertex: Vertex;
+
     constructor(name: string, body: () => void)
     {
-        super(name, body);
+        this.vertex = new Vertex(name, body);
+    }
+
+    /**
+     * 获取着色器函数名称
+     */
+    get name(): string
+    {
+        return this.vertex.name;
+    }
+
+    /**
+     * 获取函数体语句
+     */
+    get statements()
+    {
+        return this.vertex.statements;
     }
 
     /**
@@ -21,9 +40,9 @@ export class Transform extends Vertex
      *
      * @returns 完整的 GLSL 代码
      */
-    override toGLSL(): string
+    toGLSL(): string
     {
-        return super.toGLSL(2);
+        return this.vertex.toGLSL(2);
     }
 
     /**
@@ -31,29 +50,37 @@ export class Transform extends Vertex
      *
      * 自动从着色器中推断输出变量（gl_Position + 所有 varying）
      *
+     * @param options 可选配置
+     * @param options.bufferMode 缓冲区模式：'INTERLEAVED_ATTRIBS'（交错）或 'SEPARATE_ATTRIBS'（分离），默认为 'INTERLEAVED_ATTRIBS'
      * @returns 完整的 WGSL 计算着色器代码
      *
      * @example
      * ```typescript
+     * // 交错模式（默认）
      * const computeWgsl = transformShader.toWGSL();
+     *
+     * // 分离模式
+     * const computeWgsl = transformShader.toWGSL({ bufferMode: 'SEPARATE_ATTRIBS' });
      * ```
      */
-    override toWGSL(): string
+    toWGSL(options?: { bufferMode?: 'INTERLEAVED_ATTRIBS' | 'SEPARATE_ATTRIBS' }): string
     {
         const workgroupSize = 64;
+        const bufferMode = options?.bufferMode ?? 'INTERLEAVED_ATTRIBS';
+        const isSeparate = bufferMode === 'SEPARATE_ATTRIBS';
 
         return buildShader({ language: 'wgsl', stage: 'compute', version: 1 }, () =>
         {
             const lines: string[] = [];
 
             // 执行 body 收集依赖
-            this.executeBodyIfNeeded();
+            this.vertex['executeBodyIfNeeded']();
 
             // 从函数的 dependencies 中分析获取 attributes、uniforms（使用缓存）
-            const dependencies = this.getAnalyzedDependencies();
+            const dependencies = this.vertex.getAnalyzedDependencies();
 
             // 自动分配 location（对于 location 缺省的 attribute）
-            this.allocateLocations(dependencies.attributes);
+            this.vertex['allocateLocations'](dependencies.attributes);
 
             // 收集需要作为输入的 attributes
             const inputAttributes = globalThis.Array.from(dependencies.attributes);
@@ -65,7 +92,7 @@ export class Transform extends Vertex
             {
                 outputBuiltins.push(positionBuiltin);
             }
-            const outputVaryings = globalThis.Array.from(dependencies.varyings);
+            const outputVaryings: Varying[] = globalThis.Array.from(dependencies.varyings);
 
             // 生成输入结构体
             lines.push('struct VertexInput {');
@@ -77,19 +104,22 @@ export class Transform extends Vertex
             lines.push('}');
             lines.push('');
 
-            // 生成输出结构体
-            lines.push('struct VertexOutput {');
-            for (const builtin of outputBuiltins)
+            if (!isSeparate)
             {
-                lines.push('    position: vec4<f32>,');
+                // 交错模式：生成单一输出结构体
+                lines.push('struct VertexOutput {');
+                for (const builtin of outputBuiltins)
+                {
+                    lines.push('    position: vec4<f32>,');
+                }
+                for (const varying of outputVaryings)
+                {
+                    const wgslType = varying.value?.wgslType ?? 'vec4<f32>';
+                    lines.push(`    ${varying.name}: ${wgslType},`);
+                }
+                lines.push('}');
+                lines.push('');
             }
-            for (const varying of outputVaryings)
-            {
-                const wgslType = varying.value?.wgslType ?? 'vec4<f32>';
-                lines.push(`    ${varying.name}: ${wgslType},`);
-            }
-            lines.push('}');
-            lines.push('');
 
             // 收集结构体 uniform 的名称
             const structUniformNames = new Set(dependencies.structUniforms.map((s) => s.uniform.name));
@@ -120,9 +150,27 @@ export class Transform extends Vertex
             lines.push(`@group(0) @binding(${nextBinding}) var<storage, read> inputData: array<VertexInput>;`);
             nextBinding++;
 
-            // 生成输出存储缓冲区
-            lines.push(`@group(0) @binding(${nextBinding}) var<storage, read_write> outputData: array<VertexOutput>;`);
-            nextBinding++;
+            if (isSeparate)
+            {
+                // 分离模式：为每个输出生成独立的缓冲区
+                for (const builtin of outputBuiltins)
+                {
+                    lines.push(`@group(0) @binding(${nextBinding}) var<storage, read_write> outputData_gl_Position: array<vec4<f32>>;`);
+                    nextBinding++;
+                }
+                for (const varying of outputVaryings)
+                {
+                    const wgslType = varying.value?.wgslType ?? 'vec4<f32>';
+                    lines.push(`@group(0) @binding(${nextBinding}) var<storage, read_write> outputData_${varying.name}: array<${wgslType}>;`);
+                    nextBinding++;
+                }
+            }
+            else
+            {
+                // 交错模式：生成单一输出缓冲区
+                lines.push(`@group(0) @binding(${nextBinding}) var<storage, read_write> outputData: array<VertexOutput>;`);
+                nextBinding++;
+            }
 
             lines.push('');
 
@@ -131,7 +179,11 @@ export class Transform extends Vertex
             lines.push(`fn ${this.name}(@builtin(global_invocation_id) global_id: vec3<u32>) {`);
             lines.push('    let idx = global_id.x;');
             lines.push('    let input = inputData[idx];');
-            lines.push('    var output: VertexOutput;');
+
+            if (!isSeparate)
+            {
+                lines.push('    var output: VertexOutput;');
+            }
             lines.push('');
 
             // 设置 attribute 的 toWGSL 返回 input.attrName 格式
@@ -144,22 +196,36 @@ export class Transform extends Vertex
                 }
             }
 
-            // 设置 varying 的 toWGSL 返回 output.varyingName 格式
+            // 设置 varying 的 toWGSL 返回对应格式
             for (const varying of outputVaryings)
             {
                 if (varying.value)
                 {
                     const varyingName = varying.name;
-                    varying.value.toWGSL = () => `output.${varyingName}`;
+                    if (isSeparate)
+                    {
+                        varying.value.toWGSL = () => `outputData_${varyingName}[idx]`;
+                    }
+                    else
+                    {
+                        varying.value.toWGSL = () => `output.${varyingName}`;
+                    }
                 }
             }
 
-            // 设置 position builtin 的 toWGSL 返回 output.position 格式
+            // 设置 position builtin 的 toWGSL 返回对应格式
             for (const builtin of outputBuiltins)
             {
                 if (builtin.isPosition && builtin.value)
                 {
-                    builtin.value.toWGSL = () => 'output.position';
+                    if (isSeparate)
+                    {
+                        builtin.value.toWGSL = () => 'outputData_gl_Position[idx]';
+                    }
+                    else
+                    {
+                        builtin.value.toWGSL = () => 'output.position';
+                    }
                 }
             }
 
@@ -184,8 +250,13 @@ export class Transform extends Vertex
                 }
             }
 
-            lines.push('');
-            lines.push('    outputData[idx] = output;');
+            if (!isSeparate)
+            {
+                // 交错模式：将输出写入单一缓冲区
+                lines.push('');
+                lines.push('    outputData[idx] = output;');
+            }
+
             lines.push('}');
 
             return lines.join('\n') + '\n';
@@ -212,6 +283,9 @@ export class Transform extends Vertex
  *
  * // 生成 WGSL 计算着色器（WebGPU）
  * const wgsl = transformShader.toWGSL();
+ *
+ * // 分离模式
+ * const wgslSeparate = transformShader.toWGSL({ bufferMode: 'SEPARATE_ATTRIBS' });
  * ```
  */
 export function transform(name: string, body: () => void): Transform

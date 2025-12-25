@@ -8,6 +8,7 @@ import { IVec2 } from '../types/vector/ivec2';
 import { Mat4 } from '../types/matrix/mat4';
 import { Mat4x3 } from '../types/matrix/mat4x3';
 import { Mat2 } from '../types/matrix/mat2';
+import { isStructType, StructType, StructMembers, ResolveMembers, Struct } from './struct';
 
 /**
  * 需要对齐的矩阵类型（在 WebGPU uniform buffer 中每列 vec3 需要按 vec4 对齐）
@@ -117,12 +118,11 @@ type UniformType = Float | Int | Vec2 | Vec3 | Vec4 | IVec2 | Mat4 | Mat4x3 | Ma
  * 使用方式：
  * - `const color = uniform('color', vec4())` - 定义 vec4 类型的 uniform
  * - `const mvp = uniform('mvp', mat4())` - 定义 mat4 类型的 uniform
+ * - `const perDraw = uniform('perDraw', PerDraw)` - 定义结构体类型的 uniform
  * - `const color = uniform('color', vec4(), 0, 0)` - 指定 group 和 binding
  *
- * @internal 内部使用：`uniform('name')` 返回 Uniform 实例，用于 struct 等内部模块
- *
  * @param name uniform 名称
- * @param value 类型模板（用于推断类型）
+ * @param value 类型模板（用于推断类型）或结构体构造函数
  * @param group 可选的 group 值（默认 0）
  * @param binding 可选的 binding 值
  * @returns 与 value 相同类型的实例，关联到创建的 Uniform
@@ -130,26 +130,35 @@ type UniformType = Float | Int | Vec2 | Vec3 | Vec4 | IVec2 | Mat4 | Mat4x3 | Ma
 export function uniform<T extends UniformType>(name: string, value: T): T;
 export function uniform<T extends UniformType>(name: string, value: T, group: number): T;
 export function uniform<T extends UniformType>(name: string, value: T, group: number, binding: number): T;
-/** @internal 用于 struct 内部使用 */
+export function uniform<T extends StructMembers>(name: string, value: StructType<T>): ResolveMembers<T>;
+export function uniform<T extends StructMembers>(name: string, value: StructType<T>, group: number): ResolveMembers<T>;
+export function uniform<T extends StructMembers>(name: string, value: StructType<T>, group: number, binding: number): ResolveMembers<T>;
+/** @internal 用于 sampler2D/sampler2DArray 内部使用 */
 export function uniform(name: string): Uniform;
-export function uniform<T extends UniformType>(
+export function uniform<T extends UniformType | StructMembers>(
     name: string,
-    value?: T,
+    value?: T | StructType<any>,
     group?: number,
     binding?: number,
-): T | Uniform
+): T | ResolveMembers<any> | Uniform
 {
-    // 内部使用：仅传入 name 时返回 Uniform 实例
-    if (value === undefined)
-    {
-        return new Uniform(name, group, binding);
-    }
-
     // 创建 Uniform 实例
     const uni = new Uniform(name, group, binding);
 
+    // 内部使用：仅传入 name 时返回 Uniform 实例（用于 sampler2D/sampler2DArray）
+    if (value === undefined)
+    {
+        return uni;
+    }
+
+    // 如果是结构体类型，创建结构体实例
+    if (isStructType(value))
+    {
+        return new Struct(uni, value._definition) as unknown as ResolveMembers<any>;
+    }
+
     // 创建与 value 相同类型的新实例
-    const result = new (value.constructor as new () => T)();
+    const result = new ((value as UniformType).constructor as new () => UniformType)();
 
     // 设置双向引用
     result.toGLSL = () => name;
@@ -157,6 +166,6 @@ export function uniform<T extends UniformType>(
     result.dependencies = [uni];
     uni.value = result;
 
-    return result;
+    return result as T;
 }
 

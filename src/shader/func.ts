@@ -3,6 +3,12 @@ import { buildShader } from '../core/buildShader';
 import { IStatement } from '../core/Statement';
 import { setCurrentFunc } from '../core/currentFunc';
 import { IElement, ShaderValue } from '../core/IElement';
+import { Float } from '../types/scalar/float';
+
+/**
+ * 条件类型：如果 T 是 Float，则添加 | number 支持
+ */
+type MaybeNumber<T> = T extends Float ? T | number : T;
 
 /**
  * 参数信息
@@ -362,6 +368,15 @@ type ParamTypesFromDefs<T extends ParamDef[]> = {
             : never;
 };
 
+// 类型辅助：为调用参数添加 | number 支持（仅用于函数调用签名）
+type CallParamsFromDefs<T extends ParamDef[]> = {
+    [K in keyof T]: T[K] extends [string, (...args: any[]) => infer R]
+        ? MaybeNumber<R>
+        : T[K] extends (...args: any[]) => infer R
+            ? MaybeNumber<R>
+            : never;
+};
+
 // 辅助类型：判断是否所有参数都是带名称的格式（未使用，保留以备将来扩展）
 // type AllNamed<T extends ParamDef[]> = T extends [string, (...args: any[]) => ShaderValue][] ? true : false;
 
@@ -439,7 +454,7 @@ export function func<
     paramDefs: [...TParamDefs],
     returnType: (...args: any[]) => TReturn,
     body: (...params: ParamTypesFromDefs<TParamDefs>) => void,
-): (...args: ParamTypesFromDefs<TParamDefs>) => TReturn;
+): (...args: CallParamsFromDefs<TParamDefs>) => TReturn;
 
 // 实现
 export function func(

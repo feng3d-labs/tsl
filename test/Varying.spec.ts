@@ -164,9 +164,9 @@ describe('Varying', () =>
         it('应该在片段着色器中也包含 @interpolate(flat) 属性', () =>
         {
             const Material = struct('Material', {
-                Diffuse: array(vec4, 2),
+                Diffuse: array(vec4(), 2),
             });
-            const material = Material(uniform('material'));
+            const material = uniform('material', Material);
 
             const instance = varying('instance', int(), { interpolation: 'flat' });
 
@@ -194,9 +194,9 @@ describe('Varying', () =>
         it('应该在片段着色器中使用 input.xxx 格式访问 varying', () =>
         {
             const Material = struct('Material', {
-                Diffuse: array(vec4, 2),
+                Diffuse: array(vec4(), 2),
             });
-            const material = Material(uniform('material'));
+            const material = uniform('material', Material);
 
             const instance = varying('instance', int(), { interpolation: 'flat' });
 
@@ -222,9 +222,9 @@ describe('Varying', () =>
         it('应该在数组索引中正确使用 input.xxx 格式', () =>
         {
             const Material = struct('Material', {
-                Diffuse: array(vec4, 2),
+                Diffuse: array(vec4(), 2),
             });
-            const material = Material(uniform('material'));
+            const material = uniform('material', Material);
 
             const instance = varying('instance', int(), { interpolation: 'flat' });
 

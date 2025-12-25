@@ -12,31 +12,34 @@ describe('Struct', () =>
         it('应该能够创建简单结构体', () =>
         {
             const Material = struct('Material', {
-                color: vec4,
+                color: vec4(),
             });
 
-            expect(typeof Material).toBe('function');
+            expect(typeof Material).toBe('object');
+            expect(Material._definition).toBeDefined();
         });
 
         it('应该能够创建包含多个成员的结构体', () =>
         {
             const Transform = struct('Transform', {
-                model: mat4,
-                view: mat4,
-                projection: mat4,
+                model: mat4(),
+                view: mat4(),
+                projection: mat4(),
             });
 
-            expect(typeof Transform).toBe('function');
+            expect(typeof Transform).toBe('object');
+            expect(Transform._definition).toBeDefined();
         });
 
         it('应该能够创建包含数组成员的结构体', () =>
         {
             const Lights = struct('Lights', {
-                positions: array(vec4, 4),
-                colors: array(vec4, 4),
+                positions: array(vec4(), 4),
+                colors: array(vec4(), 4),
             });
 
-            expect(typeof Lights).toBe('function');
+            expect(typeof Lights).toBe('object');
+            expect(Lights._definition).toBeDefined();
         });
     });
 
@@ -45,10 +48,10 @@ describe('Struct', () =>
         it('应该能够通过 uniform 创建结构体实例', () =>
         {
             const Material = struct('Material', {
-                color: vec4,
+                color: vec4(),
             });
 
-            const material = Material(uniform('material'));
+            const material = uniform('material', Material);
 
             expect(material instanceof Struct).toBe(true);
             expect(material.color instanceof Vec4).toBe(true);
@@ -57,11 +60,11 @@ describe('Struct', () =>
         it('应该能够访问简单成员', () =>
         {
             const Material = struct('Material', {
-                color: vec4,
-                ambient: vec4,
+                color: vec4(),
+                ambient: vec4(),
             });
 
-            const material = Material(uniform('material'));
+            const material = uniform('material', Material);
 
             expect(material.color.toGLSL()).toBe('material.color');
             expect(material.color.toWGSL()).toBe('material.color');
@@ -72,10 +75,10 @@ describe('Struct', () =>
         it('应该能够访问数组成员', () =>
         {
             const Transform = struct('Transform', {
-                MVP: array(mat4, 2),
+                MVP: array(mat4(), 2),
             });
 
-            const transform = Transform(uniform('transform'));
+            const transform = uniform('transform', Transform);
 
             expect(transform.MVP instanceof TSLArray).toBe(true);
             expect(transform.MVP.length).toBe(2);
@@ -84,10 +87,10 @@ describe('Struct', () =>
         it('应该能够通过 index() 访问数组元素', () =>
         {
             const Transform = struct('Transform', {
-                MVP: array(mat4, 2),
+                MVP: array(mat4(), 2),
             });
 
-            const transform = Transform(uniform('transform'));
+            const transform = uniform('transform', Transform);
 
             expect(transform.MVP.index(0).toGLSL()).toBe('transform.MVP[0]');
             expect(transform.MVP.index(0).toWGSL()).toBe('transform.MVP[0]');
@@ -103,9 +106,9 @@ describe('Struct', () =>
             const pos = attribute('pos', vec2(), 0);
 
             const Transform = struct('Transform', {
-                MVP: array(mat4, 2),
+                MVP: array(mat4(), 2),
             });
-            const transform = Transform(uniform('transform'));
+            const transform = uniform('transform', Transform);
 
             const vertexShader = vertex('main', () =>
             {
@@ -123,9 +126,9 @@ describe('Struct', () =>
         it('应该在片段着色器中生成正确的 UBO 声明', () =>
         {
             const Material = struct('Material', {
-                Diffuse: array(vec4, 2),
+                Diffuse: array(vec4(), 2),
             });
-            const material = Material(uniform('material'));
+            const material = uniform('material', Material);
 
             const instance = varying('instance', int(), { interpolation: 'flat' });
 
@@ -149,9 +152,9 @@ describe('Struct', () =>
             const pos = attribute('pos', vec2(), 0);
 
             const Transform = struct('Transform', {
-                MVP: array(mat4, 2),
+                MVP: array(mat4(), 2),
             });
-            const transform = Transform(uniform('transform'));
+            const transform = uniform('transform', Transform);
 
             const vertexShader = vertex('main', () =>
             {
@@ -168,9 +171,9 @@ describe('Struct', () =>
         it('应该在片段着色器中生成正确的 WGSL 结构体', () =>
         {
             const Material = struct('Material', {
-                Diffuse: array(vec4, 2),
+                Diffuse: array(vec4(), 2),
             });
-            const material = Material(uniform('material'));
+            const material = uniform('material', Material);
 
             const instance = varying('instance', int(), { interpolation: 'flat' });
 

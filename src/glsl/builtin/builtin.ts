@@ -1,7 +1,7 @@
 import { IElement, ShaderValue } from '../../core/IElement';
 import { Bool } from '../../types/scalar/bool';
 import { Float } from '../../types/scalar/float';
-import { UInt } from '../../types/scalar/uint';
+import { Int } from '../../types/scalar/int';
 import { Vec2 } from '../../types/vector/vec2';
 import { Vec4 } from '../../types/vector/vec4';
 
@@ -239,9 +239,9 @@ interface BuiltinMap
 {
     'gl_Position': Vec4,
     'gl_FrontFacing': Bool,
-    'gl_VertexID': UInt,
+    'gl_VertexID': Int,
     'gl_FragCoord': Vec2,
-    'gl_InstanceID': UInt,
+    'gl_InstanceID': Int,
     'gl_FragColor': Vec4,
     'gl_PointSize': Float,
 }
@@ -255,8 +255,20 @@ export function builtin<T extends keyof BuiltinMap>(builtinName: T, value: Built
     const bi = new Builtin(builtinName);
     const result = new (value.constructor as new () => BuiltinMap[T])();
     result.toGLSL = () => bi.toGLSL();
-    // toWGSL 返回完整变量名（包括结构体前缀，如 output.position）
-    result.toWGSL = () => bi.getFullWGSLVarName();
+
+    // toWGSL 返回完整变量名
+    // 对于 gl_VertexID 和 gl_InstanceID，WGSL 中是 u32 类型，需要转换为 i32
+    if (builtinName === 'gl_VertexID' || builtinName === 'gl_InstanceID')
+    {
+        result.toWGSL = () => `i32(${bi.getFullWGSLVarName()})`;
+        // 存储原始 WGSL 表达式，用于数组索引（u32 类型可直接作为索引）
+        (result as any).toRawWGSL = () => bi.getFullWGSLVarName();
+    }
+    else
+    {
+        result.toWGSL = () => bi.getFullWGSLVarName();
+    }
+
     result.dependencies = [bi];
     bi.value = result;
 

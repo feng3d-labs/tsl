@@ -17,10 +17,17 @@ export class Int implements ShaderValue
     toWGSL: () => string;
     dependencies: IElement[];
 
+    /**
+     * 获取原始 WGSL 表达式（不带类型转换）
+     * 用于数组索引等场景，避免不必要的 i32() 转换
+     */
+    toRawWGSL?: () => string;
+
     constructor();
     constructor(value: number);
     constructor(other: UInt);
-    constructor(...args: (number | UInt)[])
+    constructor(other: Int);
+    constructor(...args: (number | UInt | Int)[])
     {
         if (args.length === 0)
         {
@@ -34,6 +41,14 @@ export class Int implements ShaderValue
             this.toGLSL = () => `${intValue}`;
             this.toWGSL = () => `${intValue}`;
             this.dependencies = [];
+        }
+        else if (args.length === 1 && args[0] instanceof Int)
+        {
+            // Int 到 Int：直接复制引用（不需要类型转换）
+            const other = args[0] as Int;
+            this.toGLSL = () => other.toGLSL();
+            this.toWGSL = () => other.toWGSL();
+            this.dependencies = other.dependencies ? [...other.dependencies] : [];
         }
         else if (args.length === 1 && args[0] instanceof UInt)
         {
@@ -127,6 +142,29 @@ export class Int implements ShaderValue
 
         return result;
     }
+
+    /**
+     * 除法运算
+     */
+    divide(other: Int | number): Int
+    {
+        const result = new Int();
+        if (typeof other === 'number')
+        {
+            const intValue = Math.floor(other);
+            result.toGLSL = () => `${this.toGLSL()} / ${intValue}`;
+            result.toWGSL = () => `${this.toWGSL()} / ${intValue}`;
+            result.dependencies = [this];
+        }
+        else
+        {
+            result.toGLSL = () => `${this.toGLSL()} / ${other.toGLSL()}`;
+            result.toWGSL = () => `${this.toWGSL()} / ${other.toWGSL()}`;
+            result.dependencies = [this, other];
+        }
+
+        return result;
+    }
 }
 
 /**
@@ -135,7 +173,8 @@ export class Int implements ShaderValue
 export function int(): Int;
 export function int(value: number): Int;
 export function int(other: UInt): Int;
-export function int(...args: (number | UInt)[]): Int
+export function int(other: Int): Int;
+export function int(...args: (number | UInt | Int)[]): Int
 {
     return new (Int as any)(...args);
 }

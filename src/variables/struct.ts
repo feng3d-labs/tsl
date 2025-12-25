@@ -1,16 +1,11 @@
-import { Array } from './array';
+import { Array as TSLArray } from './array';
 import { IElement, ShaderValue } from '../core/IElement';
 import { Uniform } from './uniform';
 
 /**
- * 类型工厂函数（如 vec4、mat4、array(mat4, 2) 等）
+ * 结构体成员类型（支持 Array 实例、ShaderValue 实例和嵌套结构体）
  */
-type TypeFactory<T extends ShaderValue = any> = (...args: any[]) => T;
-
-/**
- * 结构体成员类型
- */
-export type StructMemberType = TypeFactory;
+export type StructMemberType = TSLArray<any> | ShaderValue | StructType<any>;
 
 /**
  * 结构体成员定义
@@ -18,38 +13,42 @@ export type StructMemberType = TypeFactory;
 export type StructMembers = Record<string, StructMemberType>;
 
 /**
- * 将成员工厂函数类型映射为其返回值类型
+ * 将成员类型映射为其实际类型
  * 对于嵌套结构体，递归解析其成员类型
  */
-type ResolveMembers<T extends StructMembers> = {
+export type ResolveMembers<T extends StructMembers> = {
     [K in keyof T]: T[K] extends StructConstructor<infer U>
-        ? ResolveMembers<U>
-        : T[K] extends (...args: any[]) => infer R
-            ? R
-            : never;
+    ? ResolveMembers<U>
+    : T[K] extends TSLArray<infer E>
+    ? TSLArray<E>
+    : T[K];
 };
 
 /**
- * 结构体构造函数类型标记
+ * 结构体类型标记
  */
-const STRUCT_CONSTRUCTOR_MARKER = Symbol('structConstructor');
+const STRUCT_TYPE_MARKER = Symbol('structType');
 
 /**
- * 结构体构造函数类型
+ * 结构体类型定义（由 struct() 返回）
  */
-export interface StructConstructor<T extends StructMembers> {
-    (uniform: Uniform): ResolveMembers<T>;
-    [STRUCT_CONSTRUCTOR_MARKER]: true;
+export interface StructType<T extends StructMembers>
+{
+    [STRUCT_TYPE_MARKER]: true;
     _definition: StructDefinition<T>;
 }
 
 /**
- * 判断是否为结构体构造函数
+ * 判断是否为结构体类型
  */
-export function isStructConstructor(fn: unknown): fn is StructConstructor<any>
+export function isStructType(obj: unknown): obj is StructType<any>
 {
-    return typeof fn === 'function' && (fn as any)[STRUCT_CONSTRUCTOR_MARKER] === true;
+    return typeof obj === 'object' && obj !== null && (obj as any)[STRUCT_TYPE_MARKER] === true;
 }
+
+// 保留旧的名称作为别名，以便向后兼容
+export const isStructConstructor = isStructType;
+export type StructConstructor<T extends StructMembers> = StructType<T>;
 
 /**
  * 结构体定义
@@ -78,13 +77,14 @@ export class StructDefinition<T extends StructMembers>
                 return `    ${type._definition.name} ${name};`;
             }
 
-            const instance = type();
-            if (instance instanceof Array)
+            // 检查是否是 Array 实例
+            if (type instanceof TSLArray)
             {
-                return `    ${instance.glslType} ${name}[${instance.length}];`;
+                return `    ${type.glslType} ${name}[${type.length}];`;
             }
 
-            return `    ${instance.glslType} ${name};`;
+            // 普通成员（ShaderValue 实例）
+            return `    ${(type as any).glslType} ${name};`;
         });
 
         return `struct ${this.name}\n{\n${memberLines.join('\n')}\n};`;
@@ -103,13 +103,14 @@ export class StructDefinition<T extends StructMembers>
                 return `    ${type._definition.name} ${name};`;
             }
 
-            const instance = type();
-            if (instance instanceof Array)
+            // 检查是否是 Array 实例
+            if (type instanceof TSLArray)
             {
-                return `    ${instance.glslType} ${name}[${instance.length}];`;
+                return `    ${type.glslType} ${name}[${type.length}];`;
             }
 
-            return `    ${instance.glslType} ${name};`;
+            // 普通成员（ShaderValue 实例）
+            return `    ${(type as any).glslType} ${name};`;
         });
 
         return `layout(std140, column_major) uniform;\nuniform ${this.name}\n{\n${memberLines.join('\n')}\n} ${instanceName};`;
@@ -128,13 +129,14 @@ export class StructDefinition<T extends StructMembers>
                 return `    ${name}: ${type._definition.name}`;
             }
 
-            const instance = type();
-            if (instance instanceof Array)
+            // 检查是否是 Array 实例
+            if (type instanceof TSLArray)
             {
-                return `    ${name}: array<${instance.wgslType}, ${instance.length}>`;
+                return `    ${name}: array<${type.wgslType}, ${type.length}>`;
             }
 
-            return `    ${name}: ${instance.wgslType}`;
+            // 普通成员（ShaderValue 实例）
+            return `    ${name}: ${(type as any).wgslType}`;
         });
 
         return `struct ${this.name}\n{\n${memberLines.join(',\n')}\n}`;
@@ -189,46 +191,33 @@ export class Struct<T extends StructMembers>
         // 为每个成员创建访问器
         for (const [memberName, memberType] of Object.entries(definition.members))
         {
-            // 检查是否是函数类型
-            if (typeof memberType === 'function')
+            // 直接是 Array 实例（array(mat4(), 2) 返回的）
+            if (memberType instanceof TSLArray)
             {
-                // 检查是否是嵌套结构体构造函数
-                if (isStructConstructor(memberType))
-                {
-                    // 嵌套结构体：递归创建成员访问器
-                    const nestedPath = `${instanceName}.${memberName}`;
-                    const nestedStruct = new Struct(uniformVar, memberType._definition, nestedPath);
-                    this[memberName] = nestedStruct;
-                    continue;
-                }
-
-                const instance = memberType();
-                if (instance instanceof Array)
-                {
-                    // 数组成员
-                    instance._setAccessPath(instanceName, instanceName, memberName);
-                    // 将 uniform 添加到依赖中，以便依赖分析能够找到结构体定义
-                    instance.dependencies = [uniformVar];
-                    this[memberName] = instance;
-                }
-                else
-                {
-                    // 普通类型函数（如 vec4、mat4）
-                    instance.toGLSL = () => `${instanceName}.${memberName}`;
-                    instance.toWGSL = () => `${instanceName}.${memberName}`;
-                    // 将 uniform 添加到依赖中，以便依赖分析能够找到结构体定义
-                    instance.dependencies = [uniformVar];
-                    this[memberName] = instance;
-                }
+                // 创建数组副本并设置访问路径（调用工厂函数获取元素类型实例）
+                const arrayInstance = new TSLArray(memberType.elementType(), memberType.length);
+                arrayInstance._setAccessPath(instanceName, instanceName, memberName);
+                arrayInstance.dependencies = [uniformVar];
+                this[memberName] = arrayInstance;
                 continue;
             }
 
-            // 普通成员（对象类型）
-            this[memberName] = this._createMemberValue(
-                instanceName,
-                memberName,
-                memberType as { glslType: string; wgslType: string },
-            );
+            // 检查是否是嵌套结构体（struct 返回的对象）
+            if (isStructType(memberType))
+            {
+                // 嵌套结构体：递归创建成员访问器
+                const nestedPath = `${instanceName}.${memberName}`;
+                const nestedStruct = new Struct(uniformVar, memberType._definition, nestedPath);
+                this[memberName] = nestedStruct;
+                continue;
+            }
+
+            // 普通成员（ShaderValue 实例，如 mat4()、vec3()）
+            const instance = new ((memberType as any).constructor as new () => ShaderValue)();
+            instance.toGLSL = () => `${instanceName}.${memberName}`;
+            instance.toWGSL = () => `${instanceName}.${memberName}`;
+            instance.dependencies = [uniformVar];
+            this[memberName] = instance;
         }
 
         // 仅在顶层结构体时设置 uniform 的 value
@@ -266,21 +255,18 @@ export class Struct<T extends StructMembers>
  * 创建结构体定义
  * @param name 结构体名称
  * @param members 成员定义
- * @returns 结构体构造函数
+ * @returns 结构体类型定义（可作为 uniform 的类型参数或嵌套结构体的成员）
  */
-export function struct<T extends StructMembers>(name: string, members: T): StructConstructor<T>
+export function struct<T extends StructMembers>(name: string, members: T): T & StructType<T>
 {
     const definition = new StructDefinition(name, members);
 
-    // 创建结构体构造函数
-    const constructor = ((uniformVar: Uniform): ResolveMembers<T> =>
-    {
-        return new Struct<T>(uniformVar, definition) as unknown as ResolveMembers<T>;
-    }) as StructConstructor<T>;
+    // 创建结构体类型对象
+    const structType = {
+        ...members,
+        [STRUCT_TYPE_MARKER]: true as const,
+        _definition: definition,
+    };
 
-    // 标记为结构体构造函数
-    constructor[STRUCT_CONSTRUCTOR_MARKER] = true;
-    constructor._definition = definition;
-
-    return constructor;
+    return structType as T & StructType<T>;
 }

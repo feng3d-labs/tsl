@@ -3,6 +3,7 @@ import { Assign } from '../../variables/assign';
 import { formatOperand } from '../../core/expressionUtils';
 import { formatNumber } from '../../core/formatNumber';
 import { Bool } from './bool';
+import { Int } from './int';
 import { UInt } from './uint';
 import { Vec2 } from '../vector/vec2';
 import { Vec3 } from '../vector/vec3';
@@ -23,15 +24,23 @@ export class Float implements ShaderValue
 
     constructor();
     constructor(value: number);
+    constructor(value: Int);
     constructor(value: UInt);
-    constructor(...args: (number | UInt)[])
+    constructor(...args: (number | Int | UInt)[])
     {
         if (args.length === 0)
         {
             // 无参数构造函数，用于 var_ 函数创建新实例
             return;
         }
-        if (args.length === 1 && args[0] instanceof UInt)
+        if (args.length === 1 && args[0] instanceof Int)
+        {
+            const value = args[0] as Int;
+            this.toGLSL = () => `float(${value.toGLSL()})`;
+            this.toWGSL = () => `f32(${value.toWGSL()})`;
+            this.dependencies = [value];
+        }
+        else if (args.length === 1 && args[0] instanceof UInt)
         {
             const value = args[0] as UInt;
             this.toGLSL = () => `float(${value.toGLSL()})`;
@@ -715,6 +724,7 @@ export class Float implements ShaderValue
  */
 export function float(): Float;
 export function float(value: number): Float;
+export function float(value: Int): Float;
 export function float(value: UInt): Float;
 export function float(...args: any[]): Float
 {

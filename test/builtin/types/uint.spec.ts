@@ -4,7 +4,6 @@ import { vec3 } from '../../../src/types/vector/vec3';
 import { vertex } from '../../../src/shader/vertex';
 import { fragment } from '../../../src/shader/fragment';
 import { float } from '../../../src/types/scalar/float';
-import { gl_VertexID } from '../../../src/glsl/builtin/builtins';
 
 // 模拟函数
 let currentFunc = {
@@ -71,22 +70,9 @@ describe('UInt', () => {
             expect(u.toGLSL()).toBe('5u');
             expect(u.toWGSL()).toBe('5u');
         });
-
-        it('应该能够创建 uint builtin 实例', () => {
-            const u = gl_VertexID;
-            expect(u.glslType).toBe('uint');
-            expect(u.wgslType).toBe('u32');
-            expect(u.dependencies.length).toBeGreaterThan(0);
-        });
     });
 
     describe('toGLSL', () => {
-        it('应该生成正确的 gl_VertexID GLSL 代码', () => {
-            const u = gl_VertexID;
-            // gl_VertexID 在 GLSL 中是 int 类型，可以直接作为数组索引使用
-            expect(u.toGLSL()).toBe('gl_VertexID');
-        });
-
         it('应该生成正确的 uint 字面量 GLSL 代码', () => {
             const u = uint(0);
             expect(u.toGLSL()).toBe('0u');
@@ -97,11 +83,6 @@ describe('UInt', () => {
     });
 
     describe('toWGSL', () => {
-        it('应该生成正确的 vertex_index WGSL 代码', () => {
-            const u = gl_VertexID;
-            expect(u.toWGSL()).toBe('vertexIndex');
-        });
-
         it('应该生成正确的 uint 字面量 WGSL 代码', () => {
             const u = uint(0);
             expect(u.toWGSL()).toBe('0u');
@@ -147,27 +128,14 @@ describe('UInt', () => {
         });
     });
 
-    describe('与 builtin 变量一起使用', () => {
-        it('gl_VertexID 应该生成正确的 GLSL 代码', () => {
-            const u = gl_VertexID;
-            // gl_VertexID 在 GLSL 中是 int 类型，可以直接作为数组索引使用
-            expect(u.toGLSL()).toBe('gl_VertexID');
-        });
-
-        it('gl_VertexID 应该生成正确的 WGSL 代码', () => {
-            const u = gl_VertexID;
-            expect(u.toWGSL()).toBe('vertexIndex');
-        });
-    });
-
     describe('在着色器中使用', () => {
         it('应该能够在顶点着色器中使用', () => {
-            const v = gl_VertexID;
+            const u = uint(5);
             const f = float(1.0);
 
             // 创建顶点着色器
             const vShader = vertex('main', () => {
-                const result = v.mod(2);
+                const result = u.mod(2);
             });
 
             // 检查着色器是否成功创建
@@ -175,11 +143,11 @@ describe('UInt', () => {
         });
 
         it('应该能够在片段着色器中使用', () => {
-            const v = gl_VertexID;
+            const u = uint(5);
 
             // 创建片段着色器
             const fShader = fragment('main', () => {
-                const result = v.mod(2);
+                const result = u.mod(2);
             });
 
             // 检查着色器是否成功创建
@@ -189,12 +157,12 @@ describe('UInt', () => {
 
     describe('UInt 类型与其他类型的交互', () => {
         it('应该能够与 vec3 类型一起使用', () => {
-            const v = gl_VertexID;
+            const u = uint(5);
             const n = vec3(1.0, 2.0, 3.0);
 
             // 创建片段着色器
             const fShader = fragment('main', () => {
-                const result = v.mod(2);
+                const result = u.mod(2);
                 // 可以与vec3一起使用
             });
 

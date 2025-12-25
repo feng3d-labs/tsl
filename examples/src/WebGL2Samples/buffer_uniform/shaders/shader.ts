@@ -7,9 +7,9 @@ const color = attribute('color', vec4(), 2);
 
 // 定义 Transform 结构体
 const Transform = struct('Transform', {
-    P: mat4,
-    MV: mat4,
-    Mnormal: mat4,
+    P: mat4(),
+    MV: mat4(),
+    Mnormal: mat4(),
 });
 
 // 定义 PerDraw UBO
@@ -17,7 +17,7 @@ const PerDraw = struct('PerDraw', {
     transform: Transform,
 });
 
-const perDraw = PerDraw(uniform('perDraw'));
+const perDraw = uniform('perDraw', PerDraw);
 
 // Varying 变量
 const v_normal = varying('v_normal', vec3());
@@ -48,10 +48,10 @@ export const vertexShader = vertex('main', () =>
 
 // 定义 Material 结构体
 const Material = struct('Material', {
-    ambient: vec3,
-    diffuse: vec3,
-    specular: vec3,
-    shininess: float,
+    ambient: vec3(),
+    diffuse: vec3(),
+    specular: vec3(),
+    shininess: float(),
 });
 
 // 定义 PerScene UBO
@@ -59,11 +59,11 @@ const PerScene = struct('PerScene', {
     material: Material,
 });
 
-const perScene = PerScene(uniform('perScene'));
+const perScene = uniform('perScene', PerScene);
 
 // 定义 Light 结构体
 const Light = struct('Light', {
-    position: vec3,
+    position: vec3(),
 });
 
 // 定义 PerPass UBO
@@ -71,7 +71,7 @@ const PerPass = struct('PerPass', {
     light: Light,
 });
 
-const perPass = PerPass(uniform('perPass'));
+const perPass = uniform('perPass', PerPass);
 
 // 片段着色器
 export const fragmentShader = fragment('main', () =>

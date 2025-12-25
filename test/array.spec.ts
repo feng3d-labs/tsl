@@ -13,7 +13,7 @@ describe('Array', () =>
     {
         it('应该能够使用 mat4 函数创建数组类型', () =>
         {
-            const arr = var_('arr', array(mat4, 2));
+            const arr = var_('arr', array(mat4(), 2));
 
             expect(arr).toBeInstanceOf(TSLArray);
             expect(arr.length).toBe(2);
@@ -23,7 +23,7 @@ describe('Array', () =>
 
         it('应该能够使用 vec4 函数创建数组类型', () =>
         {
-            const arr = var_('colors', array(vec4, 4));
+            const arr = var_('colors', array(vec4(), 4));
 
             expect(arr).toBeInstanceOf(TSLArray);
             expect(arr.length).toBe(4);
@@ -36,7 +36,7 @@ describe('Array', () =>
     {
         it('应该能够使用数字索引访问数组元素', () =>
         {
-            const arr = var_('arr', array(mat4, 2));
+            const arr = var_('arr', array(mat4(), 2));
 
             expect(arr.index(0)).toBeInstanceOf(Mat4);
             expect(arr.index(1)).toBeInstanceOf(Mat4);
@@ -48,7 +48,7 @@ describe('Array', () =>
 
         it('应该能够使用 Int 类型索引访问数组元素', () =>
         {
-            const arr = var_('arr', array(vec4, 4));
+            const arr = var_('arr', array(vec4(), 4));
             const i = uniform('i', int());
 
             const element = arr.index(i);
@@ -65,10 +65,10 @@ describe('Array', () =>
         it('应该能够作为 struct 成员使用', () =>
         {
             const Transform = struct('Transform', {
-                MVP: array(mat4, 2),
+                MVP: array(mat4(), 2),
             });
 
-            const transform = Transform(uniform('transform'));
+            const transform = uniform('transform', Transform);
 
             expect(transform.MVP).toBeInstanceOf(TSLArray);
             expect(transform.MVP.index(0).toGLSL()).toBe('transform.MVP[0]');
@@ -84,7 +84,7 @@ describe('Array', () =>
         {
             const shader = vertex('main', () =>
             {
-                const positions = var_('positions', array(vec4, 3));
+                const positions = var_('positions', array(vec4(), 3));
                 gl_Position.assign(positions.index(0));
             });
 
@@ -104,9 +104,9 @@ describe('Array', () =>
             const pos = attribute('pos', vec2(), 0);
 
             const Transform = struct('Transform', {
-                MVP: array(mat4, 2),
+                MVP: array(mat4(), 2),
             });
-            const transform = Transform(uniform('transform'));
+            const transform = uniform('transform', Transform);
 
             const vertexShader = vertex('main', () =>
             {
@@ -123,9 +123,9 @@ describe('Array', () =>
         it('应该在索引计算中正确处理表达式', () =>
         {
             const Material = struct('Material', {
-                Diffuse: array(vec4, 4),
+                Diffuse: array(vec4(), 4),
             });
-            const material = Material(uniform('material'));
+            const material = uniform('material', Material);
 
             const instance = varying('instance', int(), { interpolation: 'flat' });
 

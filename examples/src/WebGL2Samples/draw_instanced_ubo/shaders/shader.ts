@@ -5,17 +5,17 @@ const pos = attribute('pos', vec2(), 0);
 
 // 定义 Transform UBO（包含 MVP 矩阵数组）
 const Transform = struct('Transform', {
-    MVP: array(mat4, 2),
+    MVP: array(mat4(), 2),
 });
 
-const transform = Transform(uniform('transform'));
+const transform = uniform('transform', Transform);
 
 // 定义 Material UBO（包含颜色数组）
 const Material = struct('Material', {
-    Diffuse: array(vec4, 2),
+    Diffuse: array(vec4(), 2),
 });
 
-const material = Material(uniform('material'));
+const material = uniform('material', Material);
 
 // varying 变量 - flat 插值（与原示例一致使用 instance 命名）
 const instance = varying('instance', int(), { interpolation: 'flat' });

@@ -1,6 +1,8 @@
 import { IElement, ShaderValue } from '../core/IElement';
+import { Mat4 } from '../types/matrix/mat4';
 import { Int } from '../types/scalar/int';
 import { UInt } from '../types/scalar/uint';
+import { Vec4 } from '../types/vector/vec4';
 
 /**
  * 数组类型定义，支持通过 index() 方法访问元素
@@ -20,15 +22,15 @@ export class Array<T extends ShaderValue> implements ShaderValue
     // 用于动态索引的访问路径
     private _varName?: string;
 
-    constructor(elementType: (...args: any[]) => T, length: number)
+    constructor(elementType: T, length: number)
     {
-        this.elementType = elementType;
+        // 使用实例的构造函数作为工厂函数
+        this.elementType = (() => new ((elementType as any).constructor)()) as (...args: any[]) => T;
         this.length = length;
 
-        // 从样本元素获取类型信息
-        const sample = this.elementType();
-        this.glslType = sample.glslType;
-        this.wgslType = sample.wgslType;
+        // 从实例获取类型信息
+        this.glslType = elementType.glslType;
+        this.wgslType = elementType.wgslType;
     }
 
     /**
@@ -72,7 +74,20 @@ export class Array<T extends ShaderValue> implements ShaderValue
 
         result.toWGSL = () =>
         {
-            const idxWGSL = typeof idx === 'number' ? `${idx}` : idx.toWGSL();
+            let idxWGSL: string;
+            if (typeof idx === 'number')
+            {
+                idxWGSL = `${idx}`;
+            }
+            else if ((idx as any).toRawWGSL)
+            {
+                // 使用原始 WGSL 表达式（不带类型转换），如 gl_InstanceID/gl_VertexID
+                idxWGSL = (idx as any).toRawWGSL();
+            }
+            else
+            {
+                idxWGSL = idx.toWGSL();
+            }
 
             return `${this.toWGSL()}[${idxWGSL}]`;
         };
@@ -85,12 +100,12 @@ export class Array<T extends ShaderValue> implements ShaderValue
 }
 
 /**
- * 创建数组类型工厂函数（用于 UBO 数组成员）
- * @param elementType 元素类型工厂函数（如 mat4, vec4 等）
+ * 创建数组类型（用于 UBO 数组成员）
+ * @param element 元素类型实例（如 mat4(), vec4() 等）
  * @param length 数组长度
- * @returns 数组类型工厂函数
+ * @returns 数组类型实例
  */
-export function array<T extends ShaderValue>(elementType: (...args: any[]) => T, length: number): () => Array<T>
+export function array<T extends Mat4 | Vec4>(element: T, length: number): Array<T>
 {
-    return () => new Array<T>(elementType, length);
+    return new Array<T>(element, length);
 }

@@ -138,7 +138,7 @@ describe('Array', () =>
             expect(glsl).toContain('material.Diffuse[instance % 4]');
 
             const wgsl = fragmentShader.toWGSL();
-            expect(wgsl).toContain('material.Diffuse[v.instance % 4]');
+            expect(wgsl).toContain('material.Diffuse[input.instance % 4]');
         });
     });
 });

@@ -113,11 +113,11 @@ describe('Fragment', () =>
             });
 
             const wgsl = frag.toWGSL();
-            // 验证生成了 VaryingStruct
-            expect(wgsl).toContain('struct VaryingStruct');
+            // 验证生成了 FragmentInput
+            expect(wgsl).toContain('struct FragmentInput');
             expect(wgsl).toContain('@location(0) vColor: vec4<f32>');
-            // 验证函数接收 VaryingStruct 参数
-            expect(wgsl).toContain('v: VaryingStruct');
+            // 验证函数接收 FragmentInput 参数
+            expect(wgsl).toContain('input: FragmentInput');
 
             const glsl = frag.toGLSL();
             expect(glsl).toContain('varying vec4 vColor;');

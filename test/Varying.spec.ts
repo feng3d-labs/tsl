@@ -150,12 +150,12 @@ describe('Varying', () =>
             });
 
             const wgsl = vertexShader.toWGSL();
-            // VaryingStruct 应该包含 position builtin 和 varying
-            expect(wgsl).toContain('struct VaryingStruct');
+            // VertexOutput 应该包含 position builtin 和 varying
+            expect(wgsl).toContain('struct VertexOutput');
             expect(wgsl).toContain('@builtin(position) position: vec4<f32>');
             expect(wgsl).toContain('@location(0) v_st: vec2<f32>');
-            // 赋值语句应该使用 v.v_st 格式
-            expect(wgsl).toContain('v.v_st = ');
+            // 赋值语句应该使用 output.v_st 格式
+            expect(wgsl).toContain('output.v_st = ');
         });
 
         it('应该能够只使用 gl_Position 而不声明任何 varying', () =>
@@ -166,10 +166,10 @@ describe('Varying', () =>
             });
 
             const wgsl = vertexShader.toWGSL();
-            // 应该生成 VaryingStruct 包含 position builtin
-            expect(wgsl).toContain('struct VaryingStruct');
+            // 应该生成 VertexOutput 包含 position builtin
+            expect(wgsl).toContain('struct VertexOutput');
             expect(wgsl).toContain('@builtin(position) position: vec4<f32>');
-            expect(wgsl).toContain('v.position = ');
+            expect(wgsl).toContain('output.position = ');
         });
 
         it('应该能够在片段着色器中使用独立 varying', () =>
@@ -186,12 +186,12 @@ describe('Varying', () =>
             expect(glsl).toContain('in vec2 v_st;');
 
             const wgsl = fragmentShader.toWGSL();
-            // WGSL 应该生成 VaryingStruct 并在函数中接收
-            expect(wgsl).toContain('struct VaryingStruct');
+            // WGSL 应该生成 FragmentInput 并在函数中接收
+            expect(wgsl).toContain('struct FragmentInput');
             expect(wgsl).toContain('@location(0) v_st: vec2<f32>');
-            expect(wgsl).toContain('v: VaryingStruct');
-            // 应该使用 v.v_st 访问
-            expect(wgsl).toContain('v.v_st');
+            expect(wgsl).toContain('input: FragmentInput');
+            // 应该使用 input.v_st 访问
+            expect(wgsl).toContain('input.v_st');
         });
     });
 
@@ -266,8 +266,8 @@ describe('Varying', () =>
 
             const wgsl = fragmentShader.toWGSL(vertexShader);
 
-            expect(wgsl).toContain('v: VaryingStruct');
-            expect(wgsl).toContain('v.instance');
+            expect(wgsl).toContain('input: FragmentInput');
+            expect(wgsl).toContain('input.instance');
         });
 
         it('应该在数组索引中正确使用 v.xxx 格式', () =>
@@ -294,7 +294,7 @@ describe('Varying', () =>
 
             const wgsl = fragmentShader.toWGSL(vertexShader);
 
-            expect(wgsl).toContain('material.Diffuse[v.instance % 2]');
+            expect(wgsl).toContain('material.Diffuse[input.instance % 2]');
         });
     });
 });

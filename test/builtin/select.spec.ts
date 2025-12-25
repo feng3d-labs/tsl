@@ -177,7 +177,7 @@ describe('select', () =>
             const wgsl = fShader.toWGSL();
 
             // 验证生成了 select() 函数调用
-            expect(wgsl).toContain('select(vec4<f32>(1.0, 1.0, 0.0, 1.0), vec4<f32>(0.0, 0.0, 1.0, 1.0), v.v_attr >= 0.0)');
+            expect(wgsl).toContain('select(vec4<f32>(1.0, 1.0, 0.0, 1.0), vec4<f32>(0.0, 0.0, 1.0, 1.0), input.v_attr >= 0.0)');
         });
     });
 

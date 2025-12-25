@@ -150,7 +150,7 @@ describe('Vertex', () =>
             });
 
             const wgsl = vert.toWGSL();
-            expect(wgsl).toContain('v.position = position;');
+            expect(wgsl).toContain('output.position = position;');
             expect(wgsl).not.toContain('_pos_temp');
         });
 
@@ -165,8 +165,8 @@ describe('Vertex', () =>
 
             const wgsl = vert.toWGSL({ convertDepth: true });
             // 验证深度转换代码生成（在末尾添加深度转换语句）
-            expect(wgsl).toContain('v.position = position;');
-            expect(wgsl).toContain('v.position = vec4<f32>(v.position.xy, (v.position.z + 1.0) * 0.5, v.position.w);');
+            expect(wgsl).toContain('output.position = position;');
+            expect(wgsl).toContain('output.position = vec4<f32>(output.position.xy, (output.position.z + 1.0) * 0.5, output.position.w);');
         });
 
         it('使用 convertDepth: false 时，应该与默认行为相同', () =>
@@ -194,8 +194,8 @@ describe('Vertex', () =>
 
             const wgsl = vert.toWGSL({ convertDepth: true });
             // 验证复杂表达式也能正确处理（在末尾添加深度转换语句）
-            expect(wgsl).toContain('v.position = vec4<f32>(pos, 0.0, 1.0);');
-            expect(wgsl).toContain('v.position = vec4<f32>(v.position.xy, (v.position.z + 1.0) * 0.5, v.position.w);');
+            expect(wgsl).toContain('output.position = vec4<f32>(pos, 0.0, 1.0);');
+            expect(wgsl).toContain('output.position = vec4<f32>(output.position.xy, (output.position.z + 1.0) * 0.5, output.position.w);');
         });
 
         it('深度转换不应影响非 position 的赋值', () =>
@@ -211,9 +211,9 @@ describe('Vertex', () =>
 
             const wgsl = vert.toWGSL({ convertDepth: true });
             // position 赋值应该有深度转换（在末尾添加深度转换语句）
-            expect(wgsl).toContain('v.position = vec4<f32>(v.position.xy, (v.position.z + 1.0) * 0.5, v.position.w);');
+            expect(wgsl).toContain('output.position = vec4<f32>(output.position.xy, (output.position.z + 1.0) * 0.5, output.position.w);');
             // color 赋值不应该有深度转换
-            expect(wgsl).toContain('v.vColor = color;');
+            expect(wgsl).toContain('output.vColor = color;');
         });
 
         it('GLSL 输出不应受 convertDepth 影响', () =>
@@ -257,11 +257,11 @@ describe('Vertex', () =>
             // 验证 varying 字段也在结构体中
             expect(wgsl).toContain('@location(0) vTextureCoord: vec2<f32>');
             // 验证 gl_Position 的赋值使用结构体字段
-            expect(wgsl).toContain('v.position = uProjectionMatrix * uModelViewMatrix * position');
+            expect(wgsl).toContain('output.position = uProjectionMatrix * uModelViewMatrix * position');
             // 验证 varying 的赋值也使用结构体字段
-            expect(wgsl).toContain('v.vTextureCoord = aTextureCoord');
+            expect(wgsl).toContain('output.vTextureCoord = aTextureCoord');
             // 验证返回结构体
-            expect(wgsl).toContain('return v;');
+            expect(wgsl).toContain('return output;');
         });
 
         it('只使用 gl_Position 时也应该生成 VaryingStruct', () =>
@@ -275,12 +275,12 @@ describe('Vertex', () =>
 
             const wgsl = vert.toWGSL();
 
-            // 验证生成了 VaryingStruct
-            expect(wgsl).toContain('struct VaryingStruct');
+            // 验证生成了 VertexOutput
+            expect(wgsl).toContain('struct VertexOutput');
             // 验证只有一个 position builtin 字段
             expect(wgsl).toContain('@builtin(position) position: vec4<f32>');
-            // 验证使用 v.position 进行赋值
-            expect(wgsl).toContain('v.position =');
+            // 验证使用 output.position 进行赋值
+            expect(wgsl).toContain('output.position =');
         });
     });
 });

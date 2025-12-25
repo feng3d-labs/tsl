@@ -35,15 +35,18 @@ function initCanvasSize(canvas: HTMLCanvasElement)
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    // // 生成着色器代码（变量名必须与导入的相同，便于调试切换）
-    // const vertexEmitGlsl = emitVertexShader.toGLSL();
-    // // 生成 WGSL 计算着色器（用于 WebGPU Transform Feedback 模拟）
-    // // 分离模式：v_position, v_velocity, v_spawntime, v_lifetime 输出到不同的缓冲区
-    // const computeEmitWgsl = emitVertexShader.toWGSL({ bufferMode: 'SEPARATE_ATTRIBS' });
-    // const vertexDrawGlsl = drawVertexShader.toGLSL(2);
-    // const fragmentDrawGlsl = drawFragmentShader.toGLSL(2);
-    // const vertexDrawWgsl = drawVertexShader.toWGSL();
-    // const fragmentDrawWgsl = drawFragmentShader.toWGSL(drawVertexShader);
+    // 生成着色器代码（变量名必须与导入的相同，便于调试切换）
+    const vertexEmitGlsl = emitVertexShader.toGLSL();
+    // 生成 WGSL 计算着色器（用于 WebGPU Transform Feedback 模拟）
+    // 分离模式：v_position, v_velocity, v_spawntime, v_lifetime 输出到不同的缓冲区
+    const computeEmitWgsl = emitVertexShader.toWGSL({
+        varyings: ['v_position', 'v_velocity', 'v_spawntime', 'v_lifetime'],
+        bufferMode: 'SEPARATE_ATTRIBS',
+    });
+    const vertexDrawGlsl = drawVertexShader.toGLSL(2);
+    const fragmentDrawGlsl = drawFragmentShader.toGLSL(2);
+    const vertexDrawWgsl = drawVertexShader.toWGSL();
+    const fragmentDrawWgsl = drawFragmentShader.toWGSL(drawVertexShader);
 
     // 初始化粒子数据
     const particlePositions = new Float32Array(NUM_PARTICLES * 2);

@@ -48,25 +48,30 @@ export class Transform
     /**
      * 转换为 WGSL 计算着色器代码（用于 WebGPU 模拟 Transform Feedback）
      *
-     * 自动从着色器中推断输出变量（gl_Position + 所有 varying）
-     *
      * @param options 可选配置
+     * @param options.varyings 指定输出的 varying 变量名数组，必须提供
      * @param options.bufferMode 缓冲区模式：'INTERLEAVED_ATTRIBS'（交错）或 'SEPARATE_ATTRIBS'（分离），默认为 'INTERLEAVED_ATTRIBS'
      * @returns 完整的 WGSL 计算着色器代码
      *
      * @example
      * ```typescript
-     * // 交错模式（默认）
-     * const computeWgsl = transformShader.toWGSL();
+     * // 交错模式
+     * const computeWgsl = transformShader.toWGSL({
+     *     varyings: ['v_position', 'v_color'],
+     * });
      *
      * // 分离模式
-     * const computeWgsl = transformShader.toWGSL({ bufferMode: 'SEPARATE_ATTRIBS' });
+     * const computeWgsl = transformShader.toWGSL({
+     *     varyings: ['v_position', 'v_velocity', 'v_spawntime', 'v_lifetime'],
+     *     bufferMode: 'SEPARATE_ATTRIBS',
+     * });
      * ```
      */
-    toWGSL(options?: { bufferMode?: 'INTERLEAVED_ATTRIBS' | 'SEPARATE_ATTRIBS' }): string
+    toWGSL(options: { varyings: string[]; bufferMode?: 'INTERLEAVED_ATTRIBS' | 'SEPARATE_ATTRIBS' }): string
     {
         const workgroupSize = 64;
-        const bufferMode = options?.bufferMode ?? 'INTERLEAVED_ATTRIBS';
+        const specifiedVaryings = options.varyings;
+        const bufferMode = options.bufferMode ?? 'INTERLEAVED_ATTRIBS';
         const isSeparate = bufferMode === 'SEPARATE_ATTRIBS';
 
         return buildShader({ language: 'wgsl', stage: 'compute', version: 1 }, () =>
@@ -85,32 +90,36 @@ export class Transform
             // 收集需要作为输入的 attributes
             const inputAttributes = globalThis.Array.from(dependencies.attributes);
 
-            // 自动从着色器依赖中推断输出（gl_Position + 所有 varyings）
-            const outputBuiltins: Builtin[] = [];
-            const positionBuiltin = globalThis.Array.from(dependencies.builtins).find((b) => b.isPosition);
-            if (positionBuiltin)
-            {
-                outputBuiltins.push(positionBuiltin);
-            }
-            const outputVaryings: Varying[] = globalThis.Array.from(dependencies.varyings);
+            // 检查是否需要输出 gl_Position
+            const includesGlPosition = specifiedVaryings.includes('gl_Position');
+            const varyingNames = specifiedVaryings.filter((name) => name !== 'gl_Position');
 
-            // 生成输入结构体
-            lines.push('struct VertexInput {');
-            for (const attr of inputAttributes)
+            // 从指定的 varyings 名称中筛选出实际的 Varying 对象
+            const allVaryings = globalThis.Array.from(dependencies.varyings);
+            const outputVaryings: Varying[] = varyingNames.map((name) =>
             {
-                const wgslType = attr.value?.wgslType ?? 'vec4<f32>';
-                lines.push(`    ${attr.name}: ${wgslType},`);
-            }
-            lines.push('}');
-            lines.push('');
+                const found = allVaryings.find((v) => v.name === name);
+                if (!found)
+                {
+                    throw new Error(`[TSL] Varying '${name}' not found in shader dependencies`);
+                }
+
+                return found;
+            });
+
+            // 收集自定义函数
+            const shaderFuncs = globalThis.Array.from(dependencies.shaderFuncs);
+
+            // 不再生成输入结构体，改为分离的输入缓冲区
+            // struct VertexInput 已不需要
 
             if (!isSeparate)
             {
                 // 交错模式：生成单一输出结构体
                 lines.push('struct VertexOutput {');
-                for (const builtin of outputBuiltins)
+                if (includesGlPosition)
                 {
-                    lines.push('    position: vec4<f32>,');
+                    lines.push('    gl_Position: vec4<f32>,');
                 }
                 for (const varying of outputVaryings)
                 {
@@ -146,14 +155,18 @@ export class Transform
                 nextBinding++;
             }
 
-            // 生成输入存储缓冲区
-            lines.push(`@group(0) @binding(${nextBinding}) var<storage, read> inputData: array<VertexInput>;`);
-            nextBinding++;
+            // 生成分离的输入存储缓冲区（每个属性一个缓冲区）
+            for (const attr of inputAttributes)
+            {
+                const wgslType = attr.value?.wgslType ?? 'vec4<f32>';
+                lines.push(`@group(0) @binding(${nextBinding}) var<storage, read> inputData_${attr.name}: array<${wgslType}>;`);
+                nextBinding++;
+            }
 
             if (isSeparate)
             {
                 // 分离模式：为每个输出生成独立的缓冲区
-                for (const builtin of outputBuiltins)
+                if (includesGlPosition)
                 {
                     lines.push(`@group(0) @binding(${nextBinding}) var<storage, read_write> outputData_gl_Position: array<vec4<f32>>;`);
                     nextBinding++;
@@ -174,11 +187,17 @@ export class Transform
 
             lines.push('');
 
+            // 生成自定义函数定义
+            for (const shaderFunc of shaderFuncs)
+            {
+                lines.push(shaderFunc.toWGSL());
+                lines.push('');
+            }
+
             // 生成计算着色器入口函数
             lines.push(`@compute @workgroup_size(${workgroupSize})`);
             lines.push(`fn ${this.name}(@builtin(global_invocation_id) global_id: vec3<u32>) {`);
             lines.push('    let idx = global_id.x;');
-            lines.push('    let input = inputData[idx];');
 
             if (!isSeparate)
             {
@@ -186,13 +205,13 @@ export class Transform
             }
             lines.push('');
 
-            // 设置 attribute 的 toWGSL 返回 input.attrName 格式
+            // 设置 attribute 的 toWGSL 返回分离的输入缓冲区格式
             for (const attr of inputAttributes)
             {
                 if (attr.value)
                 {
                     const attrName = attr.name;
-                    attr.value.toWGSL = () => `input.${attrName}`;
+                    attr.value.toWGSL = () => `inputData_${attrName}[idx]`;
                 }
             }
 
@@ -213,19 +232,26 @@ export class Transform
                 }
             }
 
-            // 设置 position builtin 的 toWGSL 返回对应格式
-            for (const builtin of outputBuiltins)
+            // 设置 position builtin 的 toWGSL
+            const positionBuiltin = globalThis.Array.from(dependencies.builtins).find((b) => b.isPosition);
+            if (positionBuiltin && positionBuiltin.value)
             {
-                if (builtin.isPosition && builtin.value)
+                if (includesGlPosition)
                 {
+                    // 当 gl_Position 被指定为输出时，设置正确的输出格式
                     if (isSeparate)
                     {
-                        builtin.value.toWGSL = () => 'outputData_gl_Position[idx]';
+                        positionBuiltin.value.toWGSL = () => 'outputData_gl_Position[idx]';
                     }
                     else
                     {
-                        builtin.value.toWGSL = () => 'output.position';
+                        positionBuiltin.value.toWGSL = () => 'output.gl_Position';
                     }
+                }
+                else
+                {
+                    // 在计算着色器中，gl_Position 赋值会被忽略
+                    positionBuiltin.value.toWGSL = () => '/* gl_Position ignored in compute shader */';
                 }
             }
 
@@ -282,10 +308,13 @@ export class Transform
  * const glsl = transformShader.toGLSL();
  *
  * // 生成 WGSL 计算着色器（WebGPU）
- * const wgsl = transformShader.toWGSL();
+ * const wgsl = transformShader.toWGSL({ varyings: ['v_position', 'v_color'] });
  *
  * // 分离模式
- * const wgslSeparate = transformShader.toWGSL({ bufferMode: 'SEPARATE_ATTRIBS' });
+ * const wgslSeparate = transformShader.toWGSL({
+ *     varyings: ['v_position', 'v_velocity'],
+ *     bufferMode: 'SEPARATE_ATTRIBS',
+ * });
  * ```
  */
 export function transform(name: string, body: () => void): Transform

@@ -26,8 +26,9 @@ document.addEventListener('DOMContentLoaded', async () =>
     // 生成着色器代码（变量名必须与导入的相同，便于调试切换）
     const vertexTransformGlsl = transformVertexShader.toGLSL();
     // 生成 WGSL 计算着色器（用于 WebGPU Transform Feedback 模拟）
-    // outputs 缺省时自动从着色器中推断（gl_Position + 所有 varying）
-    const computeTransformWgsl = transformVertexShader.toWGSL();
+    const computeTransformWgsl = transformVertexShader.toWGSL({
+        varyings: ['gl_Position', 'v_color'],
+    });
     const vertexFeedbackGlsl = feedbackVertexShader.toGLSL(2);
     const fragmentFeedbackGlsl = feedbackFragmentShader.toGLSL(2);
     const vertexFeedbackWgsl = feedbackVertexShader.toWGSL();

@@ -27,7 +27,10 @@ document.addEventListener('DOMContentLoaded', async () =>
     const vertexTransformGlsl = transformVertexShader.toGLSL();
     // 生成 WGSL 计算着色器（用于 WebGPU Transform Feedback 模拟）
     // 分离模式：gl_Position 和 v_color 输出到不同的缓冲区
-    const computeTransformWgsl = transformVertexShader.toWGSL({ bufferMode: 'SEPARATE_ATTRIBS' });
+    const computeTransformWgsl = transformVertexShader.toWGSL({
+        varyings: ['gl_Position', 'v_color'],
+        bufferMode: 'SEPARATE_ATTRIBS',
+    });
     const vertexFeedbackGlsl = feedbackVertexShader.toGLSL(2);
     const fragmentFeedbackGlsl = feedbackFragmentShader.toGLSL(2);
     const vertexFeedbackWgsl = feedbackVertexShader.toWGSL();

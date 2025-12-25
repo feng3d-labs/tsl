@@ -87,36 +87,36 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     // 法线数据使用 Half Float 格式
     const normals = HalfFloat.Float16Array([
-        // Front face
-        0, 0, -1,
-        0, 0, -1,
-        0, 0, -1,
-        0, 0, -1,
+        // Front face ，最后一位0用于填充
+        0, 0, -1, 0,
+        0, 0, -1, 0,
+        0, 0, -1, 0,    
+        0, 0, -1, 0,
         // Back face
-        0, 0, 1,
-        0, 0, 1,
-        0, 0, 1,
-        0, 0, 1,
+        0, 0, 1, 0,
+        0, 0, 1, 0,
+        0, 0, 1, 0,
+        0, 0, 1, 0,
         // Top face
-        0, 1, 0,
-        0, 1, 0,
-        0, 1, 0,
-        0, 1, 0,
+        0, 1, 0, 0,
+        0, 1, 0, 0,
+        0, 1, 0, 0,
+        0, 1, 0, 0,
         // Bottom face
-        0, -1, 0,
-        0, -1, 0,
-        0, -1, 0,
-        0, -1, 0,
+        0, -1, 0, 0,
+        0, -1, 0, 0,
+        0, -1, 0, 0,
+        0, -1, 0, 0,
         // Right face
-        -1, 0, 0,
-        -1, 0, 0,
-        -1, 0, 0,
-        -1, 0, 0,
+        -1, 0, 0, 0,
+        -1, 0, 0, 0,
+        -1, 0, 0, 0,
+        -1, 0, 0, 0,
         // Left face
-        1, 0, 0,
-        1, 0, 0,
-        1, 0, 0,
-        1, 0, 0,
+        1, 0, 0, 0,
+        1, 0, 0, 0,
+        1, 0, 0, 0,
+        1, 0, 0, 0,
     ]);
 
     // 纹理坐标使用 Half Float 格式
@@ -166,8 +166,8 @@ document.addEventListener('DOMContentLoaded', async () =>
     // -- 初始化顶点数据
     const vertices: VertexAttributes = {
         a_position: { data: positions, format: 'float32x3' },
-        // 由于不支持类型 "float16x3"，则需要设置 arrayStride 为6，表示每次间隔3个半浮点数
-        a_normal: { data: normals, format: 'float16x4', arrayStride: 6 },
+        // 由于WebGPU不支持类型 "float16x3"，则需要设置 format 为 "float16x4"，最后一位0用于填充
+        a_normal: { data: normals, format: 'float16x4' },
         a_texCoord: { data: texCoords, format: 'float16x2' },
     };
 
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', async () =>
 
             // 执行渲染
             webgl.submit(submit);
-            // webgpu.submit(submit);
+            webgpu.submit(submit);
 
             // 首帧渲染后执行比较
             if (!firstFrameRendered)

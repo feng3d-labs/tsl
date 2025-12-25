@@ -58,6 +58,7 @@
 		"WebGL2Samples/texture_offset",
 		"WebGL2Samples/texture_pixel_store",
 		"WebGL2Samples/texture_srgb",
-		"WebGL2Samples/texture_vertex"
+		"WebGL2Samples/texture_vertex",
+		"WebGL2Samples/geo_vertex_format"
 	]
 }

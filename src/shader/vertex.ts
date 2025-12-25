@@ -3,14 +3,8 @@ import { buildShader, getBuildParam } from '../core/buildShader';
 import { Builtin } from '../glsl/builtin/builtin';
 import { Func } from './func';
 import { Sampler } from '../glsl/sampler/sampler';
-import { TransformFeedbackOutput } from './TransformFeedbackOutput';
 import { Uniform } from '../variables/uniform';
 import { Varying } from '../variables/varying';
-
-/**
- * Vertex toWGSL 方法的选项类型
- */
-export type VertexWGSLOptions = { convertDepth?: boolean } | TransformFeedbackOutput;
 
 /**
  * Vertex 类，继承自 Func
@@ -155,10 +149,9 @@ export class Vertex extends Func
      * @param options.convertDepth 是否转换深度值，将深度从 WebGL 的 [-1, 1] 转换为 WebGPU 的 [0, 1]（默认 false）
      * @returns 完整的 WGSL 代码，包括 uniforms、attributes 和函数定义
      */
-    toWGSL(options?: VertexWGSLOptions): string
+    toWGSL(options?: { convertDepth?: boolean }): string
     {
-        // 检查是否为 TransformFeedbackOutput，如果是则使用子类覆盖的逻辑
-        const convertDepth = (options && 'convertDepth' in options) ? (options.convertDepth ?? false) : false;
+        const convertDepth = options?.convertDepth ?? false;
 
         return buildShader({ language: 'wgsl', stage: 'vertex', version: 1, convertDepth }, () =>
         {

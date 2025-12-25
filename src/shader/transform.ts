@@ -1,8 +1,6 @@
 import { buildShader } from '../core/buildShader';
 import { Builtin } from '../glsl/builtin/builtin';
-import { TransformFeedbackOutput } from './TransformFeedbackOutput';
-import { Varying } from '../variables/varying';
-import { Vertex, VertexWGSLOptions } from './vertex';
+import { Vertex } from './vertex';
 
 /**
  * Transform 类，继承自 Vertex，用于 Transform Feedback
@@ -31,26 +29,18 @@ export class Transform extends Vertex
     /**
      * 转换为 WGSL 计算着色器代码（用于 WebGPU 模拟 Transform Feedback）
      *
-     * @param options Transform Feedback 输出配置
+     * 自动从着色器中推断输出变量（gl_Position + 所有 varying）
+     *
      * @returns 完整的 WGSL 计算着色器代码
      *
      * @example
      * ```typescript
-     * const computeWgsl = transformShader.toWGSL({
-     *     outputs: ['gl_Position', 'v_color'],
-     *     workgroupSize: 64,
-     * });
+     * const computeWgsl = transformShader.toWGSL();
      * ```
      */
-    override toWGSL(options?: VertexWGSLOptions): string
+    override toWGSL(): string
     {
-        // Transform.toWGSL 需要 TransformFeedbackOutput 参数
-        if (!options || !('outputs' in options))
-        {
-            throw new Error('Transform.toWGSL requires TransformFeedbackOutput with outputs array');
-        }
-
-        const { outputs, workgroupSize = 64 } = options as TransformFeedbackOutput;
+        const workgroupSize = 64;
 
         return buildShader({ language: 'wgsl', stage: 'compute', version: 1 }, () =>
         {
@@ -68,29 +58,14 @@ export class Transform extends Vertex
             // 收集需要作为输入的 attributes
             const inputAttributes = globalThis.Array.from(dependencies.attributes);
 
-            // 收集需要作为输出的 varyings 和 builtins
-            const outputVaryings: Varying[] = [];
+            // 自动从着色器依赖中推断输出（gl_Position + 所有 varyings）
             const outputBuiltins: Builtin[] = [];
-
-            for (const outputName of outputs)
+            const positionBuiltin = globalThis.Array.from(dependencies.builtins).find((b) => b.isPosition);
+            if (positionBuiltin)
             {
-                if (outputName === 'gl_Position')
-                {
-                    const positionBuiltin = globalThis.Array.from(dependencies.builtins).find((b) => b.isPosition);
-                    if (positionBuiltin)
-                    {
-                        outputBuiltins.push(positionBuiltin);
-                    }
-                }
-                else
-                {
-                    const varying = globalThis.Array.from(dependencies.varyings).find((v) => v.name === outputName);
-                    if (varying)
-                    {
-                        outputVaryings.push(varying);
-                    }
-                }
+                outputBuiltins.push(positionBuiltin);
             }
+            const outputVaryings = globalThis.Array.from(dependencies.varyings);
 
             // 生成输入结构体
             lines.push('struct VertexInput {');
@@ -232,14 +207,11 @@ export class Transform extends Vertex
  *     v_color.assign(vec4(clamp(vec2(position), 0.0, 1.0), 0.0, 1.0));
  * });
  *
- * // 生成 GLSL 顶点着色器
- * const glsl = transformShader.toGLSL(2);
+ * // 生成 GLSL 顶点着色器（WebGL2）
+ * const glsl = transformShader.toGLSL();
  *
- * // 生成 WGSL 计算着色器
- * const wgsl = transformShader.toWGSL({
- *     outputs: ['gl_Position', 'v_color'],
- *     workgroupSize: 64,
- * });
+ * // 生成 WGSL 计算着色器（WebGPU）
+ * const wgsl = transformShader.toWGSL();
  * ```
  */
 export function transform(name: string, body: () => void): Transform

@@ -92,5 +92,6 @@ export { vec3 } from './types/vector/vec3';
 export { vec4 } from './types/vector/vec4';
 
 // types/matrix - 矩阵类型
+export { mat2 } from './types/matrix/mat2';
 export { mat4 } from './types/matrix/mat4';
 export { mat4x3 } from './types/matrix/mat4x3';

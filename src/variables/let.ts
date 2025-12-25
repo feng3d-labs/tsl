@@ -1,6 +1,7 @@
 import { ShaderValue } from '../core/IElement';
 import { getCurrentFunc } from '../core/currentFunc';
 import { getCurrentIfStatement } from '../core/ifStack';
+import { checkWGSLReservedKeyword } from '../utils/wgslKeywords';
 
 /**
  * 创建一个带变量名的表达式（用于 WGSL 中的 let 语句）
@@ -10,6 +11,8 @@ import { getCurrentIfStatement } from '../core/ifStack';
  */
 export function let_<T extends ShaderValue>(name: string, expr: T): T
 {
+    // 检查是否是 WGSL 保留关键字
+    checkWGSLReservedKeyword(name);
     const cls = expr.constructor;
 
     // 创建结果对象

@@ -707,6 +707,48 @@ export class Float implements ShaderValue
         new Assign(this, value);
     }
 
+    /**
+     * 取负运算
+     * @returns 返回当前值的负数
+     */
+    negate(): Float
+    {
+        const result = new Float();
+        result.toGLSL = () =>
+        {
+            const thisStr = this.toGLSL();
+            // 如果是复杂表达式，需要添加括号
+            const hasOp = /[+\-*/]/.test(thisStr);
+            // 排除科学计数法和数字字面量
+            const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(thisStr);
+            const isNumber = /^-?\d+(\.\d+)?$/.test(thisStr);
+            if (hasOp && !isScientificNotation && !isNumber)
+            {
+                return `-(${thisStr})`;
+            }
+
+            return `-${thisStr}`;
+        };
+        result.toWGSL = () =>
+        {
+            const thisStr = this.toWGSL();
+            // 如果是复杂表达式，需要添加括号
+            const hasOp = /[+\-*/]/.test(thisStr);
+            // 排除科学计数法和数字字面量
+            const isScientificNotation = /^-?\d+(\.\d+)?[eE][+-]?\d+$/.test(thisStr);
+            const isNumber = /^-?\d+(\.\d+)?$/.test(thisStr);
+            if (hasOp && !isScientificNotation && !isNumber)
+            {
+                return `-(${thisStr})`;
+            }
+
+            return `-${thisStr}`;
+        };
+        result.dependencies = [this];
+
+        return result;
+    }
+
 }
 
 /**

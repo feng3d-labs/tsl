@@ -2,6 +2,7 @@ import { ShaderValue } from '../core/IElement';
 import { getCurrentFunc } from '../core/currentFunc';
 import { getCurrentIfStatement } from '../core/ifStack';
 import { Float } from '../types/scalar/float';
+import { checkWGSLReservedKeyword } from '../utils/wgslKeywords';
 import { Array } from './array';
 
 /**
@@ -16,6 +17,9 @@ export function var_(name: string, expr: number): Float;
 export function var_(...args: any[]): any
 {
     const name = args[0] as string;
+
+    // 检查是否是 WGSL 保留关键字
+    checkWGSLReservedKeyword(name);
     const arg1 = args[1];
 
     let result: ShaderValue;

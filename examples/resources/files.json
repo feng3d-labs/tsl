@@ -58,10 +58,11 @@
 		"WebGL2Samples/texture_offset",
 		"WebGL2Samples/texture_pixel_store",
 		"WebGL2Samples/texture_srgb",
-		"WebGL2Samples/texture_vertex",
 		"WebGL2Samples/geo_vertex_format",
 		"WebGL2Samples/transform_feedback_interleaved",
 		"WebGL2Samples/transform_feedback_separated",
-		"WebGL2Samples/transform_feedback_separated_2"
+		"WebGL2Samples/transform_feedback_separated_2",
+		"WebGL2Samples/transform_feedback_instanced",
+		"WebGL2Samples/texture_vertex"
 	]
 }

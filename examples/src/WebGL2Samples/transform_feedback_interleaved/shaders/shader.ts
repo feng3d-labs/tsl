@@ -1,4 +1,4 @@
-import { attribute, clamp, fragment, gl_Position, mat4, precision, return_, uniform, varying, vec4, vertex } from '@feng3d/tsl';
+import { attribute, clamp, fragment, gl_Position, mat4, precision, return_, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // =====================================================
 // Transform 着色器（用于 Transform Feedback 捕获）
@@ -24,8 +24,7 @@ export const transformVertexShader = vertex('main', () =>
 
     // 根据位置计算颜色
     // 原始 GLSL: v_color = vec4(clamp(vec2(position), 0.0, 1.0), 0.0, 1.0);
-    // 由于 TSL 的 clamp 不支持 Vec2，对 x 和 y 分别进行 clamp
-    v_color.assign(vec4(clamp(position.x, 0.0, 1.0), clamp(position.y, 0.0, 1.0), 0.0, 1.0));
+    v_color.assign(vec4(clamp(vec2(position), 0.0, 1.0), 0.0, 1.0));
 });
 
 // Transform 片段着色器（禁用光栅化时不会被调用）

@@ -8,6 +8,8 @@ import { formatOperand, wrapForSwizzle } from '../../core/expressionUtils';
 import { formatNumber } from '../../core/formatNumber';
 import { Float } from '../scalar/float';
 import { IVec2 } from './ivec2';
+import type { Vec3 } from './vec3';
+import type { Vec4 } from './vec4';
 
 /**
  * Vec2 类，用于表示 vec2 字面量值或 uniform/attribute 变量
@@ -31,8 +33,10 @@ export class Vec2 implements ShaderValue
     constructor(varying: Varying);
     constructor(builtin: Builtin);
     constructor(ivec2: IVec2);
+    constructor(vec3: Vec3);
+    constructor(vec4: Vec4);
     constructor(x: number | Float, y: number | Float);
-    constructor(...args: (number | Uniform | Attribute | Varying | Float | Builtin | IVec2)[])
+    constructor(...args: (number | Uniform | Attribute | Varying | Float | Builtin | IVec2 | Vec3 | Vec4)[])
     {
         if (args.length === 0)
         {
@@ -90,6 +94,15 @@ export class Vec2 implements ShaderValue
                 this.toGLSL = () => `vec2(${ivec2.toGLSL()})`;
                 this.toWGSL = () => `vec2<f32>(${ivec2.toWGSL()})`;
                 this.dependencies = [ivec2];
+            }
+            else if (typeof args[0] === 'object' && 'glslType' in args[0] && (args[0].glslType === 'vec3' || args[0].glslType === 'vec4'))
+            {
+                // 从 vec3 或 vec4 转换为 vec2（取 xy 分量）
+                const vec = args[0] as Vec3 | Vec4;
+
+                this.toGLSL = () => `vec2(${vec.toGLSL()})`;
+                this.toWGSL = () => `vec2<f32>(${vec.toWGSL()})`;
+                this.dependencies = [vec];
             }
             else
             {
@@ -349,6 +362,16 @@ export function vec2(builtin: Builtin): Vec2;
  * @param ivec2 IVec2 转换
  */
 export function vec2(ivec2: IVec2): Vec2;
+/**
+ * vec2 构造函数
+ * @param vec3 Vec3 转换（取 xy 分量）
+ */
+export function vec2(vec3: Vec3): Vec2;
+/**
+ * vec2 构造函数
+ * @param vec4 Vec4 转换（取 xy 分量）
+ */
+export function vec2(vec4: Vec4): Vec2;
 /**
  * vec2 构造函数
  * @param x x 分量（Float 或数字）

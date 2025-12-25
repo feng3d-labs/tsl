@@ -3,7 +3,7 @@ import { attribute, fragColor, fragment, gl_Position, mix, precision, return_, s
 // ==================== Draw Buffer 着色器 ====================
 // Pass 1: 渲染三角形到两个颜色附件
 
-const drawBufferPosition = vec4(attribute('position'));
+const drawBufferPosition = attribute('position', vec4());
 
 export const drawBufferVertexShader = vertex('main', () =>
 {
@@ -31,8 +31,8 @@ export const drawBufferFragmentShader = fragment('main', () =>
 // ==================== Draw 着色器 ====================
 // Pass 2: 混合两个纹理并渲染到屏幕
 
-const drawPosition = vec2(attribute('position'));
-const drawTexcoord = vec2(attribute('textureCoordinates'));
+const drawPosition = attribute('position', vec2());
+const drawTexcoord = attribute('textureCoordinates', vec2());
 
 const v_st = vec2(varying("v_st"));
 

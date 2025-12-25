@@ -1,4 +1,3 @@
-import { Attribute } from '../../variables/attribute';
 import { IElement, ShaderValue } from '../../core/IElement';
 import { Uniform } from '../../variables/uniform';
 import { Varying } from '../../variables/varying';
@@ -22,13 +21,12 @@ export class Vec3 implements ShaderValue
 
     constructor();
     constructor(uniform: Uniform);
-    constructor(attribute: Attribute);
     constructor(varying: Varying);
     constructor(value: Float | number);
     constructor(x: number, y: number, z: number);
     constructor(x: Float, y: Float, z: Float);
     constructor(vec2: Vec2, z: Float | number);
-    constructor(...args: (number | Uniform | Attribute | Varying | Float | Vec2)[])
+    constructor(...args: (number | Uniform | Varying | Float | Vec2)[])
     {
         if (args.length === 0) return;
         if (args.length === 1 && args[0] instanceof Uniform)
@@ -38,14 +36,6 @@ export class Vec3 implements ShaderValue
             this.toGLSL = () => uniform.name;
             this.toWGSL = () => uniform.name;
             uniform.value = this;
-        }
-        else if (args.length === 1 && args[0] instanceof Attribute)
-        {
-            const attribute = args[0] as Attribute;
-            this.dependencies = [attribute];
-            this.toGLSL = () => attribute.name;
-            this.toWGSL = () => attribute.name;
-            attribute.value = this;
         }
         else if (args.length === 1 && args[0] instanceof Varying)
         {
@@ -398,15 +388,14 @@ export class Vec3 implements ShaderValue
  */
 export function vec3(): Vec3;
 /**
+ * vec3 构造函数（无参数）
+ */
+export function vec3(): Vec3;
+/**
  * vec3 构造函数
  * @param uniform Uniform 变量
  */
 export function vec3(uniform: Uniform): Vec3;
-/**
- * vec3 构造函数
- * @param attribute Attribute 变量
- */
-export function vec3(attribute: Attribute): Vec3;
 /**
  * vec3 构造函数
  * @param varying Varying 变量
@@ -430,7 +419,7 @@ export function vec3(x: Float | number, y: Float | number, z: Float | number): V
  * @param z z 分量（Float 或数字）
  */
 export function vec3(vec2: Vec2, z: Float | number): Vec3;
-export function vec3(...args: (number | Uniform | Attribute | Varying | Float | Vec2)[]): Vec3
+export function vec3(...args: (number | Uniform | Varying | Float | Vec2)[]): Vec3
 {
     return new (Vec3 as any)(...args);
 }

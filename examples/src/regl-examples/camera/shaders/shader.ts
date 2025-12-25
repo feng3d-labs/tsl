@@ -1,8 +1,8 @@
 import { attribute, float, fragment, gl_Position, max, mat4, return_, uniform, var_, varying, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes
-const position = vec3(attribute('position'));
-const normal = vec3(attribute('normal'));
+const position = attribute('position', vec3());
+const normal = attribute('normal', vec3());
 
 // Vertex shader 的 uniforms
 const projection = mat4(uniform('projection'));

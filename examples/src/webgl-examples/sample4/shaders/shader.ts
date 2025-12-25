@@ -1,8 +1,8 @@
 import { attribute, fragment, gl_Position, mat4, return_, uniform, var_, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes（location 缺省时自动分配）
-const aVertexPosition = vec2(attribute('aVertexPosition'));
-const aVertexColor = vec4(attribute('aVertexColor'));
+const aVertexPosition = attribute('aVertexPosition', vec2());
+const aVertexColor = attribute('aVertexColor', vec4());
 
 // Vertex shader 的 uniforms（group 缺省时使用默认值 0）
 const uModelViewMatrix = mat4(uniform('uModelViewMatrix'));

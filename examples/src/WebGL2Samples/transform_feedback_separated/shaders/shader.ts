@@ -5,7 +5,7 @@ import { attribute, clamp, fragment, gl_Position, mat4, precision, return_, tran
 // =====================================================
 
 // 输入属性
-const position = vec4(attribute('position', 0));
+const position = attribute('position', vec4(), 0);
 
 // Uniform
 const MVP = mat4(uniform('MVP'));
@@ -41,8 +41,8 @@ export const transformFragmentShader = fragment('main', () =>
 // =====================================================
 
 // Feedback 输入属性
-const feedbackPosition = vec4(attribute('position', 0));
-const feedbackColor = vec4(attribute('color', 3));
+const feedbackPosition = attribute('position', vec4(), 0);
+const feedbackColor = attribute('color', vec4(), 3);
 
 // Feedback Varying
 const v_color_feedback = vec4(varying('v_color'));

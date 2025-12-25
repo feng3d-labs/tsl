@@ -1,4 +1,3 @@
-import { Attribute } from '../../variables/attribute';
 import { IElement, ShaderValue } from '../../core/IElement';
 import { Uniform } from '../../variables/uniform';
 import { Varying } from '../../variables/varying';
@@ -29,14 +28,13 @@ export class Vec2 implements ShaderValue
 
     constructor();
     constructor(uniform: Uniform);
-    constructor(attribute: Attribute);
     constructor(varying: Varying);
     constructor(builtin: Builtin);
     constructor(ivec2: IVec2);
     constructor(vec3: Vec3);
     constructor(vec4: Vec4);
     constructor(x: number | Float, y: number | Float);
-    constructor(...args: (number | Uniform | Attribute | Varying | Float | Builtin | IVec2 | Vec3 | Vec4)[])
+    constructor(...args: (number | Uniform | Varying | Float | Builtin | IVec2 | Vec3 | Vec4)[])
     {
         if (args.length === 0)
         {
@@ -55,16 +53,6 @@ export class Vec2 implements ShaderValue
                 this.dependencies = [uniform];
 
                 uniform.value = this;
-            }
-            else if (args[0] instanceof Attribute)
-            {
-                const attribute = args[0] as Attribute;
-
-                this.toGLSL = () => attribute.name;
-                this.toWGSL = () => attribute.name;
-                this.dependencies = [attribute];
-
-                attribute.value = this;
             }
             else if (args[0] instanceof Varying)
             {
@@ -339,15 +327,14 @@ export class Vec2 implements ShaderValue
 }
 
 /**
+ * vec2 构造函数（无参数）
+ */
+export function vec2(): Vec2;
+/**
  * vec2 构造函数
  * @param uniform Uniform 变量
  */
 export function vec2(uniform: Uniform): Vec2;
-/**
- * vec2 构造函数
- * @param attribute Attribute 变量
- */
-export function vec2(attribute: Attribute): Vec2;
 /**
  * vec2 构造函数
  * @param varying Varying 变量

@@ -13,9 +13,9 @@ import {
 // ==================== 顶点着色器 ====================
 
 // 顶点属性
-const a_position = vec3(attribute('a_position', 1));
-const a_texCoord = vec2(attribute('a_texCoord', 2));
-const a_normal = vec3(attribute('a_normal', 3));
+const a_position = attribute('a_position', vec3(), 1);
+const a_texCoord = attribute('a_texCoord', vec2(), 2);
+const a_normal = attribute('a_normal', vec3(), 3);
 
 // Uniform 变量
 const u_model = mat4(uniform('u_model'));

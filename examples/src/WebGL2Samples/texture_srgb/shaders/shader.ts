@@ -40,8 +40,8 @@ const contrastSaturationBrightness = func('contrastSaturationBrightness', [['col
 // ============================================================================
 
 // 顶点属性
-const position = vec2(attribute('position', 0));
-const textureCoordinates = vec2(attribute('textureCoordinates', 4));
+const position = attribute('position', vec2(), 0);
+const textureCoordinates = attribute('textureCoordinates', vec2(), 4);
 
 // Uniform 变量
 const mvp = mat4(uniform('mvp'));

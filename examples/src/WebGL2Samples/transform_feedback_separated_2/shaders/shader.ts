@@ -27,11 +27,11 @@ import {
 // =====================================================
 
 // 输入属性（使用指定的 location）
-const a_position = vec2(attribute('a_position', 0));
-const a_velocity = vec2(attribute('a_velocity', 1));
-const a_spawntime = float(attribute('a_spawntime', 2));
-const a_lifetime = float(attribute('a_lifetime', 3));
-const a_ID = float(attribute('a_ID', 4));
+const a_position = attribute('a_position', vec2(), 0);
+const a_velocity = attribute('a_velocity', vec2(), 1);
+const a_spawntime = attribute('a_spawntime', float(), 2);
+const a_lifetime = attribute('a_lifetime', float(), 3);
+const a_ID = attribute('a_ID', float(), 4);
 
 // Uniforms
 const u_time = float(uniform('u_time'));
@@ -102,7 +102,7 @@ export const emitVertexShader = transform('main', () =>
 // =====================================================
 
 // 渲染输入属性
-const draw_position = vec2(attribute('a_position', 0));
+const draw_position = attribute('a_position', vec2(), 0);
 
 // 渲染顶点着色器
 export const drawVertexShader = vertex('main', () =>

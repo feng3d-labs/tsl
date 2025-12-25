@@ -1,8 +1,8 @@
 import { attribute, fragment, gl_Position, mat4, precision, return_, sampler2D, texture, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
-const position = vec2(attribute('position', 0));
-const textureCoordinates = vec2(attribute('textureCoordinates', 1));
+const position = attribute('position', vec2(), 0);
+const textureCoordinates = attribute('textureCoordinates', vec2(), 1);
 
 // Uniform
 const mvp = mat4(uniform('mvp'));

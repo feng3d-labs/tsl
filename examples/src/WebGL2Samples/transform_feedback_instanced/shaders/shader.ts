@@ -51,8 +51,8 @@ const u_time = float(uniform('u_time'));
 
 // layout(location = OFFSET_LOCATION) in vec2 a_offset;
 // layout(location = ROTATION_LOCATION) in float a_rotation;
-const a_offset = vec2(attribute('a_offset', 0));
-const a_rotation = float(attribute('a_rotation', 1));
+const a_offset = attribute('a_offset', vec2(), 0);
+const a_rotation = attribute('a_rotation', float(), 1);
 
 // out vec2 v_offset;
 // out float v_rotation;
@@ -121,10 +121,10 @@ export const emitVertexShader = transform('main', () =>
 // layout(location = ROTATION_LOCATION) in float a_rotation;
 // layout(location = OFFSET_LOCATION) in vec2 a_offset;
 // layout(location = COLOR_LOCATION) in vec3 a_color;
-const draw_position = vec2(attribute('a_position', 2));
-const draw_rotation = float(attribute('a_rotation', 1));
-const draw_offset = vec2(attribute('a_offset', 0));
-const draw_color = vec3(attribute('a_color', 3));
+const draw_position = attribute('a_position', vec2(), 2);
+const draw_rotation = attribute('a_rotation', float(), 1);
+const draw_offset = attribute('a_offset', vec2(), 0);
+const draw_color = attribute('a_color', vec3(), 3);
 
 // out vec3 v_color;
 const v_color = vec3(varying('v_color'));

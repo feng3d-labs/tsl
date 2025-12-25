@@ -15,8 +15,8 @@ import {
 
 // ==================== Smooth 着色器（默认插值）====================
 
-const position = vec3(attribute('position', 0));
-const normal = vec3(attribute('normal', 1));
+const position = attribute('position', vec3(), 0);
+const normal = attribute('normal', vec3(), 1);
 const mvp = mat4(uniform('mvp'));
 const mvNormal = mat4(uniform('mvNormal'));
 

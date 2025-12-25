@@ -1,8 +1,8 @@
 import { attribute, fragment, gl_Position, int, mat4, precision, return_, sampler2DArray, texture, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // 顶点属性
-const position = vec2(attribute('position', 0));
-const texcoord = vec2(attribute('texcoord', 4));
+const position = attribute('position', vec2(), 0);
+const texcoord = attribute('texcoord', vec2(), 4);
 
 // Uniforms
 const MVP = mat4(uniform('MVP'));

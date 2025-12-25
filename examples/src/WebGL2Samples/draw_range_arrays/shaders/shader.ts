@@ -1,7 +1,7 @@
 import { attribute, fragment, gl_Position, precision, return_, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
-const position = vec2(attribute('position', 0));
+const position = attribute('position', vec2(), 0);
 
 // 顶点着色器
 export const vertexShader = vertex('main', () =>

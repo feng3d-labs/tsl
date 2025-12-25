@@ -1,7 +1,7 @@
 import { attribute, fragment, precision, return_, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attribute
-const apos = vec2(attribute('pos'));
+const apos = attribute('pos', vec2());
 
 // Vertex shader 入口函数
 export const vertexShader = vertex('main', () =>

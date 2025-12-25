@@ -3,8 +3,8 @@ import { attribute, fragColor, fragment, gl_Position, mat4, precision, texture, 
 // ==================== 顶点着色器 ====================
 
 // 顶点属性
-const position = vec2(attribute('position', 0));
-const texcoord = vec2(attribute('texcoord', 4));
+const position = attribute('position', vec2(), 0);
+const texcoord = attribute('texcoord', vec2(), 4);
 
 // Uniform 变量
 const MVP = mat4(uniform('MVP'));

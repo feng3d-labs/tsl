@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Attribute, attribute } from '../src/variables/attribute';
+import { attribute } from '../src/variables/attribute';
 import { vec2 } from '../src/types/vector/vec2';
 import { vec4 } from '../src/types/vector/vec4';
 import { return_ } from '../src/index';
@@ -7,49 +7,19 @@ import { vertex } from '../src/shader/vertex';
 
 describe('Attribute', () =>
 {
-    describe('Attribute 类', () =>
-    {
-        it('应该能够创建 Attribute 实例', () =>
-        {
-            const attr = new Attribute('position', 0);
-            expect(attr.name).toBe('position');
-            expect(attr.location).toBe(0);
-        });
-
-        it('应该在没有设置 value 时抛出错误', () =>
-        {
-            const attr = new Attribute('position', 0);
-            expect(() => attr.toGLSL()).toThrow(/没有设置 value/);
-        });
-
-        it('应该能够设置 value 并生成 GLSL', () =>
-        {
-            const attr = new Attribute('position', 0);
-            attr.value = vec2(attribute('position', 0));
-            expect(attr.toGLSL()).toBe('attribute vec2 position;');
-        });
-
-        it('应该能够生成 WGSL', () =>
-        {
-            const attr = new Attribute('position', 0);
-            attr.value = vec2(attribute('position', 0));
-            expect(attr.toWGSL()).toBe('@location(0) position: vec2<f32>');
-        });
-    });
-
     describe('attribute() 函数', () =>
     {
-        it('应该能够创建 attribute', () =>
+        it('应该能够创建 attribute（返回类型实例）', () =>
         {
-            const attr = attribute('position', 0);
-            expect(attr).toBeInstanceOf(Attribute);
-            expect(attr.name).toBe('position');
-            expect(attr.location).toBe(0);
+            const position = attribute('position', vec2(), 0);
+            expect(position).toBeDefined();
+            expect(position.toGLSL()).toBe('position');
+            expect(position.toWGSL()).toBe('position');
         });
 
-        it('应该支持 vec2(attribute(...)) 形式', () =>
+        it('应该支持 attribute(name, type)', () =>
         {
-            const position = vec2(attribute('position', 0));
+            const position = attribute('position', vec2());
             expect(position).toBeDefined();
             expect(position.toGLSL()).toBe('position');
             expect(position.toWGSL()).toBe('position');
@@ -63,20 +33,60 @@ describe('Attribute', () =>
             const glsl = vertexShader.toGLSL();
             expect(glsl).toContain('attribute vec2 position;');
         });
+
+        it('应该支持 attribute(name, type, location)', () =>
+        {
+            const position = attribute('position', vec2(), 0);
+            expect(position).toBeDefined();
+            expect(position.toGLSL()).toBe('position');
+            expect(position.toWGSL()).toBe('position');
+
+            const vertexShader = vertex('main', () =>
+            {
+                return_(vec4(position, 0.0, 1.0));
+            });
+
+            // 验证生成的着色器代码中包含 attribute 声明
+            const glsl = vertexShader.toGLSL();
+            expect(glsl).toContain('attribute vec2 position;');
+        });
+
+        it('应该能够生成正确的 GLSL 声明', () =>
+        {
+            const position = attribute('position', vec2(), 0);
+
+            const vertexShader = vertex('main', () =>
+            {
+                return_(vec4(position, 0.0, 1.0));
+            });
+
+            const glsl = vertexShader.toGLSL();
+            expect(glsl).toContain('attribute vec2 position;');
+        });
+
+        it('应该能够生成正确的 WGSL 声明', () =>
+        {
+            const position = attribute('position', vec2(), 0);
+
+            const vertexShader = vertex('main', () =>
+            {
+                return_(vec4(position, 0.0, 1.0));
+            });
+
+            const wgsl = vertexShader.toWGSL();
+            expect(wgsl).toContain('@location(0) position: vec2<f32>');
+        });
     });
 
     describe('location 自动分配', () =>
     {
         it('应该支持 location 缺省时的自动分配', () =>
         {
-            const attr1 = attribute('position');
-            const attr2 = attribute('color');
-            attr1.value = vec2(attr1);
-            attr2.value = vec4(attr2);
+            const position = attribute('position', vec2());
 
             const vertexShader = vertex('main', () =>
             {
-                return_(vec4(vec2(attr1), 0.0, 1.0));
+                return_(vec4(position, 0.0, 1.0));
             });
 
             const wgsl = vertexShader.toWGSL();
@@ -86,9 +96,9 @@ describe('Attribute', () =>
 
         it('应该能够自动分配多个 attribute 的 location', () =>
         {
-            const aPos = vec2(attribute('aPos'));
-            const aColor = vec4(attribute('aColor'));
-            const aTexCoord = vec2(attribute('aTexCoord'));
+            const aPos = attribute('aPos', vec2());
+            const aColor = attribute('aColor', vec4());
+            const aTexCoord = attribute('aTexCoord', vec2());
 
             const vertexShader = vertex('main', () =>
             {
@@ -102,8 +112,8 @@ describe('Attribute', () =>
 
         it('应该能够混合显式指定和自动分配的 location', () =>
         {
-            const aPos = vec2(attribute('aPos', 2)); // 显式指定 location 2
-            const aColor = vec4(attribute('aColor')); // 自动分配
+            const aPos = attribute('aPos', vec2(), 2); // 显式指定 location 2
+            const aColor = attribute('aColor', vec4()); // 自动分配
 
             const vertexShader = vertex('main', () =>
             {
@@ -113,8 +123,6 @@ describe('Attribute', () =>
             const wgsl = vertexShader.toWGSL();
             // 验证显式指定的 location 被保留
             expect(wgsl).toContain('@location(2) aPos: vec2<f32>');
-            // 验证自动分配的 location 从 0 开始（因为 2 已被占用）
         });
     });
 });
-

@@ -1,8 +1,8 @@
 import { attribute, fragment, gl_Position, mat4, precision, return_, sampler3D, texture, uniform, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // 顶点属性
-const position = vec2(attribute('position', 0));
-const in_texcoord = vec2(attribute('in_texcoord', 1));
+const position = attribute('position', vec2(), 0);
+const in_texcoord = attribute('in_texcoord', vec2(), 1);
 
 // Uniforms
 const orientation = mat4(uniform('orientation'));

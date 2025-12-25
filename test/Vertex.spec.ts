@@ -65,7 +65,7 @@ describe('Vertex', () =>
     {
         it('应该能够生成包含 varying 声明的 GLSL 代码', () =>
         {
-            const aVertexColor = vec4(attribute('aVertexColor', 0));
+            const aVertexColor = attribute('aVertexColor', vec4(), 0);
             const vColor = vec4(varying('vColor', 0));
 
             const vert = vertex('main', () =>
@@ -86,8 +86,8 @@ describe('Vertex', () =>
     {
         it('应该能够自动分配 attribute 的 location', () =>
         {
-            const aPos = vec2(attribute('aPos'));
-            const aColor = vec4(attribute('aColor'));
+            const aPos = attribute('aPos', vec2());
+            const aColor = attribute('aColor', vec4());
 
             const vert = vertex('main', () =>
             {
@@ -118,8 +118,8 @@ describe('Vertex', () =>
 
         it('应该能够混合显式指定和自动分配的 location', () =>
         {
-            const aPos = vec2(attribute('aPos', 2)); // 显式指定 location 2
-            const aColor = vec4(attribute('aColor')); // 自动分配
+            const aPos = attribute('aPos', vec2(), 2); // 显式指定 location 2
+            const aColor = attribute('aColor', vec4()); // 自动分配
             const vColor = vec4(varying('vColor', 1)); // 显式指定 location 1
             const vTexCoord = vec2(varying('vTexCoord')); // 自动分配
 
@@ -142,7 +142,7 @@ describe('Vertex', () =>
     {
         it('不使用 convertDepth 时，position 赋值应该保持原样', () =>
         {
-            const position = vec4(attribute('position'));
+            const position = attribute('position', vec4());
 
             const vert = vertex('main', () =>
             {
@@ -156,7 +156,7 @@ describe('Vertex', () =>
 
         it('使用 convertDepth: true 时，应该自动转换深度值', () =>
         {
-            const position = vec4(attribute('position'));
+            const position = attribute('position', vec4());
 
             const vert = vertex('main', () =>
             {
@@ -171,7 +171,7 @@ describe('Vertex', () =>
 
         it('使用 convertDepth: false 时，应该与默认行为相同', () =>
         {
-            const position = vec4(attribute('position'));
+            const position = attribute('position', vec4());
 
             const vert = vertex('main', () =>
             {
@@ -185,7 +185,7 @@ describe('Vertex', () =>
 
         it('深度转换应该正确处理复杂表达式', () =>
         {
-            const pos = vec2(attribute('pos'));
+            const pos = attribute('pos', vec2());
 
             const vert = vertex('main', () =>
             {
@@ -200,7 +200,7 @@ describe('Vertex', () =>
 
         it('深度转换不应影响非 position 的赋值', () =>
         {
-            const color = vec4(attribute('color'));
+            const color = attribute('color', vec4());
             const vColor = vec4(varying('vColor'));
 
             const vert = vertex('main', () =>
@@ -218,7 +218,7 @@ describe('Vertex', () =>
 
         it('GLSL 输出不应受 convertDepth 影响', () =>
         {
-            const position = vec4(attribute('position'));
+            const position = attribute('position', vec4());
 
             const vert = vertex('main', () =>
             {
@@ -236,8 +236,8 @@ describe('Vertex', () =>
     {
         it('应该自动生成包含 position builtin 和 varying 的 VaryingStruct', () =>
         {
-            const aVertexPosition = vec3(attribute('aVertexPosition'));
-            const aTextureCoord = vec2(attribute('aTextureCoord'));
+            const aVertexPosition = attribute('aVertexPosition', vec3());
+            const aTextureCoord = attribute('aTextureCoord', vec2());
             const uModelViewMatrix = mat4(uniform('uModelViewMatrix'));
             const uProjectionMatrix = mat4(uniform('uProjectionMatrix'));
 
@@ -266,7 +266,7 @@ describe('Vertex', () =>
 
         it('只使用 gl_Position 时也应该生成 VaryingStruct', () =>
         {
-            const aVertexPosition = vec3(attribute('aVertexPosition'));
+            const aVertexPosition = attribute('aVertexPosition', vec3());
 
             const vert = vertex('main', () =>
             {

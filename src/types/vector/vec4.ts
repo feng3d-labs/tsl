@@ -1,4 +1,3 @@
-import { Attribute } from '../../variables/attribute';
 import { IElement, ShaderValue } from '../../core/IElement';
 import { Uniform } from '../../variables/uniform';
 import { Varying } from '../../variables/varying';
@@ -27,7 +26,6 @@ export class Vec4 implements ShaderValue
 
     constructor();
     constructor(uniform: Uniform);
-    constructor(attribute: Attribute);
     constructor(builtin: Builtin);
     constructor(varying: Varying);
     constructor(color: FragColor);
@@ -37,7 +35,7 @@ export class Vec4 implements ShaderValue
     constructor(xy: Vec2, zw: Vec2);
     constructor(xyz: Vec3, w: number | Float);
     constructor(x: number | Float, y: number | Float, z: number | Float, w: number | Float);
-    constructor(...args: (number | Uniform | Attribute | Builtin | Varying | FragColor | Vec2 | Vec3 | Float | Vec4 | Uvec4)[])
+    constructor(...args: (number | Uniform | Builtin | Varying | FragColor | Vec2 | Vec3 | Float | Vec4 | Uvec4)[])
     {
         if (args.length === 0) return;
         if (args.length === 1)
@@ -51,15 +49,6 @@ export class Vec4 implements ShaderValue
                 this.toGLSL = () => uniform.name;
                 this.toWGSL = () => uniform.name;
                 this.dependencies = [uniform];
-            }
-            else if (args[0] instanceof Attribute)
-            {
-                const attribute = args[0] as Attribute;
-
-                this.toGLSL = () => attribute.name;
-                this.toWGSL = () => attribute.name;
-                this.dependencies = [attribute];
-                attribute.value = this;
             }
             else if (args[0] instanceof Builtin)
             {
@@ -504,15 +493,14 @@ export class Vec4 implements ShaderValue
 }
 
 /**
+ * vec4 构造函数（无参数）
+ */
+export function vec4(): Vec4;
+/**
  * vec4 构造函数
  * @param uniform Uniform 变量
  */
 export function vec4(uniform: Uniform): Vec4;
-/**
- * vec4 构造函数
- * @param attribute Attribute 变量
- */
-export function vec4(attribute: Attribute): Vec4;
 /**
  * vec4 构造函数
  * @param builtin Builtin 变量

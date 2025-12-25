@@ -1,7 +1,7 @@
 import { attribute, fragment, precision, return_, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attribute（location 缺省时自动分配）
-const aposition = vec2(attribute('position'));
+const aposition = attribute('position', vec2());
 
 // Fragment shader 的 uniform（group 缺省时使用默认值 0）
 const color = vec4(uniform('color'));

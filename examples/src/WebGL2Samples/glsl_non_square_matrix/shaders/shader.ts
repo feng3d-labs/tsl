@@ -20,8 +20,8 @@ import {
 
 // ==================== 顶点着色器 ====================
 
-const position = vec2(attribute('position', 0));
-const texcoord = vec2(attribute('texcoord', 1));
+const position = attribute('position', vec2(), 0);
+const texcoord = attribute('texcoord', vec2(), 1);
 const MVP = mat4x3(uniform('MVP'));
 
 // Varying 变量

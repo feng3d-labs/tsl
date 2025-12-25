@@ -1,9 +1,9 @@
 import { attribute, clamp, dot, float, fragment, gl_FrontFacing, gl_Position, if_, mat4, normalize, precision, return_, sampler2D, texture2D, uniform, var_, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attribute
-const position = vec3(attribute('position')); // attribute vec3 position;
-const normal = vec3(attribute('normal')); // attribute vec3 normal;
-const uv = vec2(attribute('uv')); // attribute vec2 uv;
+const position = attribute('position', vec3()); // attribute vec3 position;
+const normal = attribute('normal', vec3()); // attribute vec3 normal;
+const uv = attribute('uv', vec2()); // attribute vec2 uv;
 
 // Vertex shader 的 uniform
 const projection = mat4(uniform('projection')); // uniform mat4 projection;

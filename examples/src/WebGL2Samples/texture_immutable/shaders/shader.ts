@@ -5,8 +5,8 @@ import { attribute, fragment, gl_Position, mat4, precision, return_, sampler2D, 
 // ============================================================================
 
 // 顶点属性
-const position = vec2(attribute('position', 0));
-const texcoord = vec2(attribute('texcoord', 4));
+const position = attribute('position', vec2(), 0);
+const texcoord = attribute('texcoord', vec2(), 4);
 
 // Uniform 变量
 const MVP = mat4(uniform('MVP'));
@@ -48,8 +48,8 @@ export const fragmentShader = fragment('main', () =>
 // ============================================================================
 
 // 顶点属性（复用 position，使用不同名称的 texcoord）
-const position3D = vec2(attribute('position', 0));
-const in_texcoord = vec2(attribute('in_texcoord', 4));
+const position3D = attribute('position', vec2(), 0);
+const in_texcoord = attribute('in_texcoord', vec2(), 4);
 
 // Varying 变量
 const v_texcoord = vec3(varying('v_texcoord'));

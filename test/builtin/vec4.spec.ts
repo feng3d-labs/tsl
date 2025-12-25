@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { Attribute } from '../../src/variables/attribute';
 import { float } from '../../src/types/scalar/float';
 import { vec2 } from '../../src/types/vector/vec2';
 import { vec4, Vec4 } from '../../src/types/vector/vec4';
@@ -39,15 +38,6 @@ describe('vec4', () =>
             expect(result.toWGSL()).toBe('vec4<f32>(uPosition, 0.0, 1.0)');
         });
 
-        it('应该从 Vec2 attribute 和两个数字创建 Vec4', () =>
-        {
-            const attribute = new Attribute('aPosition', 0);
-            const xy = vec2(attribute);
-            const result = vec4(xy, 0.0, 1.0);
-            expect(result).toBeInstanceOf(Vec4);
-            expect(result.toGLSL()).toBe('vec4(aPosition, 0.0, 1.0)');
-            expect(result.toWGSL()).toBe('vec4<f32>(aPosition, 0.0, 1.0)');
-        });
     });
 
     describe('运算', () =>

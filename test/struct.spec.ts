@@ -100,7 +100,7 @@ describe('Struct', () =>
     {
         it('应该在顶点着色器中生成正确的 UBO 声明', () =>
         {
-            const pos = vec2(attribute('pos', 0));
+            const pos = attribute('pos', vec2(), 0);
 
             const Transform = struct('Transform', {
                 MVP: array(mat4, 2),
@@ -146,7 +146,7 @@ describe('Struct', () =>
     {
         it('应该在顶点着色器中生成正确的 WGSL 结构体', () =>
         {
-            const pos = vec2(attribute('pos', 0));
+            const pos = attribute('pos', vec2(), 0);
 
             const Transform = struct('Transform', {
                 MVP: array(mat4, 2),

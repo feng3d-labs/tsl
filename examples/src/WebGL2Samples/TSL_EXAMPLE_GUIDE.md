@@ -340,8 +340,8 @@ const texel00 = texelFetch(diffuse, coord.add(ivec2(0, 0)), 0);
 
 ```typescript
 // 属性（attribute）
-const position = vec2(attribute('position', 0));  // location 0
-const texcoord = vec2(attribute('texcoord', 4));  // location 4
+const position = attribute('position', vec2(), 0);  // location 0
+const texcoord = attribute('texcoord', vec2(), 4);  // location 4
 
 // Uniform
 const MVP = mat4(uniform('MVP'));
@@ -618,8 +618,8 @@ const v_attr = float(varying('v_attr', {
 ```typescript
 import { attribute, fragment, gl_Position, mat4, precision, return_, sampler2D, texture, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
-const position = vec2(attribute('position', 0));
-const texcoord = vec2(attribute('texcoord', 4));
+const position = attribute('position', vec2(), 0);
+const texcoord = attribute('texcoord', vec2(), 4);
 const MVP = mat4(uniform('MVP'));
 
 // Varying 变量独立声明

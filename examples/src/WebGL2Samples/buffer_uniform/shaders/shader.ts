@@ -1,9 +1,9 @@
 import { attribute, dot, float, fragment, gl_FragColor, gl_Position, mat4, max, normalize, pow, precision, reflect, struct, uniform, varying, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
-const position = vec3(attribute('position', 0));
-const normal = vec3(attribute('normal', 1));
-const color = vec4(attribute('color', 2));
+const position = attribute('position', vec3(), 0);
+const normal = attribute('normal', vec3(), 1);
+const color = attribute('color', vec4(), 2);
 
 // 定义 Transform 结构体
 const Transform = struct('Transform', {

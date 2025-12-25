@@ -1,8 +1,8 @@
 import { attribute, float, fragment, gl_InstanceID, gl_Position, precision, return_, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
-const pos = vec2(attribute('pos', 0));
-const color = vec4(attribute('color', 1));
+const pos = attribute('pos', vec2(), 0);
+const color = attribute('color', vec4(), 1);
 
 // varying 变量
 const v_color = vec4(varying('v_color'));

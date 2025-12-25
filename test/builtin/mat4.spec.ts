@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { Attribute } from '../../src/variables/attribute';
 import { mat4, Mat4 } from '../../src/types/matrix/mat4';
 import { vec4, Vec4 } from '../../src/types/vector/vec4';
 import { Uniform } from '../../src/variables/uniform';
@@ -23,14 +22,6 @@ describe('Mat4', () =>
             expect(m.toWGSL()).toBe('uMatrix');
         });
 
-        it('应该从 Attribute 创建 Mat4 实例', () =>
-        {
-            const attribute = new Attribute('aMatrix', 0);
-            const m = mat4(attribute);
-            expect(m).toBeInstanceOf(Mat4);
-            expect(m.toGLSL()).toBe('aMatrix');
-            expect(m.toWGSL()).toBe('aMatrix');
-        });
     });
 
     describe('multiply', () =>
@@ -93,16 +84,5 @@ describe('mat4', () =>
         });
     });
 
-    describe('mat4(attribute: Attribute)', () =>
-    {
-        it('应该返回 Mat4 实例', () =>
-        {
-            const attribute = new Attribute('aMatrix', 0);
-            const result = mat4(attribute);
-            expect(result).toBeInstanceOf(Mat4);
-            expect(result.toGLSL()).toBe('aMatrix');
-            expect(result.toWGSL()).toBe('aMatrix');
-        });
-    });
 });
 

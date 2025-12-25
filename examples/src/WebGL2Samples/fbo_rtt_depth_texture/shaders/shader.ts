@@ -3,7 +3,7 @@ import { attribute, depthSampler, fragment, gl_Position, precision, return_, tex
 // ==================== Depth 着色器 ====================
 // Pass 1: 渲染三角形到深度纹理（仅写入深度，无颜色输出）
 
-const depthPosition = vec4(attribute('position'));
+const depthPosition = attribute('position', vec4());
 
 export const depthVertexShader = vertex('main', () =>
 {
@@ -24,8 +24,8 @@ export const depthFragmentShader = fragment('main', () =>
 // ==================== Draw 着色器 ====================
 // Pass 2: 采样深度纹理并可视化显示到屏幕
 
-const drawPosition = vec2(attribute('position'));
-const drawTexcoord = vec2(attribute('textureCoordinates'));
+const drawPosition = attribute('position', vec2());
+const drawTexcoord = attribute('textureCoordinates', vec2());
 
 // Varying 变量独立声明
 const v_st = vec2(varying('v_st'));

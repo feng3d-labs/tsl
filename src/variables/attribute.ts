@@ -1,5 +1,9 @@
 import { getBuildParam } from '../core/buildShader';
 import { IElement, ShaderValue } from '../core/IElement';
+import { Float } from '../types/scalar/float';
+import { Vec2 } from '../types/vector/vec2';
+import { Vec3 } from '../types/vector/vec3';
+import { Vec4 } from '../types/vector/vec4';
 
 /**
  * Attribute 类
@@ -13,9 +17,10 @@ export class Attribute implements IElement
     readonly location?: number;
     private _autoLocation?: number; // 自动分配的 location
 
-    constructor(name: string, location?: number)
+    constructor(name: string, value?: ShaderValue, location?: number)
     {
         this.name = name;
+        this.value = value;
         this.location = location;
     }
 
@@ -80,12 +85,34 @@ export class Attribute implements IElement
 
 /**
  * 定义 attribute 变量
- * 类型通过 vec2()、vec3()、vec4() 等函数自动推断
+ *
+ * 使用方式：
+ * - `const position = attribute('position', vec2())` - 定义 vec2 类型的 attribute
+ * - `const position = attribute('position', vec3())` - 定义 vec3 类型的 attribute
+ * - `const rotation = attribute('rotation', float())` - 定义 float 类型的 attribute
+ * - `const position = attribute('position', vec2(), 0)` - 指定 location
+ *
+ * @param name attribute 名称
+ * @param value 类型模板（用于推断类型）
+ * @param location 可选的 location 值
+ * @returns 与 value 相同类型的实例，关联到创建的 Attribute
  */
-export function attribute(name: string): Attribute;
-export function attribute(name: string, location: number): Attribute;
-export function attribute(name: string, location?: number): Attribute
+export function attribute<T extends Float | Vec2 | Vec3 | Vec4>(name: string, value: T): T;
+export function attribute<T extends Float | Vec2 | Vec3 | Vec4>(name: string, value: T, location: number): T;
+export function attribute<T extends Float | Vec2 | Vec3 | Vec4>(name: string, value: T, location?: number): T
 {
-    return new Attribute(name, location);
+    // 创建 Attribute 实例
+    const attr = new Attribute(name, undefined, location);
+
+    // 创建与 value 相同类型的新实例
+    const result = new (value.constructor as new () => T)();
+
+    // 设置双向引用
+    result.toGLSL = () => name;
+    result.toWGSL = () => name;
+    result.dependencies = [attr];
+    attr.value = result;
+
+    return result;
 }
 

@@ -1,7 +1,7 @@
 import { array, attribute, fragment, gl_FragColor, gl_InstanceID, gl_Position, int, mat4, precision, struct, uniform, varying, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // 输入属性
-const pos = vec2(attribute('pos', 0));
+const pos = attribute('pos', vec2(), 0);
 
 // 定义 Transform UBO（包含 MVP 矩阵数组）
 const Transform = struct('Transform', {

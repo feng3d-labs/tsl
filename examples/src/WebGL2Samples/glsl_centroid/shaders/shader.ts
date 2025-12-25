@@ -16,8 +16,8 @@ import { float } from '@feng3d/tsl';
 
 // ==================== 渲染着色器（普通插值）====================
 
-const position = vec2(attribute('position', 0));
-const data = float(attribute('data', 6));
+const position = attribute('position', vec2(), 0);
+const data = attribute('data', float(), 6);
 const MVP = mat4(uniform('MVP'));
 
 // 普通 varying（默认使用 center 采样）
@@ -75,8 +75,8 @@ export const renderCentroidFragmentShader = fragment('main', () =>
 
 // ==================== Splash 着色器（显示纹理）====================
 
-const splashPosition = vec2(attribute('position', 0));
-const texcoord = vec2(attribute('texcoord', 1));
+const splashPosition = attribute('position', vec2(), 0);
+const texcoord = attribute('texcoord', vec2(), 1);
 const splashMVP = mat4(uniform('MVP'));
 const v_st = vec2(varying('v_st'));
 

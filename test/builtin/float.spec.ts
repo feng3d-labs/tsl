@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { Attribute } from '../../src/variables/attribute';
 import { float, Float } from '../../src/types/scalar/float';
 import { Uniform } from '../../src/variables/uniform';
 import { Varying, varying } from '../../src/variables/varying';
@@ -34,18 +33,6 @@ describe('Float', () =>
             expect(result).toBeInstanceOf(Float);
             expect(result.toGLSL()).toBe('uValue');
             expect(result.toWGSL()).toBe('uValue');
-        });
-    });
-
-    describe('float(attribute: Attribute)', () =>
-    {
-        it('应该返回 Float 实例', () =>
-        {
-            const attribute = new Attribute('aValue', 0);
-            const result = float(attribute);
-            expect(result).toBeInstanceOf(Float);
-            expect(result.toGLSL()).toBe('aValue');
-            expect(result.toWGSL()).toBe('aValue');
         });
     });
 

@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { Attribute } from '../../src/variables/attribute';
 import { float, Float } from '../../src/types/scalar/float';
 import { vec2, Vec2 } from '../../src/types/vector/vec2';
 import { Uniform } from '../../src/variables/uniform';
@@ -138,31 +137,6 @@ describe('vec2', () =>
             expect(uniform.value).toBeDefined();
             expect(uniform.value?.glslType).toBe('vec2');
             expect(uniform.value?.wgslType).toBe('vec2<f32>');
-        });
-    });
-
-    describe('vec2(attribute: Attribute)', () =>
-    {
-        it('应该返回 Vec2 实例', () =>
-        {
-            const attribute = new Attribute('aPosition', 0);
-            const result = vec2(attribute);
-            expect(result).toBeInstanceOf(Vec2);
-            expect(result.toGLSL()).toBe('aPosition');
-            expect(result.toWGSL()).toBe('aPosition');
-            expect(result.x.toGLSL()).toBe('aPosition.x');
-            expect(result.y.toGLSL()).toBe('aPosition.y');
-            expect(result.x.toWGSL()).toBe('aPosition.x');
-            expect(result.y.toWGSL()).toBe('aPosition.y');
-        });
-
-        it('应该将类型信息保存到 attribute.value', () =>
-        {
-            const attribute = new Attribute('aPosition', 0);
-            vec2(attribute);
-            expect(attribute.value).toBeDefined();
-            expect(attribute.value?.glslType).toBe('vec2');
-            expect(attribute.value?.wgslType).toBe('vec2<f32>');
         });
     });
 

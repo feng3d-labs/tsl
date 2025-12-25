@@ -1,8 +1,8 @@
 import { attribute, cross, dFdx, dFdy, fragColor, fragment, gl_Position, let_, mat4, mix, normalize, precision, sampler2D, textureGrad, textureSize, uniform, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // 顶点属性
-const position = vec3(attribute('position', 0));
-const texcoord = vec2(attribute('texcoord', 4));
+const position = attribute('position', vec3(), 0);
+const texcoord = attribute('texcoord', vec2(), 4);
 
 // Uniform 变量
 const mvMatrix = mat4(uniform('mvMatrix'));

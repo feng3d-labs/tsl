@@ -3,7 +3,7 @@ import { attribute, fragment, gl_Position, mat4, precision, return_, sampler2D, 
 // ============ Render Shader（渲染到多重采样纹理）============
 
 // 输入属性
-const renderPosition = vec2(attribute('position', 0));
+const renderPosition = attribute('position', vec2(), 0);
 
 // Uniform
 const renderMVP = mat4(uniform('MVP'));
@@ -30,8 +30,8 @@ export const renderFragmentShader = fragment('main', () =>
 // ============ Splash Shader（将纹理渲染到屏幕）============
 
 // 输入属性
-const splashPosition = vec2(attribute('position', 0));
-const splashTexcoord = vec2(attribute('texcoord', 1));
+const splashPosition = attribute('position', vec2(), 0);
+const splashTexcoord = attribute('texcoord', vec2(), 1);
 
 // Uniform
 const splashMVP = mat4(uniform('MVP'));

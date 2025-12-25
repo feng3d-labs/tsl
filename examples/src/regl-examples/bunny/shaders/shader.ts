@@ -1,7 +1,7 @@
 import { attribute, fragment, gl_Position, mat4, return_, uniform, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes
-const position = vec3(attribute('position'));
+const position = attribute('position', vec3());
 
 // Vertex shader 的 uniforms
 const model = mat4(uniform('model'));

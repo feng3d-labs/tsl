@@ -1,8 +1,8 @@
 import { attribute, fragment, gl_Position, mat4, return_, sampler2D, texture2D, uniform, varying, vec2, vec3, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes
-const position = vec3(attribute('position'));
-const uv = vec2(attribute('uv'));
+const position = attribute('position', vec3());
+const uv = attribute('uv', vec2());
 
 // Vertex shader 的 uniforms
 const projection = mat4(uniform('projection'));

@@ -1,7 +1,7 @@
 import { attribute, cos, float, fragment, precision, return_, sin, uniform, vec2, vec4, vertex } from '@feng3d/tsl';
 
 // Vertex shader 的 attributes
-const position = vec2(attribute('position'));
+const position = attribute('position', vec2());
 
 // Vertex shader 的 uniforms
 const angle = float(uniform('angle'));

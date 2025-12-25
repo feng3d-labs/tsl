@@ -7,7 +7,7 @@ describe('Vertex 和 Fragment', () =>
     {
         it('应该能够使用 vertex() 和 fragment() 函数定义着色器', () =>
         {
-            const position = vec2(attribute('position', 0));
+            const position = attribute('position', vec2(), 0);
             const color = vec4(uniform('color', 0, 0));
 
             const vertexShader = vertex('main', () =>
@@ -29,7 +29,7 @@ describe('Vertex 和 Fragment', () =>
     {
         it('应该能够生成正确的 vertex shader GLSL 代码', () =>
         {
-            const position = vec2(attribute('position', 0));
+            const position = attribute('position', vec2(), 0);
 
             const vertexShader = vertex('main', () =>
             {
@@ -61,8 +61,8 @@ describe('Vertex 和 Fragment', () =>
 
         it('应该只包含实际使用的 uniforms 和 attributes', () =>
         {
-            const pos = vec2(attribute('pos', 0));
-            const uv = vec2(attribute('uv', 1));
+            const pos = attribute('pos', vec2(), 0);
+            const uv = attribute('uv', vec2(), 1);
             const color = vec4(uniform('color', 0, 0));
             const time = vec4(uniform('time', 0, 1));
 
@@ -94,7 +94,7 @@ describe('Vertex 和 Fragment', () =>
     {
         it('应该能够生成正确的 vertex shader WGSL 代码', () =>
         {
-            const position = vec2(attribute('position', 0));
+            const position = attribute('position', vec2(), 0);
 
             const vertexShader = vertex('main', () =>
             {
@@ -127,7 +127,7 @@ describe('Vertex 和 Fragment', () =>
 
         it('应该只包含实际使用的 uniforms 和 attributes', () =>
         {
-            const position = vec2(attribute('position', 0));
+            const position = attribute('position', vec2(), 0);
             const color = vec4(uniform('color', 0, 0));
             const time = vec4(uniform('time', 0, 1));
 

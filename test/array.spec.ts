@@ -101,7 +101,7 @@ describe('Array', () =>
     {
         it('应该支持使用 gl_InstanceID 作为数组索引', () =>
         {
-            const pos = vec2(attribute('pos', 0));
+            const pos = attribute('pos', vec2(), 0);
 
             const Transform = struct('Transform', {
                 MVP: array(mat4, 2),

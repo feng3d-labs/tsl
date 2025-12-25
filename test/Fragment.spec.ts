@@ -77,7 +77,7 @@ describe('Fragment', () =>
 
         it('应该能够与 vertex shader 的 varying location 保持一致', () =>
         {
-            const aPos = vec2(attribute('aPos'));
+            const aPos = attribute('aPos', vec2());
             const vColor = vec4(varying('vColor'));
 
             const vert = vertex('main', () =>

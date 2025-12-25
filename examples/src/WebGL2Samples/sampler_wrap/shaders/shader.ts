@@ -2,8 +2,8 @@ import { attribute, fragColor, fragment, gl_Position, mat4, precision, sampler2D
 
 // ==================== 顶点着色器 ====================
 
-const position = vec2(attribute('position', 0));
-const textureCoordinates = vec2(attribute('textureCoordinates', 4));
+const position = attribute('position', vec2(), 0);
+const textureCoordinates = attribute('textureCoordinates', vec2(), 4);
 const mvp = mat4(uniform('mvp'));
 
 // Varying 变量

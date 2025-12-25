@@ -22,7 +22,6 @@ function toCamelCase(name: string): string
 export class Builtin implements IElement
 {
     readonly builtinName: string; // WGSL 中内置的固定名称（如 "position" 或 "gl_Position"）
-    name?: string; // 变量名称（在生成 VertexOutput 时自动设置）
     value: ShaderValue;
     dependencies: IElement[] = [];
 
@@ -32,10 +31,9 @@ export class Builtin implements IElement
      */
     private _structVarPrefix?: string;
 
-    constructor(builtinName: 'gl_Position' | 'gl_FrontFacing' | 'gl_VertexID' | 'gl_FragCoord' | 'gl_InstanceID' | 'gl_FragColor' | 'gl_PointSize', varName?: string)
+    constructor(builtinName: 'gl_Position' | 'gl_FrontFacing' | 'gl_VertexID' | 'gl_FragCoord' | 'gl_InstanceID' | 'gl_FragColor' | 'gl_PointSize')
     {
         this.builtinName = builtinName;
-        this.name = varName;
     }
 
     /**
@@ -53,13 +51,12 @@ export class Builtin implements IElement
      */
     getFullWGSLVarName(): string
     {
-        const varName = this.name ?? this.defaultName;
         if (this._structVarPrefix)
         {
-            return `${this._structVarPrefix}.${varName}`;
+            return `${this._structVarPrefix}.${this.defaultName}`;
         }
 
-        return varName;
+        return this.defaultName;
     }
 
     /**
@@ -202,7 +199,7 @@ export class Builtin implements IElement
         // gl_FragColor 不是 WGSL builtin，直接返回变量名
         if (this.isFragColorOutput)
         {
-            return this.name ?? this.defaultName;
+            return this.defaultName;
         }
 
         // 对于特定的 builtin，强制使用正确的 WGSL 类型
@@ -234,10 +231,7 @@ export class Builtin implements IElement
             wgslType = this.value.wgslType ?? 'vec4<f32>';
         }
 
-        // 如果没有设置 name，使用默认名称
-        const varName = this.name ?? this.defaultName;
-
-        return `@builtin(${this.wgslBuiltinName}) ${varName}: ${wgslType}`;
+        return `@builtin(${this.wgslBuiltinName}) ${this.defaultName}: ${wgslType}`;
     }
 }
 
@@ -261,15 +255,15 @@ export function builtin<T extends keyof BuiltinMap>(builtinName: T, value: Built
     const bi = new Builtin(builtinName);
     const result = new (value.constructor as new () => BuiltinMap[T])();
     result.toGLSL = () => bi.toGLSL();
-    // toWGSL 返回变量名（用于表达式），而不是完整声明
-    result.toWGSL = () => bi.defaultName;
+    // toWGSL 返回完整变量名（包括结构体前缀，如 output.position）
+    result.toWGSL = () => bi.getFullWGSLVarName();
     result.dependencies = [bi];
     bi.value = result;
 
     // 为 gl_FragCoord 设置 _builtin 引用，用于 .y 的翻转处理
     if (builtinName === 'gl_FragCoord' && result instanceof Vec2)
     {
-        (result as any)._builtin = bi;
+        result._builtin = bi;
     }
 
     return result;

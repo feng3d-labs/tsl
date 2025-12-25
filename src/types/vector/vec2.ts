@@ -22,7 +22,7 @@ export class Vec2 implements ShaderValue
     toWGSL: () => string;
 
     /** @internal 存储 Builtin 引用，用于 gl_FragCoord 的 Y 坐标翻转 */
-    private _builtin?: Builtin;
+    _builtin?: Builtin;
 
     constructor();
     constructor(ivec2: IVec2);

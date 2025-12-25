@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { Precision, precision } from '../src/glsl/precision';
-import { fragment } from '../src/shader/fragment';
-import { vec4 } from '../src/types/vector/vec4';
-import { uniform } from '../src/variables/uniform';
-import { sampler2D } from '../src/glsl/sampler/sampler2D';
-import { sampler2DArray } from '../src/glsl/sampler/sampler2DArray';
-import { texture } from '../src/glsl/texture/texture';
-import { int } from '../src/types/scalar/int';
-import { vec2 } from '../src/types/vector/vec2';
-import { vec3 } from '../src/types/vector/vec3';
-import { return_ } from '../src/control/return';
+import { Precision, precision } from '../../src/glsl/precision';
+import { fragment } from '../../src/shader/fragment';
+import { vec4 } from '../../src/types/vector/vec4';
+import { uniform } from '../../src/variables/uniform';
+import { sampler2D } from '../../src/glsl/sampler/sampler2D';
+import { sampler2DArray } from '../../src/glsl/sampler/sampler2DArray';
+import { texture } from '../../src/glsl/texture/texture';
+import { int } from '../../src/types/scalar/int';
+import { vec2 } from '../../src/types/vector/vec2';
+import { vec3 } from '../../src/types/vector/vec3';
+import { return_ } from '../../src/control/return';
 
 describe('Precision', () =>
 {

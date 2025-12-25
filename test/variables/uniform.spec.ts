@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { uniform } from '../src/variables/uniform';
-import { vec4, Vec4 } from '../src/types/vector/vec4';
-import { mat4, Mat4 } from '../src/types/matrix/mat4';
-import { float, Float } from '../src/types/scalar/float';
-import { fragment } from '../src/shader/fragment';
-import { return_ } from '../src/index';
+import { uniform } from '../../src/variables/uniform';
+import { vec4, Vec4 } from '../../src/types/vector/vec4';
+import { mat4, Mat4 } from '../../src/types/matrix/mat4';
+import { float, Float } from '../../src/types/scalar/float';
+import { fragment } from '../../src/shader/fragment';
+import { return_ } from '../../src/index';
 
 describe('Uniform', () =>
 {

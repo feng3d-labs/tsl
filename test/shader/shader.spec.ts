@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { attribute, fragment, return_, uniform, vec2, vec4, vertex } from '../src/index';
+import { attribute, fragment, return_, uniform, vec2, vec4, vertex } from '../../src/index';
 
 describe('Vertex 和 Fragment', () =>
 {

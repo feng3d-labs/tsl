@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { Varying, varying } from '../src/variables/varying';
-import { vec2, Vec2 } from '../src/types/vector/vec2';
-import { vec4, Vec4 } from '../src/types/vector/vec4';
-import { int, Int } from '../src/types/scalar/int';
-import { vertex } from '../src/shader/vertex';
-import { fragment } from '../src/shader/fragment';
-import { array, return_, struct, uniform } from '../src/index';
-import { gl_FragColor, gl_InstanceID, gl_Position } from '../src/glsl/builtin/builtins';
+import { Varying, varying } from '../../src/variables/varying';
+import { vec2, Vec2 } from '../../src/types/vector/vec2';
+import { vec4, Vec4 } from '../../src/types/vector/vec4';
+import { int, Int } from '../../src/types/scalar/int';
+import { vertex } from '../../src/shader/vertex';
+import { fragment } from '../../src/shader/fragment';
+import { array, return_, struct, uniform } from '../../src/index';
+import { gl_FragColor, gl_InstanceID, gl_Position } from '../../src/glsl/builtin/builtins';
 
 describe('Varying', () =>
 {

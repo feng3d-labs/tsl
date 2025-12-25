@@ -1,10 +1,10 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { float } from '../../src/types/scalar/float';
-import { uint, UInt } from '../../src/types/scalar/uint';
-import { vertex } from '../../src/shader/vertex';
-import { fragment } from '../../src/shader/fragment';
-import { vec2 } from '../../src/types/vector/vec2';
-import { uniform } from '../../src/variables/uniform';
+import { float } from '../../../src/types/scalar/float';
+import { uint, UInt } from '../../../src/types/scalar/uint';
+import { vertex } from '../../../src/shader/vertex';
+import { fragment } from '../../../src/shader/fragment';
+import { vec2 } from '../../../src/types/vector/vec2';
+import { uniform } from '../../../src/variables/uniform';
 
 // 模拟函数
 let currentFunc = {

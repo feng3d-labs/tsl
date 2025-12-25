@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { attribute, fragment, int, uniform, var_, varying, vertex } from '../src';
-import { gl_FragColor, gl_InstanceID, gl_Position } from '../src/glsl/builtin/builtins';
-import { array, Array as TSLArray } from '../src/variables/array';
-import { Mat4, mat4 } from '../src/types/matrix/mat4';
-import { Vec4, vec4 } from '../src/types/vector/vec4';
-import { vec2 } from '../src/types/vector/vec2';
-import { struct } from '../src/variables/struct';
+import { attribute, fragment, int, uniform, var_, varying, vertex } from '../../src';
+import { gl_FragColor, gl_InstanceID, gl_Position } from '../../src/glsl/builtin/builtins';
+import { array, Array as TSLArray } from '../../src/variables/array';
+import { Mat4, mat4 } from '../../src/types/matrix/mat4';
+import { Vec4, vec4 } from '../../src/types/vector/vec4';
+import { vec2 } from '../../src/types/vector/vec2';
+import { struct } from '../../src/variables/struct';
 
 describe('Array', () =>
 {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { mat4, Mat4 } from '../../src/types/matrix/mat4';
-import { vec4, Vec4 } from '../../src/types/vector/vec4';
-import { uniform } from '../../src/variables/uniform';
+import { mat4, Mat4 } from '../../../src/types/matrix/mat4';
+import { vec4, Vec4 } from '../../../src/types/vector/vec4';
+import { uniform } from '../../../src/variables/uniform';
 
 describe('Mat4', () =>
 {

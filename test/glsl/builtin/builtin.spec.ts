@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { gl_FragCoord, gl_FrontFacing, gl_InstanceID, gl_Position, gl_VertexID } from '../../src/glsl/builtin/builtins';
-import { int } from '../../src/types/scalar/int';
+import { gl_FragCoord, gl_FrontFacing, gl_InstanceID, gl_Position, gl_VertexID } from '../../../src/glsl/builtin/builtins';
+import { int } from '../../../src/types/scalar/int';
 
 describe('预定义 Builtins', () =>
 {

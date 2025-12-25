@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { attribute } from '../src/variables/attribute';
-import { vec2 } from '../src/types/vector/vec2';
-import { vec4 } from '../src/types/vector/vec4';
-import { return_ } from '../src/index';
-import { vertex } from '../src/shader/vertex';
+import { attribute } from '../../src/variables/attribute';
+import { vec2 } from '../../src/types/vector/vec2';
+import { vec4 } from '../../src/types/vector/vec4';
+import { return_ } from '../../src/index';
+import { vertex } from '../../src/shader/vertex';
 
 describe('Attribute', () =>
 {

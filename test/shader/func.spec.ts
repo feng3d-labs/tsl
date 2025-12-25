@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { Func, func } from '../src/shader/func';
-import { vec3 } from '../src/types/vector/vec3';
-import { float } from '../src/types/scalar/float';
-import { let_ } from '../src/variables/let';
-import { clamp } from '../src/math/common/clamp';
-import { mix } from '../src/math/common/mix';
-import { pow } from '../src/math/exponential/pow';
-import { lessThan } from '../src/vector/lessThan';
-import { fragment } from '../src/shader/fragment';
-import { return_ } from '../src/control/return';
-import { vec4 } from '../src/types/vector/vec4';
+import { Func, func } from '../../src/shader/func';
+import { vec3 } from '../../src/types/vector/vec3';
+import { float } from '../../src/types/scalar/float';
+import { let_ } from '../../src/variables/let';
+import { clamp } from '../../src/math/common/clamp';
+import { mix } from '../../src/math/common/mix';
+import { pow } from '../../src/math/exponential/pow';
+import { lessThan } from '../../src/vector/lessThan';
+import { fragment } from '../../src/shader/fragment';
+import { return_ } from '../../src/control/return';
+import { vec4 } from '../../src/types/vector/vec4';
 
 describe('Func', () =>
 {

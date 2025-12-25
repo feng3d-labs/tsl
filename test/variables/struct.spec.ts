@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { attribute, fragment, gl_FragColor, gl_Position, int, uniform, varying, vec2, vertex } from '../src';
-import { array, Array as TSLArray } from '../src/variables/array';
-import { mat4 } from '../src/types/matrix/mat4';
-import { Vec4, vec4 } from '../src/types/vector/vec4';
-import { struct, Struct } from '../src/variables/struct';
+import { attribute, fragment, gl_FragColor, gl_Position, int, uniform, varying, vec2, vertex } from '../../src';
+import { array, Array as TSLArray } from '../../src/variables/array';
+import { mat4 } from '../../src/types/matrix/mat4';
+import { Vec4, vec4 } from '../../src/types/vector/vec4';
+import { struct, Struct } from '../../src/variables/struct';
 
 describe('Struct', () =>
 {

@@ -2,6 +2,7 @@ import { reactive } from '@feng3d/reactivity';
 import { RenderObject, RenderPipeline, Submit, TransformFeedback, TransformFeedbackObject, TransformFeedbackPipeline, VertexAttributes, VertexData } from '@feng3d/render-api';
 import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
+import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 // 直接导入预生成的着色器文件（调试时可注释掉 TSL 生成的代码，使用这些原始着色器）
 import fragmentDrawGlsl from './shaders/fragment-draw.glsl';
@@ -205,6 +206,10 @@ document.addEventListener('DOMContentLoaded', async () =>
         currentSourceIdx = (currentSourceIdx + 1) % 2;
     }
 
+    // 比较状态
+    let comparisonDone = false;
+    const comparisonDelay = 1000; // 1秒后进行比较
+
     // 渲染循环
     function render()
     {
@@ -219,9 +224,58 @@ document.addEventListener('DOMContentLoaded', async () =>
         // 提交 WebGPU 渲染
         webgpu.submit(submit);
 
+        // 1秒后进行比较（等待粒子系统稳定）
+        const elapsed = Date.now() - appStartTime;
+        if (!comparisonDone && elapsed >= comparisonDelay)
+        {
+            comparisonDone = true;
+            // 使用容差 0 来精确比较
+            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0).then((result) =>
+            {
+                // 添加不一致原因说明
+                addComparisonExplanation(result);
+            });
+        }
+
         requestAnimationFrame(render);
     }
 
     requestAnimationFrame(render);
 });
+
+/**
+ * 添加比较结果的解释说明
+ */
+function addComparisonExplanation(result: { isMatch: boolean; difference: number })
+{
+    const container = document.getElementById('comparison-result');
+    if (!container) return;
+
+    // 添加解释说明
+    const explanation = document.createElement('div');
+    explanation.style.cssText = 'margin-top: 12px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 13px; color: #856404;';
+
+    if (!result.isMatch)
+    {
+        explanation.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 6px;">⚠️ 不一致原因：</div>
+            <div style="margin-bottom: 8px;">
+                WebGPU 不支持 <code>gl_PointSize</code> / <code>point_size</code> builtin，所有点都以 1 像素渲染，而 WebGL 支持设置点大小为 2 像素。
+            </div>
+            <div style="padding: 8px; background: #e7f3ff; border-radius: 4px; color: #0066cc;">
+                💡 如需大于 1 像素的点，需要使用实例化渲染四边形或其他替代方案。
+            </div>
+        `;
+    }
+    else
+    {
+        explanation.innerHTML = `
+            <div style="color: #155724; background: #d4edda; border-color: #c3e6cb; padding: 10px; border-radius: 4px;">
+                ✓ WebGL 和 WebGPU 渲染结果一致
+            </div>
+        `;
+    }
+
+    container.appendChild(explanation);
+}
 

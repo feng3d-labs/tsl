@@ -194,8 +194,8 @@ function selectFile(file)
 
     // Reveal "View source" button and set attributes to this example
     viewSrcButton.style.display = '';
-    viewSrcButton.href = `https://gitee.com/feng3d/tsl/tree/master/examples/src/${selected}/index.ts`;
-    viewSrcButton.title = `View source code for ${getName(selected)} on Gitee`;
+    viewSrcButton.href = `https://github.com/feng3d-labs/tsl/tree/master/examples/src/${selected}/index.ts`;
+    viewSrcButton.title = `View source code for ${getName(selected)} on GitHub`;
 }
 
 function escapeRegExp(string)

@@ -96,7 +96,7 @@ export const fragmentShader = fragment('main', () =>
 
     // 计算镜面反射
     const specular = perScene.material.specular.multiply(
-        pow(max(dot(r, v), 0.0), perScene.material.shininess)
+        pow(max(dot(r, v), 0.0), perScene.material.shininess),
     );
 
     // 最终颜色 = 环境光 + 漫反射 + 镜面反射

@@ -37,7 +37,7 @@ import splashFragWgsl from './shaders/splash.frag.wgsl';
 import {
     renderVertexShader, renderFragmentShader,
     renderCentroidVertexShader, renderCentroidFragmentShader,
-    splashVertexShader, splashFragmentShader
+    splashVertexShader, splashFragmentShader,
 } from './shaders/shader';
 
 /**

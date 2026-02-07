@@ -10,7 +10,7 @@
 
 import {
     attribute, fragColor, fragment, gl_Position, mat4, mix, precision,
-    sampler2D, select, sqrt, texture, uniform, varying, vec2, vec4, vertex
+    sampler2D, select, sqrt, texture, uniform, varying, vec2, vec4, vertex,
 } from '@feng3d/tsl';
 import { float } from '@feng3d/tsl';
 

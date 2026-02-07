@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         // Front face ，最后一位0用于填充
         0, 0, -1, 0,
         0, 0, -1, 0,
-        0, 0, -1, 0,    
+        0, 0, -1, 0,
         0, 0, -1, 0,
         // Back face
         0, 0, 1, 0,

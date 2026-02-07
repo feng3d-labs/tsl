@@ -2,7 +2,7 @@ import {
     attribute, clamp, cross, dFdx, dFdy, dot, float, Float, fract, fragment, func,
     gl_Position, let_, log2, mat4, max, mix, normalize, pow, precision,
     return_, sampler2D, texture, textureLod, textureSize, uniform, var_, varying,
-    vec2, Vec2, vec3, vec4, vertex
+    vec2, Vec2, vec3, vec4, vertex,
 } from '@feng3d/tsl';
 
 // 顶点属性
@@ -76,7 +76,7 @@ const textureLevel: (v_st: Vec2) => Float = func(
 
         // 返回 LOD 级别
         return_((log2(d) as Float).multiply(0.5));
-    }
+    },
 );
 
 /**

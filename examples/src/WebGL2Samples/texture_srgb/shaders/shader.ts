@@ -15,7 +15,6 @@ const rgbToSrgb = func('rgbToSrgb', [['colorRGB', vec3], ['gammaCorrection', flo
     ));
 });
 
-
 /**
  * 对比度、饱和度、亮度调整
  * 对应 GLSL: vec3 contrastSaturationBrightness(vec3 color, float brt, float sat, float con)

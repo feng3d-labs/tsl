@@ -32,7 +32,7 @@ import smoothFragWgsl from './shaders/smooth.frag.wgsl';
 // 导入 TSL 着色器
 import {
     flatVertexShader, flatFragmentShader,
-    smoothVertexShader, smoothFragmentShader
+    smoothVertexShader, smoothFragmentShader,
 } from './shaders/shader';
 
 // 导入 glTF 加载器

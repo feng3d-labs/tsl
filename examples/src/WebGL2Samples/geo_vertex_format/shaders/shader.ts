@@ -7,7 +7,7 @@
 
 import {
     attribute, clamp, dot, float, fragColor, fragment, gl_Position, mat4, normalize, precision,
-    sampler2D, texture, uniform, var_, varying, vec2, vec3, vec4, vertex
+    sampler2D, texture, uniform, var_, varying, vec2, vec3, vec4, vertex,
 } from '@feng3d/tsl';
 
 // ==================== 顶点着色器 ====================

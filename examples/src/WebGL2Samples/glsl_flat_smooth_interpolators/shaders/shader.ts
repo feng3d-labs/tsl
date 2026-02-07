@@ -10,7 +10,7 @@
 
 import {
     attribute, fragColor, fragment, gl_Position, mat4, normalize, precision,
-    uniform, varying, vec3, vec4, vertex
+    uniform, varying, vec3, vec4, vertex,
 } from '@feng3d/tsl';
 
 // ==================== Smooth 着色器（默认插值）====================

@@ -15,7 +15,7 @@
 
 import {
     attribute, fragment, gl_Position, mat4x3, precision,
-    return_, sampler2D, texture, uniform, varying, vec2, vec4, vertex
+    return_, sampler2D, texture, uniform, varying, vec2, vec4, vertex,
 } from '@feng3d/tsl';
 
 // ==================== 顶点着色器 ====================

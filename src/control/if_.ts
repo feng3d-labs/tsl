@@ -228,7 +228,7 @@ export class IfStatement implements IStatement
                 `[TSL] WGSL 限制：if 语句中检测到 ${hoistedSamples.size} 个 textureSample 调用，已自动移至 if 语句前。\n` +
                 `条件: ${conditionStr}\n` +
                 `涉及的采样调用:\n${sampleCalls}\n` +
-                `建议: 请手动将 texture() 调用移至 if 语句外部，以避免此警告。`
+                `建议: 请手动将 texture() 调用移至 if 语句外部，以避免此警告。`,
             );
         }
 

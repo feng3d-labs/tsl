@@ -23,8 +23,8 @@
   },
   "dependencies": {
     "@feng3d/tsl": "0.0.1",
-    "@feng3d/render-api": "0.0.9",
-    "@feng3d/webgpu": "0.0.10",
-    "@feng3d/webgl": "0.0.4"
+    "@feng3d/render-api": "0.1.0",
+    "@feng3d/webgpu": "0.1.0",
+    "@feng3d/webgl": "0.1.0"
   }
 }

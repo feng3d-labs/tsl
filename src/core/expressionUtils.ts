@@ -67,7 +67,7 @@ export function wrapForSwizzle(expr: string): string
         else if (depth === 0 && (char === '+' || char === '-' || char === '*' || char === '/' || char === '%'))
         {
             // 排除负数的情况（如果 - 在表达式开头或在运算符后面）
-            if (char === '-' && (i === 0 || /[+\-*/%(\[]/.test(expr[i - 1])))
+            if (char === '-' && (i === 0 || /[+\-*/%([]/.test(expr[i - 1])))
             {
                 continue;
             }

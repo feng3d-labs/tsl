@@ -25,6 +25,7 @@
     "@feng3d/tsl": "*",
     "@feng3d/render-api": "0.1.0",
     "@feng3d/webgpu": "0.1.0",
-    "@feng3d/webgl": "0.1.0"
+    "@feng3d/webgl": "0.1.0",
+    "gl-matrix": "^3.4.3"
   }
 }

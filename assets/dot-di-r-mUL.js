@@ -1,0 +1,1 @@
+import{F as e}from"./builtins-C5GxhwDd.js";function d(o,L){const t=new e;return t.toGLSL=()=>`dot(${o.toGLSL()}, ${L.toGLSL()})`,t.toWGSL=()=>`dot(${o.toWGSL()}, ${L.toWGSL()})`,t.dependencies=[o,L],t}export{d};

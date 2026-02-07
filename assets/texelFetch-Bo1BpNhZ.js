@@ -1,0 +1,1 @@
+import{U as c,w as L,C as r}from"./builtins-C5GxhwDd.js";function x(t,n,i){const e=t instanceof r?new c:new L,o=i,s=o.toString(),u=`${o}u`;return e.toGLSL=()=>`texelFetch(${t.uniform.name}, ${n.toGLSL()}, ${s})`,e.toWGSL=()=>`textureLoad(${t.uniform.name}_texture, ${n.toWGSL()}, ${u})`,e.dependencies=[t,n],e}export{x as t};

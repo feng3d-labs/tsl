@@ -1,0 +1,1 @@
+import{F as n,x as o}from"./builtins-C5GxhwDd.js";function s(e){const t=new n;return t.toGLSL=()=>`sin(${typeof e=="number"?o(e):e.toGLSL()})`,t.toWGSL=()=>`sin(${typeof e=="number"?o(e):e.toWGSL()})`,t.dependencies=typeof e=="number"?[]:[e],t}export{s};

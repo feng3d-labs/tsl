@@ -1,0 +1,1 @@
+import{a5 as u}from"./builtins-C5GxhwDd.js";function s(e,o){const t=new u,n=o,i=n.toString(),r=n.toString();return t.toGLSL=()=>`textureSize(${e.uniform.name}, ${i})`,t.toWGSL=()=>`vec2<i32>(textureDimensions(${e.uniform.name}_texture, ${r}))`,t.dependencies=[e],t}export{s as t};

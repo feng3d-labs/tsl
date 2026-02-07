@@ -1,0 +1,1 @@
+import{F as r,x as t}from"./builtins-C5GxhwDd.js";function s(o){const e=new r;return e.toGLSL=()=>`cos(${typeof o=="number"?t(o):o.toGLSL()})`,e.toWGSL=()=>`cos(${typeof o=="number"?t(o):o.toWGSL()})`,e.dependencies=typeof o=="number"?[]:[o],e}export{s as c};

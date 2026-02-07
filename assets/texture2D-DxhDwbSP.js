@@ -1,0 +1,1 @@
+import{w as r,_ as u}from"./builtins-C5GxhwDd.js";function s(t,n){const e=new r;return e.toGLSL=()=>`${u().version===2?"texture":"texture2D"}(${t.uniform.name}, ${n.toGLSL()})`,e.toWGSL=()=>`textureSample(${t.uniform.name}_texture, ${t.uniform.name}, ${n.toWGSL()})`,e.dependencies=[t,n],e}export{s as t};

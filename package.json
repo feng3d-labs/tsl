@@ -1,7 +1,7 @@
 {
     "name": "@feng3d/tsl",
-    "version": "0.1.0",
-    "description": "feng3d引擎的着色器语言库，使用typescript编写着色器语言，并生成WebGL/WebGPU的着色器代码。",
+    "version": "0.2.0",
+    "description": "feng3d引擎的着色器语言库，使用typescript编写着色器语言，并生成WebGPU的着色器代码。",
     "homepage": "https://feng3d.com/tsl/",
     "author": "feng",
     "type": "module",

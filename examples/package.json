@@ -24,9 +24,8 @@
   "dependencies": {
     "@feng3d/tsl": "*",
     "@feng3d/reactivity": "^1.0.7",
-    "@feng3d/render-api": "0.1.0",
-    "@feng3d/webgpu": "0.1.0",
-    "@feng3d/webgl": "0.1.0",
+    "@feng3d/render-api": "0.2.0",
+    "@feng3d/webgpu": "0.2.0",
     "dat.gui": "^0.7.9",
     "gl-matrix": "^3.4.3"
   }

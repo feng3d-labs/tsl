@@ -196,23 +196,11 @@
 
         <div class="canvas-container">
             <div class="canvas-wrapper">
-                <canvas id="webgl"></canvas>
-                <div class="canvas-label">WebGL</div>
-            </div>
-            <div class="canvas-wrapper">
-                <canvas id="webgpu"></canvas>
-                <div class="canvas-label">WebGPU</div>
+                <canvas id="canvas"></canvas>
             </div>
         </div>
 
         <div class="info-section">
-            <div class="info-panel">
-                <h2 class="info-title">比较结果</h2>
-                <div id="comparison-result" style="font-size: 14px;">
-                    <div style="margin-bottom: 8px; font-weight: bold;">比较中...</div>
-                    <div>等待渲染完成...</div>
-                </div>
-            </div>
             <div class="info-panel">
                 <h2 class="info-title">关于示例</h2>
                 <ul class="info-list">
@@ -220,7 +208,6 @@
                     <li>演示 MRT (Multiple Render Targets) 多目标渲染</li>
                     <li>渲染到两个颜色附件（红色和蓝色纹理）</li>
                     <li>使用纹理坐标 x 分量混合两个纹理</li>
-                    <li>同时支持 WebGL 和 WebGPU 渲染</li>
                 </ul>
             </div>
         </div>

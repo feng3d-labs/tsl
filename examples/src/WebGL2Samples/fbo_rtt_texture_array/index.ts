@@ -1,15 +1,9 @@
 import { RenderObject, RenderPass, RenderPassDescriptor, RenderPassObject, RenderPipeline, Sampler, Submit, Texture } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
-// 导入手动编写的 GLSL 和 WGSL 文件（因为 TSL 当前不支持多个输出和纹理数组）
-import layerVertexGlsl from './shaders/vertex-layer.glsl';
-import layerFragmentGlsl from './shaders/fragment-layer.glsl';
+// 导入手动编写的 WGSL 文件（因为 TSL 当前不支持多个输出和纹理数组）
 import layerVertexWgsl from './shaders/vertex-layer.wgsl';
 import layerFragmentWgsl from './shaders/fragment-layer.wgsl';
-import multipleOutputVertexGlsl from './shaders/vertex-multiple-output.glsl';
-import multipleOutputFragmentGlsl from './shaders/fragment-multiple-output.glsl';
 import multipleOutputVertexWgsl from './shaders/vertex-multiple-output.wgsl';
 import multipleOutputFragmentWgsl from './shaders/fragment-multiple-output.wgsl';
 
@@ -33,21 +27,15 @@ document.addEventListener('DOMContentLoaded', async () =>
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-    webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 窗口大小
     const windowSize = {
-        x: webgpuCanvas.width,
-        y: webgpuCanvas.height,
+        x: canvas.width,
+        y: canvas.height,
     };
 
     // 纹理索引
@@ -151,8 +139,8 @@ document.addEventListener('DOMContentLoaded', async () =>
     // 注意：当前 TSL 不支持多个输出，这里使用单个输出作为占位
     // 实际使用时需要扩展 TSL 以支持多个颜色附件
     const multipleOutputProgram: RenderPipeline = {
-        vertex: { glsl: multipleOutputVertexGlsl, wgsl: multipleOutputVertexWgsl },
-        fragment: { glsl: multipleOutputFragmentGlsl, wgsl: multipleOutputFragmentWgsl },
+        vertex: { wgsl: multipleOutputVertexWgsl },
+        fragment: { wgsl: multipleOutputFragmentWgsl },
         primitive: { topology: 'triangle-list' },
     };
 
@@ -170,8 +158,8 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     // 渲染通道 2：从纹理数组读取并渲染到屏幕
     const layerProgram: RenderPipeline = {
-        vertex: { glsl: layerVertexGlsl, wgsl: layerVertexWgsl },
-        fragment: { glsl: layerFragmentGlsl, wgsl: layerFragmentWgsl },
+        vertex: { wgsl: layerVertexWgsl },
+        fragment: { wgsl: layerFragmentWgsl },
         primitive: { topology: 'triangle-list' },
     };
 
@@ -185,7 +173,7 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     const renderObject: RenderObject = {
         pipeline: layerProgram,
-        bindingResources: { mvp: { value: matrix }, diffuse: { texture, sampler } },
+        bindingResources: { mvp: { value: matrix }, diffuse: { texture, sampler } as any },
         vertices: layerVertexArray.vertices,
         draw: { __type__: 'DrawVertex', vertexCount: 6 },
     };
@@ -209,11 +197,7 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     // 渲染
     webgpu.submit(submit);
-    webgl.submit(submit);
-
-    // 第一帧后进行比较
-    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
-
+    
     // 清理资源
     // webgpu.deleteFramebuffer(frameBuffer);
     // webgpu.deleteTexture(texture);

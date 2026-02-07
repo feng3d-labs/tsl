@@ -1,38 +1,23 @@
 import { reactive } from '@feng3d/reactivity';
 import { Buffer, RenderObject, Submit } from '@feng3d/render-api';
-import { SamplerTexture, WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 
 import { attachCamera } from './hughsk/canvas-orbit-camera';
 import { fragmentShader, vertexShader } from './shaders/shader';
-// 导入原始 GLSL 和 WGSL 文件作为参考和备选
-import vertexGlsl from './shaders/vertex.glsl';
-import fragmentGlsl from './shaders/fragment.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
-import fragmentWgsl from './shaders/fragment.wgsl';
 import * as mat4 from './stackgl/gl-mat4';
 import * as vec3 from './stackgl/gl-vec3';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 (async () =>
 {
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const canvas = document.getElementById('webgl') as HTMLCanvasElement;
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     canvas.width = canvas.clientWidth * devicePixelRatio;
     canvas.height = canvas.clientHeight * devicePixelRatio;
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
-    // 使用导入的原始 GLSL 和 WGSL 文件
-    const vertexGlsl = vertexShader.toGLSL();
-    const fragmentGlsl = fragmentShader.toGLSL();
+    // 使用 TSL 生成着色器代码
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
@@ -195,11 +180,9 @@ import { autoCompareFirstFrame } from '../../utils/frame-comparison';
         bindingResources: {},
         pipeline: {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentGlsl,
                 wgsl: fragmentWgsl,
                 targets: [{ blend: {} }],
             },
@@ -363,14 +346,6 @@ import { autoCompareFirstFrame } from '../../utils/frame-comparison';
         };
 
         webgpu.submit(submit);
-        webgl.submit(submit);
-
-        // 第一帧后进行比较
-        if (frameCount === 0)
-        {
-            frameCount++;
-            autoCompareFirstFrame(webgl, webgpu, canvas, webgpuCanvas, 0);
-        }
 
         requestAnimationFrame(draw);
     }
@@ -379,7 +354,21 @@ import { autoCompareFirstFrame } from '../../utils/frame-comparison';
     img.src = './assets/cloth.png';
     await img.decode();
 
-    const diffuse: SamplerTexture = {
+    const diffuse: {
+        texture: {
+            descriptor: {
+                size: [number, number];
+                generateMipmap: boolean;
+            };
+            sources: [{ image: HTMLImageElement }];
+        };
+        sampler: {
+            minFilter: string;
+            mipmapFilter: string;
+            addressModeU: string;
+            addressModeV: string;
+        };
+    } = {
         texture: {
             descriptor: {
                 size: [img.width, img.height],

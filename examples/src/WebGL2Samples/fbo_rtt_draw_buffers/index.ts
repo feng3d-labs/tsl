@@ -1,15 +1,9 @@
 import { RenderPass, RenderPassDescriptor, RenderPipeline, Sampler, Submit, Texture, VertexAttributes } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
-// 导入手动编写的 GLSL 和 WGSL 文件（调试用）
-import drawBufferVertexGlsl from './shaders/vertex-draw-buffer.glsl';
-import drawBufferFragmentGlsl from './shaders/fragment-draw-buffer.glsl';
+// 导入手动编写的 WGSL 文件（调试用）
 import drawBufferVertexWgsl from './shaders/vertex-draw-buffer.wgsl';
 import drawBufferFragmentWgsl from './shaders/fragment-draw-buffer.wgsl';
-import drawVertexGlsl from './shaders/vertex-draw.glsl';
-import drawFragmentGlsl from './shaders/fragment-draw.glsl';
 import drawVertexWgsl from './shaders/vertex-draw.wgsl';
 import drawFragmentWgsl from './shaders/fragment-draw.wgsl';
 
@@ -39,34 +33,29 @@ document.addEventListener('DOMContentLoaded', async () =>
     const drawFragmentWgsl = drawFragmentShader.toWGSL(drawVertexShader);
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    initCanvasSize(webgpuCanvas);
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    initCanvasSize(canvas);
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 窗口大小
     const windowSize = {
-        x: webgpuCanvas.width,
-        y: webgpuCanvas.height,
+        x: canvas.width,
+        y: canvas.height,
     };
 
     // -- 初始化渲染管线 --
 
     // Draw Buffer 着色器（渲染到多个颜色附件）
     const drawBufferProgram: RenderPipeline = {
-        vertex: { glsl: drawBufferVertexGlsl, wgsl: drawBufferVertexWgsl },
-        fragment: { glsl: drawBufferFragmentGlsl, wgsl: drawBufferFragmentWgsl },
+        vertex: { wgsl: drawBufferVertexWgsl },
+        fragment: { wgsl: drawBufferFragmentWgsl },
         primitive: { topology: 'triangle-list' },
     };
 
     // Draw 着色器（混合纹理并渲染到屏幕）
     const drawProgram: RenderPipeline = {
-        vertex: { glsl: drawVertexGlsl, wgsl: drawVertexWgsl },
-        fragment: { glsl: drawFragmentGlsl, wgsl: drawFragmentWgsl },
+        vertex: { wgsl: drawVertexWgsl },
+        fragment: { wgsl: drawFragmentWgsl },
         primitive: { topology: 'triangle-list' },
     };
 
@@ -166,8 +155,8 @@ document.addEventListener('DOMContentLoaded', async () =>
         renderPassObjects: [{
             pipeline: drawProgram,
             bindingResources: {
-                color1Map: { texture: color1Texture, sampler: color1Sampler },
-                color2Map: { texture: color2Texture, sampler: color2Sampler },
+                color1Map: { texture: color1Texture, sampler: color1Sampler } as any,
+                color2Map: { texture: color2Texture, sampler: color2Sampler } as any,
             },
             vertices: quadVertexArray,
             draw: { __type__: 'DrawVertex', vertexCount: 6 },
@@ -180,9 +169,5 @@ document.addEventListener('DOMContentLoaded', async () =>
         commandEncoders: [{ passEncoders: [renderPass1, renderPass2] }],
     };
 
-    webgl.submit(submit);
     webgpu.submit(submit);
-
-    // 第一帧后进行比较
-    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
 });

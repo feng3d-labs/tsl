@@ -1,35 +1,25 @@
 import { RenderPass, Submit } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { mat4 } from 'gl-matrix';
 
 import { vertexShader, fragmentShader } from './shaders/shader';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 使用 TSL 生成着色器代码
-    const vertexGlsl = vertexShader.toGLSL();
-    const fragmentGlsl = fragmentShader.toGLSL();
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-    webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 创建投影矩阵和模型视图矩阵
-    const { projectionMatrix, modelViewMatrix } = drawScene(webgpuCanvas);
+    const { projectionMatrix, modelViewMatrix } = drawScene(canvas);
 
     // 创建渲染通道
     const renderPass: RenderPass = {
@@ -46,11 +36,9 @@ document.addEventListener('DOMContentLoaded', async () =>
         renderPassObjects: [{
             pipeline: {
                 vertex: {
-                    glsl: vertexGlsl,
                     wgsl: vertexWgsl,
                 },
                 fragment: {
-                    glsl: fragmentGlsl,
                     wgsl: fragmentWgsl,
                 },
                 primitive: { topology: 'triangle-strip' },
@@ -93,10 +81,6 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     // 提交渲染命令
     webgpu.submit(submit);
-    webgl.submit(submit);
-
-    // 第一帧后进行比较
-    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
 });
 
 /**

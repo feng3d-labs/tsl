@@ -8,21 +8,12 @@
  * - MVP[3] 访问第四列（平移向量）
  * - 平移通过单独添加矩阵的第四列实现
  *
- * 此示例同时支持 WebGL 和 WebGPU 渲染。
+ * 此示例使用 WebGPU 渲染。
  */
 
 import { RenderPipeline, Sampler, Submit, Texture, VertexAttributes } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
-// 导入原始着色器（调试用）
-import fragmentGlsl from './shaders/fragment.glsl';
-import fragmentWgsl from './shaders/fragment.wgsl';
-import vertexGlsl from './shaders/vertex.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
-
-// 导入 TSL 着色器
 import { fragmentShader, vertexShader } from './shaders/shader';
 
 /**
@@ -52,22 +43,14 @@ function initCanvasSize(canvas: HTMLCanvasElement)
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    // TSL 生成着色器代码（变量名与导入的相同，便于调试切换）
-    // 调试时：注释下面的 TSL 生成代码，取消上面原始着色器导入的注释
-    const vertexGlsl = vertexShader.toGLSL(2);
-    const fragmentGlsl = fragmentShader.toGLSL(2);
+    // TSL 生成着色器代码
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    initCanvasSize(webgpuCanvas);
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    initCanvasSize(canvas);
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 加载图像
     loadImage('./images/Di-3d.png', (img) =>
@@ -117,11 +100,9 @@ document.addEventListener('DOMContentLoaded', async () =>
         // 渲染管线
         const program: RenderPipeline = {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentGlsl,
                 wgsl: fragmentWgsl,
             },
             primitive: { topology: 'triangle-list' },
@@ -157,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async () =>
                                 vertices: vertexArray.vertices,
                                 bindingResources: {
                                     MVP: { value: matrix },
-                                    diffuse: { texture, sampler },
+                                    diffuse: { texture, sampler } as any,
                                 },
                                 draw: { __type__: 'DrawVertex', vertexCount: 6 },
                             }],
@@ -168,10 +149,6 @@ document.addEventListener('DOMContentLoaded', async () =>
         };
 
         // 执行渲染
-        webgl.submit(submit);
         webgpu.submit(submit);
-
-        // 第一帧后进行比较
-        autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
     });
 });

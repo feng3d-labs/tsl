@@ -5,19 +5,11 @@
  * 此示例完全按照原始 WebGL2Samples/texture_vertex.ts 实现。
  */
 
-import { GLVertexAttributeTypes, IndicesDataTypes, PrimitiveTopology, RenderPass, RenderPassObject, RenderPipeline, Sampler, Texture, VertexAttributes, VertexData, VertexFormat, vertexFormatMap } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
+import { IndicesDataTypes, PrimitiveTopology, RenderPass, RenderPassObject, RenderPipeline, Sampler, Texture, VertexAttributes, VertexData, VertexFormat, vertexFormatMap } from '@feng3d/render-api';
 import { WebGPU } from '@feng3d/webgpu';
 
 import { mat4, vec3 } from 'gl-matrix';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 import { GlTFLoader, Primitive } from './third-party/gltf-loader';
-
-// 导入调试用原始着色器
-import fragmentGlsl from './shaders/fragment.glsl';
-import fragmentWgsl from './shaders/fragment.wgsl';
-import vertexGlsl from './shaders/vertex.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
 
 // 导入 TSL 着色器
 import { fragmentShader, vertexShader } from './shaders/shader';
@@ -68,7 +60,7 @@ const VertexAttributeType2Name: { [key: number]: string } = Object.freeze({
 });
 
 // 获取顶点格式
-function getIVertexFormat(numComponents: 1 | 2 | 3 | 4, type: GLVertexAttributeTypes = 'FLOAT', normalized = false): VertexFormat
+function getIVertexFormat(numComponents: 1 | 2 | 3 | 4, type: string = 'FLOAT', normalized = false): VertexFormat
 {
     for (const key in vertexFormatMap)
     {
@@ -97,23 +89,16 @@ document.addEventListener('DOMContentLoaded', async () =>
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    initCanvasSize(webgpuCanvas);
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    initCanvasSize(canvas);
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 渲染管线
     const program: RenderPipeline = {
         vertex: {
-            glsl: vertexGlsl,
             wgsl: vertexWgsl,
         },
         fragment: {
-            glsl: fragmentGlsl,
             wgsl: fragmentWgsl,
             targets: [{}],
         },
@@ -255,16 +240,10 @@ document.addEventListener('DOMContentLoaded', async () =>
         lastMouseY = newY;
     };
 
-    // 为两个 canvas 添加鼠标事件
-    webglCanvas.addEventListener('mousedown', handleMouseDown);
-    webglCanvas.addEventListener('mouseup', handleMouseUp);
-    webglCanvas.addEventListener('mousemove', handleMouseMove);
-    webgpuCanvas.addEventListener('mousedown', handleMouseDown);
-    webgpuCanvas.addEventListener('mouseup', handleMouseUp);
-    webgpuCanvas.addEventListener('mousemove', handleMouseMove);
-
-    // 是否已完成首帧比较
-    let firstFrameCompared = false;
+    // 为 canvas 添加鼠标事件
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mouseup', handleMouseUp);
+    canvas.addEventListener('mousemove', handleMouseMove);
 
     const localMV = mat4.create();
 
@@ -308,8 +287,8 @@ document.addEventListener('DOMContentLoaded', async () =>
                     bindingResources: {
                         mvMatrix: { value: localMV as Float32Array },
                         pMatrix: { value: perspectiveMatrix as Float32Array },
-                        displacementMap: { texture, sampler },
-                        diffuse: { texture, sampler },
+                        displacementMap: { texture, sampler } as any,
+                        diffuse: { texture, sampler } as any,
                     },
                     vertices: vertexArrayMaps[mid][i].vertices,
                     indices: vertexArrayMaps[mid][i].indices,
@@ -319,15 +298,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         }
 
         // 提交渲染
-        webgl.submit({ commandEncoders: [{ passEncoders: [rp] }] });
         webgpu.submit({ commandEncoders: [{ passEncoders: [rp] }] });
-
-        // 首帧比较
-        if (!firstFrameCompared)
-        {
-            firstFrameCompared = true;
-            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 1);
-        }
 
         requestAnimationFrame(render);
     }

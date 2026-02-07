@@ -14,20 +14,8 @@
  */
 
 import { IndicesDataTypes, RenderPass, RenderPassObject, RenderPipeline, VertexAttributes, VertexFormat, Viewport } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { mat4, vec3 } from 'gl-matrix';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
-
-// 导入原始着色器（调试用，取消注释可切换到手动着色器）
-import flatVertGlsl from './shaders/flat.vert.glsl';
-import flatFragGlsl from './shaders/flat.frag.glsl';
-import smoothVertGlsl from './shaders/smooth.vert.glsl';
-import smoothFragGlsl from './shaders/smooth.frag.glsl';
-import flatVertWgsl from './shaders/flat.vert.wgsl';
-import flatFragWgsl from './shaders/flat.frag.wgsl';
-import smoothVertWgsl from './shaders/smooth.vert.wgsl';
-import smoothFragWgsl from './shaders/smooth.frag.wgsl';
 
 // 导入 TSL 着色器
 import {
@@ -57,32 +45,22 @@ const VIEWPORTS = {
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    // TSL 生成着色器代码（变量名与导入的相同，便于调试切换）
-    // 调试时：注释下面的 TSL 生成代码，取消上面原始着色器导入的注释
-    const flatVertGlsl = flatVertexShader.toGLSL(2);
-    const flatFragGlsl = flatFragmentShader.toGLSL(2);
+    // TSL 生成着色器代码
     const flatVertWgsl = flatVertexShader.toWGSL();
     const flatFragWgsl = flatFragmentShader.toWGSL(flatVertexShader);
 
-    const smoothVertGlsl = smoothVertexShader.toGLSL(2);
-    const smoothFragGlsl = smoothFragmentShader.toGLSL(2);
     const smoothVertWgsl = smoothVertexShader.toWGSL();
     const smoothFragWgsl = smoothFragmentShader.toWGSL(smoothVertexShader);
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    initCanvasSize(webgpuCanvas);
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    initCanvasSize(canvas);
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 画布尺寸
     const canvasSize = {
-        x: webglCanvas.width,
-        y: webglCanvas.height,
+        x: canvas.width,
+        y: canvas.height,
     };
 
     // 视口设置（左右两边）
@@ -110,15 +88,15 @@ document.addEventListener('DOMContentLoaded', async () =>
     const programs: RenderPipeline[] = [
         // flat 渲染管线
         {
-            vertex: { glsl: flatVertGlsl, wgsl: flatVertWgsl },
-            fragment: { glsl: flatFragGlsl, wgsl: flatFragWgsl },
+            vertex: { wgsl: flatVertWgsl },
+            fragment: { wgsl: flatFragWgsl },
             depthStencil: { depthCompare: 'less-equal' },
             primitive: { topology: 'triangle-list' },
         },
         // smooth 渲染管线
         {
-            vertex: { glsl: smoothVertGlsl, wgsl: smoothVertWgsl },
-            fragment: { glsl: smoothFragGlsl, wgsl: smoothFragWgsl },
+            vertex: { wgsl: smoothVertWgsl },
+            fragment: { wgsl: smoothFragWgsl },
             depthStencil: { depthCompare: 'less-equal' },
             primitive: { topology: 'triangle-list' },
         },
@@ -195,9 +173,6 @@ document.addEventListener('DOMContentLoaded', async () =>
         const localMVP = mat4.create();
         const localMVNormal = mat4.create();
 
-        // 用于比较的标志
-        let hasCompared = false;
-
         // 渲染循环
         (function render()
         {
@@ -248,15 +223,7 @@ document.addEventListener('DOMContentLoaded', async () =>
             }
 
             const submit = { commandEncoders: [{ passEncoders: [rp] }] };
-            webgl.submit(submit);
             webgpu.submit(submit);
-
-            // 第一帧后进行比较
-            if (!hasCompared)
-            {
-                hasCompared = true;
-                autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
-            }
 
             requestAnimationFrame(render);
         })();

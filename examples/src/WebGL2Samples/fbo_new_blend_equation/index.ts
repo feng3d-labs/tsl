@@ -1,13 +1,6 @@
 import { RenderObject, RenderPass, RenderPassObject, RenderPipeline, Sampler, Texture, VertexAttributes, Viewport } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
-// 直接导入预生成的着色器文件（调试时可注释掉TSL生成的代码，使用这些原始着色器）
-import fragmentGlsl from './shaders/fragment.glsl';
-import fragmentWgsl from './shaders/fragment.wgsl';
-import vertexGlsl from './shaders/vertex.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
 // 导入TSL着色器
 import { fragmentShader, vertexShader } from './shaders/shader';
 
@@ -44,14 +37,9 @@ const Corners = {
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    initCanvasSize(webgpuCanvas);
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    initCanvasSize(canvas);
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 生成着色器代码
     const vertexGlsl = vertexShader.toGLSL(2);
@@ -62,11 +50,9 @@ document.addEventListener('DOMContentLoaded', async () =>
     // 渲染管线
     const program: RenderPipeline = {
         vertex: {
-            glsl: vertexGlsl,
             wgsl: vertexWgsl,
         },
         fragment: {
-            glsl: fragmentGlsl,
             wgsl: fragmentWgsl,
             targets: [{ blend: {} }],
         },
@@ -98,10 +84,10 @@ document.addEventListener('DOMContentLoaded', async () =>
         textureCoordinates: { data: texcoords, format: 'float32x2' },
     };
 
-    // 窗口大小（WebGL 和 WebGPU 画布尺寸相同）
+    // 窗口大小
     const windowSize = {
-        x: webglCanvas.width,
-        y: webglCanvas.height,
+        x: canvas.width,
+        y: canvas.height,
     };
 
     // 分割视口
@@ -163,7 +149,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         // 基础渲染对象
         const renderObject: RenderObject = {
             pipeline: program,
-            bindingResources: { mvp: { value: matrix }, diffuse: { texture, sampler } },
+            bindingResources: { mvp: { value: matrix }, diffuse: { texture, sampler } as any },
             vertices,
             draw: { __type__: 'DrawVertex', vertexCount: 6 },
         };
@@ -244,17 +230,13 @@ document.addEventListener('DOMContentLoaded', async () =>
             renderPassObjects: renderObjects,
         };
 
-        // 提交渲染命令（WebGL 和 WebGPU 共用同一套数据）
+        // 提交渲染命令
         const submit = {
             commandEncoders: [{
                 passEncoders: [renderPass],
             }],
         };
 
-        webgl.submit(submit);
         webgpu.submit(submit);
-
-        // 第一帧后进行比较
-        autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
     });
 });

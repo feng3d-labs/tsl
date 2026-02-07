@@ -193,23 +193,11 @@
 
         <div class="canvas-container">
             <div class="canvas-wrapper">
-                <canvas id="webgl"></canvas>
-                <div class="canvas-label">WebGL</div>
-            </div>
-            <div class="canvas-wrapper">
-                <canvas id="webgpu"></canvas>
-                <div class="canvas-label">WebGPU</div>
+                <canvas id="canvas"></canvas>
             </div>
         </div>
 
         <div class="info-section">
-            <div class="info-panel">
-                <h2 class="info-title">比较结果</h2>
-                <div id="comparison-result" style="font-size: 14px;">
-                    <div style="margin-bottom: 8px; font-weight: bold;">加载中...</div>
-                    <div>等待渲染完成...</div>
-                </div>
-            </div>
             <div class="info-panel">
                 <h2 class="info-title">关于示例</h2>
                 <ul class="info-list">
@@ -219,7 +207,6 @@
                     <li>右上角：SRC（正常混合，显示原图）</li>
                     <li>左下角：MAX 混合（取源和目标的最大值）</li>
                     <li>右下角：MIN 混合（取源和目标的最小值）</li>
-                    <li>同时支持 WebGL 和 WebGPU 渲染</li>
                 </ul>
             </div>
         </div>

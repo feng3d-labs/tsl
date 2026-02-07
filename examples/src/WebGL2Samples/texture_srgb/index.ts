@@ -1,13 +1,6 @@
 import { RenderPipeline, Sampler, Submit, Texture, VertexAttributes } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
-// 直接导入预生成的着色器文件（调试用）
-import fragmentGlsl from './shaders/fragment.glsl';
-import fragmentWgsl from './shaders/fragment.wgsl';
-import vertexGlsl from './shaders/vertex.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
 import { fragmentShader, vertexShader } from './shaders/shader';
 
 // 辅助函数：加载图像
@@ -34,20 +27,13 @@ function initCanvasSize(canvas: HTMLCanvasElement): void
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 生成着色器代码
-    const vertexGlsl = vertexShader.toGLSL(2);
-    const fragmentGlsl = fragmentShader.toGLSL(2);
     const vertexWgsl = vertexShader.toWGSL({ convertDepth: true });
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    initCanvasSize(webgpuCanvas);
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    initCanvasSize(canvas);
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 顶点数据：位置
     const positions = new Float32Array([
@@ -104,11 +90,9 @@ document.addEventListener('DOMContentLoaded', async () =>
         // 渲染管线
         const program: RenderPipeline = {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentGlsl,
                 wgsl: fragmentWgsl,
                 targets: [{ blend: {} }],
             },
@@ -133,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () =>
                                 draw: { __type__: 'DrawVertex', vertexCount: 6 },
                                 bindingResources: {
                                     mvp: { value: matrix },
-                                    materialDiffuse: { texture, sampler },
+                                    materialDiffuse: { texture, sampler } as any,
                                 },
                             }],
                         },
@@ -143,11 +127,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         };
 
         // 执行渲染
-        webgl.submit(submit);
         webgpu.submit(submit);
-
-        // 第一帧后进行比较
-        autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
     });
 });
 

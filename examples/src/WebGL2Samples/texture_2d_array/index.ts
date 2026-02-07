@@ -1,15 +1,7 @@
 import { reactive } from '@feng3d/reactivity';
 import { RenderObject, RenderPass, RenderPipeline, Sampler, Submit, Texture, VertexAttributes } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
-// 直接导入预生成的着色器文件（调试用）
-import fragmentGlsl from './shaders/fragment.glsl';
-import fragmentWgsl from './shaders/fragment.wgsl';
-import vertexGlsl from './shaders/vertex.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
-// 导入 TSL 着色器
 import { fragmentShader, vertexShader } from './shaders/shader';
 
 // 辅助函数：加载图像
@@ -42,14 +34,9 @@ document.addEventListener('DOMContentLoaded', async () =>
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    initCanvasSize(webgpuCanvas);
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    initCanvasSize(canvas);
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 加载图像
     loadImage('./images/di-animation-array.jpg', (image) =>
@@ -123,11 +110,9 @@ document.addEventListener('DOMContentLoaded', async () =>
         // 渲染管线
         const program: RenderPipeline = {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentGlsl,
                 wgsl: fragmentWgsl,
             },
             primitive: { topology: 'triangle-list' },
@@ -138,7 +123,7 @@ document.addEventListener('DOMContentLoaded', async () =>
             pipeline: program,
             bindingResources: {
                 MVP: { value: matrix },
-                diffuse: { texture, sampler },
+                diffuse: { texture, sampler } as any,
                 layer: { value: 0 },
             },
             vertices: vertexArray.vertices,
@@ -157,7 +142,6 @@ document.addEventListener('DOMContentLoaded', async () =>
         };
 
         let frame = 0;
-        let isFirstFrame = true;
 
         (function render()
         {
@@ -165,15 +149,7 @@ document.addEventListener('DOMContentLoaded', async () =>
             reactive(ro.bindingResources!).layer = { value: frame };
 
             // 执行渲染
-            webgl.submit(submit);
             webgpu.submit(submit);
-
-            // 第一帧后进行比较
-            if (isFirstFrame)
-            {
-                isFirstFrame = false;
-                autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
-            }
 
             // 切换到下一帧
             frame = (frame + 1) % NUM_IMAGES;

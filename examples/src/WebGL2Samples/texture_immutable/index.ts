@@ -1,18 +1,7 @@
 import { RenderObject, RenderPass, RenderPassObject, RenderPipeline, Sampler, Submit, Texture, VertexAttributes } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 import { snoise } from './third-party/noise3D';
 
-// 直接导入预生成的着色器文件（调试用）
-import fragmentGlsl from './shaders/fragment.glsl';
-import fragmentWgsl from './shaders/fragment.wgsl';
-import vertexGlsl from './shaders/vertex.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
-import fragment3DGlsl from './shaders/fragment-3d.glsl';
-import fragment3DWgsl from './shaders/fragment-3d.wgsl';
-import vertex3DGlsl from './shaders/vertex-3d.glsl';
-import vertex3DWgsl from './shaders/vertex-3d.wgsl';
 // 导入 TSL 着色器
 import { fragmentShader, fragmentShader3D, vertexShader, vertexShader3D } from './shaders/shader';
 
@@ -106,19 +95,14 @@ document.addEventListener('DOMContentLoaded', async () =>
     const fragment3DWgsl = fragmentShader3D.toWGSL(vertexShader3D);
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    initCanvasSize(webgpuCanvas);
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    initCanvasSize(canvas);
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 计算视口
     const windowSize = {
-        x: webglCanvas.width,
-        y: webglCanvas.height,
+        x: canvas.width,
+        y: canvas.height,
     };
 
     const viewports: { x: number, y: number, width: number, height: number }[] = new Array(Corners.MAX);
@@ -171,11 +155,9 @@ document.addEventListener('DOMContentLoaded', async () =>
     // 2D 纹理渲染管线
     const program: RenderPipeline = {
         vertex: {
-            glsl: vertexGlsl,
             wgsl: vertexWgsl,
         },
         fragment: {
-            glsl: fragmentGlsl,
             wgsl: fragmentWgsl,
         },
         primitive: { topology: 'triangle-list' },
@@ -184,11 +166,9 @@ document.addEventListener('DOMContentLoaded', async () =>
     // 3D 纹理渲染管线
     const program3D: RenderPipeline = {
         vertex: {
-            glsl: vertex3DGlsl,
             wgsl: vertex3DWgsl,
         },
         fragment: {
-            glsl: fragment3DGlsl,
             wgsl: fragment3DWgsl,
         },
         primitive: { topology: 'triangle-list' },
@@ -231,7 +211,7 @@ document.addEventListener('DOMContentLoaded', async () =>
             pipeline: program,
             bindingResources: {
                 MVP: { value: matrix },
-                diffuse: { texture: texture2D, sampler: sampler2D },
+                diffuse: { texture: texture2D, sampler: sampler2D } as any,
             },
             vertices,
             draw: { __type__: 'DrawVertex', vertexCount: 6 },
@@ -241,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         const ro3D: RenderObject = {
             pipeline: program3D,
             bindingResources: {
-                diffuse: { texture: texture3D, sampler: sampler3D },
+                diffuse: { texture: texture3D, sampler: sampler3D } as any,
             },
             vertices: vertices3D,
             draw: { __type__: 'DrawVertex', vertexCount: 6 },
@@ -278,17 +258,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         };
 
         // 执行渲染
-        webgl.submit(submit);
         webgpu.submit(submit);
-
-        // 第一帧后进行比较
-        autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
-
-        // 清理资源
-        webgl.deleteTexture(texture2D);
-        webgl.deleteTexture(texture3D);
-        webgl.deleteProgram(program);
-        webgl.deleteProgram(program3D);
     });
 });
 

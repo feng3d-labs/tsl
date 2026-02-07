@@ -1,15 +1,7 @@
 import { RenderPass, RenderPassDescriptor, Submit } from '@feng3d/render-api';
 import { reactive } from '@feng3d/reactivity';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { mat4 } from 'gl-matrix';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
-
-// 导入原始 GLSL 和 WGSL 文件作为参考和备选
-import vertexGlsl from './shaders/vertex.glsl';
-import fragmentGlsl from './shaders/fragment.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
-import fragmentWgsl from './shaders/fragment.wgsl';
 
 import { vertexShader, fragmentShader } from './shaders/shader';
 
@@ -18,41 +10,29 @@ let squareRotation = 0.0;
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 使用 TSL 生成着色器代码
-    const vertexGlsl = vertexShader.toGLSL();
-    const fragmentGlsl = fragmentShader.toGLSL();
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL();
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
     const webgpu = await new WebGPU(
-        { canvasId: 'webgpu' },
+        { canvasId: 'canvas' },
     ).init();
 
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-    webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-    const webgl = new WebGL(
-        { canvasId: 'webgl', webGLcontextId: 'webgl2' },
-    );
-
     // 创建投影矩阵和模型视图矩阵
-    const { projectionMatrix, modelViewMatrix } = drawScene(webgpuCanvas, 0);
+    const { projectionMatrix, modelViewMatrix } = drawScene(canvas, 0);
 
     // 创建渲染对象
     const renderObject = {
         pipeline: {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentGlsl,
                 wgsl: fragmentWgsl,
             },
             depthStencil: { depthCompare: 'less-equal' as const },
@@ -101,7 +81,6 @@ document.addEventListener('DOMContentLoaded', async () =>
     };
 
     let then = 0;
-    let frameCount = 0;
 
     // 绘制场景
     function render(now: number)
@@ -110,7 +89,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         const deltaTime = now - then;
         then = now;
 
-        const { projectionMatrix, modelViewMatrix } = drawScene(webgpuCanvas, deltaTime);
+        const { projectionMatrix, modelViewMatrix } = drawScene(canvas, deltaTime);
 
         const bindingResources = reactive(renderObject.bindingResources);
         bindingResources.uProjectionMatrix = { value: projectionMatrix as Float32Array };
@@ -123,14 +102,6 @@ document.addEventListener('DOMContentLoaded', async () =>
         };
 
         webgpu.submit(submit);
-        webgl.submit(submit);
-
-        // 第一帧后进行比较
-        if (frameCount === 0)
-        {
-            frameCount++;
-            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
-        }
 
         requestAnimationFrame(render);
     }

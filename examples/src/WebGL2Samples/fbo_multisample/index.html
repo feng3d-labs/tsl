@@ -193,23 +193,11 @@
 
         <div class="canvas-container">
             <div class="canvas-wrapper">
-                <canvas id="webgl"></canvas>
-                <div class="canvas-label">WebGL</div>
-            </div>
-            <div class="canvas-wrapper">
-                <canvas id="webgpu"></canvas>
-                <div class="canvas-label">WebGPU</div>
+                <canvas id="canvas"></canvas>
             </div>
         </div>
 
         <div class="info-section">
-            <div class="info-panel">
-                <h2 class="info-title">比较结果</h2>
-                <div id="comparison-result" style="font-size: 14px;">
-                    <div style="margin-bottom: 8px; font-weight: bold;">加载中...</div>
-                    <div>等待渲染完成...</div>
-                </div>
-            </div>
             <div class="info-panel">
                 <h2 class="info-title">关于示例</h2>
                 <ul class="info-list">
@@ -218,7 +206,6 @@
                     <li>两阶段渲染：先渲染到多重采样纹理，再渲染到屏幕</li>
                     <li>使用 LINE_STRIP 图元绘制圆形</li>
                     <li>使用 MVP 矩阵进行缩放变换</li>
-                    <li>同时支持 WebGL 和 WebGPU 渲染</li>
                 </ul>
             </div>
         </div>

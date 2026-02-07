@@ -1,15 +1,9 @@
 import { RenderObject, RenderPass, RenderPassDescriptor, RenderPassObject, RenderPipeline, Sampler, Submit, Texture } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
-// 导入手动编写的 GLSL 和 WGSL 文件（因为 TSL 当前不支持多个输出和纹理数组）
-import layerVertexGlsl from './shaders/vertex-layer.glsl';
-import layerFragmentGlsl from './shaders/fragment-layer.glsl';
+// 导入手动编写的 WGSL 文件（因为 TSL 当前不支持多个输出和纹理数组）
 import layerVertexWgsl from './shaders/vertex-layer.wgsl';
 import layerFragmentWgsl from './shaders/fragment-layer.wgsl';
-import multipleOutputVertexGlsl from './shaders/vertex-multiple-output.glsl';
-import multipleOutputFragmentGlsl from './shaders/fragment-multiple-output.glsl';
 import multipleOutputVertexWgsl from './shaders/vertex-multiple-output.wgsl';
 import multipleOutputFragmentWgsl from './shaders/fragment-multiple-output.wgsl';
 
@@ -33,21 +27,15 @@ document.addEventListener('DOMContentLoaded', async () =>
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-    webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 窗口大小
     const windowSize = {
-        x: webgpuCanvas.width,
-        y: webgpuCanvas.height,
+        x: canvas.width,
+        y: canvas.height,
     };
 
     // 纹理索引
@@ -151,8 +139,8 @@ document.addEventListener('DOMContentLoaded', async () =>
     // 注意：当前 TSL 不支持多个输出，这里使用单个输出作为占位
     // 实际使用时需要扩展 TSL 以支持多个颜色附件
     const multipleOutputProgram: RenderPipeline = {
-        vertex: { glsl: multipleOutputVertexGlsl, wgsl: multipleOutputVertexWgsl },
-        fragment: { glsl: multipleOutputFragmentGlsl, wgsl: multipleOutputFragmentWgsl },
+        vertex: { wgsl: multipleOutputVertexWgsl },
+        fragment: { wgsl: multipleOutputFragmentWgsl },
         primitive: { topology: 'triangle-list' },
     };
 
@@ -170,8 +158,8 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     // 渲染通道 2：从纹理数组读取并渲染到屏幕
     const layerProgram: RenderPipeline = {
-        vertex: { glsl: layerVertexGlsl, wgsl: layerVertexWgsl },
-        fragment: { glsl: layerFragmentGlsl, wgsl: layerFragmentWgsl },
+        vertex: { wgsl: layerVertexWgsl },
+        fragment: { wgsl: layerFragmentWgsl },
         primitive: { topology: 'triangle-list' },
     };
 
@@ -185,7 +173,7 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     const renderObject: RenderObject = {
         pipeline: layerProgram,
-        bindingResources: { mvp: { value: matrix }, diffuse: { texture, sampler } },
+        bindingResources: { mvp: { value: matrix }, diffuse: { texture, sampler } as any },
         vertices: layerVertexArray.vertices,
         draw: { __type__: 'DrawVertex', vertexCount: 6 },
     };
@@ -209,104 +197,39 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     // 渲染
     webgpu.submit(submit);
-    webgl.submit(submit);
-
-    // 第一帧后进行画布比较（必须在 submit 之后、异步操作之前执行，否则画布纹理会过期）
-    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
 
     // 使用 readPixels 从帧缓冲区读取像素数据
     // 通过 textureView 指定要读取的纹理视图（支持从纹理数组的特定层读取）
-    const webglData = new Uint8Array(w * h * 4 * 3);
-    const webgpuData = new Uint8Array(w * h * 4 * 3);
+    const data = new Uint8Array(w * h * 4 * 3);
 
-    console.log('=== WebGL readPixels 结果 ===');
+    console.log('=== readPixels 结果 ===');
 
-    // WebGL: 读取红色层
-    let result = webgl.readPixels({
+    // 读取红色层
+    let result = await webgpu.readPixels({
         textureView: frameBuffer.colorAttachments![0].view,
         origin: [0, 0],
         copySize: [w, h],
     });
-    webglData.set(new Uint8Array(result.buffer), 0);
-    console.log('红色层像素数据 (前16个字节):', Array.from(webglData.slice(0, 16)));
+    data.set(new Uint8Array(result.buffer), 0);
+    console.log('红色层像素数据 (前16个字节):', Array.from(data.slice(0, 16)));
 
-    // WebGL: 读取绿色层
-    result = webgl.readPixels({
+    // 读取绿色层
+    result = await webgpu.readPixels({
         textureView: frameBuffer.colorAttachments![1].view,
         origin: [0, 0],
         copySize: [w, h],
     });
-    webglData.set(new Uint8Array(result.buffer), w * h * 4);
-    console.log('绿色层像素数据 (前16个字节):', Array.from(webglData.slice(w * h * 4, w * h * 4 + 16)));
+    data.set(new Uint8Array(result.buffer), w * h * 4);
+    console.log('绿色层像素数据 (前16个字节):', Array.from(data.slice(w * h * 4, w * h * 4 + 16)));
 
-    // WebGL: 读取蓝色层
-    result = webgl.readPixels({
+    // 读取蓝色层
+    result = await webgpu.readPixels({
         textureView: frameBuffer.colorAttachments![2].view,
         origin: [0, 0],
         copySize: [w, h],
     });
-    webglData.set(new Uint8Array(result.buffer), w * h * 4 * 2);
-    console.log('蓝色层像素数据 (前16个字节):', Array.from(webglData.slice(w * h * 4 * 2, w * h * 4 * 2 + 16)));
+    data.set(new Uint8Array(result.buffer), w * h * 4 * 2);
+    console.log('蓝色层像素数据 (前16个字节):', Array.from(data.slice(w * h * 4 * 2, w * h * 4 * 2 + 16)));
 
-    console.log('WebGL 完整像素数据大小:', webglData.length, '字节');
-
-    console.log('\n=== WebGPU readPixels 结果 ===');
-
-    // WebGPU: 读取红色层
-    let gpuResult = await webgpu.readPixels({
-        textureView: frameBuffer.colorAttachments![0].view,
-        origin: [0, 0],
-        copySize: [w, h],
-    });
-    webgpuData.set(new Uint8Array(gpuResult.buffer), 0);
-    console.log('红色层像素数据 (前16个字节):', Array.from(webgpuData.slice(0, 16)));
-
-    // WebGPU: 读取绿色层
-    gpuResult = await webgpu.readPixels({
-        textureView: frameBuffer.colorAttachments![1].view,
-        origin: [0, 0],
-        copySize: [w, h],
-    });
-    webgpuData.set(new Uint8Array(gpuResult.buffer), w * h * 4);
-    console.log('绿色层像素数据 (前16个字节):', Array.from(webgpuData.slice(w * h * 4, w * h * 4 + 16)));
-
-    // WebGPU: 读取蓝色层
-    gpuResult = await webgpu.readPixels({
-        textureView: frameBuffer.colorAttachments![2].view,
-        origin: [0, 0],
-        copySize: [w, h],
-    });
-    webgpuData.set(new Uint8Array(gpuResult.buffer), w * h * 4 * 2);
-    console.log('蓝色层像素数据 (前16个字节):', Array.from(webgpuData.slice(w * h * 4 * 2, w * h * 4 * 2 + 16)));
-
-    console.log('WebGPU 完整像素数据大小:', webgpuData.length, '字节');
-
-    // 比较 WebGL 和 WebGPU 读取的像素数据
-    console.log('\n=== WebGL vs WebGPU readPixels 比较 ===');
-    let mismatchCount = 0;
-    for (let i = 0; i < webglData.length; i++)
-    {
-        if (webglData[i] !== webgpuData[i])
-        {
-            mismatchCount++;
-            if (mismatchCount <= 10)
-            {
-                console.log(`像素差异 [${i}]: WebGL=${webglData[i]}, WebGPU=${webgpuData[i]}`);
-            }
-        }
-    }
-    if (mismatchCount === 0)
-    {
-        console.log('✓ WebGL 和 WebGPU 读取的像素数据完全一致！');
-    }
-    else
-    {
-        console.log(`✗ 发现 ${mismatchCount} 个字节不一致（共 ${webglData.length} 字节）`);
-    }
-
-    // 清理资源
-    // webgpu.deleteFramebuffer(frameBuffer);
-    // webgpu.deleteTexture(texture);
-    // webgpu.deleteProgram(multipleOutputProgram);
-    // webgpu.deleteProgram(layerProgram);
+    console.log('完整像素数据大小:', data.length, '字节');
 });

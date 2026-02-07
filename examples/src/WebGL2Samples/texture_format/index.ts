@@ -1,15 +1,6 @@
 import { RenderPassObject, RenderPipeline, Sampler, Submit, Texture, TextureFormat, VertexAttributes } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
-// 直接导入预生成的着色器文件（调试用）
-import fragmentNormalizedGlsl from './shaders/fragment-normalized.glsl';
-import fragmentNormalizedWgsl from './shaders/fragment-normalized.wgsl';
-import fragmentUintGlsl from './shaders/fragment-uint.glsl';
-import fragmentUintWgsl from './shaders/fragment-uint.wgsl';
-import vertexGlsl from './shaders/vertex.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
 import { fragmentShaderNormalized, fragmentShaderUint, vertexShader } from './shaders/shader';
 
 /**
@@ -68,27 +59,19 @@ const TextureTypes = {
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // TSL 生成着色器代码
-    const vertexGlsl = vertexShader.toGLSL(2);
     const vertexWgsl = vertexShader.toWGSL();
-    const fragmentNormalizedGlsl = fragmentShaderNormalized.toGLSL(2);
     const fragmentNormalizedWgsl = fragmentShaderNormalized.toWGSL(vertexShader);
-    const fragmentUintGlsl = fragmentShaderUint.toGLSL(2);
     const fragmentUintWgsl = fragmentShaderUint.toWGSL(vertexShader);
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    initCanvasSize(webgpuCanvas);
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    initCanvasSize(canvas);
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 计算视口
     const windowSize = {
-        x: webglCanvas.width,
-        y: webglCanvas.height,
+        x: canvas.width,
+        y: canvas.height,
     };
 
     const viewport: { x: number, y: number, width: number, height: number }[] = new Array(Views.MAX);
@@ -180,11 +163,9 @@ document.addEventListener('DOMContentLoaded', async () =>
         // 渲染管线 - 普通纹理
         const programNormalized: RenderPipeline = {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentNormalizedGlsl,
                 wgsl: fragmentNormalizedWgsl,
                 targets: [{ blend: {} }],
             },
@@ -194,11 +175,9 @@ document.addEventListener('DOMContentLoaded', async () =>
         // 渲染管线 - 无符号整数纹理
         const programUint: RenderPipeline = {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentUintGlsl,
                 wgsl: fragmentUintWgsl,
                 targets: [{ blend: {} }],
             },
@@ -217,7 +196,7 @@ document.addEventListener('DOMContentLoaded', async () =>
                 viewport: viewport[i],
                 bindingResources: {
                     MVP: { value: matrix },
-                    diffuse: { texture: textures[i], sampler: samplers[i] },
+                    diffuse: { texture: textures[i], sampler: samplers[i] } as any,
                 },
                 draw: { __type__: 'DrawVertex', vertexCount: 6, instanceCount: 1 },
             });
@@ -232,7 +211,7 @@ document.addEventListener('DOMContentLoaded', async () =>
                 viewport: viewport[i],
                 bindingResources: {
                     MVP: { value: matrix },
-                    diffuse: { texture: textures[i], sampler: samplers[i] },
+                    diffuse: { texture: textures[i], sampler: samplers[i] } as any,
                 },
                 draw: { __type__: 'DrawVertex', vertexCount: 6, instanceCount: 1 },
             });
@@ -258,11 +237,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         };
 
         // 执行渲染
-        webgl.submit(submit);
         webgpu.submit(submit);
-
-        // 第一帧后进行比较（允许一定容差，因为不同纹理格式可能有精度差异）
-        autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 2);
     });
 });
 

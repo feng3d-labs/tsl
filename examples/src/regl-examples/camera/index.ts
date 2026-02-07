@@ -1,34 +1,24 @@
 import { RenderObject, Submit } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { angleNormals } from './utils/angle-normals';
 import * as bunny from './utils/bunny';
 import { createCamera } from './utils/camera';
 
 import { vertexShader, fragmentShader } from './shaders/shader';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 使用 TSL 生成着色器代码
-    const vertexGlsl = vertexShader.toGLSL();
-    const fragmentGlsl = fragmentShader.toGLSL();
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = window.innerWidth * devicePixelRatio;
-    webgpuCanvas.height = window.innerHeight * devicePixelRatio;
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    webglCanvas.width = window.innerWidth * devicePixelRatio;
-    webglCanvas.height = window.innerHeight * devicePixelRatio;
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2', webGLContextAttributes: { antialias: true } });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    canvas.width = window.innerWidth * devicePixelRatio;
+    canvas.height = window.innerHeight * devicePixelRatio;
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 计算兔子模型的边界框，用于调整相机距离
     const positions = bunny.positions.flat();
@@ -72,11 +62,9 @@ document.addEventListener('DOMContentLoaded', async () =>
         bindingResources: {},
         pipeline: {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentGlsl,
                 wgsl: fragmentWgsl,
             },
             depthStencil: { depthWriteEnabled: true },
@@ -87,12 +75,10 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     function draw()
     {
-        webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-        webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-        webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-        webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
+        canvas.width = canvas.clientWidth * devicePixelRatio;
+        canvas.height = canvas.clientHeight * devicePixelRatio;
 
-        camera(renderObject, webglCanvas.width, webglCanvas.height);
+        camera(renderObject, canvas.width, canvas.height);
 
         const submit: Submit = {
             commandEncoders: [{
@@ -109,14 +95,6 @@ document.addEventListener('DOMContentLoaded', async () =>
         };
 
         webgpu.submit(submit);
-        webgl.submit(submit);
-
-        // 第一帧后进行比较
-        if (frameCount === 0)
-        {
-            frameCount++;
-            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
-        }
 
         requestAnimationFrame(draw);
     }

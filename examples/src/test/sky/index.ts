@@ -1,18 +1,10 @@
 import { effect, reactive } from '@feng3d/reactivity';
 import { CanvasContext, RenderObject, RenderPass, Submit } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { GUI } from 'dat.gui';
 import { mat4 } from 'gl-matrix';
 
-// 导入原始 GLSL 和 WGSL 文件作为参考和备选
-import vertexGlsl from './shaders/vertex.glsl';
-import fragmentGlsl from './shaders/fragment.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
-import fragmentWgsl from './shaders/fragment.wgsl';
-
 import { vertexShader, fragmentShader } from './shaders/shader';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 const parameters: {
     readonly elevation: number,
@@ -38,21 +30,11 @@ async function main()
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-    webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
-
-    // 默认使用导入的 GLSL 和 WGSL 文件进行渲染
-    // 如果需要使用 TSL 生成的代码，可以取消下面的注释
-    const vertexGlsl = vertexShader.toGLSL(2);
-    const fragmentGlsl = fragmentShader.toGLSL(2);
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
@@ -63,11 +45,9 @@ async function main()
     const renderObject: RenderObject = {
         pipeline: {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentGlsl,
                 wgsl: fragmentWgsl,
             },
             primitive: { topology: 'triangle-list' },
@@ -119,7 +99,7 @@ async function main()
 
         //
         const fieldOfView = 45 * Math.PI / 180; // in radians
-        const aspect = webgpuCanvas.clientWidth / webgpuCanvas.clientHeight;
+        const aspect = canvas.clientWidth / canvas.clientHeight;
         const zNear = 0.1;
         const zFar = 100.0;
         const projectionMatrix = mat4.create();
@@ -163,21 +143,10 @@ async function main()
         }],
     };
 
-    let frameCount = 0;
-
     // Draw the scene repeatedly
     function render()
     {
         webgpu.submit(submit);
-        webgl.submit(submit);
-
-        // 第一帧后进行比较
-        if (frameCount === 0)
-        {
-            frameCount++;
-            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
-        }
-
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
@@ -260,4 +229,3 @@ function setFromSphericalCoords(radius, phi, theta)
 
     return [x, y, z];
 }
-

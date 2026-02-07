@@ -1,34 +1,24 @@
 import { reactive } from '@feng3d/reactivity';
 import { RenderObject, Submit } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import * as bunny from './utils/bunny';
 import * as mat4 from './utils/gl-mat4';
 
 import { vertexShader, fragmentShader } from './shaders/shader';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 使用 TSL 生成着色器代码
-    const vertexGlsl = vertexShader.toGLSL();
-    const fragmentGlsl = fragmentShader.toGLSL();
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-    webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2', webGLContextAttributes: { antialias: true } });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     const positions = bunny.positions.reduce((pv: number[], cv: number[]) =>
     {
@@ -45,8 +35,8 @@ document.addEventListener('DOMContentLoaded', async () =>
     }, []);
 
     let tick = 0;
-    let viewportWidth = webglCanvas.clientWidth * devicePixelRatio;
-    let viewportHeight = webglCanvas.clientHeight * devicePixelRatio;
+    let viewportWidth = canvas.clientWidth * devicePixelRatio;
+    let viewportHeight = canvas.clientHeight * devicePixelRatio;
 
     const renderObject: RenderObject = {
         vertices: {
@@ -59,11 +49,9 @@ document.addEventListener('DOMContentLoaded', async () =>
         },
         pipeline: {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentGlsl,
                 wgsl: fragmentWgsl,
             },
         },
@@ -104,12 +92,9 @@ document.addEventListener('DOMContentLoaded', async () =>
         };
 
         webgpu.submit(submit);
-        webgl.submit(submit);
 
-        // 第一帧后进行比较
         if (tick === 1)
         {
-            autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
         }
 
         requestAnimationFrame(draw);

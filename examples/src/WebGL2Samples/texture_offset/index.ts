@@ -1,15 +1,6 @@
 import { RenderPassObject, RenderPipeline, Sampler, Submit, Texture, VertexAttributes } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
-// 直接导入预生成的着色器文件（调试用）
-import fragmentBicubicGlsl from './shaders/fragment_bicubic.glsl';
-import fragmentBicubicWgsl from './shaders/fragment_bicubic.wgsl';
-import fragmentOffsetGlsl from './shaders/fragment_offset.glsl';
-import fragmentOffsetWgsl from './shaders/fragment_offset.wgsl';
-import vertexGlsl from './shaders/vertex.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
 import { fragmentShaderBicubic, fragmentShaderOffset, vertexShader } from './shaders/shader';
 
 /**
@@ -47,39 +38,31 @@ const Corners = {
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // TSL 生成着色器代码
-    const vertexGlsl = vertexShader.toGLSL(2);
-    const fragmentOffsetGlsl = fragmentShaderOffset.toGLSL(2);
-    const fragmentBicubicGlsl = fragmentShaderBicubic.toGLSL(2);
 
     const vertexWgsl = vertexShader.toWGSL({ convertDepth: true });
     const fragmentOffsetWgsl = fragmentShaderOffset.toWGSL(vertexShader);
     const fragmentBicubicWgsl = fragmentShaderBicubic.toWGSL(vertexShader);
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    initCanvasSize(webgpuCanvas);
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    initCanvasSize(canvas);
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 计算视口
     const viewports: { x: number, y: number, width: number, height: number }[] = [];
 
     viewports[Corners.LEFT] = {
         x: 0,
-        y: webglCanvas.height / 4,
-        width: webglCanvas.width / 2,
-        height: webglCanvas.height / 2,
+        y: 0,
+        width: canvas.width / 2,
+        height: canvas.height,
     };
 
     viewports[Corners.RIGHT] = {
-        x: webglCanvas.width / 2,
-        y: webglCanvas.height / 4,
-        width: webglCanvas.width / 2,
-        height: webglCanvas.height / 2,
+        x: canvas.width / 2,
+        y: 0,
+        width: canvas.width / 2,
+        height: canvas.height,
     };
 
     // 顶点数据
@@ -141,11 +124,9 @@ document.addEventListener('DOMContentLoaded', async () =>
         // 带偏移的着色器程序
         const programOffset: RenderPipeline = {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentOffsetGlsl,
                 wgsl: fragmentOffsetWgsl,
                 targets: [{ blend: {} }],
             },
@@ -155,11 +136,9 @@ document.addEventListener('DOMContentLoaded', async () =>
         // 无偏移的着色器程序（使用 texelFetchOffset）
         const programBicubic: RenderPipeline = {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentBicubicGlsl,
                 wgsl: fragmentBicubicWgsl,
                 targets: [{ blend: {} }],
             },
@@ -176,7 +155,7 @@ document.addEventListener('DOMContentLoaded', async () =>
             viewport: viewports[Corners.LEFT],
             bindingResources: {
                 MVP: { value: matrix },
-                diffuse: { texture, sampler },
+                diffuse: { texture, sampler } as any,
                 offset: { value: offset },
             },
             draw: { __type__: 'DrawVertex', vertexCount: 6, instanceCount: 1 },
@@ -189,7 +168,7 @@ document.addEventListener('DOMContentLoaded', async () =>
             viewport: viewports[Corners.RIGHT],
             bindingResources: {
                 MVP: { value: matrix },
-                diffuse: { texture, sampler },
+                diffuse: { texture, sampler } as any,
             },
             draw: { __type__: 'DrawVertex', vertexCount: 6, instanceCount: 1 },
         });
@@ -214,16 +193,7 @@ document.addEventListener('DOMContentLoaded', async () =>
         };
 
         // 执行渲染
-        webgl.submit(submit);
         webgpu.submit(submit);
-
-        // 第一帧后进行比较
-        autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
-
-        // 删除资源
-        webgl.deleteTexture(texture);
-        webgl.deleteProgram(programOffset);
-        webgl.deleteProgram(programBicubic);
     });
 });
 

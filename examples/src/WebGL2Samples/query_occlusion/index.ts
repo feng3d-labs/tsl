@@ -1,14 +1,6 @@
 import { OcclusionQuery, RenderObject, RenderPass, RenderPipeline, Submit, VertexAttributes } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
-// 直接导入预生成的着色器文件（调试时可注释掉TSL生成的代码，使用这些原始着色器）
-import fragmentGlsl from './shaders/fragment.glsl';
-import fragmentWgsl from './shaders/fragment.wgsl';
-import vertexGlsl from './shaders/vertex.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
-// 导入TSL着色器
 import { fragmentShader, vertexShader } from './shaders/shader';
 
 // 辅助函数：初始化画布大小
@@ -22,135 +14,99 @@ function initCanvasSize(canvas: HTMLCanvasElement)
 document.addEventListener('DOMContentLoaded', async () =>
 {
     // 初始化WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    initCanvasSize(webgpuCanvas);
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    initCanvasSize(canvas);
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
-    // 初始化WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
-
-    // 生成着色器代码
-    const vertexGlsl = vertexShader.toGLSL(2);
-    const fragmentGlsl = fragmentShader.toGLSL(2);
+    // 使用 TSL 生成着色器代码
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
-    // 渲染管线 - 使用生成的着色器代码
-    const program: RenderPipeline = {
-        vertex: {
-            glsl: vertexGlsl,
-            wgsl: vertexWgsl,
-        },
-        fragment: {
-            glsl: fragmentGlsl,
-            wgsl: fragmentWgsl,
-            targets: [{ blend: {} }],
-        },
-        depthStencil: {},
-        primitive: { topology: 'triangle-list' },
-    };
-
-    // 顶点数据 - 两个三角形
-    // 第一个三角形在前面 (z=0.0)
-    // 第二个三角形在后面 (z=0.5)
-    const vertices = new Float32Array([
-        // 第一个三角形 (前面)
-        -0.3, -0.5, 0.0,
-        0.3, -0.5, 0.0,
-        0.0, 0.5, 0.0,
-        // 第二个三角形 (后面)
-        -0.3, -0.5, 0.5,
-        0.3, -0.5, 0.5,
+    // 前景三角形（遮挡物）- 深度较小（更靠近观察者）
+    const foregroundPositions = new Float32Array([
+        -0.3, 0.0, 0.5,
+        0.3, 0.0, 0.5,
         0.0, 0.5, 0.5,
     ]);
 
-    // 顶点属性
-    const vertexArray: { vertices?: VertexAttributes } = {
-        vertices: {
-            pos: { data: vertices, format: 'float32x3' },
+    // 背景三角形（被遮挡）- 深度较大（远离观察者）
+    const backgroundPositions = new Float32Array([
+        -0.2, -0.3, 0.8,
+        0.2, -0.3, 0.8,
+        0.0, 0.0, 0.8,
+    ]);
+
+    const foregroundVertices: VertexAttributes = {
+        pos: { data: foregroundPositions, format: 'float32x3' },
+    };
+
+    const backgroundVertices: VertexAttributes = {
+        pos: { data: backgroundPositions, format: 'float32x3' },
+    };
+
+    // 渲染管线
+    const pipeline: RenderPipeline = {
+        vertex: {
+            wgsl: vertexWgsl,
+        },
+        fragment: {
+            wgsl: fragmentWgsl,
+        },
+        primitive: { topology: 'triangle-list' },
+        depthStencil: {
+            depthWriteEnabled: true,
+            depthCompare: 'less',
         },
     };
 
-    // 第一个三角形渲染对象（前面）
-    const renderObject1: RenderObject = {
-        pipeline: program,
-        vertices: vertexArray.vertices,
-        draw: { __type__: 'DrawVertex', firstVertex: 0, vertexCount: 3 },
-    };
-
-    // 第二个三角形渲染对象（后面，用于遮挡查询）
-    const renderObject2: RenderObject = {
-        pipeline: program,
-        vertices: vertexArray.vertices,
-        draw: { __type__: 'DrawVertex', firstVertex: 3, vertexCount: 3 },
-    };
-
-    // 创建 WebGL 遮挡查询
-    const webglOcclusionQuery: OcclusionQuery = {
+    // 遮挡查询
+    const occlusionQuery: OcclusionQuery = {
         __type__: 'OcclusionQuery',
-        renderObjects: [renderObject2],
-        onQuery(result: number)
-        {
-            const resultElement = document.getElementById('webgl-query-result');
-            if (resultElement)
-            {
-                resultElement.innerHTML = `WebGL: 通过深度测试的样本数: ${result}`;
-            }
-        },
+        renderObjects: [],
+    } as any;
+
+    // 前景渲染对象（遮挡物）
+    const foregroundRenderObject: RenderObject = {
+        pipeline,
+        vertices: foregroundVertices,
+        draw: { __type__: 'DrawVertex', vertexCount: 3 },
     };
 
-    // 创建 WebGPU 遮挡查询
-    const webgpuOcclusionQuery: OcclusionQuery = {
-        __type__: 'OcclusionQuery',
-        renderObjects: [renderObject2],
-        onQuery(result: number)
-        {
-            const resultElement = document.getElementById('webgpu-query-result');
-            if (resultElement)
-            {
-                resultElement.innerHTML = `WebGPU: 通过深度测试的样本数: ${result}`;
-            }
-        },
-    };
+    // 背景渲染对象（被遮挡）- 添加遮挡查询
+    const backgroundRenderObject: RenderObject = {
+        pipeline,
+        vertices: backgroundVertices,
+        draw: { __type__: 'DrawVertex', vertexCount: 3 },
+        occlusionQuery,
+    } as any;
 
-    // WebGL 渲染通道
-    const webglRenderPass: RenderPass = {
+    // 渲染通道
+    const renderPass: RenderPass = {
         descriptor: {
-            colorAttachments: [{ clearValue: [0.0, 0.0, 0.0, 1.0], loadOp: 'clear' }],
-            depthStencilAttachment: { depthLoadOp: 'clear' },
+            colorAttachments: [{
+                clearValue: [0.0, 0.0, 0.0, 1.0],
+                loadOp: 'clear',
+            }],
+            depthStencilAttachment: {
+                depthClearValue: 1.0,
+                depthLoadOp: 'clear',
+            } as any,
         },
-        renderPassObjects: [renderObject1, webglOcclusionQuery],
+        renderPassObjects: [foregroundRenderObject, backgroundRenderObject],
     };
 
-    // WebGPU 渲染通道
-    const webgpuRenderPass: RenderPass = {
-        descriptor: {
-            colorAttachments: [{ clearValue: [0.0, 0.0, 0.0, 1.0], loadOp: 'clear' }],
-            depthStencilAttachment: { depthLoadOp: 'clear' },
-        },
-        renderPassObjects: [renderObject1, webgpuOcclusionQuery],
-    };
-
-    // WebGL 渲染提交
-    const webglSubmit: Submit = {
-        commandEncoders: [{
-            passEncoders: [webglRenderPass],
-        }],
-    };
-
-    // WebGPU 渲染提交
-    const webgpuSubmit: Submit = {
-        commandEncoders: [{
-            passEncoders: [webgpuRenderPass],
-        }],
+    // 渲染提交
+    const submit: Submit = {
+        commandEncoders: [
+            {
+                passEncoders: [renderPass],
+            },
+        ],
     };
 
     // 执行渲染
-    webgl.submit(webglSubmit);
-    webgpu.submit(webgpuSubmit);
+    webgpu.submit(submit);
 
-    // 第一帧后进行比较
-    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
+    // 注意：遮挡查询结果的读取需要在渲染后异步进行
+    // WebGPU 的遮挡查询结果需要通过 GPU 缓冲区读取
 });

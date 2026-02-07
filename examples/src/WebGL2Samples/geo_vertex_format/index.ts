@@ -1,16 +1,9 @@
 import { reactive } from '@feng3d/reactivity';
 import { RenderObject, RenderPass, RenderPipeline, Sampler, Submit, Texture, VertexAttributes } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { mat4, vec3 } from 'gl-matrix';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 import { HalfFloat } from './third-party/HalfFloatUtility';
 
-// 直接导入预生成的着色器文件（调试用）
-import fragmentGlsl from './shaders/fragment.glsl';
-import fragmentWgsl from './shaders/fragment.wgsl';
-import vertexGlsl from './shaders/vertex.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
 // 导入 TSL 着色器
 import { fragmentShader, vertexShader } from './shaders/shader';
 
@@ -29,25 +22,17 @@ function loadImage(url: string, onload: (img: HTMLImageElement) => void): HTMLIm
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    // 生成着色器代码（变量名必须与导入的相同，便于调试切换）
-    const vertexGlsl = vertexShader.toGLSL(2);
-    const fragmentGlsl = fragmentShader.toGLSL(2);
+    // 生成着色器代码
     const vertexWgsl = vertexShader.toWGSL({ convertDepth: true }); // 必须启用深度转换
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    webgpuCanvas.width = webgpuCanvas.clientWidth * devicePixelRatio;
-    webgpuCanvas.height = webgpuCanvas.clientHeight * devicePixelRatio;
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-    webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // -- 初始化几何数据
 
@@ -212,8 +197,8 @@ document.addEventListener('DOMContentLoaded', async () =>
 
         // -- 创建渲染管线
         const program: RenderPipeline = {
-            vertex: { glsl: vertexGlsl, wgsl: vertexWgsl },
-            fragment: { glsl: fragmentGlsl, wgsl: fragmentWgsl },
+            vertex: { wgsl: vertexWgsl },
+            fragment: { wgsl: fragmentWgsl },
             depthStencil: { depthCompare: 'less', depthWriteEnabled: true },
             primitive: { topology: 'triangle-list', cullFace: 'back' },
         };
@@ -244,9 +229,6 @@ document.addEventListener('DOMContentLoaded', async () =>
         // -- 渲染循环的旋转参数
         const orientation = [0.0, 0.0, 0.0];
 
-        // 记录首帧渲染状态
-        let firstFrameRendered = false;
-
         function render()
         {
             // 更新旋转
@@ -261,21 +243,13 @@ document.addEventListener('DOMContentLoaded', async () =>
 
             // 更新绑定资源
             reactive(ro.bindingResources).u_viewProj = { value: viewProj as Float32Array };
-            reactive(ro.bindingResources).s_tex2D = { texture, sampler };
+            reactive(ro.bindingResources).s_tex2D = { texture, sampler } as any;
 
             // 创建提交数据
             const submit: Submit = { commandEncoders: [{ passEncoders: [rp] }] };
 
             // 执行渲染
-            webgl.submit(submit);
             webgpu.submit(submit);
-
-            // 首帧渲染后执行比较
-            if (!firstFrameRendered)
-            {
-                firstFrameRendered = true;
-                autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
-            }
 
             requestAnimationFrame(render);
         }

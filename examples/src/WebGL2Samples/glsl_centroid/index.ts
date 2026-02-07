@@ -14,24 +14,8 @@
  */
 
 import { PassEncoder, RenderPass, RenderPassDescriptor, RenderPassObject, RenderPipeline, RenderObject, Sampler, Texture, VertexAttributes, Viewport } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { mat4, vec3 } from 'gl-matrix';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
-
-// 导入原始着色器（调试用，取消注释可切换到手动着色器）
-import renderVertGlsl from './shaders/render.vert.glsl';
-import renderFragGlsl from './shaders/render.frag.glsl';
-import renderCentroidVertGlsl from './shaders/render-centroid.vert.glsl';
-import renderCentroidFragGlsl from './shaders/render-centroid.frag.glsl';
-import splashVertGlsl from './shaders/splash.vert.glsl';
-import splashFragGlsl from './shaders/splash.frag.glsl';
-import renderVertWgsl from './shaders/render.vert.wgsl';
-import renderFragWgsl from './shaders/render.frag.wgsl';
-import renderCentroidVertWgsl from './shaders/render-centroid.vert.wgsl';
-import renderCentroidFragWgsl from './shaders/render-centroid.frag.wgsl';
-import splashVertWgsl from './shaders/splash.vert.wgsl';
-import splashFragWgsl from './shaders/splash.frag.wgsl';
 
 // 导入 TSL 着色器
 import {
@@ -67,37 +51,25 @@ const PROGRAM = {
 
 document.addEventListener('DOMContentLoaded', async () =>
 {
-    // TSL 生成着色器代码（变量名与导入的相同，便于调试切换）
-    // 调试时：注释下面的 TSL 生成代码，取消上面原始着色器导入的注释
-    const renderVertGlsl = renderVertexShader.toGLSL(2);
-    const renderFragGlsl = renderFragmentShader.toGLSL(2);
+    // TSL 生成着色器代码
     const renderVertWgsl = renderVertexShader.toWGSL();
     const renderFragWgsl = renderFragmentShader.toWGSL(renderVertexShader);
 
-    const renderCentroidVertGlsl = renderCentroidVertexShader.toGLSL(2);
-    const renderCentroidFragGlsl = renderCentroidFragmentShader.toGLSL(2);
     const renderCentroidVertWgsl = renderCentroidVertexShader.toWGSL();
     const renderCentroidFragWgsl = renderCentroidFragmentShader.toWGSL(renderCentroidVertexShader);
 
-    const splashVertGlsl = splashVertexShader.toGLSL(2);
-    const splashFragGlsl = splashFragmentShader.toGLSL(2);
     const splashVertWgsl = splashVertexShader.toWGSL();
     const splashFragWgsl = splashFragmentShader.toWGSL(splashVertexShader);
 
     // 初始化 WebGPU
-    const webgpuCanvas = document.getElementById('webgpu') as HTMLCanvasElement;
-    initCanvasSize(webgpuCanvas);
-    const webgpu = await new WebGPU({ canvasId: 'webgpu' }).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    initCanvasSize(webglCanvas);
-    const webgl = new WebGL({ canvasId: 'webgl', webGLcontextId: 'webgl2' });
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    initCanvasSize(canvas);
+    const webgpu = await new WebGPU({ canvasId: 'canvas' }).init();
 
     // 画布尺寸
     const canvasSize = {
-        x: webglCanvas.width,
-        y: webglCanvas.height,
+        x: canvas.width,
+        y: canvas.height,
     };
 
     // 视口设置（左右两边）
@@ -125,20 +97,20 @@ document.addEventListener('DOMContentLoaded', async () =>
     const programs: RenderPipeline[] = [
         // 普通渲染管线
         {
-            vertex: { glsl: renderVertGlsl, wgsl: renderVertWgsl },
-            fragment: { glsl: renderFragGlsl, wgsl: renderFragWgsl },
+            vertex: { wgsl: renderVertWgsl },
+            fragment: { wgsl: renderFragWgsl },
             primitive: { topology: 'triangle-list' },
         },
         // centroid 渲染管线
         {
-            vertex: { glsl: renderCentroidVertGlsl, wgsl: renderCentroidVertWgsl },
-            fragment: { glsl: renderCentroidFragGlsl, wgsl: renderCentroidFragWgsl },
+            vertex: { wgsl: renderCentroidVertWgsl },
+            fragment: { wgsl: renderCentroidFragWgsl },
             primitive: { topology: 'triangle-list' },
         },
         // 显示管线
         {
-            vertex: { glsl: splashVertGlsl, wgsl: splashVertWgsl },
-            fragment: { glsl: splashFragGlsl, wgsl: splashFragWgsl, targets: [{ blend: {} }] },
+            vertex: { wgsl: splashVertWgsl },
+            fragment: { wgsl: splashFragWgsl, targets: [{ blend: {} }] },
             primitive: { topology: 'triangle-list' },
         },
     ];
@@ -280,7 +252,7 @@ document.addEventListener('DOMContentLoaded', async () =>
             viewport: viewport[i],
             bindingResources: {
                 MVP: { value: mvp as Float32Array },
-                diffuse: { texture: textures[i], sampler: samplers[i] },
+                diffuse: { texture: textures[i], sampler: samplers[i] } as any,
             },
             draw: { __type__: 'DrawVertex', vertexCount: 6 },
         });
@@ -296,9 +268,5 @@ document.addEventListener('DOMContentLoaded', async () =>
 
     // 提交渲染
     const submit = { commandEncoders: [{ passEncoders }] };
-    webgl.submit(submit);
     webgpu.submit(submit);
-
-    // 第一帧后进行比较
-    autoCompareFirstFrame(webgl, webgpu, webglCanvas, webgpuCanvas, 0);
 });

@@ -196,29 +196,15 @@
 
         <div class="canvas-container">
             <div class="canvas-wrapper">
-                <canvas id="webgl"></canvas>
-                <div class="canvas-label">WebGL</div>
-            </div>
-            <div class="canvas-wrapper">
-                <canvas id="webgpu"></canvas>
-                <div class="canvas-label">WebGPU</div>
+                <canvas id="canvas"></canvas>
             </div>
         </div>
 
         <div class="info-section">
             <div class="info-panel">
-                <h2 class="info-title">比较结果</h2>
-                <div id="comparison-result" style="font-size: 14px;">
-                    <div style="margin-bottom: 8px; font-weight: bold;">比较中...</div>
-                    <div>等待渲染完成...</div>
-                </div>
-            </div>
-            <div class="info-panel">
                 <h2 class="info-title">关于示例</h2>
                 <ul class="info-list">
                     <li>使用 TSL (TypeScript Shader Language) 编写着色器</li>
-                    <li>同时支持 WebGL 和 WebGPU 渲染</li>
-                    <li>自动比较 WebGL 和 WebGPU 渲染结果</li>
                     <li>使用 2D 纹理数组（sampler2DArray）实现动画</li>
                     <li>通过 layer uniform 切换纹理层</li>
                     <li>支持非 2 的幂次方纹理尺寸（NPOT）</li>

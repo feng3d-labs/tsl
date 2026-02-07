@@ -1,14 +1,8 @@
 import { reactive } from '@feng3d/reactivity';
 import { RenderObject, RenderPassDescriptor, Sampler, Submit, Texture } from '@feng3d/render-api';
-import { WebGL } from '@feng3d/webgl';
 import { WebGPU } from '@feng3d/webgpu';
 import { mat4 } from 'gl-matrix';
-import { autoCompareFirstFrame } from '../../utils/frame-comparison';
 
-import vertexGlsl from './shaders/vertex.glsl';
-import fragmentGlsl from './shaders/fragment.glsl';
-import vertexWgsl from './shaders/vertex.wgsl';
-import fragmentWgsl from './shaders/fragment.wgsl';
 import { fragmentShader, vertexShader } from './shaders/shader';
 
 let cubeRotation = 0.0;
@@ -21,8 +15,6 @@ main();
 async function main()
 {
     // 使用 TSL 生成着色器代码
-    const vertexGlsl = vertexShader.toGLSL(2);
-    const fragmentGlsl = fragmentShader.toGLSL(2);
     const vertexWgsl = vertexShader.toWGSL();
     const fragmentWgsl = fragmentShader.toWGSL(vertexShader);
 
@@ -32,20 +24,12 @@ async function main()
     const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
 
     // 初始化 WebGPU
-    const canvas = document.getElementById('webgpu') as HTMLCanvasElement;
+    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
     canvas.width = canvas.clientWidth * devicePixelRatio;
     canvas.height = canvas.clientHeight * devicePixelRatio;
     const webgpu = await new WebGPU(
-        { canvasId: 'webgpu', configuration: { format: presentationFormat } },
+        { canvasId: 'canvas', configuration: { format: presentationFormat } },
     ).init();
-
-    // 初始化 WebGL
-    const webglCanvas = document.getElementById('webgl') as HTMLCanvasElement;
-    webglCanvas.width = webglCanvas.clientWidth * devicePixelRatio;
-    webglCanvas.height = webglCanvas.clientHeight * devicePixelRatio;
-    const webgl = new WebGL(
-        { canvasId: 'webgl', webGLcontextId: 'webgl2' },
-    );
 
     // Here's where we call the routine that builds all the
     // objects we'll be drawing.
@@ -59,11 +43,9 @@ async function main()
     const renderObject: RenderObject = {
         pipeline: {
             vertex: {
-                glsl: vertexGlsl,
                 wgsl: vertexWgsl,
             },
             fragment: {
-                glsl: fragmentGlsl,
                 wgsl: fragmentWgsl,
             },
             primitive: { topology: 'triangle-list' },
@@ -116,7 +98,6 @@ async function main()
     };
 
     let then = 0;
-    let frameCount = 0;
 
     // Draw the scene repeatedly
     function render()
@@ -132,14 +113,6 @@ async function main()
         reactive(renderObject.bindingResources).uModelViewMatrix = { value: modelViewMatrix as Float32Array };
 
         webgpu.submit(submit);
-        webgl.submit(submit);
-
-        // 第一帧后进行比较
-        if (frameCount === 0)
-        {
-            frameCount++;
-            autoCompareFirstFrame(webgl, webgpu, webglCanvas, canvas, 0);
-        }
 
         requestAnimationFrame(render);
     }

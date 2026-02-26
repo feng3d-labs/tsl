@@ -27,6 +27,12 @@ npm run test
 # 监听模式测试
 npm run test:watch
 
+# 运行单个测试文件
+npx vitest run path/to/test.test.ts
+
+# 运行特定模式的测试
+npx vitest run --grep "test name"
+
 # 代码检查
 npm run lint
 
@@ -86,6 +92,25 @@ src/
 1. 使用 TSL API 构建着色器 AST
 2. 调用 `shader.toWGSL()` 生成 WGSL 代码
 3. 将生成的 WGSL 传递给 WebGPU 渲染后端
+
+### 核心代码生成机制
+
+**ShaderValue 接口**：所有着色器值都实现 `IElement` 接口，包含 `toWGSL()` 和 `toGLSL()` 方法。
+
+**依赖自动分析**：
+- `analyzeDependencies` 自动遍历着色器 AST
+- 自动收集 attributes、uniforms、varyings
+- 自动分配 location 和 binding
+
+**着色器构建流程**：
+```
+用户代码 → ShaderValue 树 → analyzeDependencies → 代码生成
+```
+
+**关键文件**：
+- `src/core/IElement.ts` - 基础接口定义
+- `src/core/buildShader.ts` - 构建上下文管理
+- `src/core/analyzeDependencies.ts` - 依赖分析器
 
 ## 开发约定
 
@@ -258,6 +283,33 @@ claude plugin install superpowers@superpowers-marketplace
 | code-simplifier | `claude plugin install code-simplifier` | 代码简化与重构 |
 | typescript-lsp | `claude plugin install typescript-lsp` | TypeScript 语言服务 |
 | commit-commands | `claude plugin install commit-commands` | Git 提交工具（`/commit`） |
+
+## 调试技巧
+
+### 查看生成的着色器代码
+
+```typescript
+console.log(vertexShader.toWGSL());
+console.log(fragmentShader.toWGSL());
+```
+
+### 常见问题排查
+
+| 问题 | 可能原因 | 解决方法 |
+|------|---------|---------|
+| WGSL 编译失败 | 类型不匹配 | 检查向量/矩阵类型一致性 |
+| uniform 未生效 | 未传递数据 | 检查 bindingResources 配置 |
+| 属性未传递 | location 冲突 | 检查 attribute 声明顺序 |
+| 输出全黑 | 返回值未设置 | 检查 fragment 中的 return_ |
+
+### 开发模式调试
+
+```typescript
+// 开发时打印生成的代码
+const wgsl = vertexShader.toWGSL();
+console.log('=== Vertex Shader ===');
+console.log(wgsl);
+```
 
 ## 发布流程
 

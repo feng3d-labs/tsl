@@ -125,13 +125,74 @@ src/
 - `eslint` - 代码检查
 - `typedoc` - 文档生成
 
+## 工作流选择（自动判断）
+
+根据任务类型自动选择合适的工作流：
+
+### 工作流对照表
+
+| 任务特征 | 使用工作流 | 命令/触发 |
+|---------|-----------|----------|
+| 添加单个函数/运算符 | Superpowers | 直接描述需求 |
+| 修复 bug | Superpowers + systematic-debugging | 直接描述问题 |
+| 简单重构 | Superpowers | 直接描述需求 |
+| 大型功能（5+ 文件） | OpenSpec | `/opsx:propose` |
+| 架构变更 | OpenSpec | `/opsx:propose` |
+| 需要设计文档 | OpenSpec | `/opsx:propose` |
+| 新增子系统 | OpenSpec | `/opsx:propose` |
+
+### Superpowers 工作流
+
+```
+brainstorming → writing-plans → subagent-driven-development → code-review → finishing
+```
+
+**适用场景**：
+- 添加新的 WGSL 函数（如 `refract`、`faceForward`）
+- 修复代码生成问题
+- 优化现有实现
+- 补充测试
+
+**触发方式**：直接描述需求，Superpowers 技能会自动激活
+
+### OpenSpec 工作流
+
+```
+/opsx:propose → /opsx:apply → /opsx:archive
+```
+
+**适用场景**：
+- 完全移除 WebGL 支持
+- 添加 SPIR-V 代码生成
+- 重构核心代码生成流程
+- 新增着色器阶段支持（如 compute shader）
+
+**命令**：
+- `/opsx:propose <描述>` — 创建提案并生成 artifacts
+- `/opsx:apply` — 按任务清单实现
+- `/opsx:archive` — 归档变更
+- `/opsx:explore` — 需求不明确时探索
+
+### 自动判断规则
+
+**AI 助手在接收到任务时应先判断**：
+
+1. **任务规模**：涉及文件数量 > 5？→ OpenSpec
+2. **架构影响**：是否改变核心设计？→ OpenSpec
+3. **文档需求**：是否需要长期维护的设计文档？→ OpenSpec
+4. **以上皆否** → Superpowers
+
 ## 开发环境准备
 
 **首次打开项目时，Claude Code 必须主动检查以下工具和插件是否已安装。**
 
-### 必需：Superpowers 插件
+### 必需：工具和插件
 
 ```bash
+# OpenSpec CLI（大型任务使用）
+npm install -g openspec
+
+# Superpowers 插件（日常开发使用）
 claude plugin marketplace add obra/superpowers-marketplace
 claude plugin install superpowers@superpowers-marketplace
 ```

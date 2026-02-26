@@ -185,15 +185,13 @@
             left: 0;
         }
     </style>
-  <script type="module" crossorigin src="../../../assets/src/WebGL2Samples/glsl_centroid/index.html-DPUwdoPw.js"></script>
+  <script type="module" crossorigin src="../../../assets/src/WebGL2Samples/glsl_centroid/index.html-CeR02U53.js"></script>
   <link rel="modulepreload" crossorigin href="../../../assets/modulepreload-polyfill-B5Qt9EMX.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/builtins-C5GxhwDd.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/frame-comparison-CBkPASci.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/sampler2D-DSRZ_QT6.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/texture-D0-A-o9X.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/select-DnGDa-4t.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/mix-vZRoDtYO.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/mat4-Pkjqt0vg.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/builtins-gpH2uheF.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/sampler2D-B7sHcxQK.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/texture-BHISgHoC.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/mix-C-Cq8vJU.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/mat4-Dx1hmvJU.js">
   <link rel="modulepreload" crossorigin href="../../../assets/common-C8IKy_GC.js">
   <link rel="modulepreload" crossorigin href="../../../assets/mat4-Lq7FX_53.js">
   <link rel="modulepreload" crossorigin href="../../../assets/vec3-BLfYq55O.js">
@@ -208,28 +206,14 @@
 
         <div class="canvas-container">
             <div class="canvas-wrapper">
-                <canvas id="webgl"></canvas>
-                <div class="canvas-label">WebGL</div>
-            </div>
-            <div class="canvas-wrapper">
-                <canvas id="webgpu"></canvas>
-                <div class="canvas-label">WebGPU</div>
+                <canvas id="canvas"></canvas>
             </div>
         </div>
 
         <div class="info-section">
             <div class="info-panel">
-                <h2 class="info-title">比较结果</h2>
-                <div id="comparison-result" style="font-size: 14px;">
-                    <div style="margin-bottom: 8px; font-weight: bold;">比较中...</div>
-                    <div>等待渲染完成...</div>
-                </div>
-            </div>
-            <div class="info-panel">
                 <h2 class="info-title">关于示例</h2>
                 <ul class="info-list">
-                    <li>同时支持 WebGL 和 WebGPU 渲染</li>
-                    <li>自动比较 WebGL 和 WebGPU 渲染结果</li>
                     <li>左侧：普通插值（可能产生颜色错误）</li>
                     <li>右侧：centroid 插值（改进边缘质量）</li>
                     <li>使用 4x 多重采样抗锯齿</li>

@@ -185,14 +185,13 @@
             left: 0;
         }
     </style>
-  <script type="module" crossorigin src="../../../assets/src/WebGL2Samples/fbo_rtt_draw_buffers/index.html-DkgcKNY2.js"></script>
+  <script type="module" crossorigin src="../../../assets/src/WebGL2Samples/fbo_rtt_draw_buffers/index.html-Cxl2RJmt.js"></script>
   <link rel="modulepreload" crossorigin href="../../../assets/modulepreload-polyfill-B5Qt9EMX.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/builtins-C5GxhwDd.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/frame-comparison-CBkPASci.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/sampler2D-DSRZ_QT6.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/texture-D0-A-o9X.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/return-DhHkPme9.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/mix-vZRoDtYO.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/builtins-gpH2uheF.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/sampler2D-B7sHcxQK.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/texture-BHISgHoC.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/return-B809alsW.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/mix-C-Cq8vJU.js">
 </head>
 
 <body>
@@ -204,23 +203,11 @@
 
         <div class="canvas-container">
             <div class="canvas-wrapper">
-                <canvas id="webgl"></canvas>
-                <div class="canvas-label">WebGL</div>
-            </div>
-            <div class="canvas-wrapper">
-                <canvas id="webgpu"></canvas>
-                <div class="canvas-label">WebGPU</div>
+                <canvas id="canvas"></canvas>
             </div>
         </div>
 
         <div class="info-section">
-            <div class="info-panel">
-                <h2 class="info-title">比较结果</h2>
-                <div id="comparison-result" style="font-size: 14px;">
-                    <div style="margin-bottom: 8px; font-weight: bold;">比较中...</div>
-                    <div>等待渲染完成...</div>
-                </div>
-            </div>
             <div class="info-panel">
                 <h2 class="info-title">关于示例</h2>
                 <ul class="info-list">
@@ -228,7 +215,6 @@
                     <li>演示 MRT (Multiple Render Targets) 多目标渲染</li>
                     <li>渲染到两个颜色附件（红色和蓝色纹理）</li>
                     <li>使用纹理坐标 x 分量混合两个纹理</li>
-                    <li>同时支持 WebGL 和 WebGPU 渲染</li>
                 </ul>
             </div>
         </div>

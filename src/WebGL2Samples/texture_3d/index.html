@@ -185,15 +185,14 @@
             left: 0;
         }
     </style>
-  <script type="module" crossorigin src="../../../assets/src/WebGL2Samples/texture_3d/index.html-B_nTLP7Q.js"></script>
+  <script type="module" crossorigin src="../../../assets/src/WebGL2Samples/texture_3d/index.html-CIWVKq-Z.js"></script>
   <link rel="modulepreload" crossorigin href="../../../assets/modulepreload-polyfill-B5Qt9EMX.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/builtins-C5GxhwDd.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/frame-comparison-CBkPASci.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/builtins-gpH2uheF.js">
   <link rel="modulepreload" crossorigin href="../../../assets/common-C8IKy_GC.js">
   <link rel="modulepreload" crossorigin href="../../../assets/vec3-BLfYq55O.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/texture-D0-A-o9X.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/return-DhHkPme9.js">
-  <link rel="modulepreload" crossorigin href="../../../assets/mat4-Pkjqt0vg.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/texture-BHISgHoC.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/return-B809alsW.js">
+  <link rel="modulepreload" crossorigin href="../../../assets/mat4-Dx1hmvJU.js">
 </head>
 
 <body>
@@ -205,29 +204,15 @@
 
         <div class="canvas-container">
             <div class="canvas-wrapper">
-                <canvas id="webgl"></canvas>
-                <div class="canvas-label">WebGL</div>
-            </div>
-            <div class="canvas-wrapper">
-                <canvas id="webgpu"></canvas>
-                <div class="canvas-label">WebGPU</div>
+                <canvas id="canvas"></canvas>
             </div>
         </div>
 
         <div class="info-section">
             <div class="info-panel">
-                <h2 class="info-title">比较结果</h2>
-                <div id="comparison-result" style="font-size: 14px;">
-                    <div style="margin-bottom: 8px; font-weight: bold;">比较中...</div>
-                    <div>等待渲染完成...</div>
-                </div>
-            </div>
-            <div class="info-panel">
                 <h2 class="info-title">关于示例</h2>
                 <ul class="info-list">
                     <li>使用 TSL (TypeScript Shader Language) 编写着色器</li>
-                    <li>同时支持 WebGL 和 WebGPU 渲染</li>
-                    <li>自动比较 WebGL 和 WebGPU 渲染结果</li>
                     <li>使用 sampler3D 类型采样 3D 纹理</li>
                     <li>使用 simplex noise 算法生成 3D 噪声纹理</li>
                     <li>四个视口展示不同旋转角度（yaw、pitch、roll、组合）</li>

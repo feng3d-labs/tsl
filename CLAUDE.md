@@ -125,58 +125,9 @@ src/
 - `eslint` - 代码检查
 - `typedoc` - 文档生成
 
-## OpenSpec 工作流（必须遵守）
-
-**所有功能开发和 bug 修复都必须使用 OpenSpec 工作流**，确保每次变更有完整的提案、设计、任务记录。
-
-### 工作流程
-
-1. **`/opsx:propose <描述>`** — 创建变更提案，自动生成 proposal.md、design.md、tasks.md
-2. **`/opsx:apply`** — 按 tasks.md 逐步实现代码
-3. **`/opsx:archive`** — 归档变更记录
-
-### 辅助命令
-
-- **`/opsx:explore`** — 需求不明确时先进入探索模式讨论
-
-### 文档维护
-
-- 变更记录归档于 `openspec/changes/archive/` 目录
-- 每次变更包含：proposal.md（提案）、design.md（设计）、tasks.md（任务清单）
-- 变更 ID 格式：`YYYY-MM-DD-简短描述`
-
-## Superpowers 与 OpenSpec 协作规则
-
-本项目同时使用 Superpowers 插件和 OpenSpec 工作流，两者职责不同，按以下规则协作：
-
-### 职责划分
-
-- **OpenSpec** — 变更管理（提案、设计、任务追踪、归档）
-- **Superpowers** — 编码质量（TDD、代码审查、系统化调试）
-
-### 冲突避免规则
-
-1. **使用 `/opsx:propose` 时跳过 Brainstorming** — OpenSpec 的 propose 已包含需求探索、方案设计和任务分解
-2. **使用 `/opsx:apply` 实现代码时启用 TDD** — 在 OpenSpec 的 apply 阶段，遵循 TDD 规则
-3. **代码审查在实现完成后进行** — 在 `/opsx:archive` 之前执行代码审查流程
-4. **调试时使用 Superpowers 的系统化调试** — 遇到 bug 时使用 4 阶段根因分析
-
-### 简化流程
-
-```
-/opsx:propose → /opsx:apply（启用 TDD）→ 代码审查 → /opsx:archive
-```
-
 ## 开发环境准备
 
 **首次打开项目时，Claude Code 必须主动检查以下工具和插件是否已安装。**
-
-### 必需：OpenSpec CLI
-
-```bash
-npm install -g openspec
-openspec init
-```
 
 ### 必需：Superpowers 插件
 

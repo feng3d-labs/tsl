@@ -197,6 +197,8 @@ claude plugin marketplace add obra/superpowers-marketplace
 claude plugin install superpowers@superpowers-marketplace
 ```
 
+> **注意**：OpenSpec 的命令和技能已全局安装，每个项目只需配置 `openspec/config.yaml` 即可使用。
+
 ### 推荐：其他插件
 
 | 插件 | 安装命令 | 说明 |
